@@ -285,15 +285,24 @@ struct space : data::bind_tag {
     t = {n, i};
   }
 
+  template<class T>
+  using keep = std::conditional_t<std::is_base_of_v<space, T>, T, void>;
+
 private:
   tasks t{};
 };
 /// Single-core execution space.
-struct cpu : space {};
+struct cpu : space {
+  static constexpr processor proc = processor::loc;
+};
 /// GPU execution space.
-struct gpu : space {};
+struct gpu : space {
+  static constexpr processor proc = processor::toc;
+};
 /// OpenMP execution space.
-struct omp : space {};
+struct omp : space {
+  static constexpr processor proc = processor::omp;
+};
 
 template<processor>
 struct processor_space;
@@ -313,6 +322,30 @@ template<>
 struct processor_space<processor::mpi> : processor_space<processor::loc> {};
 template<processor P>
 using processor_space_t = typename processor_space<P>::type;
+
+// Find the (single) execution space among parameter types (or void):
+template<class T>
+struct processor_combine {
+  using type = T;
+  template<class U>
+  auto operator|(const processor_combine<U> c) const {
+    if constexpr(std::is_void_v<T>)
+      return c;
+    else {
+      static_assert(std::is_void_v<U> || std::is_same_v<T, U>,
+        "execution space types conflict");
+      return *this;
+    }
+  }
+};
+template<class>
+struct param_space;
+template<class... TT>
+struct param_space<std::tuple<TT...>> {
+  using type = typename decltype((
+    processor_combine<void>() | ... |
+    processor_combine<space::keep<std::decay_t<TT>>>()))::type;
+};
 
 struct on_t : data::convert_tag {};
 /// Placeholder argument that corresponds to an execution-\ref space task
@@ -364,9 +397,9 @@ struct partial : std::tuple<AA...> {
 ///   void func(/*...*/);
 ///   template<class F>
 ///   void task(F f) {f(/* ... */);}
-///   void client() {
+///   void client(scheduler &s) {
 ///     auto p = make_partial<func>(/*...*/);
-///     execute<task<decltype(p)>>(p);  // note explicit template argument
+///     s.execute<task<decltype(p)>>(p);  // note explicit template argument
 ///   }
 ///   \endcode
 ///

@@ -19,7 +19,7 @@ To use FleCSI, a ``runtime`` object must be configured and a *control policy* mu
 In the simplest case, both parts can be accomplished in one line; later examples will illustrate more advanced options.
 
 FleCSI executes the control policy after setting up the task execution backend.
-A simple control policy is supplied that calls a single function (object) given to it with no arguments and uses its return value as an ``int`` exit status.
+A simple control policy is supplied that calls a single function (object) given to it with a *scheduler* (used later for launching tasks) and uses its return value as an ``int`` exit status.
 
 This example demonstrates a minimal use of FleCSI that just executes an
 action to print out *Hello World*. Code for this example can be found in
@@ -287,7 +287,7 @@ Consider the main function for this example:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :start-after: // top_level_action
+  :start-after: // simulation
   :end-at: } // main
 
 The first output stream added is `std::clog`__.

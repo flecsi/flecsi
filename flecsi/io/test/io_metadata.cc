@@ -11,7 +11,7 @@
 using namespace flecsi;
 
 int
-index_topology() {
+index_topology(scheduler &) {
   UNIT() {
     using F = io::hdf5::file;
 

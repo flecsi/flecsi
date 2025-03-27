@@ -9,6 +9,8 @@ using namespace flecsi;
 
 void
 poisson::action::init_mesh(control_policy & cp) {
+  auto & s = cp.scheduler();
+
   flog(info) << "Initializing " << x_extents.value() << "x" << y_extents.value()
              << " mesh" << std::endl;
   flecsi::flog::flush();
@@ -21,5 +23,5 @@ poisson::action::init_mesh(control_policy & cp) {
   geometry[1] = geometry[0];
 
   cp.m.allocate(
-    mesh::mpi_coloring(flecsi::processes(), axis_extents), geometry);
+    s, mesh::mpi_coloring(s, flecsi::processes(), axis_extents), geometry);
 } // init_mesh

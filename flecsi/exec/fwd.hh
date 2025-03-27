@@ -9,6 +9,9 @@
 
 #include "flecsi/exec/task_attributes.hh"
 
+#include <optional>
+#include <utility>
+
 namespace flecsi {
 /// \addtogroup execution
 /// \{
@@ -57,6 +60,44 @@ auto
 execute(ARGS &&... args) {
   return reduce<TASK, void, ATTRIBUTES>(std::forward<ARGS>(args)...);
 } // execute
+
+struct runtime;
+
+/// Launches tasks according to their execution-space parameters.
+/// An instance is passed to control-model actions that accept it.
+/// \note MPI tasks cannot use this interface.
+struct scheduler {
+  explicit scheduler(flecsi::runtime & r) : r(r) {}
+  /// Immovable.
+  scheduler(scheduler &&) = delete;
+
+  /// Launch a reduction task.
+  /// \tparam R reduction operation
+  /// \return a \ref future providing the reduced return value
+  /// \see \c execute about parameter and argument types.
+  template<auto &, class R, class... AA>
+  auto reduce(AA &&...);
+  /// Launch a task.
+  template<auto & F, class... AA>
+  auto execute(AA &&... aa) {
+    return reduce<F, void>(std::forward<AA>(aa)...);
+  }
+  /// Execute a test task.
+  template<auto &, class... AA>
+  [[nodiscard]] int test(AA &&...);
+
+  // Will become a non-static member of runtime in 3.
+  static std::optional<scheduler> instance;
+
+  /// Get the runtime (which created this scheduler).
+  const flecsi::runtime & runtime() const {
+    return r;
+  }
+
+private:
+  flecsi::runtime & r;
+};
+inline std::optional<scheduler> scheduler::instance;
 
 namespace exec {
 // Learn from backend whether a trace is supported, active, and not skipped.

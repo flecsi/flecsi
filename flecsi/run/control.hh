@@ -5,6 +5,7 @@
 #define FLECSI_RUN_CONTROL_HH
 
 #include "flecsi/config.hh"
+#include "flecsi/exec/fwd.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/run/init.hh"
 #include "flecsi/run/types.hh"
@@ -66,6 +67,16 @@ struct control_base {
   template<class... TT>
   using list = util::types<TT...>;
 
+  void scheduler(flecsi::scheduler * s) {
+    this->s = s;
+  }
+  /// Get the basic scheduler for launching tasks.
+  /// The control model must have been executed by \c runtime::control.
+  flecsi::scheduler & scheduler() const {
+    flog_assert(s, "not available with direct invoke");
+    return *s;
+  }
+
   /*!
     Exception class for control points.
   */
@@ -74,6 +85,9 @@ struct control_base {
   };
 
   struct node_policy {};
+
+private:
+  flecsi::scheduler * s = nullptr;
 };
 
 #ifdef DOXYGEN
@@ -331,10 +345,11 @@ private:
   // complain differently about a non-empty node_policy (via a
   // deprecation warning and a static_assert, respectively).
   template<class... AA>
-  [[nodiscard]] static int do_invoke(AA &&... aa) {
+  [[nodiscard]] static int do_invoke(scheduler * s, AA &&... aa) {
     if constexpr(is_control_base_policy) {
       try {
         P pol(std::forward<AA>(aa)...);
+        pol.::flecsi::run::control_base::scheduler(s);
         return instance().run(&pol);
       }
       catch(control_base::exception e) {
@@ -345,6 +360,15 @@ private:
       static_assert(!sizeof...(aa), "arguments allowed only with control_base");
       return instance().run(nullptr);
     }
+  }
+  template<class... AA>
+  [[nodiscard]] static int invoke0(scheduler * s, AA &&... aa) {
+    static_assert(
+      is_control_base_policy, "control policy must inherit from control_base");
+    static_assert(std::is_same_v<typename policy_type::node_policy,
+                    control_base::node_policy>,
+      "control policy must not define node_policy");
+    return do_invoke(s, std::forward<AA>(aa)...);
   }
 
 public:
@@ -359,16 +383,23 @@ public:
     The control policy must inherit from \c control_base and
     must not define a \c node_policy,
     or the code will fail to compile.
+    \param s ultimately provided by \c runtime::control
     \return code from a thrown \c control_base::exception or 0
    */
   template<class... AA>
-  [[nodiscard]] static int invoke(AA &&... aa) {
-    static_assert(
-      is_control_base_policy, "control policy must inherit from control_base");
-    static_assert(std::is_same_v<typename policy_type::node_policy,
-                    control_base::node_policy>,
-      "control policy must not define node_policy");
-    return do_invoke(std::forward<AA>(aa)...);
+  [[nodiscard]] static int invoke(scheduler & s, AA &&... aa) {
+    return invoke0(&s, std::forward<AA>(aa)...);
+  }
+  /*!
+    Execute without a scheduler.
+    \deprecated Use the overload that accepts a \c scheduler or use \c
+      runtime::control.
+   */
+  template<class... AA>
+  [[deprecated(
+    "provide a scheduler or use runtime::control")]] [[nodiscard]] static int
+  invoke(AA &&... aa) {
+    return invoke0(nullptr, std::forward<AA>(aa)...);
   }
 
   /// Perform the same operation as \c #invoke with no arguments.
@@ -379,7 +410,7 @@ public:
   ///   bitwise or of return values of executed actions
   /// \deprecated Call \c #invoke directly or use \c runtime::control.
   [[deprecated("use invoke")]] [[nodiscard]] static int execute() {
-    return do_invoke();
+    return do_invoke(nullptr);
   }
 
   /*!
@@ -428,14 +459,16 @@ struct call_policy : control_base {
   enum control_points_enum { single };
   using control_points = list<point<single>>;
 
-  template<class F>
-  explicit call_policy(F && f) : f(std::forward<F>(f)) {}
+  explicit call_policy(std::function<int(flecsi::scheduler &)> f)
+    : f(std::move(f)) {}
+  explicit call_policy(std::function<int()> f)
+    : f([f = std::move(f)](flecsi::scheduler &) { return f(); }) {}
   int operator()() const {
-    return f();
+    return f(scheduler());
   }
 
 private:
-  std::function<int()> f;
+  std::function<int(flecsi::scheduler &)> f;
 };
 
 inline const char *
@@ -445,7 +478,7 @@ operator*(call_policy::control_points_enum) {
 
 /// A trivial control model that calls a single function.
 /// Its control policy object can be constructed from any callable with the
-/// signature `int()`.
+/// signature `int(flecsi::scheduler&)` or (\b deprecated) `int()`.
 using call = control<call_policy>;
 
 /// \}

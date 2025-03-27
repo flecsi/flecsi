@@ -14,6 +14,7 @@
 
 namespace flecsi::exec {
 struct prolog_base {
+  explicit prolog_base(scheduler & s) : sched(&s) {}
   ~prolog_base() {
     for(auto & epilog : epilog_wrappers)
       epilog();
@@ -23,13 +24,15 @@ protected:
   template<Privileges P, class R>
   void add_copy(const R & r) {
     if(const data::copy_plan * const p =
-         r.get_region().template ghost_copy<P>(r))
+         r.get_region().template ghost_copy<P>(*sched, r))
       copies[p].push_back(r.fid());
   }
   inline void issue_copy() const {
     for(const auto & [p, ff] : copies)
       p->issue_copy(ff);
   }
+
+  scheduler * sched;
   std::vector<std::function<void()>> epilog_wrappers;
 
 private:
@@ -58,8 +61,8 @@ namespace flecsi::exec {
 template<processor Proc>
 struct task_prologue : prolog_base {
 protected:
-  /// Default constructible.
-  task_prologue();
+  /// Constructible as is \c prolog_base.
+  explicit task_prologue(scheduler &);
 
   /// Send a raw field reference to a raw accessor.
   template<typename T, Privileges P, class Topo, typename Topo::index_space S>
@@ -80,7 +83,7 @@ struct prolog : task_prologue<Proc> {
   // that the arguments have been moved from (which doesn't matter for the
   // relevant types).
   template<class P, class... AA>
-  prolog(P & p, AA &... aa) {
+  prolog(P & p, AA &... aa) : task_prologue<Proc>(*scheduler::instance) {
     util::annotation::rguard<util::annotation::execute_task_prolog> ann;
     std::apply([&](auto &... pp) { (visit(pp, aa), ...); }, p);
     this->issue_copy();

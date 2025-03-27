@@ -4,6 +4,7 @@
 #ifndef FLECSI_RUNTIME_HH
 #define FLECSI_RUNTIME_HH
 
+#include "flecsi/exec/fwd.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/run/control.hh"
 #include "flecsi/run/options.hh"
@@ -34,10 +35,12 @@ struct runtime {
     auto & r = run::context::ctx;
     flog_assert(!r, "runtime already initialized");
     r.emplace(c);
+    scheduler::instance.emplace(*this);
   }
   /// Immovable.
   runtime(runtime &&) = delete;
   ~runtime() {
+    scheduler::instance.reset();
     run::context::ctx.reset();
   }
 
@@ -48,7 +51,9 @@ struct runtime {
   template<class C, class... AA>
   int control(AA &&... aa) {
     auto & ctx = run::context::instance();
-    return ctx.start([&] { return C::invoke(std::forward<AA>(aa)...); }, true);
+    return ctx.start(
+      [&] { return C::invoke(*scheduler::instance, std::forward<AA>(aa)...); },
+      true);
   }
   /// \deprecated Use a non-\c const \c runtime.
   template<class C, class... AA>

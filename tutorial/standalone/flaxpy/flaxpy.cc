@@ -103,9 +103,10 @@ initialize_vectors_task(one_field::accessor<flecsi::wo> x_acc,
 // Implement an action for the initialize control point.
 void
 initialize_action(flaxpy::control_policy & policy) {
+  auto & sch = policy.scheduler();
   // Specify one color per process.
   policy.dist_vector_slot.allocate(
-    flaxpy::dist_vector::mpi_coloring(flecsi::processes()));
+    sch, flaxpy::dist_vector::mpi_coloring(sch, flecsi::processes()));
   flecsi::execute<initialize_vectors_task, flecsi::default_accelerator>(
     x_field(policy.dist_vector_slot), y_field(policy.dist_vector_slot));
 }
@@ -114,7 +115,7 @@ initialize_action(flaxpy::control_policy & policy) {
 void
 mul_add_task(double a,
   one_field::accessor<flecsi::ro> x_acc,
-  one_field::accessor<flecsi::rw> y_acc) {
+  one_field::accessor<flecsi::rw> y_acc) noexcept {
   std::size_t num_local_elts = x_acc.span().size();
   for(std::size_t i = 0; i < num_local_elts; ++i)
     y_acc[i] += a * x_acc[i];
@@ -124,7 +125,7 @@ mul_add_task(double a,
 void
 mul_add_action(flaxpy::control_policy & policy) {
   const double a = 12.34; // Arbitrary scalar value to multiply
-  flecsi::execute<mul_add_task>(
+  policy.scheduler().execute<mul_add_task>(
     a, x_field(policy.dist_vector_slot), y_field(policy.dist_vector_slot));
 }
 

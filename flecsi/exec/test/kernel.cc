@@ -15,7 +15,7 @@ modify(intN::accessor<wo> a) {
 }
 
 int
-check(intN::accessor<ro> a) {
+check(intN::accessor<ro> a) noexcept {
   UNIT() {
     for(auto i : util::span(*a)) {
       EXPECT_EQ(i, 3);
@@ -31,7 +31,7 @@ modify_policy(intN::accessor<wo> a) {
 }
 
 int
-check_policy(intN::accessor<ro> a) {
+check_policy(intN::accessor<ro> a) noexcept {
   UNIT() {
     for(auto i : util::span(*a)) {
       EXPECT_EQ(i, 3);
@@ -98,7 +98,7 @@ mdrange_init(intN::accessor<wo> a) {
 }
 
 int
-check_mdrange(intN::accessor<ro> a) {
+check_mdrange(intN::accessor<ro> a) noexcept {
   UNIT() {
     for(auto i : util::span(*a)) {
       EXPECT_EQ(i, 3);
@@ -150,15 +150,15 @@ reduce_mdrange_vec(intN::accessor<rw> a) {
 }
 
 int
-kernel_driver() {
+kernel_driver(scheduler & s) {
   UNIT() {
     const auto ar = array_field(process_topology);
     execute<modify, default_accelerator>(ar);
-    EXPECT_EQ(test<check>(ar), 0);
+    EXPECT_EQ(s.test<check>(ar), 0);
     execute<modify_policy, default_accelerator>(ar);
-    EXPECT_EQ(test<check_policy>(ar), 0);
+    EXPECT_EQ(s.test<check_policy>(ar), 0);
     execute<mdrange_init, default_accelerator>(ar);
-    EXPECT_EQ((test<check_mdrange>(ar)), 0);
+    EXPECT_EQ((s.test<check_mdrange>(ar)), 0);
     EXPECT_EQ((test<reduce_vec, default_accelerator>(ar)), 0);
     EXPECT_EQ((test<reduce_mdrange_vec, default_accelerator>(ar)), 0);
     execute<modify_bound, default_accelerator>(ar);

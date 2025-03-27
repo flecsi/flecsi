@@ -95,7 +95,7 @@ struct sph_ntree_t
   // Compute the size of the domain: reduction on maximum and minimum entities
   // coordinates
   static void range_task(sph_ntree_t::accessor<flecsi::ro, flecsi::na> ts,
-    flecsi::field<range_t>::reduction<minmax> red) {
+    flecsi::field<range_t>::reduction<minmax> red) noexcept {
     range_t r = {ts.e_i[0].coordinates, ts.e_i[0].coordinates};
     for(auto & e : ts.e_i.span()) {
       for(unsigned int d = 0; d < dimension; ++d) {
@@ -110,13 +110,14 @@ struct sph_ntree_t
   // The keys are cnmputed using the domain (min/max coordinates) and the
   // coordinates of the entity.
   static void keys_task(sph_ntree_t::accessor<flecsi::rw, flecsi::wo> ts,
-    flecsi::field<range_t>::accessor<flecsi::ro> r) {
+    flecsi::field<range_t>::accessor<flecsi::ro> r) noexcept {
     for(std::size_t e = 0; e < ts.e_i.span().size(); ++e) {
       ts.e_keys[e] = key_t(r[0], ts.e_i[e].coordinates);
     }
   }
 
-  static void init_reduction(flecsi::field<range_t>::accessor<flecsi::wo> r) {
+  static void init_reduction(
+    flecsi::field<range_t>::accessor<flecsi::wo> r) noexcept {
     r[0] = minmax::identity<range_t>;
   }
 
@@ -142,27 +143,29 @@ struct sph_ntree_t
 
   // Compute the range of the domain, the keys for each entities and generate
   // the N-Tree data structure
-  static void generate_ntree(flecsi::data::topology_slot<sph_ntree_t> & ts) {
+  static void generate_ntree(flecsi::scheduler & s,
+    flecsi::data::topology_slot<sph_ntree_t> & ts) {
     // Initialize key values: compute range and keys
     {
       flecsi::topo::global::slot red;
-      red.allocate(1);
+      red.allocate(s, 1);
       auto r = range_reduction_f(red);
-      flecsi::execute<init_reduction>(r);
-      flecsi::execute<range_task>(ts, r);
-      flecsi::execute<keys_task>(ts, r);
+      s.execute<init_reduction>(r);
+      s.execute<range_task>(ts, r);
+      s.execute<keys_task>(ts, r);
     }
 
-    ts->make_tree(ts);
-    flecsi::execute<compute_centroid<true>>(ts);
-    flecsi::execute<compute_centroid<false>>(ts);
-    ts->share_ghosts(ts);
+    ts->make_tree(s, ts);
+    s.execute<compute_centroid<true>>(ts);
+    s.execute<compute_centroid<false>>(ts);
+    ts->share_ghosts(s, ts);
   } // generate_ntree
 
-  static void initialize(flecsi::data::topology_slot<sph_ntree_t> & ts,
+  static void initialize(flecsi::scheduler & s,
+    flecsi::data::topology_slot<sph_ntree_t> & ts,
     const coloring & c,
     flecsi::util::id nents) {
-    auto lm_ts = flecsi::data::launch::make(ts);
+    auto lm_ts = flecsi::data::launch::make(s, ts);
     const auto ours = flecsi::util::equal_map(
       c.nparts_, flecsi::processes())[flecsi::process()];
     std::vector<flecsi::util::id> offsets;
@@ -175,16 +178,18 @@ struct sph_ntree_t
     flecsi::execute<init_fields, flecsi::mpi>(lm_ts, nents, offsets);
   }
 
-  static void build_ntree(flecsi::data::topology_slot<sph_ntree_t> & ts) {
-    generate_ntree(ts);
+  static void build_ntree(flecsi::scheduler & s,
+    flecsi::data::topology_slot<sph_ntree_t> & ts) {
+    generate_ntree(s, ts);
   }
 
   // Reset and recreate the N-Tree data structure following a change in position
   // of the entities
-  static void sph_reset(flecsi::data::topology_slot<sph_ntree_t> & ts) {
+  static void sph_reset(flecsi::scheduler & s,
+    flecsi::data::topology_slot<sph_ntree_t> & ts) {
     // Reset the data structure
-    core::reset(ts);
-    generate_ntree(ts);
+    core::reset(s, ts);
+    generate_ntree(s, ts);
   }
 
   // N-Tree coloring
@@ -204,7 +209,7 @@ struct sph_ntree_t
   // the whole tree information
   template<bool local = false>
   static void compute_centroid(
-    sph_ntree_t::accessor<flecsi::rw, flecsi::ro> t) {
+    sph_ntree_t::accessor<flecsi::rw, flecsi::ro> t) noexcept {
     // DFS traversal, reverse preorder, access the lowest nodes first
     for(auto n_idx : t.dfs<ttype_t::reverse_preorder, local>()) {
       // Get entities and nodes under this node

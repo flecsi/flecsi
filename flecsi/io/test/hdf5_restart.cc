@@ -20,7 +20,7 @@ const field<std::size_t>::definition<mesh1d> m_field_s;
 const field<int, ragged>::definition<mesh1d> m_field_r1, m_field_r2;
 
 void
-allocate(topo::resize::Field::accessor<wo> a) {
+allocate(topo::resize::Field::accessor<wo> a) noexcept {
   a = 64;
 }
 
@@ -32,7 +32,7 @@ init(exec::cpu s,
   field<int>::accessor<wo, na> mfi,
   field<std::size_t>::accessor<wo, na> mfs,
   field<int, ragged>::mutator<wo, na> mfr1,
-  field<int, ragged>::mutator<wo, na> mfr2) {
+  field<int, ragged>::mutator<wo, na> mfr2) noexcept {
   for(auto i : m.axis<ax::x_axis>().layout.logical()) {
     double val = 100. * s.launch().index + (int)i;
     mf1[i] = val;
@@ -59,7 +59,7 @@ clear(mesh1d::accessor<ro> m,
   field<int>::accessor<wo, na> mfi,
   field<std::size_t>::accessor<wo, na> mfs,
   field<int, ragged>::accessor<rw, na> mfr1,
-  field<int, ragged>::accessor<rw, na> mfr2) {
+  field<int, ragged>::accessor<rw, na> mfr2) noexcept {
   for(auto i : m.axis<ax::x_axis>().layout.logical()) {
     mf1[i] = 0.;
     mf2[i] = 0.;
@@ -84,7 +84,7 @@ check(exec::cpu s,
   field<int>::accessor<ro, na> mfi,
   field<std::size_t>::accessor<ro, na> mfs,
   field<int, ragged>::accessor<ro, na> mfr1,
-  field<int, ragged>::accessor<ro, na> mfr2) {
+  field<int, ragged>::accessor<ro, na> mfr2) noexcept {
   UNIT("TASK") {
     for(auto i : m.axis<ax::x_axis>().layout.logical()) {
       double val = 100. * s.launch().index + (int)i;
@@ -108,7 +108,7 @@ check(exec::cpu s,
 
 namespace {
 int
-restart_driver() {
+restart_driver(scheduler & s) {
   UNIT() {
     mesh1d::slot m;
 
@@ -117,20 +117,20 @@ restart_driver() {
       Color colors{4};
       mesh1d::index_definition idef;
       idef.axes = mesh1d::base::make_axes(colors, indices);
-      m.allocate(mesh1d::mpi_coloring(idef));
+      m.allocate(s, mesh1d::mpi_coloring(s, idef));
       run::context::instance().add_topology(m);
     }
 
-    const auto check_attach = [&m](bool Attach) {
+    const auto check_attach = [&](bool Attach) {
       UNIT() {
         auto & mr = m_field_r1(m).get_elements();
         mr.growth = {0, 0, 0.25, 0.5, 1};
-        execute<allocate>(mr.sizes());
+        s.execute<allocate>(mr.sizes());
         // TODO:  figure out how to resize to the right size on a restart
         mr.resize();
         auto & mr2 = m_field_r2(m).get_elements();
         mr2.growth = {0, 0, 0.25, 0.5, 1};
-        execute<allocate>(mr2.sizes());
+        s.execute<allocate>(mr2.sizes());
         mr2.resize();
 
         auto mf1 = m_field_1(m);
@@ -140,7 +140,7 @@ restart_driver() {
         auto mfr1 = m_field_r1(m);
         auto mfr2 = m_field_r2(m);
 
-        execute<init>(exec::on, m, mf1, mf2, mfi, mfs, mfr1, mfr2);
+        s.execute<init>(exec::on, m, mf1, mf2, mfi, mfs, mfr1, mfr2);
 
         // Legion backend doesn't support N-to-M yet - use 1 rank/file
         // MPI backend supports N-to-M restarts - use 2 ranks/file
@@ -149,10 +149,11 @@ restart_driver() {
           std::string{"hdf5_restart"} + (Attach ? "_w" : "_wo") + ".dat";
         iif.checkpoint_all_fields(filename, Attach);
 
-        execute<clear>(m, mf1, mf2, mfi, mfs, mfr1, mfr2);
+        s.execute<clear>(m, mf1, mf2, mfi, mfs, mfr1, mfr2);
         iif.recover_all_fields(filename, Attach);
 
-        EXPECT_EQ(test<check>(exec::on, m, mf1, mf2, mfi, mfs, mfr1, mfr2), 0);
+        EXPECT_EQ(
+          s.test<check>(exec::on, m, mf1, mf2, mfi, mfs, mfr1, mfr2), 0);
       };
     };
 

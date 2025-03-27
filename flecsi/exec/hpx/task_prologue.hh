@@ -32,6 +32,8 @@ struct global_base;
 namespace exec {
 
 struct task_prologue_base : prolog_base {
+  using prolog_base::prolog_base;
+
 protected:
   template<typename R>
   void visit(future<R> &, future<R> & f) {

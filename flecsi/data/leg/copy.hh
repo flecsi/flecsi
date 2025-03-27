@@ -23,12 +23,12 @@ inline const used::Field::definition<used> used::field;
 
 // Produces rectangles from sizes.
 struct with_used {
-  explicit with_used(Color n) : rects(n) {}
+  explicit with_used(Color n) : rects(*scheduler::instance, n) {}
 
   // Convert a prefixes_base::Field into a used::Field.
   template<class F>
   const data::partition & convert(F f) {
-    execute<extend>(exec::on, f, used::field(rects));
+    scheduler::instance->execute<extend>(exec::on, f, used::field(rects));
     return rects;
   }
 
@@ -37,7 +37,7 @@ struct with_used {
 private:
   static void extend(exec::cpu,
     prefixes_base::Field::accessor<ro>,
-    used::Field::accessor<wo>);
+    used::Field::accessor<wo>) noexcept;
 
   used::core rects;
 };

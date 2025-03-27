@@ -39,12 +39,13 @@ struct copy_plan {
     typename P::index_space S = P::default_space(),
     class D,
     class F>
-  copy_plan(C<P> & t,
+  copy_plan(scheduler & s,
+    C<P> & t,
     const Sizes & ndests,
     D && dests, // function of a field reference for intervals
     F && src, // similarly for source points
     util::constant<S> = {})
-    : dest_ptrs_(ndests),
+    : dest_ptrs_(s, ndests),
       // In this first case we use a subtopology to create the
       // destination partition which supposed to be contiguous
       dest_(t.template get_region<S>(),
@@ -170,13 +171,13 @@ protected:
 
   static void set_dests(exec::cpu s,
     field<data::intervals::Value>::accessor<wo> a,
-    const Intervals & v) {
+    const Intervals & v) noexcept {
     assert(a.span().size() == 1);
     const auto i = s.launch().index;
     a.span().front() = data::intervals::make(v[i], i);
   }
   static void set_ptrs(field<copy_engine::Point>::accessor<wo, wo> a,
-    const Points & v) {
+    const Points & v) noexcept {
     auto & v1 = v[run::context::instance().color()];
     const auto n = v1.size();
     // Our ghosts are always a suffix:
@@ -189,8 +190,8 @@ template<class P>
 struct buffers_category : buffers_base, topo::array_category<P> {
   using buffers_base::coloring; // to override that from array_category
 
-  explicit buffers_category(const coloring & c)
-    : buffers_category(c, [&c] {
+  explicit buffers_category(scheduler & s, const coloring & c)
+    : buffers_category(s, c, [&c] {
         Points ret(c.size());
         Color i = 0;
         for(auto & s : c) {
@@ -226,15 +227,15 @@ struct buffers_category : buffers_base, topo::array_category<P> {
    arguments.
   */
   template<auto & F, auto & G, class... AA>
-  void xfer(AA &&... aa) {
-    execute<F>(aa..., **this);
-    while(reduce<G, exec::fold::max>(aa..., **this).get())
+  void xfer(scheduler & s, AA &&... aa) {
+    s.execute<F>(aa..., **this);
+    while(s.reduce<G, exec::fold::max>(aa..., **this).get())
       ;
   }
 
   // Data is actually moved by ordinary ghost copies for buffer accessors:
   template<class R>
-  [[nodiscard]] const copy_plan * ghost_copy(const R &) {
+  [[nodiscard]] const copy_plan * ghost_copy(scheduler &, const R &) {
     return &cp;
   }
 
@@ -248,16 +249,18 @@ private:
    @param recv It has the actual source coordinates (color and source-local
    index) for each buffer to be received.
   */
-  buffers_category(const coloring & c, const Points & recv)
-    : topo::array_category<P>([&] {
-        topo::array_base::coloring ret;
-        ret.reserve(c.size());
-        auto * p = recv.data();
-        for(auto & s : c)
-          ret.push_back(s.size() + p++->size());
-        return ret;
-      }()),
+  buffers_category(scheduler & s, const coloring & c, const Points & recv)
+    : topo::array_category<P>(s,
+        [&] {
+          topo::array_base::coloring ret;
+          ret.reserve(c.size());
+          auto * p = recv.data();
+          for(auto & s : c)
+            ret.push_back(s.size() + p++->size());
+          return ret;
+        }()),
       cp(
+        s,
         *this,
         copy_plan::Sizes(c.size(), 1),
         [&](auto f) {
@@ -266,9 +269,9 @@ private:
           auto * p = recv.data();
           for(auto & s : c)
             ret.push_back({s.size(), s.size() + p++->size()});
-          execute<set_dests>(exec::on, f, ret);
+          s.execute<set_dests>(exec::on, f, ret);
         },
-        [&](auto f) { execute<set_ptrs>(f, recv); }) {}
+        [&](auto f) { s.execute<set_ptrs>(f, recv); }) {}
 
   copy_plan cp;
 };

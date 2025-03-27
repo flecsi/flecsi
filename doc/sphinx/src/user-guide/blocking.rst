@@ -28,13 +28,13 @@ While an action is blocked, no further tasks can be launched and execution resou
   do {
     auto g = t.make_guard();    // turn tracing on for enclosing do loop
     for(std::size_t i{0}; i < sub; ++i) {
-      execute<task::red>(m, ud(m), fd(m));
-      execute<task::black>(m, ud(m), fd(m));
+      s.execute<task::red>(m, ud(m), fd(m));
+      s.execute<task::black>(m, ud(m), fd(m));
     }
     ita += sub;
 
-   execute<task::discrete_operator>(m, ud(m), Aud(m));
-   auto residual = reduce<task::diff, exec::fold::sum>(m, fd(m), Aud(m));
+   s.execute<task::discrete_operator>(m, ud(m), Aud(m));
+   auto residual = s.reduce<task::diff, exec::fold::sum>(m, fd(m), Aud(m));
    err = std::sqrt(residual.get());
    flog(info) << "residual: " << err << " (" << ita << " iterations)"
               << std::endl;
@@ -64,14 +64,14 @@ a task is correct as it allows the runtime to continue with other tasks while
   do {
     auto g = t.make_guard();    // turn tracing on for enclosing do loop
     for(std::size_t i{0}; i < sub; ++i) {
-      execute<task::red>(m, ud(m), fd(m));
-      execute<task::black>(m, ud(m), fd(m));
+      s.execute<task::red>(m, ud(m), fd(m));
+      s.execute<task::black>(m, ud(m), fd(m));
     }
     ita += sub;
 
-    execute<task::discrete_operator>(m, ud(m), Aud(m));
-    auto residual = reduce<task::diff, exec::fold::sum>(m, fd(m), Aud(m));
-    execute<task::print_residual>(residual, ita+sub);
+    s.execute<task::discrete_operator>(m, ud(m), Aud(m));
+    auto residual = s.reduce<task::diff, exec::fold::sum>(m, fd(m), Aud(m));
+    s.execute<task::print_residual>(residual, ita+sub);
 
   } while(ita < max_iterations.value());
 

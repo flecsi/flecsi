@@ -12,7 +12,7 @@ using namespace flecsi;
 const field<double>::definition<canon, canon::cells> pressure;
 
 void
-init(canon::accessor<ro> t, field<double>::accessor<wo> p) {
+init(canon::accessor<ro> t, field<double>::accessor<wo> p) noexcept {
   std::size_t off{0};
   for(const auto c : t.cells()) {
     p[c] = (off++) * 2.0;
@@ -41,7 +41,7 @@ reduce2(canon::accessor<ro> t, field<double>::accessor<ro> p) {
 } // reduce2
 
 void
-print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
+print(canon::accessor<ro> t, field<double>::accessor<ro> p) noexcept {
   std::size_t off{0};
   for(auto c : t.cells()) {
     flog(info) << "cell " << off++ << " has pressure " << p[c] << std::endl;
@@ -49,17 +49,19 @@ print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
 } // print
 
 void
-advance(control_policy &) {
+advance(control_policy & p) {
+  auto & s = p.scheduler();
+
   canon::slot canonical;
-  canonical.allocate(canon::mpi_coloring("test.txt"));
+  canonical.allocate(s, canon::mpi_coloring(s, "test.txt"));
 
   auto pf = pressure(canonical);
 
   // cpu task, default
-  execute<init>(canonical, pf);
+  s.execute<init>(canonical, pf);
   execute<reduce1, default_accelerator>(canonical, pf);
   execute<reduce2, default_accelerator>(canonical, pf);
   // cpu_task
-  execute<print>(canonical, pf);
+  s.execute<print>(canonical, pf);
 }
 control::action<advance, cp::advance> advance_action;

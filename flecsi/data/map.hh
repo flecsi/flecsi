@@ -62,8 +62,8 @@ gather(Color u, Color n) {
 }
 
 struct claims { // to know the colors for each multi<> component
-  claims(const borrow::Claims & c) : clm(c.size()) {
-    execute<fill>(exec::on, topo::claims::field(clm), c);
+  claims(scheduler & s, const borrow::Claims & c) : clm(s, c.size()) {
+    s.execute<fill>(exec::on, topo::claims::field(clm), c);
   }
 
   topo::claims::core clm;
@@ -71,7 +71,7 @@ struct claims { // to know the colors for each multi<> component
 private:
   static void fill(exec::cpu s,
     topo::claims::Field::accessor<wo> a,
-    const borrow::Claims & c) {
+    const borrow::Claims & c) noexcept {
     a = c[s.launch().index];
   }
 };
@@ -84,7 +84,7 @@ template<class P>
 struct mapping : convert_tag {
   using Borrow = topo::borrow<P>;
 
-  mapping(typename P::core & t, const Claims & clm) {
+  mapping(scheduler & s, typename P::core & t, const Claims & clm) {
     // Transpose clm for the data::borrow objects.
     // There is at least one round to hold metadata.
     bool more = true;
@@ -98,7 +98,7 @@ struct mapping : convert_tag {
         if(i + 1 < n)
           more = true;
       }
-      rnd.emplace_back(t, std::move(c), rnd.empty());
+      rnd.emplace_back(s, t, std::move(c), rnd.empty());
     }
   }
 
@@ -132,9 +132,9 @@ struct mapping : convert_tag {
 private:
   // Owns a set of claims for potentially several (nested) borrow topologies.
   struct round : claims {
-    round(typename P::core & t, borrow::Claims c, bool first)
-      : claims(c), proj(std::move(c)) {
-      b.allocate({&t, &proj, first});
+    round(scheduler & s, typename P::core & t, borrow::Claims c, bool first)
+      : claims(s, c), proj(std::move(c)) {
+      b.allocate(s, {&t, &proj, first});
     }
     round(round &&) = delete; // address stability
 
@@ -152,21 +152,33 @@ mapping(T &, const Claims &) -> mapping<topo::policy_t<T>>;
 
 template<class T>
 mapping<topo::policy_t<T>>
-make(T & t) { // convenience for subtopology initialization
-  return {t, block(t.colors(), processes())};
+make(scheduler & s, T & t) { // convenience for subtopology initialization
+  return {s, t, block(t.colors(), processes())};
 }
 /// Create a \c mapping.
 template<class P>
 mapping<P>
+make(scheduler & s, topology_slot<P> & t, const Claims & c) {
+  return {s, t.get(), c};
+}
+/// \deprecated Pass a \c scheduler.
+template<class P>
+[[deprecated("pass a scheduler")]] mapping<P>
 make(topology_slot<P> & t, const Claims & c) {
-  return {t.get(), c};
+  return make(*scheduler::instance, t, c);
 }
 /// Create a \c mapping for initialization using an MPI task.
 /// The \c Claims are constructed using \link block() `block`\endlink.
 template<class P>
 mapping<P>
+make(scheduler & s, topology_slot<P> & t) {
+  return make(s, t.get());
+}
+/// \deprecated Pass a \c scheduler.
+template<class P>
+[[deprecated("pass a scheduler")]] mapping<P>
 make(topology_slot<P> & t) {
-  return make(t.get());
+  return make(*scheduler::instance, t);
 }
 
 /// \}

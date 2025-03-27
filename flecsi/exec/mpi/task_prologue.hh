@@ -24,6 +24,8 @@ namespace exec {
 
 template<processor Proc>
 struct task_prologue : prolog_base {
+  using prolog_base::prolog_base;
+
 protected:
   template<class S>
   static void visit(S & s, const on_t &) {

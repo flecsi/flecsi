@@ -28,7 +28,7 @@ field_helper(typename mesh<D>::template accessor<ro> m,
 
 // Initialize even the ghosts: with !diagonals, some are never copied.
 void
-init_field(exec::cpu es, field<std::size_t>::accessor<wo, wo> ca) {
+init_field(exec::cpu es, field<std::size_t>::accessor<wo, wo> ca) noexcept {
   const auto s = ca.span();
   std::fill(s.begin(), s.end(), es.launch().index);
 } // init_field
@@ -37,7 +37,7 @@ template<std::size_t D>
 void
 update_field(exec::cpu s,
   typename mesh<D>::template accessor<ro> m,
-  field<std::size_t>::accessor<wo, na> ca) {
+  field<std::size_t>::accessor<wo, na> ca) noexcept {
   return field_helper<D>(
     m, ca, [c = s.launch().index](auto & x) { x = std::pow(10, c); });
 } // update_field
@@ -45,7 +45,7 @@ update_field(exec::cpu s,
 template<std::size_t D>
 void
 print_field(typename mesh<D>::template accessor<ro> m,
-  field<std::size_t>::accessor<ro, ro> ca) {
+  field<std::size_t>::accessor<ro, ro> ca) noexcept {
   auto c = m.template mdspan<topo::elements>(ca);
   std::stringstream ss;
   if constexpr(D == 1) {
@@ -116,7 +116,7 @@ int
 check_mesh_field(exec::cpu s,
   std::string name,
   typename mesh<D>::template accessor<ro> m,
-  field<std::size_t>::accessor<ro, ro> ca) {
+  field<std::size_t>::accessor<ro, ro> ca) noexcept {
   using flog::container;
   const auto bounds = [](const axis_info & a) {
     return std::array{a.layout.ghost<0>(),
@@ -256,7 +256,7 @@ template<std::size_t D>
 void
 print_rf(exec::cpu s,
   typename mesh<D>::template accessor<ro> m,
-  ints::accessor<ro, na> tf) {
+  ints::accessor<ro, na> tf) noexcept {
   std::stringstream ss;
   ss << " Color " << s.launch().index << std::endl;
 
@@ -282,7 +282,7 @@ template<std::size_t D>
 void
 allocate_field(field<std::size_t>::accessor<ro, ro> f,
   topo::resize::Field::accessor<wo> a,
-  std::size_t sz) {
+  std::size_t sz) noexcept {
   a = f.span().size() * sz;
 }
 
@@ -318,7 +318,7 @@ int
 init_verify_rf(typename mesh<D>::template accessor<ro> m,
   std::conditional_t<V, ints::accessor<ro, ro>, ints::mutator<wo, na>> tf,
   std::size_t sz,
-  bool diagonals) {
+  bool diagonals) noexcept {
   UNIT("INIT_VERIFY_RAGGED_FIELD") {
     const auto ln_local = m.linear();
     const auto ln_global = m.glinear();
@@ -348,7 +348,7 @@ const field<std::size_t>::definition<mesh3d> f3;
 field<int, data::ragged>::definition<mesh3d> rf3;
 
 int
-check_contiguous(data::multi<mesh1d::accessor<ro>> mm) {
+check_contiguous(data::multi<mesh1d::accessor<ro>> mm) noexcept {
   UNIT() {
     std::size_t last = 0, total = 0;
     for(auto [c, m] : mm.components()) { // presumed to be in order
@@ -386,14 +386,14 @@ check4(const mesh4d::accessor<ro> & m, util::constants<AA...>) {
   };
 }
 int
-check_4dmesh(mesh4d::accessor<ro> m) {
+check_4dmesh(mesh4d::accessor<ro> m) noexcept {
   return check4(m, mesh4d::axes());
 } // check_4dmesh
 
 template<std::size_t D, bool A>
 int
 value_rewrite_rf(typename mesh<D>::template accessor<ro> m,
-  ints::accessor<wo, na> a) {
+  ints::accessor<wo, na> a) noexcept {
   UNIT("REWRITE_RF") {
     const auto ln_local = m.linear();
     for(auto && v : m.range(A)) {
@@ -406,7 +406,7 @@ value_rewrite_rf(typename mesh<D>::template accessor<ro> m,
 template<std::size_t D>
 int
 value_rewrite_verify_rf(typename mesh<D>::template accessor<ro> m,
-  ints::accessor<ro, ro> tf) {
+  ints::accessor<ro, ro> tf) noexcept {
   UNIT("REWRITE_VERIFY_RF") {
     const auto ln_local = m.linear();
     const auto ln_global = m.glinear();
@@ -422,7 +422,8 @@ value_rewrite_verify_rf(typename mesh<D>::template accessor<ro> m,
 
 template<std::size_t D>
 [[nodiscard]] int
-test_mesh(topo::narray_impl::colors color_dist,
+test_mesh(scheduler & s,
+  topo::narray_impl::colors color_dist,
   const typename mesh<D>::gcoord & indices,
   const typename mesh<D>::coord & hdepth,
   const typename mesh<D>::coord & bdepth,
@@ -454,18 +455,18 @@ test_mesh(topo::narray_impl::colors color_dist,
 
     // create and allocate mesh slot
     typename mesh<D>::slot m;
-    m.allocate(typename mesh<D>::mpi_coloring(idef));
+    m.allocate(s, typename mesh<D>::mpi_coloring(s, idef));
 
-    execute<init_field>(exec::on, f(m));
+    s.execute<init_field>(exec::on, f(m));
 
     if(print_info)
-      execute<print_field<D>>(m, f(m));
+      s.execute<print_field<D>>(m, f(m));
 
     if(verify) {
-      execute<print_field<D>>(m, f(m));
-      execute<update_field<D>>(exec::on, m, f(m));
-      execute<print_field<D>>(m, f(m));
-      EXPECT_EQ(test<check_mesh_field<D>>(exec::on, verify, m, f(m)), 0);
+      s.execute<print_field<D>>(m, f(m));
+      s.execute<update_field<D>>(exec::on, m, f(m));
+      s.execute<print_field<D>>(m, f(m));
+      EXPECT_EQ(s.test<check_mesh_field<D>>(exec::on, verify, m, f(m)), 0);
     }
 
     // ragged field
@@ -473,23 +474,23 @@ test_mesh(topo::narray_impl::colors color_dist,
 
     // Set growth policy lo=0.1 to maintain correct size for all D
     tf.growth = {0, 0, 0.1, 0.5, 1};
-    execute<allocate_field<D>>(f(m), tf.sizes(), sz);
+    s.execute<allocate_field<D>>(f(m), tf.sizes(), sz);
     tf.resize();
 
-    EXPECT_EQ((test<init_verify_rf<D, false>>(m, rf(m), sz, diagonals)), 0);
+    EXPECT_EQ((s.test<init_verify_rf<D, false>>(m, rf(m), sz, diagonals)), 0);
 
     if(print_info)
-      execute<print_rf<D>>(exec::on, m, rf(m));
+      s.execute<print_rf<D>>(exec::on, m, rf(m));
 
-    EXPECT_EQ((test<init_verify_rf<D, true>>(m, rf(m), sz, diagonals)), 0);
+    EXPECT_EQ((s.test<init_verify_rf<D, true>>(m, rf(m), sz, diagonals)), 0);
 
     if(print_info)
-      execute<print_rf<D>>(exec::on, m, rf(m));
+      s.execute<print_rf<D>>(exec::on, m, rf(m));
   };
 }
 
 int
-narray_driver() {
+narray_driver(scheduler & s) {
   UNIT() {
     {
       using topo::narray_impl::factor;
@@ -510,17 +511,18 @@ narray_driver() {
       idef.diagonals = true;
       idef.full_ghosts = true;
 
-      m1.allocate(mesh1d::mpi_coloring(idef));
-      execute<init_field>(exec::on, f1(m1));
-      execute<print_field<1>>(m1, f1(m1));
-      execute<update_field<1>>(exec::on, m1, f1(m1));
-      execute<print_field<1>>(m1, f1(m1));
-      EXPECT_EQ(test<check_mesh_field<1>>(exec::on, "1d", m1, f1(m1)), 0);
+      m1.allocate(s, mesh1d::mpi_coloring(s, idef));
+      s.execute<init_field>(exec::on, f1(m1));
+      s.execute<print_field<1>>(m1, f1(m1));
+      s.execute<update_field<1>>(exec::on, m1, f1(m1));
+      s.execute<print_field<1>>(m1, f1(m1));
+      EXPECT_EQ(s.test<check_mesh_field<1>>(exec::on, "1d", m1, f1(m1)), 0);
 
       if constexpr(FLECSI_BACKEND != FLECSI_BACKEND_mpi &&
                    FLECSI_BACKEND != FLECSI_BACKEND_hpx) {
-        auto lm = data::launch::make(m1, data::launch::gather(m1.colors(), 1));
-        EXPECT_EQ(test<check_contiguous>(lm), 0);
+        auto lm =
+          data::launch::make(s, m1, data::launch::gather(m1.colors(), 1));
+        EXPECT_EQ(s.test<check_contiguous>(lm), 0);
       }
 
       // ragged field
@@ -528,21 +530,21 @@ narray_driver() {
 
       auto & tf = rf1(m1).get_elements();
       tf.growth = {0, 0, 0.25, 0.5, 1};
-      execute<allocate_field<1>>(f1(m1), tf.sizes(), sz);
+      s.execute<allocate_field<1>>(f1(m1), tf.sizes(), sz);
       tf.resize();
 
-      execute<init_verify_rf<1, false>>(m1, rf1(m1), sz, true);
-      execute<print_rf<1>>(exec::on, m1, rf1(m1));
+      s.execute<init_verify_rf<1, false>>(m1, rf1(m1), sz, true);
+      s.execute<print_rf<1>>(exec::on, m1, rf1(m1));
 
       // tests the case where the periodic flag is false, but with non-zero
       // bdepth, communication is expected only for the halo layers.
-      EXPECT_EQ((test<init_verify_rf<1, true>>(m1, rf1(m1), sz, true)), 0);
-      execute<print_rf<1>>(exec::on, m1, rf1(m1));
+      EXPECT_EQ((s.test<init_verify_rf<1, true>>(m1, rf1(m1), sz, true)), 0);
+      s.execute<print_rf<1>>(exec::on, m1, rf1(m1));
 
       // tests if a rewrite of values on ragged with an accessor triggers a
       // ghost copy
-      execute<value_rewrite_rf<1, false>>(m1, rf1(m1));
-      EXPECT_EQ((test<value_rewrite_verify_rf<1>>(m1, rf1(m1))), 0);
+      s.execute<value_rewrite_rf<1, false>>(m1, rf1(m1));
+      EXPECT_EQ((s.test<value_rewrite_verify_rf<1>>(m1, rf1(m1))), 0);
     } // scope
 
     {
@@ -557,7 +559,8 @@ narray_driver() {
                           const char * verify,
                           bool print_info,
                           int line) {
-        EXPECT_EQ(test_mesh<2>({},
+        EXPECT_EQ(test_mesh<2>(s,
+                    {},
                     {8, 8},
                     hdepth,
                     bdepth,
@@ -678,7 +681,8 @@ narray_driver() {
                           std::size_t sz,
                           const char * verify,
                           int line) {
-        EXPECT_EQ(test_mesh<3>(color_dist,
+        EXPECT_EQ(test_mesh<3>(s,
+                    color_dist,
                     indices,
                     {1, 1, 1},
                     bdepth,
@@ -728,8 +732,8 @@ narray_driver() {
       idef.diagonals = true;
       idef.full_ghosts = true;
 
-      m4.allocate(mesh4d::mpi_coloring(idef));
-      EXPECT_EQ(test<check_4dmesh>(m4), 0);
+      m4.allocate(s, mesh4d::mpi_coloring(s, idef));
+      EXPECT_EQ(s.test<check_4dmesh>(m4), 0);
     }
 
   }; // UNIT
@@ -740,7 +744,7 @@ util::unit::driver<narray_driver> nd;
 /// Coloring testing
 
 int
-coloring_driver() {
+coloring_driver(scheduler &) {
   UNIT() {
     mesh3d::gcoord indices{9, 9, 9};
 

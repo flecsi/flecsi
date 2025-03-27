@@ -83,6 +83,23 @@ struct task_local
 #endif
 ;
 
+template<auto & F, class R, class... AA>
+auto
+scheduler::reduce(AA &&... aa) {
+  using ft = util::function_t<F>;
+  static_assert(ft::nonthrowing, "tasks must be noexcept");
+  using ps = typename exec::param_space<typename ft::arguments_type>::type;
+  return flecsi::reduce<F,
+    R,
+    as_mask(std::conditional_t<std::is_void_v<ps>, exec::cpu, ps>::proc)>(
+    std::forward<AA>(aa)...);
+}
+template<auto & F, class... AA>
+int
+scheduler::test(AA &&... aa) {
+  return reduce<F, exec::fold::sum>(std::forward<AA>(aa)...).get();
+}
+
 // To avoid compile- and runtime recursion, only user tasks trigger logging.
 template<auto & Task,
   class Reduction,

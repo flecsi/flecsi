@@ -36,7 +36,7 @@ sleeper() {
 }
 
 int
-top_level_action() {
+simulation(scheduler &) {
 
   sleeper();
 
@@ -54,5 +54,5 @@ main() {
   runtime run;
   return (annotation::guard<annotation::execution, annotation::detail::low>(
             "control"),
-    run.control<run::call>(top_level_action));
+    run.control<run::call>(simulation));
 } // main

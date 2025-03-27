@@ -35,6 +35,8 @@ Deprecated
 * Runtime
 
   * ``runtime::control`` on a ``const`` object |mdash| use a non-``const`` object
+  * existing ``control::invoke`` |mdash| provide a ``scheduler``
+  * initializing ``run::call`` with a nullary function |mdash| accept a ``scheduler``
 
 * Data
 
@@ -50,6 +52,10 @@ Deprecated
 
   * ``unstructured_base::coloring::index_space::entities`` |mdash| omit from initialization
 
+* Utilities
+
+  * nullary unit-test functions |mdash| accept a ``scheduler``
+
 New features
 ^^^^^^^^^^^^
 * Build
@@ -58,6 +64,12 @@ New features
   * ``FLECSI_ENABLE_FLOG`` is defined as a macro if appropriate.
   * ``FLECSI_CALIPER_DETAIL`` reports the level of annotation detail.
   * ``flecsi_enable_mpi`` no longer requires a second argument (to request the unavailable C++ bindings).
+
+* Runtime
+
+  * ``control::invoke`` accepts a ``scheduler`` (typically provided by ``runtime::control``).
+  * ``control_base::scheduler`` provides access to the ``scheduler`` with which actions can launch tasks.
+  * ``run::call`` supports functions that accept a ``scheduler``.
 
 * Data
 
@@ -70,6 +82,7 @@ New features
   * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
   * ``exec::cpu``, ``exec::gpu``, and ``exec::omp`` are task parameter types that indicate an execution ``space`` and provide task-launch information.
     ``exec::on`` is a token argument to pass for them.
+  * A ``scheduler`` launches tasks without attributes by reference to execution-space parameters.
   * Index futures provide ``all`` to get all results.
 
 * Topologies
@@ -86,6 +99,7 @@ New features
 
   * ``mdspan`` and ``mdcolex`` provide ``element_type`` and ``value_type`` type aliases.
   * ``UNIT`` can be used in GPU kernels, with restrictions.
+  * Unit-test functions may accept a ``scheduler``.
 
 Changes in v2.3.3
 +++++++++++++++++

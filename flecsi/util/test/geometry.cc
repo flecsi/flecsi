@@ -13,7 +13,7 @@ using point_3d_t = util::point<double, 3>;
 enum class axis : Dimension { x = 0, y = 1, z = 2 };
 
 int
-point_sanity() {
+point_sanity(scheduler &) {
   UNIT() {
     constexpr point_1d_t a1{-1.0};
     static_assert(-1.0 == a1[axis::x]);
@@ -59,7 +59,7 @@ point_sanity() {
 util::unit::driver<point_sanity> point_sanity_driver;
 
 int
-point_distance() {
+point_distance(scheduler &) {
   UNIT() {
     point_1d_t a1{1.0};
     point_1d_t b1{4.0};
@@ -81,7 +81,7 @@ point_distance() {
 util::unit::driver<point_distance> point_distance_driver;
 
 int
-point_midpoint() {
+point_midpoint(scheduler &) {
   UNIT() {
     point_1d_t a1{1.0};
     point_1d_t b1{4.0};
@@ -117,7 +117,7 @@ using hc_2d = util::hilbert_key<2, uint64_t>;
 using mc_2d = util::morton_key<2, uint64_t>;
 
 int
-hilbert_sanity() {
+hilbert_sanity(scheduler &) {
   UNIT() {
     using namespace flecsi;
 
@@ -150,7 +150,7 @@ hilbert_sanity() {
 util::unit::driver<hilbert_sanity> hilbert_driver;
 
 int
-hilbert_2d_rnd() {
+hilbert_2d_rnd(scheduler &) {
   UNIT() {
     using namespace flecsi;
     // Test the generation 2D
@@ -176,7 +176,7 @@ hilbert_2d_rnd() {
 util::unit::driver<hilbert_2d_rnd> hilbert_2d_rnd_driver;
 
 int
-hilbert_3d_rnd() {
+hilbert_3d_rnd(scheduler &) {
   UNIT() {
     using namespace flecsi;
     // Test the generation
@@ -219,7 +219,7 @@ hilbert_3d_rnd() {
 util::unit::driver<hilbert_3d_rnd> hilbert_3d_rnd_driver;
 
 int
-morton_sanity() {
+morton_sanity(scheduler &) {
   UNIT() {
     range_t range;
     range[0] = {-1, -1, -1};
@@ -250,7 +250,7 @@ morton_sanity() {
 util::unit::driver<morton_sanity> morton_driver;
 
 int
-morton_2d_rnd() {
+morton_2d_rnd(scheduler &) {
   UNIT() {
     using namespace flecsi;
     // Test the generation 2d
@@ -287,7 +287,7 @@ morton_2d_rnd() {
 util::unit::driver<morton_2d_rnd> morton_2d_rnd_driver;
 
 int
-morton_3d_rnd() {
+morton_3d_rnd(scheduler &) {
   UNIT() {
     using namespace flecsi;
     range_t range;
@@ -331,7 +331,7 @@ util::unit::driver<morton_3d_rnd> morton_3d_rnd_driver;
 
 // KDTree tests
 int
-kdtree() {
+kdtree(scheduler &) {
   UNIT() {
     { // 2D
       int nsrc = 4, ntrg = 3;

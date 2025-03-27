@@ -12,21 +12,22 @@ using single = field<T, data::single>;
 const single<double>::definition<global> gfield;
 
 void
-init(double v, single<double>::accessor<wo> gv) {
+init(double v, single<double>::accessor<wo> gv) noexcept {
   gv = v;
 }
 
 void
-print(single<double>::accessor<ro> gv) {
+print(single<double>::accessor<ro> gv) noexcept {
   flog(trace) << "global value: " << gv << std::endl;
 }
 
 void
-advance(control_policy &) {
+advance(control_policy & p) {
+  auto & s = p.scheduler();
   topo::global::slot gtopo;
-  gtopo.allocate(1);
+  gtopo.allocate(s, 1);
   const auto v = gfield(gtopo);
-  execute<init>(42.0, v);
-  execute<print>(v);
+  s.execute<init>(42.0, v);
+  s.execute<print>(v);
 } // advance()
 control::action<advance, cp::advance> advance_action;

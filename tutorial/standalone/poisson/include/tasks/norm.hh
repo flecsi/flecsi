@@ -8,13 +8,13 @@ namespace task {
 
 double diff(mesh::accessor<ro> m,
   field<double>::accessor<ro, ro> aa,
-  field<double>::accessor<ro, ro> ba);
+  field<double>::accessor<ro, ro> ba) noexcept;
 
-double scale(mesh::accessor<ro> m, double sum);
+double scale(mesh::accessor<ro> m, double sum) noexcept;
 
 void discrete_operator(mesh::accessor<ro> m,
   field<double>::accessor<ro, ro> ua,
-  field<double>::accessor<rw, ro> Aua);
+  field<double>::accessor<rw, ro> Aua) noexcept;
 
 } // namespace task
 } // namespace poisson

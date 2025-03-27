@@ -21,7 +21,7 @@ flecsi::program_option<bool> bpo("Custom Options",
   {{flecsi::option_implicit, true}, {flecsi::option_zero}});
 
 int
-program_options() {
+program_options(flecsi::scheduler &) {
   UNIT() {
     ASSERT_EQ(po.value(), 1);
     ASSERT_FALSE(spo.has_value());

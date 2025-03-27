@@ -83,20 +83,22 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     }
   } // init_fields
 
-  static void initialize(data::topology_slot<sph_ntree_t> & ts,
+  static void initialize(flecsi::scheduler & s,
+    data::topology_slot<sph_ntree_t> & ts,
     const coloring &,
     std::optional<freader> & hd) {
-    auto lm_ts = data::launch::make(ts);
+    auto lm_ts = data::launch::make(s, ts);
     flecsi::execute<init_fields, flecsi::mpi>(lm_ts, *hd);
   }
 
-  static void build_ntree(data::topology_slot<sph_ntree_t> & ts) {
-    ts->make_tree(ts);
+  static void build_ntree(flecsi::scheduler & s,
+    data::topology_slot<sph_ntree_t> & ts) {
+    ts->make_tree(s, ts);
 
-    flecsi::execute<compute_centroid<true>>(ts);
-    flecsi::execute<compute_centroid<false>>(ts);
+    s.execute<compute_centroid<true>>(ts);
+    s.execute<compute_centroid<false>>(ts);
 
-    ts->share_ghosts(ts);
+    ts->share_ghosts(s, ts);
   }
 
   static coloring color(const std::string & name, std::optional<freader> & hd) {
@@ -121,7 +123,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   // They will then be sent to other ranks to compute
   // the whole tree information
   template<bool local = false>
-  static void compute_centroid(sph_ntree_t::accessor<rw, ro> t) {
+  static void compute_centroid(sph_ntree_t::accessor<rw, ro> t) noexcept {
 
     // DFS traversal, reverse preorder, access the lowest nodes first
     for(auto n_idx : t.dfs<ttype_t::reverse_preorder, local>()) {
@@ -217,7 +219,7 @@ verify_neighbors(flecsi::topo::id<flecsi::topo::ntree_base::entities> e,
 }
 
 int
-check_neighbors(sph_ntree_t::accessor<rw, ro> t) {
+check_neighbors(sph_ntree_t::accessor<rw, ro> t) noexcept {
   UNIT("CHECK_NEIGHBORS") {
     // Check neighbors of entities
     for(auto e : t.entities())
@@ -242,7 +244,7 @@ init_ids(sph_ntree_t::accessor<ro, na> t,
 void
 print_ids(exec::cpu s,
   sph_ntree_t::accessor<ro, ro> t,
-  field<flecsi::util::id>::accessor<ro, ro> d) {
+  field<flecsi::util::id>::accessor<ro, ro> d) noexcept {
   std::cout << s.launch().index << " Print id exclusive: ";
   for(auto a : t.entities()) {
     std::cout << t.e_ids[a] << "=" << d(a) << " - ";
@@ -272,36 +274,36 @@ move_entities(sph_ntree_t::accessor<rw, na> t) {
 
 // Sort testing tasks
 void
-init_array_task(field<int>::accessor<wo> v) {
+init_array_task(field<int>::accessor<wo> v) noexcept {
   std::iota(v.span().begin(), v.span().end(), 0);
   auto rng = std::default_random_engine{};
   std::shuffle(v.span().begin(), v.span().end(), rng);
 }
 
 auto
-check_sort_task(typename field<int>::accessor<ro> v) {
+check_sort_task(typename field<int>::accessor<ro> v) noexcept {
   bool sorted = std::is_sorted(v.span().begin(), v.span().end());
   std::tuple<int, int, bool> rt = {v[0], v.span().back(), sorted};
   return rt;
 }
 
 int
-ntree_driver() {
+ntree_driver(scheduler & s) {
   UNIT("NTREE") {
     sph_ntree_t::slot sph_ntree;
 
     {
       std::optional<sph_ntree_t::freader> hd;
       sph_ntree.allocate(
-        sph_ntree_t::mpi_coloring("coordinates.blessed", hd), hd);
+        s, sph_ntree_t::mpi_coloring(s, "coordinates.blessed", hd), hd);
     }
     // Initialize user fields
     auto d = id_check(sph_ntree);
     flecsi::execute<init_ids, default_accelerator>(sph_ntree, d);
-    sph_ntree_t::build_ntree(sph_ntree);
+    sph_ntree_t::build_ntree(s, sph_ntree);
 
-    flecsi::execute<print_ids>(exec::on, sph_ntree, d);
-    EXPECT_EQ(test<check_neighbors>(sph_ntree), 0);
+    s.execute<print_ids>(exec::on, sph_ntree, d);
+    EXPECT_EQ(s.test<check_neighbors>(sph_ntree), 0);
     flecsi::execute<check_neighbors_accelerator, default_accelerator>(
       sph_ntree);
 
@@ -310,14 +312,14 @@ ntree_driver() {
     // Sort utility testing
     // Sort/shuffle an array multiple times
     arr::slot arr_s;
-    arr_s.allocate(arr::coloring(4, 100));
+    arr_s.allocate(s, arr::coloring(4, 100));
 
-    util::sort s(arr_f(arr_s));
+    util::sort sort(s, arr_f(arr_s));
 
     for(int i = 0; i < 10; ++i) {
-      flecsi::execute<init_array_task>(arr_f(arr_s));
-      s();
-      const auto fm = flecsi::execute<check_sort_task>(arr_f(arr_s)).all();
+      s.execute<init_array_task>(arr_f(arr_s));
+      sort();
+      const auto fm = s.execute<check_sort_task>(arr_f(arr_s)).all();
       for(auto & p : fm)
         EXPECT_TRUE(std::get<2>(p));
       for(unsigned int p = 0; p < processes() - 1; ++p) {

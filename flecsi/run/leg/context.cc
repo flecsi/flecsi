@@ -8,7 +8,7 @@ namespace data::leg {
 void
 with_used::extend(exec::cpu s,
   prefixes_base::Field::accessor<ro> r,
-  used::Field::accessor<wo> w) {
+  used::Field::accessor<wo> w) noexcept {
   const Legion::coord_t c = s.launch().index;
   w = {{c, 0}, {c, upper(r.get())}};
 }

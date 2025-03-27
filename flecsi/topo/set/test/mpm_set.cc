@@ -37,7 +37,7 @@ const particle_field::definition<spec_setopo_t> particles;
 void
 init_fields(accessorm m,
   field<util::gid>::accessor<ro, ro, ro> cids,
-  particle_field::mutator<wo> particle_t_m) {
+  particle_field::mutator<wo> particle_t_m) noexcept {
   for(auto c : m.cells()) {
     Particle p_t;
     p_t.cgid = cids[c];
@@ -47,7 +47,7 @@ init_fields(accessorm m,
 }
 
 void
-print_test(particle_field::accessor<ro> particle_t) {
+print_test(particle_field::accessor<ro> particle_t) noexcept {
   std::stringstream ss;
 
   for(auto & p : particle_t) {
@@ -72,7 +72,7 @@ insert_test(accessorm m,
 }
 
 void
-update_test(particle_field::accessor<rw> particle_t) {
+update_test(particle_field::accessor<rw> particle_t) noexcept {
 
   for(auto & p : particle_t) {
     p.pressure = 2.0;
@@ -87,7 +87,7 @@ update_test(particle_field::accessor<rw> particle_t) {
 }
 
 int
-set_driver() {
+set_driver(scheduler & s) {
 
   UNIT() {
     using mesh_type = spec_setopo_t::mesh_type;
@@ -97,17 +97,17 @@ set_driver() {
     spec_setopo_t::slot spec_setopo;
 
     mesh_underlying.allocate(
-      mesh_type::mpi_coloring("simple-4x4.fixed", 4, fields), fields);
-    spec_setopo.allocate(spec_setopo_t::mpi_coloring(&mesh_underlying));
+      s, mesh_type::mpi_coloring(s, "simple-4x4.fixed", 4, fields), fields);
+    spec_setopo.allocate(s, spec_setopo_t::mpi_coloring(s, &mesh_underlying));
 
     auto particle_t = particles(spec_setopo);
-    execute<init_fields>(
+    s.execute<init_fields>(
       mesh_underlying, mesh_type::cid(mesh_underlying), particle_t);
 
-    execute<print_test>(particle_t);
+    s.execute<print_test>(particle_t);
     execute<insert_test, default_accelerator>(
       mesh_underlying, mesh_type::cid(mesh_underlying), particle_t);
-    execute<update_test>(particle_t);
+    s.execute<update_test>(particle_t);
   };
 
 } // set_driver

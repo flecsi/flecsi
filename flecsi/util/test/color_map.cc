@@ -54,7 +54,7 @@ interface() {
 }
 
 int
-color_map() {
+color_map(scheduler &) {
   UNIT() { EXPECT_EQ((test<interface, mpi>()), 0); };
 }
 

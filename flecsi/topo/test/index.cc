@@ -35,15 +35,15 @@ const intN::definition<trivial_array> arag;
 constexpr std::size_t column = 42;
 
 void
-allocate(exec::cpu s, topo::resize::Field::accessor<wo> a) {
+allocate(exec::cpu s, topo::resize::Field::accessor<wo> a) noexcept {
   a = s.launch().index + 1;
 }
 void
-irows(exec::cpu s, intN::mutator<wo> r) {
+irows(exec::cpu s, intN::mutator<wo> r) noexcept {
   r[0].resize(s.launch().index + 1);
 }
 int
-drows(exec::cpu s, double_at::mutator<wo> mm) {
+drows(exec::cpu s, double_at::mutator<wo> mm) noexcept {
   UNIT("TASK") {
     const auto me = s.launch().index;
     const auto && m = mm[0];
@@ -89,7 +89,7 @@ void
 assign(exec::cpu s,
   double_field::accessor<wo> p,
   intN::accessor<rw> r,
-  double_at::accessor<rw> sp) {
+  double_at::accessor<rw> sp) noexcept {
   const auto i = s.launch().index;
   flog(info) << "assign on " << i << std::endl;
   p = i;
@@ -100,7 +100,7 @@ assign(exec::cpu s,
 } // assign
 
 std::size_t
-reset(noisy::accessor<wo>) { // must be an MPI task for correct total
+reset(noisy::accessor<wo>) noexcept { // must be an MPI task for correct total
   return Noisy::count;
 }
 void
@@ -108,14 +108,18 @@ use_ptr(field<int *>::accessor<wo>) {} // must be an MPI task
 
 // The unnamed mutator still allocates according to the growth policy.
 void
-ragged_start(intN::accessor<ro> v, intN::mutator<wo>, buffers::Start mv) {
+ragged_start(intN::accessor<ro> v,
+  intN::mutator<wo>,
+  buffers::Start mv) noexcept {
   assert(mv.span().size() == 2u);
   bool sent = false;
   (void)buffers::ragged(mv[0], true)(v, 0, sent);
 }
 
 int
-ragged_xfer(intN::accessor<ro> v, intN::mutator<rw> g, buffers::Transfer mv) {
+ragged_xfer(intN::accessor<ro> v,
+  intN::mutator<rw> g,
+  buffers::Transfer mv) noexcept {
   buffers::ragged::read(g, mv[1], util::iota_view(0, 1));
   bool sent = false;
   (void)buffers::ragged{mv[0]}(v, 0, sent);
@@ -128,7 +132,7 @@ check(exec::cpu es,
   intN::accessor<ro> r,
   intN::accessor<ro> g,
   double_at::accessor<ro> sp,
-  noisy::accessor<ro> n) {
+  noisy::accessor<ro> n) noexcept {
   UNIT("TASK") {
     const auto me = es.launch().index;
     flog(info) << "check on " << me << std::endl;
@@ -147,10 +151,10 @@ check(exec::cpu es,
     EXPECT_EQ(sr(column + me), 2 * me + 1);
     EXPECT_EQ(n.get().i, Noisy::value());
   };
-} // print
+}
 
 int
-part(exec::cpu s, short_part::mutator<wo> a) {
+part(exec::cpu s, short_part::mutator<wo> a) noexcept {
   UNIT("TASK") {
     const short pi[] = {3, 0, 1, 4, 0, 0, 0, 1, 0, 0, 5, 0};
     short sum = 0, chk = 0;
@@ -199,7 +203,7 @@ constexpr int process_fraction = 2 - (FLECSI_BACKEND == FLECSI_BACKEND_mpi ||
 int
 use_map(exec::cpu s,
   data::multi<short_part::accessor<ro>> ma,
-  data::multi<intN::mutator<wo>> mm) {
+  data::multi<intN::mutator<wo>> mm) noexcept {
   UNIT() {
     const auto p = processes(), nc = std::max(p / process_fraction, {1}),
                c = s.launch().index;
@@ -216,7 +220,7 @@ use_map(exec::cpu s,
 }
 
 int
-check_map(exec::cpu s, intN::accessor<ro> a) {
+check_map(exec::cpu s, intN::accessor<ro> a) noexcept {
   UNIT() {
     const auto c = s.launch().index;
     ASSERT_EQ(a[0].size(), c + 1);
@@ -225,7 +229,7 @@ check_map(exec::cpu s, intN::accessor<ro> a) {
 }
 
 int
-index_driver() {
+index_driver(scheduler & s) {
   UNIT() {
     const auto np = processes();
     {
@@ -240,10 +244,10 @@ index_driver() {
     }
 
     Noisy::count = 0;
-    constexpr static auto alloc = [](auto f) {
+    const auto alloc = [&s](auto f) {
       auto & p = f.get_elements();
       p.growth = {0, 0, 0.25, 0.5, 1};
-      execute<allocate>(exec::on, p.sizes());
+      s.execute<allocate>(exec::on, p.sizes());
       p.resize();
     };
     const auto pressure = pressure_field(process_topology);
@@ -259,39 +263,40 @@ index_driver() {
       // make the new size visible to check below.
       exec::trace t;
       for(int i = 0; i < 2; i++)
-        t.make_guard(), execute<irows>(exec::on, verts);
+        t.make_guard(), s.execute<irows>(exec::on, verts);
     }
-    EXPECT_EQ(test<drows>(exec::on, vfrac), 0);
-    execute<assign>(exec::on, pressure, verts, vfrac);
-    execute<reset>(noise);
+    EXPECT_EQ(s.test<drows>(exec::on, vfrac), 0);
+    s.execute<assign>(exec::on, pressure, verts, vfrac);
+    s.execute<reset>(noise);
     EXPECT_EQ(
       (reduce<reset, exec::fold::sum, flecsi::mpi>(noise).get()), processes());
     execute<use_ptr, flecsi::mpi>(ptr_field(process_topology));
 
     // Rotate the ragged field by one color:
-    buffers::core([] {
-      const auto p = processes();
-      buffers::coloring ret(p);
-      Color i = 0;
-      for(auto & g : ret)
-        g.push_back(++i % p);
-      return ret;
-    }())
-      .xfer<ragged_start, ragged_xfer>(verts, ghost);
+    buffers::core(s,
+      [] {
+        const auto p = processes();
+        buffers::coloring ret(p);
+        Color i = 0;
+        for(auto & g : ret)
+          g.push_back(++i % p);
+        return ret;
+      }())
+      .xfer<ragged_start, ragged_xfer>(s, verts, ghost);
 
-    EXPECT_EQ(test<check>(exec::on, pressure, verts, ghost, vfrac, noise), 0);
+    EXPECT_EQ(s.test<check>(exec::on, pressure, verts, ghost, vfrac, noise), 0);
 
     // Duplicate work to support the MPI backend:
     trivial_array::slot a;
-    a.allocate(trivial_array::coloring(processes(), 12));
-    EXPECT_EQ(test<part>(exec::on, particles(a)), 0);
-    execute<allocate>(exec::on, arag(a).get_elements().sizes());
+    a.allocate(s, trivial_array::coloring(processes(), 12));
+    EXPECT_EQ(s.test<part>(exec::on, particles(a)), 0);
+    s.execute<allocate>(exec::on, arag(a).get_elements().sizes());
     arag(a).get_elements().resize();
 
     auto lm = launch::make(
-      a, launch::robin(a.colors(), std::max(np / process_fraction, {1})));
-    EXPECT_EQ(test<use_map>(exec::on, particles(lm), arag(lm)), 0);
-    EXPECT_EQ(test<check_map>(exec::on, arag(a)), 0);
+      s, a, launch::robin(a.colors(), std::max(np / process_fraction, {1})));
+    EXPECT_EQ(s.test<use_map>(exec::on, particles(lm), arag(lm)), 0);
+    EXPECT_EQ(s.test<check_map>(exec::on, arag(a)), 0);
   };
 } // index
 

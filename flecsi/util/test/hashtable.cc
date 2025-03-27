@@ -68,7 +68,7 @@ empty(hmap_t hmap) {
 } // print
 
 int
-hashtable_driver() {
+hashtable_driver(scheduler &) {
   UNIT() {
     const std::size_t ht_size = 1 << 15;
 

@@ -8,7 +8,7 @@ const field<bool>::definition<sph_ntree_t> is_wall;
 
 void
 density_task(sph_ntree_t::accessor<ro, ro> t,
-  field<double>::accessor<wo, na> rho) {
+  field<double>::accessor<wo, na> rho) noexcept {
   sph::density(t, rho.span());
 }
 
@@ -16,7 +16,7 @@ void
 eos_task(sph_ntree_t::accessor<ro, na> t,
   field<double>::accessor<wo, na> p,
   field<double>::accessor<ro, na> rho,
-  field<double>::accessor<ro, na> u) {
+  field<double>::accessor<ro, na> u) noexcept {
   sph::eos(t, u.span(), rho.span(), p.span());
 }
 
@@ -26,7 +26,7 @@ acceleration_task(sph_ntree_t::accessor<ro, ro> t,
   field<double>::accessor<ro, ro> v,
   field<double>::accessor<ro, ro> rho,
   field<double>::accessor<ro, ro> p,
-  field<double>::accessor<ro, ro> u) {
+  field<double>::accessor<ro, ro> u) noexcept {
   sph::acceleration(t, v.span(), rho.span(), p.span(), u.span(), dvdt.span());
 }
 
@@ -37,7 +37,7 @@ dudt_task(sph_ntree_t::accessor<ro, ro> t,
   field<double>::accessor<ro, ro> rho,
   field<double>::accessor<ro, ro> p,
   field<double>::accessor<ro, ro> u,
-  field<bool>::accessor<rw, ro> is_w) {
+  field<bool>::accessor<rw, ro> is_w) noexcept {
   sph::dudt(
     t, v.span(), rho.span(), p.span(), u.span(), is_w.span(), dudt.span());
 }
@@ -49,7 +49,7 @@ init_sodtube_task(sph_ntree_t::accessor<ro, na> t,
   field<double>::accessor<wo, na> p,
   field<double>::accessor<wo, na> v,
   field<double>::accessor<wo, na> u,
-  field<bool>::accessor<wo, na> is_w) {
+  field<bool>::accessor<wo, na> is_w) noexcept {
   sph::init_physics(t, v.span(), rho.span(), p.span(), u.span(), is_w.span());
 } // init_sodtube_task
 
@@ -59,24 +59,26 @@ advance_task(sph_ntree_t::accessor<rw, na> t,
   field<double>::accessor<ro, na> dvdt,
   field<double>::accessor<rw, na> u,
   field<double>::accessor<ro, na> dudt,
-  field<bool>::accessor<ro, na> is_w) {
+  field<bool>::accessor<ro, na> is_w) noexcept {
   sph::advance(t, v.span(), dvdt.span(), u.span(), dudt.span(), is_w.span());
 }
 
 void
 initialize_action(sph::control_policy & cp) {
+  auto & s = cp.scheduler();
 
   const int nents = sph::n_entities.value();
-  cp.sph_ntree.allocate(sph_ntree_t::mpi_coloring(processes(), nents), nents);
+  cp.sph_ntree.allocate(
+    s, sph_ntree_t::mpi_coloring(s, processes(), nents), nents);
 
   auto rho = density(cp.sph_ntree);
   auto p = pressure(cp.sph_ntree);
   auto v = velocity(cp.sph_ntree);
   auto u = energy(cp.sph_ntree);
   auto is_w = is_wall(cp.sph_ntree);
-  flecsi::execute<init_sodtube_task>(cp.sph_ntree, rho, p, v, u, is_w);
+  s.execute<init_sodtube_task>(cp.sph_ntree, rho, p, v, u, is_w);
 
-  sph_ntree_t::build_ntree(cp.sph_ntree);
+  sph_ntree_t::build_ntree(s, cp.sph_ntree);
   cp.max_iterations = sph::n_iterations.value();
 }
 
@@ -89,7 +91,7 @@ output_task(sph_ntree_t::accessor<ro, na> t,
   field<double>::accessor<ro, na> dudt,
   field<double>::accessor<ro, na> dvdt,
   int nfile,
-  int intv) {
+  int intv) noexcept {
   if(nfile % intv == 0) {
     std::ofstream file("output_sodtube_" + std::to_string(nfile) + '_' +
                        std::to_string(process()) + ".dat");
@@ -126,6 +128,8 @@ merge_output(sph::control_policy & cp) {
 // The cycle includes the following two functions.
 void
 iterate_action(sph::control_policy & cp) {
+  auto & s = cp.scheduler();
+
   auto rho = density(cp.sph_ntree);
   auto p = pressure(cp.sph_ntree);
   auto u = energy(cp.sph_ntree);
@@ -135,12 +139,12 @@ iterate_action(sph::control_policy & cp) {
   auto is_w = is_wall(cp.sph_ntree);
 
   flog(info) << "Iteration: " << cp.step << '\n';
-  flecsi::execute<density_task>(cp.sph_ntree, rho);
-  flecsi::execute<eos_task>(cp.sph_ntree, p, rho, u);
-  flecsi::execute<acceleration_task>(cp.sph_ntree, dvdt, v, rho, p, u);
-  flecsi::execute<dudt_task>(cp.sph_ntree, dudt, v, rho, p, u, is_w);
-  flecsi::execute<advance_task>(cp.sph_ntree, v, dvdt, u, dudt, is_w);
-  sph_ntree_t::sph_reset(cp.sph_ntree);
+  s.execute<density_task>(cp.sph_ntree, rho);
+  s.execute<eos_task>(cp.sph_ntree, p, rho, u);
+  s.execute<acceleration_task>(cp.sph_ntree, dvdt, v, rho, p, u);
+  s.execute<dudt_task>(cp.sph_ntree, dudt, v, rho, p, u, is_w);
+  s.execute<advance_task>(cp.sph_ntree, v, dvdt, u, dudt, is_w);
+  sph_ntree_t::sph_reset(s, cp.sph_ntree);
 }
 
 void
@@ -152,7 +156,7 @@ output_action(sph::control_policy & cp) {
   auto dvdt = acceleration(cp.sph_ntree);
   auto dudt = d_energy(cp.sph_ntree);
 
-  auto f = flecsi::execute<output_task>(
+  auto f = cp.scheduler().execute<output_task>(
     cp.sph_ntree, rho, p, v, u, dudt, dvdt, cp.step, cp.intv);
   f.wait();
   merge_output(cp);

@@ -8,14 +8,14 @@ using namespace flecsi;
 // Trivial task (no arguments, no return).
 
 void
-trivial() {
+trivial() noexcept {
   flog(info) << "Hello World" << std::endl;
 }
 
 // Task with return value.
 
 int
-with_return() {
+with_return() noexcept {
   int value{100};
   flog(info) << "Returning value " << value << std::endl;
   return value;
@@ -24,7 +24,7 @@ with_return() {
 // Task with by-value argument.
 
 int
-with_by_value_argument(std::vector<size_t> v) {
+with_by_value_argument(std::vector<size_t> v) noexcept {
   std::stringstream ss;
   int retval{0};
   ss << "Parameter values: ";
@@ -41,7 +41,7 @@ with_by_value_argument(std::vector<size_t> v) {
 
 template<typename Type>
 Type
-templated_task(Type t) {
+templated_task(Type t) noexcept {
   Type retval{t + Type(10)};
   flog(info) << "Returning value " << retval << " with type "
              << typeid(t).name() << std::endl;
@@ -49,11 +49,12 @@ templated_task(Type t) {
 } // template
 
 void
-advance(control_policy &) {
+advance(control_policy & p) {
+  auto & s = p.scheduler();
 
   // Execute a trivial task.
 
-  execute<trivial>();
+  s.execute<trivial>();
 
   // Execute a task with a return value.
 
@@ -61,7 +62,7 @@ advance(control_policy &) {
     // A future is a mechanism to access the result of an asynchronous
     // operation.
 
-    auto future = execute<with_return>();
+    auto future = s.execute<with_return>();
 
     // The 'wait()' method waits for the result to become available.
 
@@ -82,7 +83,7 @@ advance(control_policy &) {
 
   {
     std::vector<size_t> v = {0, 1, 1, 2, 3, 5, 8, 13, 21, 34};
-    auto future = execute<with_by_value_argument>(v);
+    auto future = s.execute<with_by_value_argument>(v);
     flog(info) << "Sum is " << future.get() << std::endl;
   } // scope
 
@@ -90,7 +91,7 @@ advance(control_policy &) {
 
   {
     double value{32.0};
-    auto future = execute<templated_task<double>>(value);
+    auto future = s.execute<templated_task<double>>(value);
     flog(info) << "Got templated value " << future.get() << std::endl;
   } // scope
 }

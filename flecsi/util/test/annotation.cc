@@ -24,7 +24,7 @@ wait() {
 }
 
 int
-annotation_driver() {
+annotation_driver(scheduler &) {
   UNIT() {
     namespace ann = flecsi::util::annotation;
 

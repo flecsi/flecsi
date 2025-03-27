@@ -7,7 +7,7 @@ using namespace flecsi::data;
 using mutator_t = typename field<std::size_t, ragged>::mutator<rw>;
 
 int
-ragged_mutator_driver() {
+ragged_mutator_driver(scheduler &) {
   UNIT() {
     // Declare backing storage and build the mutator
     std::vector<std::size_t> memory{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};

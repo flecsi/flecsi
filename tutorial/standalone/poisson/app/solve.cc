@@ -14,6 +14,7 @@ using namespace flecsi;
 void
 poisson::action::solve(control_policy & cp) {
   util::annotation::rguard<solve_region> guard;
+  auto & s = cp.scheduler();
   double err{std::numeric_limits<double>::max()};
 
   std::size_t sub{100};
@@ -42,9 +43,9 @@ poisson::action::solve(control_policy & cp) {
     } // for
     ita += sub;
 
-    execute<task::discrete_operator>(cp.m, ud(cp.m), Aud(cp.m));
+    s.execute<task::discrete_operator>(cp.m, ud(cp.m), Aud(cp.m));
     auto residual =
-      reduce<task::diff, exec::fold::sum>(cp.m, fd(cp.m), Aud(cp.m));
+      s.reduce<task::diff, exec::fold::sum>(cp.m, fd(cp.m), Aud(cp.m));
     err = std::sqrt(residual.get());
     flog(info) << "residual: " << err << " (" << ita << " iterations)"
                << std::endl;

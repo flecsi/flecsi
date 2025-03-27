@@ -17,7 +17,7 @@ flecsi::program_option<std::string> tag("Logging",
   {{flecsi::option_default, "all"}});
 
 int
-top_level_action() {
+simulation(scheduler &) {
 
   // This output will always be generated because it is not scoped within a tag
   // guard.
@@ -48,7 +48,7 @@ top_level_action() {
   } // scope
 
   return 0;
-} // top_level_action
+} // simulation
 
 int
 main(int argc, char ** argv) {
@@ -75,5 +75,5 @@ main(int argc, char ** argv) {
   log_file.open("output.txt");
   flog::add_output_stream("log file", log_file);
 
-  return run.control<run::call>(top_level_action);
+  return run.control<run::call>(simulation);
 } // main

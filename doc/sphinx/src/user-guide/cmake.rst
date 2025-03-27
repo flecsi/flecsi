@@ -263,23 +263,23 @@ CMake files to allow using it in your own applications.
      using single = field<T, data::single>;
      const single<int>::definition<topo::index> ifield;
 
-     void init(single<int>::accessor<wo> iv, int v) {
+     void init(single<int>::accessor<wo> iv, int v) noexcept {
        iv = v / 39;
      }
 
-     int verify(single<int>::accessor<ro> iv) {
+     int verify(single<int>::accessor<ro> iv) noexcept {
        UNIT() {
          ASSERT_EQ(iv, 42);
        };
      }
 
-     int mytest_driver() {
+     int mytest_driver(scheduler &s) {
        UNIT() {
          topo::index::slot my_topology;
-         my_topology.allocate(4);
-         execute<init>(ifield(my_topology), 1669);
+         my_topology.allocate(s, 4);
+         s.execute<init>(ifield(my_topology), 1669);
          EXPECT_TRUE(true);
-         EXPECT_EQ(test<verify>(ifield(my_topology)), 0);
+         EXPECT_EQ(s.test<verify>(ifield(my_topology)), 0);
        };
      } // mytest_driver
 
