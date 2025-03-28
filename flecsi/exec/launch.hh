@@ -16,12 +16,14 @@
 
 namespace flecsi {
 namespace data {
+/// \addtogroup data
+/// \{
 
 /// \cond core
+
 /// Task parameters of types that inherit from bind_tag must be specially
 /// initialized by the backend after the task has been launched.
 /// See, for example, exec/leg/bind_accessors.hh.
-
 struct bind_tag {};
 
 /// Classes that inherit from send_tag can decompose themselves into simpler
@@ -33,10 +35,10 @@ struct bind_tag {};
 /// to such versions.  The MPI backend handles both sides (for a single
 /// argument/parameter) in a single pass, transforming the arguments and
 /// initializing the (single copy of the) parameters immediately.
-
 struct send_tag {};
 /// \endcond
 
+/// \}
 } // namespace data
 
 namespace exec {
@@ -317,6 +319,8 @@ struct partial : std::tuple<AA...> {
 ///     execute<task<decltype(p)>>(p);  // note explicit template argument
 ///   }
 ///   \endcode
+///
+/// \ns.
 /// \deprecated Use a lambda or \c std::bind.
 template<auto & F, class... AA>
 [[deprecated(

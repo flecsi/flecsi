@@ -30,6 +30,7 @@ constexpr inline util::id logical_size = std::numeric_limits<
 namespace leg {
 /// \defgroup legion-data Legion Data
 /// Owning wrappers for Legion objects.
+/// \ns{data::leg}.
 /// \ingroup data
 /// \{
 

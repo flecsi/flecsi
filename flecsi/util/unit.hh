@@ -16,6 +16,8 @@ namespace flecsi::util::unit {
 /// Each \a Target is a function with signature `int()`; if any returns a
 /// non-zero value, so does the process built with \c flecsi_add_test.
 /// Output is via \ref flog.
+///
+/// \ns{util::unit}.
 /// \ingroup utils
 /// \{
 
@@ -95,7 +97,7 @@ accelerator_config([[maybe_unused]] run::config & c) {
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
   c.legion = {"", "-ll:gpu", "1"};
-#elif defined(KOKKOS_ENABLE_OPENMP) && defined(REALM_USE_OPENMP)
+#elif defined(REALM_USE_OPENMP)
   c.legion = {"", "-ll:ocpu", "1", "-ll:onuma", "0"};
 #endif
 #elif FLECSI_BACKEND == FLECSI_BACKEND_hpx

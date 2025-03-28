@@ -26,6 +26,7 @@ constexpr inline util::id logical_size = std::numeric_limits<util::id>::max();
 namespace local {
 /// \defgroup local-data Backend Data
 /// Direct data storage.
+/// \ns{data::local}.
 /// \ingroup data
 /// \{
 namespace detail {

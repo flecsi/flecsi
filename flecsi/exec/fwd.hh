@@ -20,6 +20,8 @@ namespace flecsi {
   \return a \ref future providing the reduced return value
 
   \see \c execute about parameter and argument types.
+
+  \ns.
  */
 template<auto & Task,
   class Reduction,
@@ -44,6 +46,8 @@ template<auto & Task,
     std::tuple that includes such a type; it accepts a \c std::vector of or a
     \c std::tuple including the corresponding argument type.
   \return a \ref future providing the value(s) returned from the task
+
+  \ns.
  */
 
 template<auto & TASK,

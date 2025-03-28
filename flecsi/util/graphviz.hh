@@ -16,7 +16,8 @@
 namespace flecsi {
 namespace util {
 /// \defgroup graphviz Graphviz Support
-/// Wrapper for \c libcgraph.
+/// Wrapper for
+/// [`libcgraph`](https://graphviz.gitlab.io/_pages/pdf/libguide.pdf).
 /// \ingroup utils
 /// \{
 

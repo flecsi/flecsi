@@ -248,6 +248,17 @@ In this case multiple privileges are specified to describe access to exclusive, 
 If no privilege grants write permission (*e.g.*, with ``flecsi::field<double>::accessor<flecsi::ro, flecsi::ro, flecsi::na>``), the accessor will produce the ``const``-qualified version of the field type.
 However, it is impossible to so restrict some but not all index points (for, say, ``flecsi::field<double>::accessor<flecsi::rw, flecsi::ro, flecsi::ro>``); if the client modifies elements for which it has no write permission, the behavior is undefined.
 
+A ghost copy occurs between any two tasks that operate on the same field where
+
+1. the first has write access to the shared elements,
+
+2. the second has read access to the ghost elements, and
+
+3. neither the first nor any intervening task has write access to the ghost elements.
+
+That is, ghosts are considered out of date only if the shared values have been written *more* recently; this allows ghosts to be initialized to a constant or to be transformed by a local function without communication.
+Two writes to the shared elements of a field may produce only one ghost copy if no ghost reads occur after the first but not after the second.
+
 The first access to each field must be write-only, except that the ghosts may be no-access to indicate that the initial values need to be copied to other colors as usual.
 
 Mutators
@@ -278,3 +289,14 @@ The current implementation of memory management for these layouts imposes severa
 First, the automatic memory allocation is incompatible with :doc:`tracing`, so ``ragged`` and ``sparse`` mutators cannot be used in a task launched during a trace.
 Ghost copies for these layouts are implemented using mutators, so they are excluded from traces as well.
 Moreover, they use further temporary allocations during a task that are incompatible with GPU execution, so they cannot be used in a ``toc`` task.
+
+Multi-color accessors
+---------------------
+In addition to ghost elements, the Legion backend provides *launch maps* as another mechanism for accessing another color's data in a point task.
+They explicitly nominate one or more colors to be processed by each point task, so they can permute colors as well as duplicating them (for read-only access) or omitting them.
+Accessors, mutators, or topology accessors (discussed later) can be wrapped in a ``data::multi`` task parameter; the launch map takes the place of the underlying topology in the task argument (*e.g.*, in forming a field reference).
+A task can accept multiple multi-color accessors as well as ordinary accessors (relative to which any permutation is meaningful).
+
+.. note::
+
+  Other backends support only trivial launch maps that nominate the usual color for a point task or none at all.

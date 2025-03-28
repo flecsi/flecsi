@@ -18,6 +18,10 @@ namespace util {
 template<class...>
 struct types {};
 
+// Workaround for Clang's eager reduction of void_t (see also CWG1980)
+template<class... TT>
+using voided = std::conditional_t<false, types<TT...>, void>;
+
 template<auto Value>
 struct constant { // like std::integral_constant, but better
   using type = decltype(Value);

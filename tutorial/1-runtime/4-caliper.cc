@@ -53,6 +53,6 @@ main() {
   const run::dependencies_guard dg;
   const runtime run;
   return (annotation::guard<annotation::execution, annotation::detail::low>(
-            "top-level-task"),
+            "control"),
     run.control<run::call>(top_level_action));
 } // main

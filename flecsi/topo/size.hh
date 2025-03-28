@@ -100,7 +100,7 @@ struct with_size { // separate to control initialization order
     return resize::field(sz);
   }
   void set_rsz_required(bool r) {
-    rsz_required = make_future(std::move(r));
+    rsz_required = make_future(r);
   }
   resize::core sz;
   /// Automatic growth control.

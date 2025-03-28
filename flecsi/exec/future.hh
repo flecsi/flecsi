@@ -19,6 +19,10 @@
 #endif // FLECSI_BACKEND
 
 #ifdef DOXYGEN // implemented per-backend
+namespace flecsi {
+/// \addtogroup execution
+/// \{
+
 /// Single-valued future.
 template<typename Return>
 struct future<Return> {
@@ -34,6 +38,7 @@ struct future<Return, exec::launch_type_t::index> {
   /// Wait on all the tasks to finish.
   void wait(bool silence_warnings = false);
   /// Get the result of one of the tasks.
+  /// Note that all processes must select the same \a index.
   /// \deprecated Use \c all or pass to a task to process values in parallel.
   Return get(Color index = 0, bool silence_warnings = false);
   /// Get the results of all tasks.
@@ -44,9 +49,12 @@ struct future<Return, exec::launch_type_t::index> {
 };
 
 /// \cond core
-/// Generate a new future from a value
+/// Generate a new future from a value.  \ns.
 template<class Return>
-future<Return> make_future(Return);
+future<std::decay_t<Return>> make_future(Return &&);
 /// \endcond
+
+/// \}
+} // namespace flecsi
 #endif // DOXYGEN
 #endif

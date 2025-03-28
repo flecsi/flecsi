@@ -21,7 +21,6 @@ The implementation of these components is divided between the "front end" and on
 The common backend API comprises a small set of classes and function templates that are sufficient to implement the front end; each is called an *entry point*.
 Most entry points are defined in files named ``policy.hh`` in a backend-specific directory in a component.
 ``topo`` and ``flog`` are implemented entirely in the front end.
-Except for ``topo``, each of these has a single header for application developers with a similar (if longer) name.
 
 The reference backend uses Legion for these purposes, which imposes `stringent requirements <https://legion.stanford.edu/tutorial/hybrid.html>`_ on the application because of its implicit operation across processors and memory spaces.
 The conceit is that code (in FleCSI and its clients) that is compatible with Legion will also work with most other backends.
@@ -37,6 +36,8 @@ Other components provide support for the above activities:
 * ``util``: Organize local data, support compile-time computation, and implement unit-testing assertions akin to those in Google Test.
 
 Of these, ``util`` is implemented entirely in the front end.
+
+Every component has a single user-level header with a similar (if longer) name directly in ``flecsi/``.
 
 Hierarchy
 ^^^^^^^^^
@@ -248,7 +249,7 @@ The most important of these is ``send_tag``: task-parameter types that inherit f
 This ``send`` method also accepts a callback function.
 When applying operations to the task parameters, instead of duplicating code to handle the lower-level task parameters, it relies on this callback mechanism.
 With it, task parameters are able to decompose themselves down to simpler parameters that have specific processing defined, such as raw accessors that underlie accessors and mutators.
-This composition process is handled via inheritance and agregation, and the ``send`` method may be called multiple times and for various purposes depending on the backend and the path taken to send the object between caller and task.
+This composition process is handled via inheritance and aggregation, and the ``send`` method may be called multiple times and for various purposes depending on the backend and the path taken to send the object between caller and task.
 
 A call to ``execute<F>`` can return before the task does; it returns a *future* that can be used to wait on the task to finish and obtain its return value (if any).
 (Legion provides a mechanism for nontrivial class types to serialize themselves when so returned.)
