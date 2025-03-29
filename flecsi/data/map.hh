@@ -63,15 +63,16 @@ gather(Color u, Color n) {
 
 struct claims { // to know the colors for each multi<> component
   claims(const borrow::Claims & c) : clm(c.size()) {
-    execute<fill>(topo::claims::field(clm), c);
+    execute<fill>(exec::on, topo::claims::field(clm), c);
   }
 
   topo::claims::core clm;
 
 private:
-  static void fill(topo::claims::Field::accessor<wo> a,
+  static void fill(exec::cpu s,
+    topo::claims::Field::accessor<wo> a,
     const borrow::Claims & c) {
-    a = c[color()];
+    a = c[s.launch().index];
   }
 };
 

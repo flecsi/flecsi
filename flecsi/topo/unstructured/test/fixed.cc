@@ -53,9 +53,10 @@ update_density(fixed_mesh::accessor<ro, ro, ro> m,
 }
 
 void
-check_density(fixed_mesh::accessor<ro, ro, ro> m,
+check_density(exec::cpu s,
+  fixed_mesh::accessor<ro, ro, ro> m,
   field<double>::accessor<ro, ro, ro> d) {
-  auto clr = color();
+  auto clr = s.launch().index;
   for(auto c : m.vertices()) {
     unsigned int v = d[c];
     flog_assert(v == clr, "invalid pressure");
@@ -63,7 +64,8 @@ check_density(fixed_mesh::accessor<ro, ro, ro> m,
 }
 
 int
-verify_mesh(fixed_mesh::accessor<ro, ro, ro> m,
+verify_mesh(exec::cpu s,
+  fixed_mesh::accessor<ro, ro, ro> m,
   field<util::gid>::accessor<ro, ro, ro> cids,
   field<util::gid>::accessor<ro, ro, ro> vids) {
   UNIT("TASK") {
@@ -86,8 +88,8 @@ verify_mesh(fixed_mesh::accessor<ro, ro, ro> m,
       out << "\n";
     }
     out << "\n";
-    EXPECT_TRUE(
-      UNIT_EQUAL_BLESSED("fixed_" + std::to_string(color()) + ".blessed"));
+    EXPECT_TRUE(UNIT_EQUAL_BLESSED(
+      "fixed_" + std::to_string(s.launch().index) + ".blessed"));
   };
 }
 
@@ -111,8 +113,9 @@ fixed_driver() {
     mesh.allocate(
       fixed_mesh::mpi_coloring("simple-4x4.fixed", 4, fields), fields);
 
-    EXPECT_EQ(
-      test<verify_mesh>(mesh, fixed_mesh::cid(mesh), fixed_mesh::vid(mesh)), 0);
+    EXPECT_EQ(test<verify_mesh>(
+                exec::on, mesh, fixed_mesh::cid(mesh), fixed_mesh::vid(mesh)),
+      0);
 
     execute<init_pressure>(mesh, pressure(mesh));
     execute<update_pressure, default_accelerator>(mesh, pressure(mesh));
@@ -121,7 +124,7 @@ fixed_driver() {
 
     execute<init_density>(mesh, density(mesh));
     execute<update_density, default_accelerator>(mesh, density(mesh));
-    execute<check_density>(mesh, density(mesh));
+    execute<check_density>(exec::on, mesh, density(mesh));
 
     std::swap(mesh, mesh);
   };

@@ -168,10 +168,11 @@ protected:
   using Intervals = std::vector<subrow>;
   using Points = std::vector<std::vector<copy_engine::Point>>;
 
-  static void set_dests(field<data::intervals::Value>::accessor<wo> a,
+  static void set_dests(exec::cpu s,
+    field<data::intervals::Value>::accessor<wo> a,
     const Intervals & v) {
     assert(a.span().size() == 1);
-    const auto i = color();
+    const auto i = s.launch().index;
     a.span().front() = data::intervals::make(v[i], i);
   }
   static void set_ptrs(field<copy_engine::Point>::accessor<wo, wo> a,
@@ -265,7 +266,7 @@ private:
           auto * p = recv.data();
           for(auto & s : c)
             ret.push_back({s.size(), s.size() + p++->size()});
-          execute<set_dests>(f, ret);
+          execute<set_dests>(exec::on, f, ret);
         },
         [&](auto f) { execute<set_ptrs>(f, recv); }) {}
 

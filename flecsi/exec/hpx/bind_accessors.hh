@@ -43,6 +43,11 @@ struct bind_accessors {
     : comm(comm), regions_partitions(regions_partitions) {}
 
 protected:
+  void visit(processor_space_t<Proc> & s) {
+    auto & c = run::context::instance();
+    s.bind(c.colors(), c.color());
+  }
+
   template<typename T, privilege P>
   auto next_storage(field_id_t f) {
     flog_assert(argument < regions_partitions.size(),

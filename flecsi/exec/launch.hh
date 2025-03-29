@@ -269,6 +269,56 @@ struct launch_domain {
   Color size_;
 };
 
+/// An execution space.
+struct space : data::bind_tag {
+  /// Information about an index launch.
+  struct tasks {
+    Color size, ///< Number of point tasks launched.
+      index; ///< Current point task.
+  };
+  /// Describe the tasks launched.
+  const tasks & launch() const {
+    return t;
+  }
+
+  void bind(Color n, Color i) {
+    t = {n, i};
+  }
+
+private:
+  tasks t{};
+};
+/// Single-core execution space.
+struct cpu : space {};
+/// GPU execution space.
+struct gpu : space {};
+/// OpenMP execution space.
+struct omp : space {};
+
+template<processor>
+struct processor_space;
+template<>
+struct processor_space<processor::loc> {
+  using type = cpu;
+};
+template<>
+struct processor_space<processor::toc> {
+  using type = gpu;
+};
+template<>
+struct processor_space<processor::omp> {
+  using type = omp;
+};
+template<>
+struct processor_space<processor::mpi> : processor_space<processor::loc> {};
+template<processor P>
+using processor_space_t = typename processor_space<P>::type;
+
+struct on_t : data::convert_tag {};
+/// Placeholder argument that corresponds to an execution-\ref space task
+/// parameter.
+inline constexpr on_t on;
+
 /// \cond core
 /// A simple version of C++20's \c bind_front.
 /// \endcond
@@ -346,6 +396,25 @@ template<typename Return,
 struct future;
 
 namespace exec::detail {
+template<>
+struct task_param<cpu> {
+  static cpu replace(const on_t &) {
+    return {};
+  }
+};
+template<>
+struct task_param<gpu> {
+  static gpu replace(const on_t &) {
+    return {};
+  }
+};
+template<>
+struct task_param<omp> {
+  static omp replace(const on_t &) {
+    return {};
+  }
+};
+
 template<class R>
 struct task_param<future<R>> {
   static future<R> replace(const future<R, launch_type_t::index> &) {

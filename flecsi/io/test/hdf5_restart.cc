@@ -25,7 +25,8 @@ allocate(topo::resize::Field::accessor<wo> a) {
 }
 
 void
-init(mesh1d::accessor<ro> m,
+init(exec::cpu s,
+  mesh1d::accessor<ro> m,
   field<double>::accessor<wo, na> mf1,
   field<double>::accessor<wo, na> mf2,
   field<int>::accessor<wo, na> mfi,
@@ -33,7 +34,7 @@ init(mesh1d::accessor<ro> m,
   field<int, ragged>::mutator<wo, na> mfr1,
   field<int, ragged>::mutator<wo, na> mfr2) {
   for(auto i : m.axis<ax::x_axis>().layout.logical()) {
-    double val = 100. * color() + (int)i;
+    double val = 100. * s.launch().index + (int)i;
     mf1[i] = val;
     mf2[i] = val + 1000.;
     mfi[i] = val + 2000;
@@ -76,7 +77,8 @@ clear(mesh1d::accessor<ro> m,
 } // clear
 
 int
-check(mesh1d::accessor<ro> m,
+check(exec::cpu s,
+  mesh1d::accessor<ro> m,
   field<double>::accessor<ro, na> mf1,
   field<double>::accessor<ro, na> mf2,
   field<int>::accessor<ro, na> mfi,
@@ -85,7 +87,7 @@ check(mesh1d::accessor<ro> m,
   field<int, ragged>::accessor<ro, na> mfr2) {
   UNIT("TASK") {
     for(auto i : m.axis<ax::x_axis>().layout.logical()) {
-      double val = 100. * color() + (int)i;
+      double val = 100. * s.launch().index + (int)i;
       ASSERT_EQ(mf1[i], val);
       ASSERT_EQ(mf2[i], val + 1000.);
       ASSERT_EQ(mfi[i], val + 2000);
@@ -138,7 +140,7 @@ restart_driver() {
         auto mfr1 = m_field_r1(m);
         auto mfr2 = m_field_r2(m);
 
-        execute<init>(m, mf1, mf2, mfi, mfs, mfr1, mfr2);
+        execute<init>(exec::on, m, mf1, mf2, mfi, mfs, mfr1, mfr2);
 
         // Legion backend doesn't support N-to-M yet - use 1 rank/file
         // MPI backend supports N-to-M restarts - use 2 ranks/file
@@ -150,7 +152,7 @@ restart_driver() {
         execute<clear>(m, mf1, mf2, mfi, mfs, mfr1, mfr2);
         iif.recover_all_fields(filename, Attach);
 
-        EXPECT_EQ(test<check>(m, mf1, mf2, mfi, mfs, mfr1, mfr2), 0);
+        EXPECT_EQ(test<check>(exec::on, m, mf1, mf2, mfi, mfs, mfr1, mfr2), 0);
       };
     };
 

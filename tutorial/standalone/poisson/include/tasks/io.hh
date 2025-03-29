@@ -8,7 +8,8 @@
 namespace poisson {
 namespace task {
 
-void io(mesh::accessor<ro> m,
+void io(flecsi::exec::cpu,
+  mesh::accessor<ro> m,
   field<double>::accessor<ro, ro> ua,
   std::string filebase);
 

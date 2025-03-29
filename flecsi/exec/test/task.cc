@@ -44,7 +44,10 @@ simple(TYPE arg) {
 } // simple
 
 void
-moveTask(const std::unique_ptr<int> &) {}
+moveTask(exec::cpu c, const std::unique_ptr<int> &) {
+  std::cerr << "moveTask: " << c.launch().index << '/' << c.launch().size
+            << '\n';
+}
 template<class T, class F>
 void
 seq(const T & s, F f) {
@@ -89,11 +92,11 @@ index_task(exec::launch_domain) {
 } // namespace
 
 void
-init_array(std::vector<field<reduction_type>::accessor<wo>> v) {
+init_array(exec::cpu s, std::vector<field<reduction_type>::accessor<wo>> v) {
   flog_assert(v.size() == 1, "wrong accessor count");
   int i = 0;
   for(auto & vv : v.front().span()) {
-    vv = color() + i++;
+    vv = s.launch().index + i++;
   }
 }
 void
@@ -167,7 +170,7 @@ task_driver() {
     arr::slot arr_s;
     arr_s.allocate(arr::coloring(np, vpp));
     auto arr_vals = arr_f(arr_s);
-    flecsi::execute<init_array>(std::vector{arr_vals});
+    flecsi::execute<init_array>(exec::on, std::vector{arr_vals});
     // Reduction
     topo::global::slot gl_arr_s;
     gl_arr_s.allocate(vpp);
@@ -187,7 +190,7 @@ task_driver() {
 
     const float obj = 8.9;
     execute<hydro::simple<const float *>>(&obj);
-    execute<hydro::moveTask>(std::make_unique<int>());
+    execute<hydro::moveTask>(exec::on, std::make_unique<int>());
   };
 } // task_driver
 

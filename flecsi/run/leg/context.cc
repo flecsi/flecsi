@@ -6,9 +6,10 @@ namespace flecsi {
 // To avoid a separate source file in data/leg:
 namespace data::leg {
 void
-with_used::extend(prefixes_base::Field::accessor<ro> r,
+with_used::extend(exec::cpu s,
+  prefixes_base::Field::accessor<ro> r,
   used::Field::accessor<wo> w) {
-  const Legion::coord_t c = color();
+  const Legion::coord_t c = s.launch().index;
   w = {{c, 0}, {c, upper(r.get())}};
 }
 } // namespace data::leg

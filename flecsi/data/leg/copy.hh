@@ -7,6 +7,7 @@
 #define FLECSI_DATA_LEG_COPY_HH
 
 #include "flecsi/exec/fwd.hh"
+#include "flecsi/exec/launch.hh"
 #include "flecsi/topo/color.hh"
 
 namespace flecsi::data {
@@ -27,14 +28,15 @@ struct with_used {
   // Convert a prefixes_base::Field into a used::Field.
   template<class F>
   const data::partition & convert(F f) {
-    execute<extend>(f, used::field(rects));
+    execute<extend>(exec::on, f, used::field(rects));
     return rects;
   }
 
   static constexpr const field_id_t & fid = used::field.fid;
 
 private:
-  static void extend(prefixes_base::Field::accessor<ro>,
+  static void extend(exec::cpu,
+    prefixes_base::Field::accessor<ro>,
     used::Field::accessor<wo>);
 
   used::core rects;

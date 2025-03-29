@@ -13,8 +13,8 @@ poisson::action::problem(control_policy & cp) {
   util::annotation::rguard<problem_region> guard;
   execute<task::eggcarton, default_accelerator>(
     cp.m, ud(cp.m), fd(cp.m), sd(cp.m), Aud(cp.m));
-  execute<task::io, flecsi::mpi>(cp.m, ud(cp.m), "init");
-  execute<task::io, flecsi::mpi>(cp.m, sd(cp.m), "actual");
+  execute<task::io, flecsi::mpi>(exec::on, cp.m, ud(cp.m), "init");
+  execute<task::io, flecsi::mpi>(exec::on, cp.m, sd(cp.m), "actual");
 
   flog::flush();
 } // problem

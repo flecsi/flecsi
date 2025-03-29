@@ -28,17 +28,18 @@ field_helper(typename mesh<D>::template accessor<ro> m,
 
 // Initialize even the ghosts: with !diagonals, some are never copied.
 void
-init_field(field<std::size_t>::accessor<wo, wo> ca) {
+init_field(exec::cpu es, field<std::size_t>::accessor<wo, wo> ca) {
   const auto s = ca.span();
-  std::fill(s.begin(), s.end(), color());
+  std::fill(s.begin(), s.end(), es.launch().index);
 } // init_field
 
 template<std::size_t D>
 void
-update_field(typename mesh<D>::template accessor<ro> m,
+update_field(exec::cpu s,
+  typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<wo, na> ca) {
   return field_helper<D>(
-    m, ca, [c = color()](auto & x) { x = std::pow(10, c); });
+    m, ca, [c = s.launch().index](auto & x) { x = std::pow(10, c); });
 } // update_field
 
 template<std::size_t D>
@@ -112,7 +113,8 @@ using cnst = util::constant<A>;
 
 template<std::size_t D>
 int
-check_mesh_field(std::string name,
+check_mesh_field(exec::cpu s,
+  std::string name,
   typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<ro, ro> ca) {
   using flog::container;
@@ -123,8 +125,9 @@ check_mesh_field(std::string name,
       a.layout.ghost<1>()};
   };
 
-  std::string output_file = "mesh_" + name + "_" + std::to_string(colors()) +
-                            "_" + std::to_string(color()) + ".blessed";
+  std::string output_file = "mesh_" + name + "_" +
+                            std::to_string(s.launch().size) + "_" +
+                            std::to_string(s.launch().index) + ".blessed";
   UNIT("TASK") {
     auto & out = UNIT_CAPTURE();
     if constexpr(D == 1) {
@@ -251,9 +254,11 @@ using ints = field<int, data::ragged>;
 // of changes to field values as other tasks are performed.
 template<std::size_t D>
 void
-print_rf(typename mesh<D>::template accessor<ro> m, ints::accessor<ro, na> tf) {
+print_rf(exec::cpu s,
+  typename mesh<D>::template accessor<ro> m,
+  ints::accessor<ro, na> tf) {
   std::stringstream ss;
-  ss << " Color " << color() << std::endl;
+  ss << " Color " << s.launch().index << std::endl;
 
   const auto ln_local = m.linear();
   const auto ln_global = m.glinear();
@@ -451,16 +456,16 @@ test_mesh(topo::narray_impl::colors color_dist,
     typename mesh<D>::slot m;
     m.allocate(typename mesh<D>::mpi_coloring(idef));
 
-    execute<init_field>(f(m));
+    execute<init_field>(exec::on, f(m));
 
     if(print_info)
       execute<print_field<D>>(m, f(m));
 
     if(verify) {
       execute<print_field<D>>(m, f(m));
-      execute<update_field<D>>(m, f(m));
+      execute<update_field<D>>(exec::on, m, f(m));
       execute<print_field<D>>(m, f(m));
-      EXPECT_EQ(test<check_mesh_field<D>>(verify, m, f(m)), 0);
+      EXPECT_EQ(test<check_mesh_field<D>>(exec::on, verify, m, f(m)), 0);
     }
 
     // ragged field
@@ -474,12 +479,12 @@ test_mesh(topo::narray_impl::colors color_dist,
     EXPECT_EQ((test<init_verify_rf<D, false>>(m, rf(m), sz, diagonals)), 0);
 
     if(print_info)
-      execute<print_rf<D>>(m, rf(m));
+      execute<print_rf<D>>(exec::on, m, rf(m));
 
     EXPECT_EQ((test<init_verify_rf<D, true>>(m, rf(m), sz, diagonals)), 0);
 
     if(print_info)
-      execute<print_rf<D>>(m, rf(m));
+      execute<print_rf<D>>(exec::on, m, rf(m));
   };
 }
 
@@ -506,11 +511,11 @@ narray_driver() {
       idef.full_ghosts = true;
 
       m1.allocate(mesh1d::mpi_coloring(idef));
-      execute<init_field>(f1(m1));
+      execute<init_field>(exec::on, f1(m1));
       execute<print_field<1>>(m1, f1(m1));
-      execute<update_field<1>>(m1, f1(m1));
+      execute<update_field<1>>(exec::on, m1, f1(m1));
       execute<print_field<1>>(m1, f1(m1));
-      EXPECT_EQ(test<check_mesh_field<1>>("1d", m1, f1(m1)), 0);
+      EXPECT_EQ(test<check_mesh_field<1>>(exec::on, "1d", m1, f1(m1)), 0);
 
       if constexpr(FLECSI_BACKEND != FLECSI_BACKEND_mpi &&
                    FLECSI_BACKEND != FLECSI_BACKEND_hpx) {
@@ -527,12 +532,12 @@ narray_driver() {
       tf.resize();
 
       execute<init_verify_rf<1, false>>(m1, rf1(m1), sz, true);
-      execute<print_rf<1>>(m1, rf1(m1));
+      execute<print_rf<1>>(exec::on, m1, rf1(m1));
 
       // tests the case where the periodic flag is false, but with non-zero
       // bdepth, communication is expected only for the halo layers.
       EXPECT_EQ((test<init_verify_rf<1, true>>(m1, rf1(m1), sz, true)), 0);
-      execute<print_rf<1>>(m1, rf1(m1));
+      execute<print_rf<1>>(exec::on, m1, rf1(m1));
 
       // tests if a rewrite of values on ragged with an accessor triggers a
       // ghost copy

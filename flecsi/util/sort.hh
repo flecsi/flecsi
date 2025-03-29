@@ -140,18 +140,20 @@ protected:
     a = b;
   } // copy_sizes_task
 
-  static void update_sizes_copy_task(topo::resize::Field::accessor<wo> a,
+  static void update_sizes_copy_task(exec::cpu s,
+    topo::resize::Field::accessor<wo> a,
     field<std::size_t>::accessor<ro> cpy) {
-    a = cpy[color()];
+    a = cpy[s.launch().index];
   } // update_sizes_copy_task
 
   // Using reduction as a gather copy
   // We could use multi-accessor like in other places but chose to use global
   // reduction for simplicity
-  static void compute_copy_task(field<std::size_t>::accessor<wo> transfers,
+  static void compute_copy_task(exec::cpu s,
+    field<std::size_t>::accessor<wo> transfers,
     data::reduction_accessor<exec::fold::sum, int> copy) {
     auto c = colors;
-    std::size_t output = color() * c;
+    std::size_t output = s.launch().index * c;
     for(unsigned int j = 0; j < c; ++j) {
       int count = 0;
       for(std::size_t i = 0; i < transfers.span().size(); ++i)
@@ -261,7 +263,7 @@ protected:
     index_sort<key_type>(val.span().data(), idx.span());
   } // sort_values_task
 
-  static void reorder_values_task(
+  static void reorder_values_task(exec::cpu s,
     typename field<key_type>::template accessor1<privilege_repeat<rw, PC>>
       values,
     typename field<interval>::template accessor<ro> intervals,
@@ -272,10 +274,10 @@ protected:
 
     std::iota(changes.span().begin(), changes.span().end(), 0);
     // Keep all the values between my threshold
-    auto c = colors;
+    const auto c = s.launch().index;
     std::size_t current = 0;
-    key_type lower(color() ? intervals[color() - 1].lower : min);
-    key_type upper(color() != c - 1 ? intervals[color()].lower : max);
+    key_type lower(c ? intervals[c - 1].lower : min);
+    key_type upper(c != colors - 1 ? intervals[c].lower : max);
     for(std::size_t i = 0; i < values.span().size(); i++) {
       if(values[i] > lower && values[i] <= upper) {
         values[current] = values[i];
@@ -284,7 +286,7 @@ protected:
     } // for
   } // reorder_values_task
 
-  static void set_pointers_task(
+  static void set_pointers_task(exec::cpu s,
     typename field<data::copy_engine::Point>::template accessor1<
       privilege_repeat<wo, PC>> a,
     field<int>::accessor<ro> copy,
@@ -292,13 +294,13 @@ protected:
     auto c = colors;
     std::size_t cur = m->initial;
     for(unsigned int i = 0; i < c; ++i) {
-      if(i == color())
+      if(i == s.launch().index)
         continue;
       std::size_t icur = 0;
-      std::size_t ptr = c * i + color();
+      std::size_t ptr = c * i + s.launch().index;
       // Sum color before my color sent
       // Basically count for each color
-      for(unsigned int j = 0; j < color(); ++j)
+      for(unsigned int j = 0; j < s.launch().index; ++j)
         icur += copy[c * i + j];
       for(int j = 0; j < copy[ptr]; ++j)
         a(cur++) = data::copy_engine::point(i, icur++);
@@ -331,7 +333,7 @@ protected:
   // This function is used to count and to feed the probes (count = true/false)
   // In the first case the variable maybe_probes is not used.
   template<bool count>
-  static std::size_t probes_task(
+  static std::size_t probes_task(exec::cpu s,
     typename field<key_type>::template accessor1<privilege_repeat<ro, PC>>
       values,
     std::conditional_t<count,
@@ -344,7 +346,7 @@ protected:
     const double epsilon) {
     if(values.span().size() == 0)
       return 0;
-    std::minstd_rand mrnd(iteration + colors + color());
+    std::minstd_rand mrnd(iteration + colors + s.launch().index);
     constexpr double m_rnd = static_cast<double>(std::minstd_rand::max()) + 1;
     std::size_t nprobes = 0;
 
@@ -423,30 +425,31 @@ protected:
     heap::merge(probes.accessors(), sorted_probes);
   } // sort_probes
 
-  static void set_destination_task(
+  static void set_destination_task(exec::cpu s,
     field<data::intervals::Value>::accessor<wo> a,
     field<int>::accessor<ro> copy,
     typename field<meta, data::single>::template accessor<ro> m) {
     auto c = sort_base::colors;
     std::size_t total = 0;
     for(unsigned int i = 0; i < c; ++i)
-      if(i != color())
-        total += copy[c * i + color()];
+      if(i != s.launch().index)
+        total += copy[c * i + s.launch().index];
     std::size_t start = m->initial;
     std::size_t stop = start + total;
-    a(0) = data::intervals::make({start, stop}, color());
+    a(0) = data::intervals::make({start, stop}, s.launch().index);
   } // set_destination_task
 
-  static void update_sizes_task(topo::resize::Field::accessor<wo> a,
+  static void update_sizes_task(exec::cpu s,
+    topo::resize::Field::accessor<wo> a,
     field<int>::accessor<ro> cpy,
     typename field<meta, data::single>::template accessor<ro> m) {
     auto c = sort_base::colors;
     // Compute data that will be sent to me
     std::size_t total = m->initial;
     for(unsigned int i = 0; i < c; ++i) {
-      if(i == color())
+      if(i == s.launch().index)
         continue;
-      total += cpy[c * i + color()];
+      total += cpy[c * i + s.launch().index];
     }
     a = total;
   } // udpate_sizes_task
@@ -650,7 +653,8 @@ public:
     for(int i = 0; i < iterations; ++i) {
       // Count number of probes: three steps, count + resize + fill
       std::size_t totalprobes =
-        reduce<sort::template probes_task<true>, exec::fold::sum>(values,
+        reduce<sort::template probes_task<true>, exec::fold::sum>(exec::on,
+          values,
           sort::probes_s->sizes(),
           intervals_fh,
           tsizes,
@@ -664,7 +668,8 @@ public:
       sort::probes_s->resize();
 
       // Sample probes
-      execute<sort::template probes_task<false>>(values,
+      execute<sort::template probes_task<false>>(exec::on,
+        values,
         sort::probes_f(sort::probes_s),
         intervals_fh,
         tsizes,
@@ -697,14 +702,15 @@ public:
     // Init transfer: who goes where from initial values + reduce sizes
     execute<sort::update_transfer_task>(
       values, intervals_fh, sizes_fh, transfer_fh);
-    execute<sort::compute_copy_task>(transfer_fh, copy_fh);
+    execute<sort::compute_copy_task>(exec::on, transfer_fh, copy_fh);
 
     // Resize values' partition to have room for the copies
     // This could be changed to use a buffer
     execute<sort::update_sizes_task>(
-      tt.template get_partition<space>().sizes(), copy_fh, meta_fh);
+      exec::on, tt.template get_partition<space>().sizes(), copy_fh, meta_fh);
     tt.template get_partition<space>().resize();
-    execute<sort::update_sizes_task>(sort::idx_s->sizes(), copy_fh, meta_fh);
+    execute<sort::update_sizes_task>(
+      exec::on, sort::idx_s->sizes(), copy_fh, meta_fh);
     sort::idx_s->resize();
 
     execute<sort::fake_initialize>(values);
@@ -716,10 +722,10 @@ public:
 
     // Create copy plan operation and issue
     auto dest = [&](auto f) {
-      execute<sort::set_destination_task>(f, copy_fh, meta_fh);
+      execute<sort::set_destination_task>(exec::on, f, copy_fh, meta_fh);
     };
     auto src = [&](auto f) {
-      execute<sort::set_pointers_task>(f, copy_fh, meta_fh);
+      execute<sort::set_pointers_task>(exec::on, f, copy_fh, meta_fh);
     };
     {
       data::copy_plan cp(tt,
@@ -735,7 +741,7 @@ public:
 
     // 1 Apply sort on values and keep track of changes
     execute<sort::reorder_values_task>(
-      values, intervals_fh, sort::indices_f(sort::idx_s));
+      exec::on, values, intervals_fh, sort::indices_f(sort::idx_s));
 
     for(auto & af : apply_fields) {
       auto fr = data::field_reference<std::byte, data::raw, topology, space>(
@@ -746,9 +752,10 @@ public:
 
     // Resize
     execute<sort::update_sizes_copy_task>(
-      tt.template get_partition<space>().sizes(), sizes_fh);
+      exec::on, tt.template get_partition<space>().sizes(), sizes_fh);
     tt.template get_partition<space>().resize();
-    execute<sort::update_sizes_copy_task>(sort::idx_s->sizes(), sizes_fh);
+    execute<sort::update_sizes_copy_task>(
+      exec::on, sort::idx_s->sizes(), sizes_fh);
     sort::idx_s->resize();
 
     execute<sort::fake_initialize>(values);

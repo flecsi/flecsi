@@ -101,11 +101,13 @@ An index task launch calls a given function a number of times asynchronously, ty
 The usual purpose is operating on different parts of a distributed data structure (different *colors* of a *topology*) in parallel.
 
 In this example we explicitly ask to call ``task`` 4 times via
-the ``launch_domain`` argument.
+the ``launch_domain`` argument; the task must declare a parameter for it, but it need not be named or used.
+To receive information about the task launch, a task can declare an *execution space* parameter; the task launch provides the dummy value ``exec::on`` to initialize it.
+An execution space parameter also controls where the task runs, but ``exec::cpu`` is the default.
 
 .. literalinclude:: ../../../../tutorial/3-execution/2-index-task.cc
   :language: cpp
-  :start-at: // Task with no arguments.
+  :start-at: // Task with special arguments.
   :end-at: // advance()
 
 Launch Domains
@@ -127,6 +129,7 @@ MPI task adds synchronization between Legion and MPI and, therefore,
 should only be used when one needs to call MPI library.  
 To execute an MPI task, the second template argument to the ``execute``
 method should be set to ``mpi``.
+The ``launch`` information provided is equivalent to ``process`` and ``processes``.
 
 .. literalinclude:: ../../../../tutorial/3-execution/3-mpi-task.cc
   :language: cpp

@@ -240,21 +240,22 @@ init_ids(sph_ntree_t::accessor<ro, na> t,
 }
 
 void
-print_ids(sph_ntree_t::accessor<ro, ro> t,
+print_ids(exec::cpu s,
+  sph_ntree_t::accessor<ro, ro> t,
   field<flecsi::util::id>::accessor<ro, ro> d) {
-  std::cout << color() << " Print id exclusive: ";
+  std::cout << s.launch().index << " Print id exclusive: ";
   for(auto a : t.entities()) {
     std::cout << t.e_ids[a] << "=" << d(a) << " - ";
     assert(t.e_ids[a] == d(a));
   }
   std::cout << std::endl;
-  std::cout << color() << " Print id ghosts : ";
+  std::cout << s.launch().index << " Print id ghosts : ";
   for(auto a : t.entities<sph_ntree_t::base::ptype_t::ghost>()) {
     std::cout << t.e_ids[a] << "=" << d(a) << " - ";
     assert(t.e_ids[a] == d(a));
   }
   std::cout << std::endl;
-  std::cout << color() << " Print id all : ";
+  std::cout << s.launch().index << " Print id all : ";
   for(auto id : t.e_ids.span()) {
     std::cout << id << " - ";
   }
@@ -299,7 +300,7 @@ ntree_driver() {
     flecsi::execute<init_ids, default_accelerator>(sph_ntree, d);
     sph_ntree_t::build_ntree(sph_ntree);
 
-    flecsi::execute<print_ids>(sph_ntree, d);
+    flecsi::execute<print_ids>(exec::on, sph_ntree, d);
     EXPECT_EQ(test<check_neighbors>(sph_ntree), 0);
     flecsi::execute<check_neighbors_accelerator, default_accelerator>(
       sph_ntree);

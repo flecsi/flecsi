@@ -35,18 +35,18 @@ const intN::definition<trivial_array> arag;
 constexpr std::size_t column = 42;
 
 void
-allocate(topo::resize::Field::accessor<wo> a) {
-  a = color() + 1;
+allocate(exec::cpu s, topo::resize::Field::accessor<wo> a) {
+  a = s.launch().index + 1;
 }
 void
-irows(intN::mutator<wo> r) {
-  r[0].resize(color() + 1);
+irows(exec::cpu s, intN::mutator<wo> r) {
+  r[0].resize(s.launch().index + 1);
 }
 int
-drows(double_at::mutator<wo> s) {
+drows(exec::cpu s, double_at::mutator<wo> mm) {
   UNIT("TASK") {
-    const auto me = color();
-    const auto && m = s[0];
+    const auto me = s.launch().index;
+    const auto && m = mm[0];
     for(std::size_t c = 0; c <= me; ++c)
       m.try_emplace(column + c, me + c);
     for(const auto && p : m)
@@ -86,10 +86,11 @@ const noisy::definition<topo::index> noisy_field;
 const field<int *>::definition<topo::index> ptr_field;
 
 void
-assign(double_field::accessor<wo> p,
+assign(exec::cpu s,
+  double_field::accessor<wo> p,
   intN::accessor<rw> r,
   double_at::accessor<rw> sp) {
-  const auto i = color();
+  const auto i = s.launch().index;
   flog(info) << "assign on " << i << std::endl;
   p = i;
   static_assert(std::is_same_v<decltype(r.get_offsets().span()),
@@ -122,13 +123,14 @@ ragged_xfer(intN::accessor<ro> v, intN::mutator<rw> g, buffers::Transfer mv) {
 }
 
 int
-check(double_field::accessor<ro> p,
+check(exec::cpu es,
+  double_field::accessor<ro> p,
   intN::accessor<ro> r,
   intN::accessor<ro> g,
   double_at::accessor<ro> sp,
   noisy::accessor<ro> n) {
   UNIT("TASK") {
-    const auto me = color();
+    const auto me = es.launch().index;
     flog(info) << "check on " << me << std::endl;
     ASSERT_EQ(p, me);
     EXPECT_GE(r.get_base().span().size(), r.span().size() * 2);
@@ -138,7 +140,7 @@ check(double_field::accessor<ro> p,
     ASSERT_EQ(s.size(), me + 1);
     EXPECT_EQ(s.back(), 1);
     const auto sg = g[0];
-    ASSERT_EQ(sg.size(), me ? me : colors());
+    ASSERT_EQ(sg.size(), me ? me : es.launch().size);
     EXPECT_EQ(sg.back(), 1);
     ASSERT_EQ(sp.size(), 1u);
     const auto sr = sp[0];
@@ -148,7 +150,7 @@ check(double_field::accessor<ro> p,
 } // print
 
 int
-part(short_part::mutator<wo> a) {
+part(exec::cpu s, short_part::mutator<wo> a) {
   UNIT("TASK") {
     const short pi[] = {3, 0, 1, 4, 0, 0, 0, 1, 0, 0, 5, 0};
     short sum = 0, chk = 0;
@@ -186,7 +188,7 @@ part(short_part::mutator<wo> a) {
     EXPECT_EQ(*i3, 3);
     EXPECT_EQ(*i4, 4);
     EXPECT_EQ(i3, a.get_iterator_from_pointer(&*i3));
-    *a.begin() = color();
+    *a.begin() = s.launch().index;
   };
 }
 
@@ -195,12 +197,13 @@ constexpr int process_fraction = 2 - (FLECSI_BACKEND == FLECSI_BACKEND_mpi ||
                                        FLECSI_BACKEND == FLECSI_BACKEND_hpx);
 
 int
-use_map(data::multi<short_part::accessor<ro>> ma,
+use_map(exec::cpu s,
+  data::multi<short_part::accessor<ro>> ma,
   data::multi<intN::mutator<wo>> mm) {
   UNIT() {
     const auto p = processes(), nc = std::max(p / process_fraction, {1}),
-               c = color();
-    EXPECT_EQ(colors(), nc);
+               c = s.launch().index;
+    EXPECT_EQ(s.launch().size, nc);
     const auto ac = ma.components();
     EXPECT_EQ(ac.size(), p / nc + (c < p % nc));
     for(auto [c, a] : ac)
@@ -213,9 +216,9 @@ use_map(data::multi<short_part::accessor<ro>> ma,
 }
 
 int
-check_map(intN::accessor<ro> a) {
+check_map(exec::cpu s, intN::accessor<ro> a) {
   UNIT() {
-    const auto c = color();
+    const auto c = s.launch().index;
     ASSERT_EQ(a[0].size(), c + 1);
     EXPECT_EQ(a[0].back(), c);
   };
@@ -240,7 +243,7 @@ index_driver() {
     constexpr static auto alloc = [](auto f) {
       auto & p = f.get_elements();
       p.growth = {0, 0, 0.25, 0.5, 1};
-      execute<allocate>(p.sizes());
+      execute<allocate>(exec::on, p.sizes());
       p.resize();
     };
     const auto pressure = pressure_field(process_topology);
@@ -256,10 +259,10 @@ index_driver() {
       // make the new size visible to check below.
       exec::trace t;
       for(int i = 0; i < 2; i++)
-        t.make_guard(), execute<irows>(verts);
+        t.make_guard(), execute<irows>(exec::on, verts);
     }
-    EXPECT_EQ(test<drows>(vfrac), 0);
-    execute<assign>(pressure, verts, vfrac);
+    EXPECT_EQ(test<drows>(exec::on, vfrac), 0);
+    execute<assign>(exec::on, pressure, verts, vfrac);
     execute<reset>(noise);
     EXPECT_EQ(
       (reduce<reset, exec::fold::sum, flecsi::mpi>(noise).get()), processes());
@@ -276,19 +279,19 @@ index_driver() {
     }())
       .xfer<ragged_start, ragged_xfer>(verts, ghost);
 
-    EXPECT_EQ(test<check>(pressure, verts, ghost, vfrac, noise), 0);
+    EXPECT_EQ(test<check>(exec::on, pressure, verts, ghost, vfrac, noise), 0);
 
     // Duplicate work to support the MPI backend:
     trivial_array::slot a;
     a.allocate(trivial_array::coloring(processes(), 12));
-    EXPECT_EQ(test<part>(particles(a)), 0);
-    execute<allocate>(arag(a).get_elements().sizes());
+    EXPECT_EQ(test<part>(exec::on, particles(a)), 0);
+    execute<allocate>(exec::on, arag(a).get_elements().sizes());
     arag(a).get_elements().resize();
 
     auto lm = launch::make(
       a, launch::robin(a.colors(), std::max(np / process_fraction, {1})));
-    EXPECT_EQ(test<use_map>(particles(lm), arag(lm)), 0);
-    EXPECT_EQ(test<check_map>(arag(a)), 0);
+    EXPECT_EQ(test<use_map>(exec::on, particles(lm), arag(lm)), 0);
+    EXPECT_EQ(test<check_map>(exec::on, arag(a)), 0);
   };
 } // index
 
