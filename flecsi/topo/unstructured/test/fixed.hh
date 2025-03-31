@@ -75,13 +75,15 @@ struct fixed_mesh
     Coloring
    *--------------------------------------------------------------------------*/
 
-  static coloring
-  color(std::string const & filename, flecsi::Color ncolors, init & fields) {
+  static coloring color(const flecsi::runtime & r,
+    std::string const & filename,
+    flecsi::Color ncolors,
+    init & fields) {
     using namespace flecsi;
     using namespace flecsi::topo::unstructured_impl;
-    flog_assert(processes() == ncolors, "color to process mismatch");
+    flog_assert(r.processes() == ncolors, "color to process mismatch");
 
-    simple_definition sd(filename + "." + std::to_string(process()));
+    simple_definition sd(filename + "." + std::to_string(r.process()));
     fields.cid.push_back(std::move(sd.l2g_cells));
     fields.vid.push_back(std::move(sd.l2g_vertices));
     fields.c2v_connectivity.push_back(std::move(sd.c2v));

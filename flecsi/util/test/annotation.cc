@@ -24,13 +24,11 @@ wait() {
 }
 
 int
-annotation_driver(scheduler &) {
+annotation_driver(scheduler & s) {
   UNIT() {
     namespace ann = flecsi::util::annotation;
 
-    auto & c = run::context::instance();
-    auto rank = c.process();
-    auto size = c.processes();
+    const auto rank = s.runtime().process(), size = s.runtime().processes();
 
     cali::RegionProfile rp;
     rp.start();

@@ -197,11 +197,11 @@ constexpr int process_fraction = 2 - (FLECSI_BACKEND == FLECSI_BACKEND_mpi ||
 
 int
 use_map(exec::cpu s,
+  Color p,
   data::multi<short_part::accessor<ro>> ma,
   data::multi<intN::mutator<wo>> mm) noexcept {
   UNIT() {
-    const auto p = processes(), nc = std::max(p / process_fraction, {1}),
-               c = s.launch().index;
+    const auto nc = std::max(p / process_fraction, {1}), c = s.launch().index;
     EXPECT_EQ(s.launch().size, nc);
     const auto ac = ma.components();
     EXPECT_EQ(ac.size(), p / nc + (c < p % nc));
@@ -226,7 +226,7 @@ check_map(exec::cpu s, intN::accessor<ro> a) noexcept {
 int
 index_driver(scheduler & s) {
   UNIT() {
-    const auto np = processes();
+    const auto np = s.runtime().processes();
     {
       region r({}, {});
       EXPECT_FALSE((r.ghost<privilege_pack<wo, wo, na>>(0)));
@@ -252,7 +252,7 @@ index_driver(scheduler & s) {
     const auto noise = noisy_field(process_topology);
     alloc(verts);
     alloc(vfrac);
-    ghost.get_elements().growth = {processes() + 1};
+    ghost.get_elements().growth = {np + 1};
     {
       // Use the mutator twice to record/replay the trace and to
       // make the new size visible to check below.
@@ -263,18 +263,16 @@ index_driver(scheduler & s) {
     EXPECT_EQ(s.test<drows>(exec::on, vfrac), 0);
     s.execute<assign>(exec::on, pressure, verts, vfrac);
     s.execute<reset>(noise);
-    EXPECT_EQ(
-      (reduce<reset, exec::fold::sum, flecsi::mpi>(noise).get()), processes());
+    EXPECT_EQ((reduce<reset, exec::fold::sum, flecsi::mpi>(noise).get()), np);
     execute<use_ptr, flecsi::mpi>(ptr_field(process_topology));
 
     // Rotate the ragged field by one color:
     buffers::core(s,
-      [] {
-        const auto p = processes();
-        buffers::coloring ret(p);
+      [np] {
+        buffers::coloring ret(np);
         Color i = 0;
         for(auto & g : ret)
-          g.push_back(++i % p);
+          g.push_back(++i % np);
         return ret;
       }())
       .xfer<ragged_start, ragged_xfer>(s, verts, ghost);
@@ -283,14 +281,14 @@ index_driver(scheduler & s) {
 
     // Duplicate work to support the MPI backend:
     trivial_array::slot a;
-    a.allocate(s, trivial_array::coloring(processes(), 12));
+    a.allocate(s, trivial_array::coloring(np, 12));
     EXPECT_EQ(s.test<part>(exec::on, particles(a)), 0);
     s.execute<allocate>(exec::on, arag(a).get_elements().sizes());
     arag(a).get_elements().resize();
 
     auto lm = launch::make(
       s, a, launch::robin(a.colors(), std::max(np / process_fraction, {1})));
-    EXPECT_EQ(s.test<use_map>(exec::on, particles(lm), arag(lm)), 0);
+    EXPECT_EQ(s.test<use_map>(exec::on, np, particles(lm), arag(lm)), 0);
     EXPECT_EQ(s.test<check_map>(exec::on, arag(a)), 0);
   };
 } // index

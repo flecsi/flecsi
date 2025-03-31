@@ -19,7 +19,7 @@ struct spec_setopo_t : topo::specialization<topo::set, spec_setopo_t> {
     coloring c;
 
     c.ptr = ptr;
-    c.counts = std::vector<std::size_t>(processes(), 100);
+    c.counts = std::vector<std::size_t>(ptr->colors(), 100);
     return c;
   }
 };
@@ -97,8 +97,9 @@ set_driver(scheduler & s) {
     mesh_type::init fields;
     spec_setopo_t::slot spec_setopo;
 
-    mesh_underlying.allocate(
-      s, mesh_type::mpi_coloring(s, "simple-4x4.fixed", 4, fields), fields);
+    mesh_underlying.allocate(s,
+      mesh_type::mpi_coloring(s, s.runtime(), "simple-4x4.fixed", 4, fields),
+      fields);
     spec_setopo.allocate(s, spec_setopo_t::mpi_coloring(s, &mesh_underlying));
 
     auto particle_t = particles(spec_setopo);

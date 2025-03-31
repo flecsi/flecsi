@@ -116,8 +116,9 @@ fixed_driver(scheduler & s) {
   UNIT() {
     fixed_mesh::slot mesh;
     fixed_mesh::init fields;
-    mesh.allocate(
-      s, fixed_mesh::mpi_coloring(s, "simple-4x4.fixed", 4, fields), fields);
+    mesh.allocate(s,
+      fixed_mesh::mpi_coloring(s, s.runtime(), "simple-4x4.fixed", 4, fields),
+      fields);
 
     EXPECT_EQ(s.test<verify_mesh>(
                 exec::on, mesh, fixed_mesh::cid(mesh), fixed_mesh::vid(mesh)),

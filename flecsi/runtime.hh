@@ -44,6 +44,15 @@ struct runtime {
     run::context::ctx.reset();
   }
 
+  /// Return the rank of this process.
+  Color process() const {
+    return ctx().process();
+  }
+  /// Return the number of processes.
+  Color processes() const {
+    return ctx().processes();
+  }
+
   /// Execute a control model.
   /// \tparam C control model
   /// \param aa arguments for \link run::control::invoke `C::invoke`\endlink
@@ -69,18 +78,20 @@ private:
 
 /*!
   Return the current process id.  \ns.
+  \deprecated Use \c runtime::process.
  */
 
-inline Color
+[[deprecated("use runtime::process")]] inline Color
 process() {
   return run::context::instance().process();
 }
 
 /*!
   Return the number of processes.  \ns.
+  \deprecated Use \c runtime::processes.
  */
 
-inline Color
+[[deprecated("use runtime::processes")]] inline Color
 processes() {
   return run::context::instance().processes();
 }

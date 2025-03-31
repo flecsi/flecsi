@@ -325,8 +325,8 @@ ntree_driver(scheduler & s) {
       const auto fm = s.execute<check_sort_task>(arr_f(arr_s)).all();
       for(auto & p : fm)
         EXPECT_TRUE(std::get<2>(p));
-      for(unsigned int p = 0; p < processes() - 1; ++p) {
-        EXPECT_LE(std::get<0>(fm[p]), std::get<1>(fm[p + 1]));
+      for(auto p = fm.size(); p-- > 1;) {
+        EXPECT_LE(std::get<0>(fm[p - 1]), std::get<1>(fm[p]));
       }
     }
   };

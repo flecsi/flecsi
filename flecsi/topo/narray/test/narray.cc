@@ -439,8 +439,9 @@ test_mesh(scheduler & s,
   UNIT() {
     typename mesh<D>::index_definition idef;
     idef.axes = mesh<D>::base::make_axes(
-      color_dist.empty() ? mesh<D>::base::distribute(processes(), indices)
-                         : std::move(color_dist),
+      color_dist.empty()
+        ? mesh<D>::base::distribute(s.runtime().processes(), indices)
+        : std::move(color_dist),
       indices);
     int i = 0;
     for(auto & a : idef.axes) {
@@ -505,7 +506,7 @@ narray_driver(scheduler & s) {
 
       mesh1d::gcoord indices{9};
       mesh1d::index_definition idef;
-      idef.axes = mesh1d::base::make_axes(processes(), indices);
+      idef.axes = mesh1d::base::make_axes(s.runtime().processes(), indices);
       idef.axes[0].hdepth = 1;
       idef.axes[0].bdepth = 2;
       idef.diagonals = true;
@@ -744,7 +745,7 @@ util::unit::driver<narray_driver> nd;
 /// Coloring testing
 
 int
-coloring_driver(scheduler &) {
+coloring_driver(scheduler & s) {
   UNIT() {
     mesh3d::gcoord indices{9, 9, 9};
 
@@ -760,9 +761,9 @@ coloring_driver(scheduler &) {
 
     const auto verify = [&](const std::string & name,
                           const mesh3d::index_definition & id) {
-      std::string output_file = "coloring_" + name + "_" +
-                                std::to_string(processes()) + "_" +
-                                std::to_string(process()) + ".blessed";
+      std::string output_file =
+        "coloring_" + name + "_" + std::to_string(s.runtime().processes()) +
+        "_" + std::to_string(s.runtime().process()) + ".blessed";
       auto & out = UNIT_CAPTURE();
       std::vector<std::size_t> color;
       std::vector<std::string> global, extent, offset, logical, extended;

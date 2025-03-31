@@ -55,7 +55,7 @@ private:
   } g;
   struct process_guard {
     process_guard(scheduler & s) {
-      process_topology.allocate(s, run::context::instance().processes());
+      process_topology.allocate(s, s.runtime().processes());
     }
     process_guard(process_guard &&) = delete;
     ~process_guard() {

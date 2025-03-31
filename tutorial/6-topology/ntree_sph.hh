@@ -167,7 +167,7 @@ struct sph_ntree_t
     flecsi::util::id nents) {
     auto lm_ts = flecsi::data::launch::make(s, ts);
     const auto ours = flecsi::util::equal_map(
-      c.nparts_, flecsi::processes())[flecsi::process()];
+      c.nparts_, s.runtime().processes())[s.runtime().process()];
     std::vector<flecsi::util::id> offsets;
     auto b = c.entities_sizes_.begin();
     auto o = std::accumulate(b, b + ours[0], 0);

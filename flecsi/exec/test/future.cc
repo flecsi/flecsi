@@ -62,7 +62,7 @@ future_driver(scheduler & s) {
     EXPECT_EQ(f.get(), ++d);
 
     // future map
-    const exec::launch_domain ld{run::context::instance().processes()};
+    const exec::launch_domain ld{s.runtime().processes()};
     auto fm = s.execute<index_init>(exec::on, d, ld);
     for(auto v : fm.all())
       EXPECT_EQ(v, d++);
@@ -85,11 +85,11 @@ future_driver(scheduler & s) {
     EXPECT_EQ(fmin.get(), a);
 
     auto fmax = s.reduce<reduction_task, exec::fold::max>(exec::on, a, ld);
-    EXPECT_EQ(fmax.get(), int(a + run::context::instance().processes() - 1));
+    EXPECT_EQ(fmax.get(), int(a + s.runtime().processes() - 1));
 
     auto fsum = s.reduce<reduction_task, exec::fold::sum>(exec::on, a, ld);
     int sum = 0;
-    for(Color i = 0; i < run::context::instance().processes(); i++)
+    for(Color i = 0; i < s.runtime().processes(); i++)
       sum += a + i;
     EXPECT_EQ(fsum.get(), sum);
   };

@@ -23,5 +23,5 @@ poisson::action::init_mesh(control_policy & cp) {
   geometry[1] = geometry[0];
 
   cp.m.allocate(
-    s, mesh::mpi_coloring(s, flecsi::processes(), axis_extents), geometry);
+    s, mesh::mpi_coloring(s, s.runtime().processes(), axis_extents), geometry);
 } // init_mesh

@@ -153,7 +153,7 @@ mapping(T &, const Claims &) -> mapping<topo::policy_t<T>>;
 template<class T>
 mapping<topo::policy_t<T>>
 make(scheduler & s, T & t) { // convenience for subtopology initialization
-  return {s, t, block(t.colors(), processes())};
+  return {s, t, block(t.colors(), s.runtime().processes())};
 }
 /// Create a \c mapping.
 template<class P>

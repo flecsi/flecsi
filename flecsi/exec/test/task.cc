@@ -79,17 +79,17 @@ mpi(int * p) {
 
 namespace {
 int
-index_task(exec::launch_domain) noexcept {
+index_task(const flecsi::runtime * r, exec::launch_domain) noexcept {
   UNIT("TASK") {
-    flog(info) << "processes: " << processes() << std::endl;
-    flog(info) << "process: " << process() << std::endl;
+    flog(info) << "processes: " << r->processes() << std::endl;
+    flog(info) << "process: " << r->process() << std::endl;
     // flog(info)
     // << "colors: " << colors() << std::endl; flog(info) << "color: " <<
     // color()
     // << std::endl;
 
-    EXPECT_LT(process(), processes());
-    EXPECT_GE(process(), 0u);
+    EXPECT_LT(r->process(), r->processes());
+    EXPECT_GE(r->process(), 0u);
     // EXPECT_LT(color(), domain.size());
     // EXPECT_GE(color(), 0u);
     // EXPECT_EQ(colors(), domain.size());
@@ -167,11 +167,12 @@ task_driver(scheduler & s) {
 
     constexpr bool add_four = (FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
                               (FLECSI_BACKEND != FLECSI_BACKEND_hpx);
-    EXPECT_EQ(
-      s.test<index_task>(exec::launch_domain{processes() + 4 * add_four}), 0);
+    EXPECT_EQ(s.test<index_task>(&s.runtime(),
+                exec::launch_domain{s.runtime().processes() + 4 * add_four}),
+      0);
 
     // Test reduction
-    auto np = processes();
+    auto np = s.runtime().processes();
     const int vpp = 5;
     // Array of initial values per color
     arr::slot arr_s;

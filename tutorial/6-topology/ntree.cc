@@ -69,7 +69,7 @@ initialize_action(sph::control_policy & cp) {
 
   const int nents = sph::n_entities.value();
   cp.sph_ntree.allocate(
-    s, sph_ntree_t::mpi_coloring(s, processes(), nents), nents);
+    s, sph_ntree_t::mpi_coloring(s, s.runtime().processes(), nents), nents);
 
   auto rho = density(cp.sph_ntree);
   auto p = pressure(cp.sph_ntree);
@@ -83,7 +83,8 @@ initialize_action(sph::control_policy & cp) {
 }
 
 int
-output_task(sph_ntree_t::accessor<ro, na> t,
+output_task(exec::cpu s,
+  sph_ntree_t::accessor<ro, na> t,
   field<double>::accessor<ro, na> rho,
   field<double>::accessor<ro, na> p,
   field<double>::accessor<ro, na> v,
@@ -94,7 +95,7 @@ output_task(sph_ntree_t::accessor<ro, na> t,
   int intv) noexcept {
   if(nfile % intv == 0) {
     std::ofstream file("output_sodtube_" + std::to_string(nfile) + '_' +
-                       std::to_string(process()) + ".dat");
+                       std::to_string(s.launch().index) + ".dat");
     file << "x rho p v u dudt dvdt\n";
     for(auto e : t.entities()) {
       file << t.e_i[e].coordinates[0] << ' ' << rho[e] << ' ' << p[e] << ' '
@@ -111,12 +112,13 @@ output_task(sph_ntree_t::accessor<ro, na> t,
 
 void
 merge_output(sph::control_policy & cp) {
-  if(process() == 0 && cp.step % cp.intv == 0) {
+  auto & r = cp.scheduler().runtime();
+  if(r.process() == 0 && cp.step % cp.intv == 0) {
     std::ostringstream filename;
     filename << "output_sodtube_" << std::setfill('0') << std::setw(4)
              << cp.step << ".dat";
     std::ofstream file(std::move(filename).str());
-    for(unsigned int c = 0; c < processes(); ++c) {
+    for(unsigned int c = 0; c < r.processes(); ++c) {
       std::string fname = "output_sodtube_" + std::to_string(cp.step) + '_' +
                           std::to_string(c) + ".dat";
       file << std::ifstream(fname).rdbuf();
@@ -157,7 +159,7 @@ output_action(sph::control_policy & cp) {
   auto dudt = d_energy(cp.sph_ntree);
 
   auto f = cp.scheduler().execute<output_task>(
-    cp.sph_ntree, rho, p, v, u, dudt, dvdt, cp.step, cp.intv);
+    exec::on, cp.sph_ntree, rho, p, v, u, dudt, dvdt, cp.step, cp.intv);
   f.wait();
   merge_output(cp);
 }
