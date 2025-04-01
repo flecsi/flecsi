@@ -263,6 +263,10 @@ check_parameters() {
       ((!std::is_pointer_v<PP> || std::is_const_v<std::remove_pointer_t<PP>> ||
         std::is_function_v<std::remove_pointer_t<PP>>)&&...),
       "only MPI tasks can accept non-const pointers");
+    static_assert((std::is_move_constructible_v<std::decay_t<PP>> && ...),
+      "only MPI tasks can accept non-movable parameters");
+    static_assert((std::is_copy_constructible_v<PP> && ...),
+      "only MPI tasks can accept non-copyable parameters by value");
   }
   static_assert((!detail::bad_accessor<M, std::decay_t<PP>> && ...),
     "only MPI tasks without ghosts can accept non-portable field accessors");
