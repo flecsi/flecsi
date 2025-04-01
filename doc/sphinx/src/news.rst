@@ -84,6 +84,7 @@ New features
 
   * Mutators support tracing.
   * ``privilege`` is the new name of ``partition_privilege_t``.
+  * Launch map rvalues can be used to create field references.
 
 * Execution
 
