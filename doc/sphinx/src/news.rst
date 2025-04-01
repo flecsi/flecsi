@@ -17,6 +17,13 @@ Release Notes
 
 Changes in v2.3.3
 +++++++++++++++++
+Possible incompatibilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+* Data
+
+  * The automatic resizing for ragged fields no longer occurs after a manual update of the sizes.
+    (This was changed without a release note in 2.3.2.)
+
 
 Deprecated
 ^^^^^^^^^^
