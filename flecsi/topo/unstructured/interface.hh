@@ -209,8 +209,6 @@ private:
     // compute the launch maps for the fields
     auto clm = data::launch::make(ctopo_);
 
-    auto lm = data::launch::make(*this);
-
     execute<idx_itvls, mpi>(
       c.idx_spaces[index<S>].colors, intervals, pointers, cg(clm), sh(clm));
 
