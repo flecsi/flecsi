@@ -61,27 +61,23 @@ The return value can be retrieved with a ``future``:
   :start-at: // A future is
   :end-at: } // scope
 
-FleCSI tasks can take any valid C++ type as an argument `by-value`,
+Tasks can take many non-trivial C++ types as parameters,
 e.g., a ``std::vector``:
 
 .. caution::
 
-    FleCSI tasks can take any valid C++ type by value. However, because
-    task data must be relocatable, you cannot pass pointer arguments or
-    arguments that contain pointers.  Modifications made to by-value
-    data are local to the task and will not be reflected at the call
-    site.
+    Because they run asynchronously and not necessarily the same number of times as their callers, normal tasks cannot accept pointers or references to non-const types.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :start-at: // Task with by-value argument.
-  :end-at: } // with_by_value_argument
+  :start-at: non-trivial parameter
+  :end-at: } //
 
 Execution of such a task is what you would expect:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :start-at: // Execute a task that takes an argument by-value.
+  :start-at: non-trivial argument
   :end-at: } // scope
 
 FleCSI tasks can also be templated:
