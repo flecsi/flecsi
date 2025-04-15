@@ -10,11 +10,6 @@ requires both Sphinx and Doxygen. These configuration options are listed
 to convey to the reader that the FleCSI build system has several paths
 that can be taken to tailor FleCSI to a given system and architecture.
 
-.. toctree::
-  :caption: Building:
-
-  build/options
-
 ----
 
 Build requirements
@@ -131,6 +126,10 @@ successful build.
 Configuration & Build
 +++++++++++++++++++++
 
+.. toctree::
+
+  build/options
+
 Example configuration: **MPI**
 
 .. code-block:: console
@@ -141,7 +140,7 @@ Example configuration: **MPI + OpenMP**
 
 .. code-block:: console
 
-  $ cmake -DFLECSI_BACKEND=mpi -DENABLE_OPENMP ..
+  $ cmake -DFLECSI_BACKEND=mpi -DENABLE_OPENMP=ON ..
 
 Example configuration: **Legion**
 
