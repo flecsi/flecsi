@@ -304,14 +304,11 @@ struct region_impl {
     return get_storage<T, Priv, Proc>(fid, s.second);
   }
 
-  template<class T,
+  template<class T, // sometimes erased to be std::byte
     privilege Priv = ro,
     exec::processor Proc = exec::processor::loc>
   auto get_storage(field_id_t fid, std::size_t nelems) {
     using return_type = span_access<T, Priv>;
-
-    if(nelems > s.second)
-      throw std::out_of_range("partition larger than region");
 
     auto & v = storages.at(fid);
     std::size_t nbytes = nelems * sizeof(T);
@@ -393,6 +390,14 @@ protected:
   region_impl * r;
 
   partition(region & r) : r(&*r) {}
+
+  void resize(std::size_t n) {
+    if(n > r->size().second)
+      throw std::out_of_range("partition larger than region");
+    nelems = n;
+  }
+
+private:
   // number of elements in this partition on this particular rank.
   size_t nelems = 0;
 };
@@ -416,7 +421,7 @@ namespace mpi {
 
 struct rows : data::partition {
   explicit rows(region & r) : partition(r) {
-    nelems = r.size().second;
+    resize(r.size().second);
   }
 };
 
@@ -432,11 +437,7 @@ struct prefixes : data::partition, prefixes_base {
       f.get_partition().template get_storage<size_request>(f.fid());
     flog_assert(
       s.size() == 1, "underlying partition must have size 1, not " << s.size());
-    nelems = s[0];
-  }
-
-  size_t size() const {
-    return nelems;
+    resize(s[0]);
   }
 
   friend copy_engine;
