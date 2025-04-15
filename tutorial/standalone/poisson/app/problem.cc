@@ -16,11 +16,5 @@ poisson::action::problem(control_policy & cp) {
   execute<task::io, flecsi::mpi>(cp.m, ud(cp.m), "init");
   execute<task::io, flecsi::mpi>(cp.m, sd(cp.m), "actual");
 
-  // This can be used for debugging
-#if 0
-  execute<task::redblack>(cp.m, test(cp.m));
-  execute<task::print>(cp.m, test(cp.m));
-#endif
-
   flog::flush();
 } // problem

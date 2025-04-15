@@ -30,18 +30,3 @@ poisson::task::io(mesh::accessor<ro> m,
     } // for
   } // for
 } // io
-
-void
-poisson::task::print(mesh::accessor<ro> m, field<double>::accessor<ro, ro> fa) {
-  auto f = m.mdspan<mesh::vertices>(fa);
-
-  std::stringstream ss;
-  for(auto j : m.axis<mesh::y_axis>().layout.logical()) {
-    for(auto i : m.axis<mesh::x_axis>().layout.logical()) {
-      // This only looks nice for single-digit values, i.e., < 10
-      ss << (f[j][i] < 0 ? "" : " ") << f[j][i] << " ";
-    } // for
-    ss << std::endl;
-  } // for
-  flog(info) << ss.str() << std::endl;
-}
