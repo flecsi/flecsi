@@ -141,7 +141,7 @@ Example configuration: **MPI + OpenMP**
 
 .. code-block:: console
 
-  $ cmake -DFLECSI_BACKEND=mpi -DENABLE_OPENMP ..
+  $ cmake -DFLECSI_BACKEND=mpi -DENABLE_OPENMP=ON ..
 
 Example configuration: **Legion**
 
