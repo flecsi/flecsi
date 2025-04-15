@@ -46,11 +46,17 @@ Deprecated
 
   * ``future<R, index>::get`` |mdash| pass to a task or use ``all``
   * ``make_partial`` |mdash| use a lambda or ``std::bind``, which can now be task arguments
+  * ``default_accelerator`` |mdash| use ``accelerator``
   * ``idempotent`` task attribute |mdash| has never had any effect
 
 * Topologies
 
   * ``unstructured_base::coloring::index_space::entities`` |mdash| omit from initialization
+
+* On-node parallelism
+
+  * ``parallel_for``, ``parallel_reduce`` |mdash| use ``accelerator``
+  * ``forall``, ``reduceall`` without an execution space |mdash| use ``accelerator``
 
 * Utilities
 
@@ -80,8 +86,12 @@ New features
 
   * Task parameters can be of a broader set of types; in particular, they need not be serializable.
   * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
-  * ``exec::cpu``, ``exec::gpu``, and ``exec::omp`` are task parameter types that indicate an execution ``space`` and provide task-launch information.
+  * ``exec::cpu``, ``exec::gpu``, and ``exec::omp`` are task parameter types that provide task-launch information and access to a Kokkos execution ``space``.
+    ``accelerator`` is the one of these preferred for parallel kernels.
     ``exec::on`` is a token argument to pass for them.
+
+    * Kokkos executors can have a number of ``threads`` specified to optimize GPU execution.
+
   * A ``scheduler`` launches tasks without attributes by reference to execution-space parameters.
   * Index futures provide ``all`` to get all results.
 
@@ -94,6 +104,10 @@ New features
 
   * FleCSI now supports HPX as a runtime backend.
     However, GPU tasks are not supported with current versions of HPX.
+
+* On-node parallelism
+
+  * ``forall`` and ``reduceall`` may be used without a name.
 
 * Utilities
 

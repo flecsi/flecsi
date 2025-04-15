@@ -16,10 +16,13 @@ init_pressure(fixed_mesh::accessor<ro, ro, ro> m,
 }
 
 void
-update_pressure(fixed_mesh::accessor<ro, ro, ro> m,
-  field<int>::accessor<rw, rw, rw> p) {
-  int clr = color();
-  forall(c, m.cells(), "pressure_c") { p[c] = clr; };
+update_pressure(exec::accelerator s,
+  fixed_mesh::accessor<ro, ro, ro> m,
+  field<int>::accessor<rw, rw, rw> p) noexcept {
+  int clr = s.launch().index;
+  s.executor().forall(c, m.cells()) {
+    p[c] = clr;
+  };
 }
 
 void
@@ -46,10 +49,13 @@ init_density(fixed_mesh::accessor<ro, ro, ro> m,
 }
 
 void
-update_density(fixed_mesh::accessor<ro, ro, ro> m,
-  field<double>::accessor<rw, rw, rw> d) {
-  auto clr = color();
-  forall(v, m.vertices(), "density_c") { d[v] = clr; };
+update_density(exec::accelerator s,
+  fixed_mesh::accessor<ro, ro, ro> m,
+  field<double>::accessor<rw, rw, rw> d) noexcept {
+  auto clr = s.launch().index;
+  s.executor().forall(v, m.vertices()) {
+    d[v] = clr;
+  };
 }
 
 void
@@ -118,12 +124,12 @@ fixed_driver(scheduler & s) {
       0);
 
     s.execute<init_pressure>(mesh, pressure(mesh));
-    execute<update_pressure, default_accelerator>(mesh, pressure(mesh));
+    s.execute<update_pressure>(exec::on, mesh, pressure(mesh));
     auto lm = data::launch::make(s, mesh, rotate(mesh.colors()));
     s.execute<check_pressure>(lm, pressure(lm));
 
     s.execute<init_density>(mesh, density(mesh));
-    execute<update_density, default_accelerator>(mesh, density(mesh));
+    s.execute<update_density>(exec::on, mesh, density(mesh));
     s.execute<check_density>(exec::on, mesh, density(mesh));
 
     std::swap(mesh, mesh);

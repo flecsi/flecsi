@@ -6,11 +6,12 @@
 namespace poisson {
 namespace task {
 
-void eggcarton(mesh::accessor<ro> m,
+void eggcarton(flecsi::exec::accelerator,
+  mesh::accessor<ro> m,
   field<double>::accessor<wo, na> ua,
   field<double>::accessor<wo, na> fa,
   field<double>::accessor<wo, na> sa,
-  field<double>::accessor<wo, na> Aua);
+  field<double>::accessor<wo, na> Aua) noexcept;
 
 } // namespace task
 } // namespace poisson

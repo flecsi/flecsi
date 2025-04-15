@@ -20,9 +20,13 @@ init(canon::accessor<ro> t, field<double>::accessor<wo> p) noexcept {
 } // init
 
 void
-modify(canon::accessor<ro> t, field<double>::accessor<rw> p) {
-  forall(c, t.cells(), "modify") { p[c] += 1; };
-} // modify
+modify(exec::accelerator s,
+  canon::accessor<ro> t,
+  field<double>::accessor<rw> p) noexcept {
+  s.executor().forall(c, t.cells()) {
+    p[c] += 1;
+  };
+}
 
 void
 print(canon::accessor<ro> t, field<double>::accessor<ro> p) noexcept {
@@ -43,10 +47,9 @@ advance(control_policy & p) {
 
   // cpu task, default
   s.execute<init>(canonical, pf);
-  // accelerated task, will be executed on the Kokkos default execution space
-  // In case of Kokkos built with GPU, default execution space will be GPU
+  // Automatically select an execution space based on Kokkos configuration.
   // The runtime moves data between the host and device.
-  execute<modify, default_accelerator>(canonical, pf);
+  s.execute<modify>(exec::on, canonical, pf);
   // cpu_task
   s.execute<print>(canonical, pf);
 }

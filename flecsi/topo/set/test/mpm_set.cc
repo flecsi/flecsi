@@ -60,10 +60,11 @@ print_test(particle_field::accessor<ro> particle_t) noexcept {
 }
 
 void
-insert_test(accessorm m,
+insert_test(exec::accelerator s,
+  accessorm m,
   field<util::gid>::accessor<ro, ro, ro> cids,
-  particle_field::mutator<rw> particle_t_m) {
-  forall(c, m.cells(), "insert_test") {
+  particle_field::mutator<rw> particle_t_m) noexcept {
+  s.executor().forall(c, m.cells()) {
     if(cids[c] == 20) {
       Particle p_t{1.0, cids[c]};
       particle_t_m.insert(p_t);
@@ -105,8 +106,8 @@ set_driver(scheduler & s) {
       mesh_underlying, mesh_type::cid(mesh_underlying), particle_t);
 
     s.execute<print_test>(particle_t);
-    execute<insert_test, default_accelerator>(
-      mesh_underlying, mesh_type::cid(mesh_underlying), particle_t);
+    s.execute<insert_test>(
+      exec::on, mesh_underlying, mesh_type::cid(mesh_underlying), particle_t);
     s.execute<update_test>(particle_t);
   };
 

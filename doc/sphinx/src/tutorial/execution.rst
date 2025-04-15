@@ -106,7 +106,7 @@ The usual purpose is operating on different parts of a distributed data structur
 In this example we explicitly ask to call ``task`` 4 times via
 the ``launch_domain`` argument; the task must declare a parameter for it, but it need not be named or used.
 To receive information about the task launch, a task can declare an *execution space* parameter; the task launch provides the dummy value ``exec::on`` to initialize it.
-An execution space parameter also controls where the task runs, but ``exec::cpu`` is the default.
+An execution space parameter also controls where the task runs; ``exec::cpu`` is the default, but others will be used later.
 
 .. literalinclude:: ../../../../tutorial/3-execution/2-index-task.cc
   :language: cpp

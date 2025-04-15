@@ -38,8 +38,8 @@ poisson::action::solve(control_policy & cp) {
       util::annotation::detail::low>
       aguard("poisson-cycle");
     for(std::size_t i{0}; i < sub; ++i) {
-      execute<task::red, default_accelerator>(cp.m, ud(cp.m), fd(cp.m));
-      execute<task::black, default_accelerator>(cp.m, ud(cp.m), fd(cp.m));
+      s.execute<task::red>(exec::on, cp.m, ud(cp.m), fd(cp.m));
+      s.execute<task::black>(exec::on, cp.m, ud(cp.m), fd(cp.m));
     } // for
     ita += sub;
 

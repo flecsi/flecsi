@@ -228,17 +228,21 @@ check_neighbors(sph_ntree_t::accessor<rw, ro> t) noexcept {
 }
 
 void
-check_neighbors_accelerator(sph_ntree_t::accessor<rw, ro> t) {
-  forall(e, t.entities(), "test_gpu") {
+check_neighbors_accelerator(exec::accelerator s,
+  sph_ntree_t::accessor<rw, ro> t) noexcept {
+  s.executor().forall(e, t.entities()) {
     [[maybe_unused]] auto v = verify_neighbors(e, t);
     assert(v);
   };
 }
 
 void
-init_ids(sph_ntree_t::accessor<ro, na> t,
-  field<flecsi::util::id>::accessor<wo, na> p) {
-  forall(a, t.entities(), "Initialize") { p[a] = t.e_ids(a); };
+init_ids(exec::accelerator s,
+  sph_ntree_t::accessor<ro, na> t,
+  field<flecsi::util::id>::accessor<wo, na> p) noexcept {
+  s.executor().forall(a, t.entities()) {
+    p[a] = t.e_ids(a);
+  };
 }
 
 void
@@ -265,8 +269,8 @@ print_ids(exec::cpu s,
 }
 
 void
-move_entities(sph_ntree_t::accessor<rw, na> t) {
-  forall(a, t.entities(), "Move entities") {
+move_entities(exec::accelerator s, sph_ntree_t::accessor<rw, na> t) noexcept {
+  s.executor().forall(a, t.entities()) {
     // Add 1 on z coordinate
     t.e_i[a].coordinates[2] += 1;
   };
@@ -299,15 +303,14 @@ ntree_driver(scheduler & s) {
     }
     // Initialize user fields
     auto d = id_check(sph_ntree);
-    flecsi::execute<init_ids, default_accelerator>(sph_ntree, d);
+    s.execute<init_ids>(exec::on, sph_ntree, d);
     sph_ntree_t::build_ntree(s, sph_ntree);
 
     s.execute<print_ids>(exec::on, sph_ntree, d);
     EXPECT_EQ(s.test<check_neighbors>(sph_ntree), 0);
-    flecsi::execute<check_neighbors_accelerator, default_accelerator>(
-      sph_ntree);
+    s.execute<check_neighbors_accelerator>(exec::on, sph_ntree);
 
-    flecsi::execute<move_entities, default_accelerator>(sph_ntree);
+    s.execute<move_entities>(exec::on, sph_ntree);
 
     // Sort utility testing
     // Sort/shuffle an array multiple times

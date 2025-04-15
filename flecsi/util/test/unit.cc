@@ -217,15 +217,13 @@ gpu_unit_test() {
 }
 
 int
-launch_gpu_unit() {
-  using flecsi::exec::parallel_reduce;
+launch_gpu_unit(exec::accelerator s) noexcept {
   using flecsi::exec::fold::sum;
   using flecsi::util::iota_view;
   const int num_threads{1};
-  return parallel_reduce<sum, int>(
+  return s.executor().reduce<sum, int>(
     iota_view<int>(0, num_threads),
-    FLECSI_LAMBDA(auto &&, auto op) { op(gpu_unit_test()); },
-    "run all tests");
+    FLECSI_LAMBDA(auto &&, auto op) { op(gpu_unit_test()); });
 }
 
 /*----------------------------------------------------------------------------*
@@ -235,7 +233,7 @@ launch_gpu_unit() {
 int
 unit_test_framework(scheduler & s) {
   UNIT() {
-    EXPECT_EQ((test<launch_gpu_unit, default_accelerator>()), 0);
+    EXPECT_EQ(s.test<launch_gpu_unit>(exec::on), 0);
     EXPECT_EQ(dag(s), 0);
   };
 }

@@ -6,12 +6,14 @@
 namespace poisson {
 namespace task {
 
-void red(mesh::accessor<ro> m,
+void red(flecsi::exec::accelerator,
+  mesh::accessor<ro> m,
   field<double>::accessor<rw, ro> ua,
-  field<double>::accessor<ro, ro> fa);
-void black(mesh::accessor<ro> m,
+  field<double>::accessor<ro, ro> fa) noexcept;
+void black(flecsi::exec::accelerator,
+  mesh::accessor<ro> m,
   field<double>::accessor<rw, ro> ua,
-  field<double>::accessor<ro, ro> fa);
+  field<double>::accessor<ro, ro> fa) noexcept;
 
 } // namespace task
 } // namespace poisson

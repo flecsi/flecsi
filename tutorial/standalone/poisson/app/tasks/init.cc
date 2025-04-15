@@ -9,11 +9,12 @@ constexpr double K = 12.0;
 constexpr double L = 2.0;
 
 void
-poisson::task::eggcarton(mesh::accessor<ro> m,
+poisson::task::eggcarton(exec::accelerator es,
+  mesh::accessor<ro> m,
   field<double>::accessor<wo, na> ua,
   field<double>::accessor<wo, na> fa,
   field<double>::accessor<wo, na> sa,
-  field<double>::accessor<wo, na> Aua) {
+  field<double>::accessor<wo, na> Aua) noexcept {
   auto u = m.mdspan<mesh::vertices>(ua);
   auto f = m.mdspan<mesh::vertices>(fa);
   auto s = m.mdspan<mesh::vertices>(sa);
@@ -22,7 +23,7 @@ poisson::task::eggcarton(mesh::accessor<ro> m,
 
   flog(info) << "dxdy: " << m.dxdy() << std::endl;
 
-  forall(j, (m.axis<mesh::y_axis>().layout.logical()), "init_eggcarton") {
+  es.executor().forall(j, (m.axis<mesh::y_axis>().layout.logical())) {
     const double y = m.value<mesh::y_axis>(j);
     for(auto i : m.axis<mesh::x_axis>().layout.logical()) {
       const double x = m.value<mesh::x_axis>(i);
