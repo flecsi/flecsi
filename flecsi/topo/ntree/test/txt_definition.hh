@@ -7,7 +7,6 @@
 
 #include "flecsi/util/geometry/point.hh"
 #include "flecsi/util/mpi.hh"
-#include "flecsi/util/sort.hh"
 
 // This structure is used to store temporary information between a file and the
 // N-Tree topology. It depends of the specialization or the use case. A similar

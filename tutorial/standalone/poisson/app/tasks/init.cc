@@ -34,29 +34,3 @@ poisson::task::eggcarton(mesh::accessor<ro> m,
     } // for
   }; // forall
 } // eggcarton
-
-void
-poisson::task::constant(mesh::accessor<ro> m,
-  field<double>::accessor<wo, na> fa,
-  double value) {
-  auto f = m.mdspan<mesh::vertices>(fa);
-  forall(j, (m.axis<mesh::y_axis>().layout.logical()), "init_constant") {
-    for(auto i : m.axis<mesh::x_axis>().layout.logical()) {
-      f[j][i] = value;
-    } // for
-  }; // forall
-}
-
-void
-poisson::task::redblack(mesh::accessor<ro> m,
-  field<double>::accessor<wo, na> fa) {
-  auto f = m.mdspan<mesh::vertices>(fa);
-  for(auto j : m.vertices<mesh::y_axis>()) {
-    forall(i, m.red<mesh::x_axis>(j), "red") {
-      f[j][i] = m.axis<mesh::x_axis>().global_id(i);
-    };
-    forall(i, m.black<mesh::x_axis>(j), "black") {
-      f[j][i] = -int(m.axis<mesh::x_axis>().global_id(i));
-    };
-  } // for
-}
