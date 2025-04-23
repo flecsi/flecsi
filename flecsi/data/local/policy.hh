@@ -47,14 +47,11 @@ struct region_impl {
     return get_storage<T, Priv, Proc>(fid, s.second);
   }
 
-  template<class T,
+  template<class T, // sometimes erased to be std::byte
     privilege Priv = ro,
     exec::processor Proc = exec::processor::loc>
   auto get_storage(field_id_t fid, std::size_t nelems) {
     using return_type = span_access<T, Priv>;
-
-    if(nelems > s.second)
-      throw std::out_of_range("partition larger than region");
 
     auto & v = storages.at(fid);
     std::size_t nbytes = nelems * sizeof(T);
@@ -160,6 +157,14 @@ private:
 
 public:
   partition_impl(region & r) : r(r.share()) {}
+
+  void resize(std::size_t n) {
+    if(n > r->size().second)
+      throw std::out_of_range("partition larger than region");
+    nelems = n;
+  }
+
+private:
   // number of elements in this partition on this particular rank.
   size_t nelems = 0;
 };
@@ -222,7 +227,7 @@ struct partition : local::partition { // instead of "using partition ="
 namespace local {
 struct rows : data::partition {
   explicit rows(region & r) : partition(r) {
-    (*this)->nelems = r.size().second;
+    (*this)->resize(r.size().second);
   }
 };
 
@@ -240,11 +245,7 @@ struct prefixes : data::partition, prefixes_base {
     const auto s = part->template get_storage<size_request>(f.fid());
     flog_assert(
       s.size() == 1, "underlying partition must have size 1, not " << s.size());
-    (*this)->nelems = s[0];
-  }
-
-  size_t size() const {
-    return (*this)->nelems;
+    (*this)->resize(s[0]);
   }
 };
 } // namespace local
