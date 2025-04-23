@@ -74,25 +74,6 @@ drop(int n, const std::string & s) {
   return s.substr(n);
 }
 
-int
-index_task(exec::launch_domain) {
-  UNIT("TASK") {
-    flog(info) << "processes: " << processes() << std::endl;
-    flog(info) << "process: " << process() << std::endl;
-    // flog(info)
-    // << "colors: " << colors() << std::endl; flog(info) << "color: " <<
-    // color()
-    // << std::endl;
-
-    EXPECT_LT(process(), processes());
-    EXPECT_GE(process(), 0u);
-    // EXPECT_LT(color(), domain.size());
-    // EXPECT_GE(color(), 0u);
-    // EXPECT_EQ(colors(), domain.size());
-  };
-}
-} // namespace
-
 void
 init_array(field<reduction_type>::accessor<wo> v) {
   int i = 0;
@@ -129,6 +110,17 @@ using arr = topo::array<void>;
 const field<reduction_type>::definition<arr> arr_f;
 
 const field<reduction_type>::definition<topo::global> gl_arr_f;
+const field<int, data::particle>::definition<topo::global> gpart;
+
+void
+gpinit(field<int, data::particle>::mutator<wo> m) noexcept {
+  m.insert(17);
+}
+int
+gpuse(field<int, data::particle>::accessor<ro> a,
+  exec::launch_domain) noexcept {
+  return std::accumulate(a.begin(), a.end(), 0);
+}
 
 int
 task_driver() {
@@ -158,10 +150,6 @@ task_driver() {
     EXPECT_EQ((execute<hydro::mpi, mpi>(&x).get(0)), 4);
     EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
 
-    EXPECT_EQ(test<index_task>(exec::launch_domain{
-                processes() + 4 * (FLECSI_BACKEND != FLECSI_BACKEND_mpi)}),
-      0);
-
     // Test reduction
     auto np = processes();
     const int vpp = 5;
@@ -179,6 +167,11 @@ task_driver() {
     flecsi::execute<reduction>(arr_vals, vals);
     flecsi::execute<reduction>(arr_vals, vals);
     EXPECT_EQ(test<check>(vals, np), 0);
+    execute<gpinit>(gpart(gl_arr_s));
+    EXPECT_EQ(
+      (reduce<gpuse, exec::fold::sum>(gpart(gl_arr_s), exec::launch_domain{np}))
+        .get(),
+      17 * np);
 
     exec::trace t0, t1 = std::move(t0);
     t1.skip();
@@ -188,5 +181,6 @@ task_driver() {
     }
   };
 } // task_driver
+} // namespace
 
 util::unit::driver<task_driver> driver;
