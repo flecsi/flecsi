@@ -60,6 +60,14 @@ struct launch<data::accessor<L, T, Priv>,
     return {};
   }
 };
+template<data::layout L, class T, Privileges Priv>
+struct launch<data::mutator<L, T, Priv>, // for particle
+  data::field_reference<T, L, topo::global, topo::elements>> {
+  static std::monostate get(
+    const data::field_reference<T, L, topo::global, topo::elements> &) {
+    return {};
+  }
+};
 
 template<class R, typename T>
 struct launch<data::reduction_accessor<R, T>,
