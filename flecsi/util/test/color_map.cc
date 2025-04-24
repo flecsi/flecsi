@@ -22,10 +22,10 @@ struct single {
 } // namespace
 
 int
-interface() {
+interface(exec::cpu s) {
   UNIT("TASK") {
     // Assumed that the test is run with 3 threads and 8 colors
-    ASSERT_EQ(processes(), 3lu);
+    ASSERT_EQ(s.launch().size, 3lu);
 
     {
       static constexpr util::equal_map em(10, 4);
@@ -48,14 +48,14 @@ interface() {
       EXPECT_EQ(off[2].size(), 3);
     }
 
-    EXPECT_EQ(
-      util::mpi::one_to_alli([](int r) { return single{r}; }, 0).r, process());
+    EXPECT_EQ(util::mpi::one_to_alli([](int r) { return single{r}; }, 0).r,
+      s.launch().index);
   };
 }
 
 int
-color_map() {
-  UNIT() { EXPECT_EQ((test<interface, mpi>()), 0); };
+color_map(scheduler &) {
+  UNIT() { EXPECT_EQ((test<interface, mpi>(exec::on)), 0); };
 }
 
 util::unit::driver<color_map> color_map_driver;

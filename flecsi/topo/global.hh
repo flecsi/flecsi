@@ -22,7 +22,7 @@ struct global_base {
 
 template<class P>
 struct global_category : global_base, data::region, with_cleanup {
-  global_category(const coloring & c)
+  global_category(scheduler &, const coloring & c)
     : region(data::make_region<P>({1, c.size})) {}
 };
 template<>

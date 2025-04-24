@@ -10,12 +10,14 @@ using intN = field<std::array<size_t, 10>, single>;
 const intN::definition<topo::index> array_field;
 
 void
-modify(intN::accessor<wo> a) {
-  forall(i, util::span(*a), "modify") { i = 3; };
+modify(accelerator s, intN::accessor<wo> a) noexcept {
+  s.executor().forall(i, util::span(*a)) {
+    i = 3;
+  };
 }
 
 int
-check(intN::accessor<ro> a) {
+check(intN::accessor<ro> a) noexcept {
   UNIT() {
     for(auto i : util::span(*a)) {
       EXPECT_EQ(i, 3);
@@ -24,14 +26,14 @@ check(intN::accessor<ro> a) {
 }
 
 void
-modify_policy(intN::accessor<wo> a) {
-  forall(i, (flecsi::exec::threads<64, 1>(util::span(*a))), "modify_policy") {
+modify_policy(accelerator s, intN::accessor<wo> a) noexcept {
+  s.executor().threads<64, 1>().forall(i, util::span(*a)) {
     i = 3;
   };
 }
 
 int
-check_policy(intN::accessor<ro> a) {
+check_policy(intN::accessor<ro> a) noexcept {
   UNIT() {
     for(auto i : util::span(*a)) {
       EXPECT_EQ(i, 3);
@@ -49,56 +51,33 @@ template<>
 constexpr I flecsi::exec::fold::sum::identity<I>{};
 
 int
-reduce_vec(intN::accessor<ro> a) {
+reduce_vec(accelerator s, intN::accessor<ro> a) noexcept {
   UNIT() {
     size_t res =
-      reduceall(i, up, util::span(*a), exec::fold::sum, size_t, "reduce") {
+      s.executor().reduceall(i, up, util::span(*a), exec::fold::sum, size_t) {
       up(i);
     };
     EXPECT_EQ(res, 3 * a.get().size());
-    EXPECT_EQ(
-      (reduceall(i, up, util::iota_view(0, 4), exec::fold::sum, I, "triangle") {
-        up({i});
-      }).i,
+    EXPECT_EQ((s.executor().reduceall(
+                 i, up, util::iota_view(0, 4), exec::fold::sum, I) {
+      up({i});
+    }).i,
       6);
   };
 }
 
 void
-modify_bound(intN::accessor<wo> a) {
-  forall(j, util::substring_view(util::span(*a), 0, 5), "modify_first") {
-    j = 2;
-  };
-  forall(j, util::substring_view(util::span(*a), 5, 5), "modify_last") {
-    j = 5;
-  };
-}
-
-int
-check_bound(intN::accessor<ro> a) {
-  UNIT() {
-    for(auto j : util::span(*a).subspan(0, 5)) {
-      EXPECT_EQ(j, 2);
-    }
-    for(auto j : util::span(*a).subspan(5, 5)) {
-      EXPECT_EQ(j, 5);
-    }
-  };
-}
-
-void
-mdrange_init(intN::accessor<wo> a) {
+mdrange_init(accelerator s, intN::accessor<wo> a) noexcept {
   auto ar = util::span(*a);
   util::mdspan<std::size_t, 2> md_ar(ar.data(), {5, 2});
-  forall(
-    mi, (mdiota_view(md_ar, full_range(), prefix_range{2})), "mdrange_test") {
+  s.executor().forall(mi, (mdiota_view(md_ar, full_range(), prefix_range{2}))) {
     auto [i, j] = mi;
     md_ar[j][i] = 3;
   };
 }
 
 int
-check_mdrange(intN::accessor<ro> a) {
+check_mdrange(intN::accessor<ro> a) noexcept {
   UNIT() {
     for(auto i : util::span(*a)) {
       EXPECT_EQ(i, 3);
@@ -107,41 +86,15 @@ check_mdrange(intN::accessor<ro> a) {
 }
 
 int
-reduce_vec_bound(intN::accessor<ro> a) {
-  UNIT() {
-    size_t res_first = reduceall(j,
-      up,
-      util::substring_view(util::span(*a), 0, 5),
-      exec::fold::sum,
-      size_t,
-      "reduce_first") {
-      up(j);
-    };
-    EXPECT_EQ(res_first, 2 * 5);
-
-    size_t res_last = reduceall(j,
-      up,
-      util::substring_view(util::span(*a), 5, 5),
-      exec::fold::sum,
-      size_t,
-      "reduce_last") {
-      up(j);
-    };
-    EXPECT_EQ(res_last, 5 * 5);
-  };
-}
-
-int
-reduce_mdrange_vec(intN::accessor<rw> a) {
+reduce_mdrange_vec(accelerator s, intN::accessor<rw> a) noexcept {
   UNIT() {
     auto ar = util::span(*a);
     util::mdspan<std::size_t, 2> md_ar(ar.data(), {5, 2});
-    size_t res = reduceall(mi,
+    size_t res = s.executor().reduceall(mi,
       up,
       mdiota_view(md_ar, full_range(), prefix_range{2}),
       exec::fold::sum,
-      size_t,
-      "mdrange_reduce") {
+      size_t) {
       auto [i, j] = mi;
       up(md_ar[j][i]);
     };
@@ -150,20 +103,17 @@ reduce_mdrange_vec(intN::accessor<rw> a) {
 }
 
 int
-kernel_driver() {
+kernel_driver(scheduler & s) {
   UNIT() {
     const auto ar = array_field(process_topology);
-    execute<modify, default_accelerator>(ar);
-    EXPECT_EQ(test<check>(ar), 0);
-    execute<modify_policy, default_accelerator>(ar);
-    EXPECT_EQ(test<check_policy>(ar), 0);
-    execute<mdrange_init, default_accelerator>(ar);
-    EXPECT_EQ((test<check_mdrange>(ar)), 0);
-    EXPECT_EQ((test<reduce_vec, default_accelerator>(ar)), 0);
-    EXPECT_EQ((test<reduce_mdrange_vec, default_accelerator>(ar)), 0);
-    execute<modify_bound, default_accelerator>(ar);
-    EXPECT_EQ(test<check_bound>(ar), 0);
-    EXPECT_EQ((test<reduce_vec_bound, default_accelerator>(ar)), 0);
+    s.execute<modify>(on, ar);
+    EXPECT_EQ(s.test<check>(ar), 0);
+    s.execute<modify_policy>(on, ar);
+    EXPECT_EQ(s.test<check_policy>(ar), 0);
+    s.execute<mdrange_init>(on, ar);
+    EXPECT_EQ((s.test<check_mdrange>(ar)), 0);
+    EXPECT_EQ((s.test<reduce_vec>(on, ar)), 0);
+    EXPECT_EQ((s.test<reduce_mdrange_vec>(on, ar)), 0);
   };
 } // kernel_driver
 

@@ -5,7 +5,9 @@
 #define FLECSI_EXEC_LAUNCH_HH
 
 #include "flecsi/data/field.hh"
+#include "flecsi/exec/kernel.hh"
 #include "flecsi/exec/task_attributes.hh"
+#include "flecsi/util/function_traits.hh"
 
 #include <cstddef>
 #include <optional>
@@ -213,6 +215,39 @@ private:
     return static_cast<D &>(*this);
   }
 };
+
+template<class, class = void>
+struct has_space : std::false_type {};
+template<class S>
+struct has_space<S, std::void_t<typename S::execution_space>> : std::true_type {
+};
+
+template<class F>
+void ignore(F); // work around GCC bug #119343
+
+// Verify that two task variants have almost-identical signatures:
+template<class, class, class, class>
+struct consistent_params;
+template<class... TT1, class S1, class... TT2, class S2>
+struct consistent_params<std::tuple<TT1...>, S1, std::tuple<TT2...>, S2>
+  : std::bool_constant<(
+      (std::is_same_v<TT1, TT2> ||
+        (std::is_same_v<TT1, S1> && std::is_same_v<TT2, S2>)) &&
+      ...)> {};
+// Accept function_traits types as common "subexpressions":
+template<class F1, class S1, class F2, class S2>
+using consistent_signatures = std::conjunction<
+  std::is_same<typename F1::return_type, typename F2::return_type>,
+  consistent_params<typename F1::arguments_type,
+    S1,
+    typename F2::arguments_type,
+    S2>>;
+template<class V, class S1, class S2>
+struct consistent_variants
+  : consistent_signatures<util::function_t<V::template task<S1>>,
+      S1,
+      util::function_t<V::template task<S2>>,
+      S2> {};
 } // namespace detail
 
 template<bool M, class... PP>
@@ -269,6 +304,259 @@ struct launch_domain {
   Color size_;
 };
 
+/// Executor derivation.
+template<class D>
+struct executor_base {
+  /// \see \c executor
+  template<class C, class F>
+  void for_each(C && c, F && f) const {
+    d().named({}).for_each(std::forward<C>(c), std::forward<F>(f));
+  }
+  /// \see \c executor
+  template<class R, class T, class C, class F>
+  [[nodiscard]] T reduce(C && c, F && f) const {
+    return d().named({}).template reduce<R, T>(
+      std::forward<C>(c), std::forward<F>(f));
+  }
+
+private:
+  struct no_label {};
+
+  template<class C>
+  struct forall_t {
+    template<class F>
+    void operator->*(F f) && {
+      e.for_each(std::move(c), std::move(f));
+    }
+    const D & e;
+    C c;
+  };
+  template<class C, class R, class T>
+  struct reduceall_t {
+    template<class F>
+    [[nodiscard]] T operator->*(F f) && {
+      return e.template reduce<R, T>(std::move(c), std::move(f));
+    }
+    const D & e;
+    C c;
+  };
+
+  const D & d() const {
+    return static_cast<const D &>(*this);
+  }
+
+public:
+  template<class P>
+  forall_t<P> flecsi_macro_forall(P && p) const {
+    return {d(), std::forward<P>(p)};
+  }
+  template<class R, class T, class P>
+  reduceall_t<P, R, T>
+  flecsi_macro_reduceall(R *, T *, P && p, no_label) const {
+    return {d(), std::forward<P>(p)};
+  }
+};
+
+// Users need not be aware of these as different classes: they just call any
+// subsequence of {threads, named} to get an object that can launch a kernel.
+// In fact, each produces a class earlier in the following sequence.
+
+/// Parallel operations given a name for debugging or profiling.
+template<class S, unsigned T, unsigned B>
+struct executor : executor_base<executor<S, T, B>> {
+  explicit executor(std::string n) : name(std::move(n)) {}
+
+private:
+  // auto to avoid requiring Kokkos for merely choosing the execution space.
+  auto range(util::id n) const {
+    return exec::policy_type<typename S::execution_space,
+      Kokkos::LaunchBounds<T, B>>(0, n);
+  }
+
+public:
+  /// Apply a function to every element of a range.
+  /// \param c sized random-access range, potentially copied
+  template<class C, class F>
+  void for_each(C && c, F && f) const {
+    kok::parallel_for(
+      name, range(c.size()), std::forward<C>(c), std::forward<F>(f));
+  }
+  /// Reduce the results of a function applied to every element of a range.
+  /// \tparam R reduction operation type
+  /// \tparam A accumulator type
+  template<class R, class A, class C, class F>
+  [[nodiscard]] A reduce(C && c, F && f) const {
+    return kok::parallel_reduce<R, A>(
+      name, range(c.size()), std::forward<C>(c), std::forward<F>(f));
+  }
+
+private:
+  std::string name;
+};
+/// Parallel operations with thread configuration.
+template<class S, unsigned T, unsigned B>
+struct blocks : executor_base<blocks<S, T, B>> {
+  /// Specify a name for an operation.
+  /// \return \c executor
+  auto named(std::string n) const {
+    return executor<S, T, B>(std::move(n));
+  }
+};
+/// A node-local context for potentially parallel operations.
+template<class S>
+struct agent : executor_base<agent<S>> {
+  /// Specify threads and blocks for an operation.
+  /// These are ignored if not supported by the execution space.
+  /// \see \c Kokkos::LaunchBounds
+  /// \return \c blocks
+  template<unsigned T, unsigned B>
+  auto threads() const {
+    return blocks<S, T, B>();
+  }
+  /// \see \c blocks
+  auto named(std::string n) const {
+    return threads<0, 0>().named(std::move(n));
+  }
+};
+
+/// An execution space.
+struct space_base : data::bind_tag {
+  /// Information about an index launch.
+  struct tasks {
+    Color size, ///< Number of point tasks launched.
+      index; ///< Current point task.
+  };
+  /// Describe the tasks launched.
+  const tasks & launch() const {
+    return t;
+  }
+
+  void bind(Color n, Color i) {
+    t = {n, i};
+  }
+
+  template<class T>
+  using keep = std::conditional_t<std::is_base_of_v<space_base, T>, T, void>;
+
+private:
+  tasks t{};
+};
+/// Execution space operations.
+template<class S>
+struct space : space_base {
+  // Since derived executors should be able to outlive their bases, it makes
+  // sense to allow a base executor to outlive its (potentially copied) space.
+
+  /// Get an executor for potentially parallel operations on this space.
+  agent<S> executor() const {
+    return {};
+  }
+};
+
+/// Single-core execution space.
+struct cpu : space<cpu> {
+  static constexpr processor proc = processor::loc;
+#ifdef KOKKOS_ENABLE_SERIAL
+  using execution_space = Kokkos::Serial;
+#endif // otherwise undefined
+};
+/// GPU execution space.
+struct gpu : space<gpu> {
+  static constexpr processor proc = processor::toc;
+#ifdef KOKKOS_ENABLE_CUDA
+  using execution_space = Kokkos::Cuda;
+#elif defined(KOKKOS_ENABLE_HIP)
+  using execution_space = Kokkos::HIP;
+#endif // otherwise undefined
+};
+/// OpenMP execution space.
+struct omp : space<omp> {
+  static constexpr processor proc = processor::omp;
+#ifdef KOKKOS_ENABLE_OPENMP
+  using execution_space = Kokkos::OpenMP;
+#endif // otherwise undefined
+};
+
+template<processor>
+struct processor_space;
+template<>
+struct processor_space<processor::loc> {
+  using type = cpu;
+};
+template<>
+struct processor_space<processor::toc> {
+  using type = gpu;
+};
+template<>
+struct processor_space<processor::omp> {
+  using type = omp;
+};
+template<>
+struct processor_space<processor::mpi> : processor_space<processor::loc> {};
+template<processor P>
+using processor_space_t = typename processor_space<P>::type;
+
+/// The available accelerated execution space.  Defined as \c gpu or \c omp if
+/// support for one of those is available, otherwise \c cpu.
+using accelerator = std::conditional_t<detail::has_space<gpu>::value,
+  gpu,
+  std::conditional_t<detail::has_space<omp>::value, omp, cpu>>;
+
+// Find the (single) execution space among parameter types (or void):
+template<class T>
+struct processor_combine {
+  using type = T;
+  template<class U>
+  auto operator|(const processor_combine<U> c) const { // not actually called
+    if constexpr(std::is_void_v<T>)
+      return c;
+    else {
+      static_assert(std::is_void_v<U> || std::is_same_v<T, U>,
+        "execution space types conflict");
+      return *this;
+    }
+  }
+};
+template<class>
+struct param_space;
+template<class... TT>
+struct param_space<std::tuple<TT...>> {
+  using type = typename decltype((
+    processor_combine<void>() | ... |
+    processor_combine<space_base::keep<std::decay_t<TT>>>()))::type;
+};
+
+template<class, class, class = void>
+struct has_variant : std::false_type {};
+template<class V, class S>
+struct has_variant<V, S, decltype(detail::ignore(V::template task<S>))>
+  : std::true_type {};
+template<class V>
+struct has_variant<V, void, decltype(detail::ignore(V::task))>
+  : std::true_type {};
+template<class V, class S>
+constexpr bool has_variant_v = has_variant<V, S>::value;
+template<class V, class S>
+constexpr bool use_variant_v =
+  std::conjunction_v<detail::has_space<S>, has_variant<V, S>>;
+
+// Dynamic selection will be a compatible extension.
+template<class V>
+using task_variant = std::conditional_t<use_variant_v<V, gpu>,
+  gpu,
+  std::conditional_t<use_variant_v<V, omp>, omp, cpu>>;
+
+template<class V, class... SS>
+constexpr bool
+  consistent_task = (std::disjunction_v<std::negation<has_variant<V, SS>>,
+                       detail::consistent_variants<V, task_variant<V>, SS>> &&
+                     ...);
+
+struct on_t : data::convert_tag {};
+/// Placeholder argument that corresponds to an execution-\ref space task
+/// parameter.
+inline constexpr on_t on;
+
 /// \cond core
 /// A simple version of C++20's \c bind_front.
 /// \endcond
@@ -314,9 +602,9 @@ struct partial : std::tuple<AA...> {
 ///   void func(/*...*/);
 ///   template<class F>
 ///   void task(F f) {f(/* ... */);}
-///   void client() {
+///   void client(scheduler &s) {
 ///     auto p = make_partial<func>(/*...*/);
-///     execute<task<decltype(p)>>(p);  // note explicit template argument
+///     s.execute<task<decltype(p)>>(p);  // note explicit template argument
 ///   }
 ///   \endcode
 ///
@@ -346,6 +634,25 @@ template<typename Return,
 struct future;
 
 namespace exec::detail {
+template<>
+struct task_param<cpu> {
+  static cpu replace(const on_t &) {
+    return {};
+  }
+};
+template<>
+struct task_param<gpu> {
+  static gpu replace(const on_t &) {
+    return {};
+  }
+};
+template<>
+struct task_param<omp> {
+  static omp replace(const on_t &) {
+    return {};
+  }
+};
+
 template<class R>
 struct task_param<future<R>> {
   static future<R> replace(const future<R, launch_type_t::index> &) {

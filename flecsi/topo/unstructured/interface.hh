@@ -47,8 +47,9 @@ struct unstructured : unstructured_base,
     Constructor.
    *--------------------------------------------------------------------------*/
 
-  unstructured(coloring const & c)
+  unstructured(scheduler & s, coloring const & c)
     : unstructured(
+        s,
         [&c]() -> auto & {
           flog_assert(c.idx_spaces.size() == index_spaces::size,
             c.idx_spaces.size()
@@ -76,7 +77,7 @@ struct unstructured : unstructured_base,
   }
 
   template<typename Type, data::layout Layout, typename Policy::index_space S>
-  [[nodiscard]] const data::copy_plan * ghost_copy(
+  [[nodiscard]] const data::copy_plan * ghost_copy(scheduler & s,
     data::field_reference<Type, Layout, Policy, S> const & f) {
     if constexpr(Layout == data::ragged) {
       auto const & cg = cgraph_.template get<S>();
@@ -84,7 +85,7 @@ struct unstructured : unstructured_base,
       constexpr PrivilegeCount N = Policy::template privilege_count<S>;
       ragged_buffers_.template get<S>()
         .template xfer<ragged_impl<Type, N>::start, ragged_impl<Type, N>::xfer>(
-          f, cg(ctopo_), cg_sh(ctopo_));
+          s, f, cg(ctopo_), cg_sh(ctopo_));
       return nullptr;
     }
     else
@@ -129,30 +130,32 @@ private:
 
   // clang-format off
   template<auto... VV, auto... CI>
-  unstructured(unstructured_base::coloring const & c,
+  unstructured(scheduler & s, unstructured_base::coloring const & c,
     util::constants<VV...>, util::constants<CI...> /* deduce pack */)
-    : with_ragged<Policy>(c.colors),
-      with_meta<Policy>(c.colors),
-      ctopo_(c.color_peers),
+    : with_ragged<Policy>(s, c.colors),
+      with_meta<Policy>(s, c.colors),
+      ctopo_(s, c.color_peers),
       part_{
         {
         make_repartitioned<Policy, VV>(
           c.colors,
+          s,
           [p=c.idx_spaces[index<VV>].partitions](std::size_t i) {return p[i];})...
         }
       },
-      special_(c.colors),
+      special_(s, c.colors),
       /* all data members need to be initialized before make_copy_plan */
       plan_{
         { 
         // make a copy plan only for index spaces != 1
-        make_copy_plan<CI>(c)...
+         make_copy_plan<CI>(s, c)...
         }
       },
-      ragged_buffers_{{data::buffers::core(c.idx_spaces[index<CI>].peers)...}}
-
+      ragged_buffers_{
+        {data::buffers::core(s, c.idx_spaces[index<CI>].peers)...}
+      }
   {
-    allocate_connectivities(c, connect_);
+    allocate_connectivities(s, c, connect_);
     // Sanity checks for indexes spaces for which privilege count is 1
     ([&]{ 
       if(Policy::template privilege_count<VV> == 1) {
@@ -182,7 +185,8 @@ private:
    */
 
   template<index_space S>
-  data::copy_plan make_copy_plan(unstructured_base::coloring const & c) {
+  data::copy_plan make_copy_plan(scheduler & s,
+    unstructured_base::coloring const & c) {
     constexpr PrivilegeCount NP = Policy::template privilege_count<S>;
 
     destination_intervals intervals;
@@ -193,7 +197,7 @@ private:
     auto & cgp = ctopo_.ragged.template get<elements>()[cg.fid];
 
     // creating a launch map for the underlying ragged partition
-    auto cgplm = data::launch::make(cgp);
+    auto cgplm = data::launch::make(s, cgp);
     execute<cgraph_size, mpi>(c.idx_spaces[index<S>].colors, cgplm);
 
     // the actual resize of the underlying fields
@@ -202,30 +206,31 @@ private:
     // set up cgraph_shared_
     auto const & sh = cgraph_shared_.template get<S>();
     auto & shp = ctopo_.ragged.template get<elements>()[sh.fid];
-    auto shplm = data::launch::make(shp);
+    auto shplm = data::launch::make(s, shp);
     execute<cgraph_shared_size, mpi>(c.idx_spaces[index<S>].colors, shplm);
     shp.resize();
 
     // compute the launch maps for the fields
-    auto clm = data::launch::make(ctopo_);
+    auto clm = data::launch::make(s, ctopo_);
 
     execute<idx_itvls, mpi>(
       c.idx_spaces[index<S>].colors, intervals, pointers, cg(clm), sh(clm));
 
     // clang-format off
-    auto dest_task = [&intervals](auto f) {
+    auto dest_task = [&](auto f) {
       // TODO: make this just once for all index spaces
-      auto lm = data::launch::make(f.topology());
+      auto lm = data::launch::make(s, f.topology());
       execute<set_dests, mpi>(lm(f), intervals);
     };
 
     auto ptrs_task = [&](auto f) {
-      auto lm = data::launch::make(f.topology());
+      auto lm = data::launch::make(s, f.topology());
       execute<set_ptrs<NP>, mpi>(lm(f), pointers);
     };
     // clang-format on
 
-    return {*this,
+    return {s,
+      *this,
       c.idx_spaces[index<S>].num_intervals,
       dest_task,
       ptrs_task,
@@ -243,9 +248,10 @@ private:
    */
 
   template<auto... VV, typename... TT>
-  void allocate_connectivities(const unstructured_base::coloring & c,
+  void allocate_connectivities(scheduler & s,
+    const unstructured_base::coloring & c,
     util::key_tuple<util::key_type<VV, TT>...> const & /* deduce pack */) {
-    auto lm = data::launch::make(this->meta);
+    auto lm = data::launch::make(s, this->meta);
     (
       [&](TT const & row) { // invoked for each from-entity
         const std::vector<index_color> & ic = c.idx_spaces[index<VV>].colors;
@@ -253,7 +259,7 @@ private:
           [&](auto v) { // invoked for each to-entity
             execute<cnx_size, mpi>(ic, index<v.value>, temp_size(lm));
             auto & p = row.template get<v.value>()(*this).get_elements();
-            execute<copy_sizes>(temp_size(this->meta), p.sizes());
+            s.execute<copy_sizes>(temp_size(this->meta), p.sizes());
             p.resize();
           },
           typename TT::keys());
@@ -307,8 +313,11 @@ private:
 
 template<class P>
 struct borrow_extra<unstructured<P>> : borrow_sizes<P> {
-  borrow_extra(unstructured<P> & u, const data::borrow & b, bool f)
-    : borrow_extra(u, b, f, typename P::entity_lists()) {}
+  borrow_extra(scheduler & s,
+    unstructured<P> & u,
+    const data::borrow & b,
+    bool f)
+    : borrow_extra(s, u, b, f, typename P::entity_lists()) {}
 
 private:
   friend unstructured<P>; // for access::send
@@ -318,13 +327,14 @@ private:
     special_;
 
   template<typename P::index_space... VV, class... TT>
-  borrow_extra(unstructured<P> & u,
+  borrow_extra(scheduler & s,
+    unstructured<P> & u,
     const data::borrow & b,
     bool f,
     util::types<util::key_type<VV, TT>...> /* deduce pack */)
-    : borrow_extra::borrow_sizes(u, b, f),
-      special_(u.special_.template get<VV>().map([&b, f](auto & t) {
-        return borrow_base::wrap<std::decay_t<decltype(t)>>(t, b, f);
+    : borrow_extra::borrow_sizes(s, u, b, f),
+      special_(u.special_.template get<VV>().map([&](auto & t) {
+        return borrow_base::wrap<std::decay_t<decltype(t)>>(s, t, b, f);
       })...) {}
 };
 

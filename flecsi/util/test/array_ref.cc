@@ -17,7 +17,7 @@ using namespace flecsi;
 using flecsi::util::span;
 
 int
-array_ref() {
+array_ref(scheduler &) {
   UNIT() {
     using refd = span<const double>;
     using refc = span<const char>;

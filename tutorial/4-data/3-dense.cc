@@ -10,7 +10,7 @@ using namespace flecsi;
 const field<double>::definition<canon, canon::cells> pressure;
 
 void
-init(canon::accessor<ro> t, field<double>::accessor<wo> p) {
+init(canon::accessor<ro> t, field<double>::accessor<wo> p) noexcept {
   std::size_t off{0};
   for(const auto c : t.cells()) {
     p[c] = (off++) * 2.0;
@@ -18,13 +18,14 @@ init(canon::accessor<ro> t, field<double>::accessor<wo> p) {
 } // init
 
 void
-copy(field<double>::accessor<ro> src, field<double>::accessor<wo> dest) {
+copy(field<double>::accessor<ro> src,
+  field<double>::accessor<wo> dest) noexcept {
   auto s = src.span();
   std::copy(s.begin(), s.end(), dest.span().begin());
 }
 
 void
-print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
+print(canon::accessor<ro> t, field<double>::accessor<ro> p) noexcept {
   std::size_t off{0};
   for(auto c : t.cells()) {
     flog(info) << "cell " << off++ << " has pressure " << p[c] << std::endl;
@@ -32,16 +33,18 @@ print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
 } // print
 
 void
-advance(control_policy &) {
+advance(control_policy & p) {
+  auto & s = p.scheduler();
+
   canon::slot canonical, cp;
-  canon::mpi_coloring c("test.txt");
-  canonical.allocate(c);
-  cp.allocate(c);
+  canon::mpi_coloring c(s, "test.txt");
+  canonical.allocate(s, c);
+  cp.allocate(s, c);
 
   auto pf = pressure(canonical), pf2 = pressure(cp);
 
-  execute<init>(canonical, pf);
-  execute<copy>(pf, pf2);
-  execute<print>(cp, pf2);
+  s.execute<init>(canonical, pf);
+  s.execute<copy>(pf, pf2);
+  s.execute<print>(cp, pf2);
 } // advance()
 control::action<advance, cp::advance> advance_action;

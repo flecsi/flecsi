@@ -93,7 +93,38 @@ struct reducer_trait<R,
 };
 
 template<class R, class T>
-using reducer_t = typename reducer_trait<R, T>::type;
+struct reduce {
+  FLECSI_INLINE_TARGET void operator()(const T & v) const {
+    t = R::combine(t, v);
+  }
+  auto kokkos() const {
+    return typename reducer_trait<R, T>::type(t);
+  }
+  T & t;
+};
+
+template<class P, class C, class F>
+void
+parallel_for(const std::string & n, const P & p, C && c, F && f) {
+  Kokkos::parallel_for(n,
+    p,
+    [c = std::forward<C>(c), f = std::forward<F>(f)] FLECSI_TARGET(
+      util::id i) { f(c.begin()[i]); });
+}
+template<class R, class T, class P, class C, class F>
+[[nodiscard]] T
+parallel_reduce(const std::string & n, const P & p, C && c, F && f) {
+  using ref = reduce<R, T>;
+  T ret;
+  Kokkos::parallel_reduce(
+    n,
+    p,
+    [c = std::forward<C>(c), f = std::forward<F>(f)] FLECSI_TARGET(
+      util::id i, T & t) { f(c.begin()[i], ref{t}); },
+    ref{ret}.kokkos());
+  return ret;
+}
+
 } // namespace kok
 
 struct policy_tag {};
@@ -101,12 +132,10 @@ struct policy_tag {};
 template<class... PP>
 using policy_type = Kokkos::RangePolicy<Kokkos::IndexType<util::id>, PP...>;
 
-template<typename Range, int T = 0, int B = 0>
+template<typename Range>
 struct range_policy : policy_tag {
   range_policy(Range r) : range(std::move(r)) {}
-  using Policy = std::conditional_t<T == 0 && B == 0,
-    policy_type<>,
-    policy_type<Kokkos::LaunchBounds<T, B>>>;
+  using Policy = policy_type<>;
   using index = typename Policy::member_type;
   auto get_policy() {
     return Policy(0, range.size());
@@ -115,22 +144,6 @@ struct range_policy : policy_tag {
 };
 
 using range_index = range_policy<int>::index;
-
-/// \cond core
-
-/// This function supports to fine-tune the number of blocks and threads
-/// for GPU execution.
-/// \tparam T maximum number of threads per block
-/// \tparam B minimum number of blocks per grid
-/// \param range sized random-access range
-/// \return Policy object constructed with parameters \c T and \c B for the
-/// sized random-access range \c range.
-template<int T, int B, class Range>
-auto
-threads(Range range) {
-  return range_policy<Range, T, B>(std::move(range));
-}
-/// \endcond
 
 /// This class computes subinterval of a range based on the starting and ending
 /// indices provided.
@@ -229,17 +242,15 @@ mdiota_view(const M & m, RR... rr) {
 /// If GPU support is available, \a lambda is executed there.
 /// \param p sized random-access range
 /// \param name operation name, for debugging
+/// \deprecated Use \c accelerator::for_each.
 template<typename Policy, typename Lambda>
-void
+[[deprecated("use accelerator::for_each")]] void
 parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
-    auto policy_type = p.get_policy(); // before moving
-    Kokkos::parallel_for(name,
-      policy_type,
-      [it = std::forward<Policy>(p).range,
-        f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i) {
-        f(it.begin()[i]);
-      });
+    kok::parallel_for(name,
+      p.get_policy(),
+      std::forward<Policy>(p).range,
+      std::forward<Lambda>(lambda));
   }
   else {
     parallel_for(range_policy(std::forward<Policy>(p)),
@@ -257,27 +268,19 @@ struct forall_t {
   P policy_;
   std::string name_;
 }; // struct forall_t
-template<class P>
-forall_t(P, std::string) -> forall_t<P>; // automatic in C++20
 
 /// A parallel range-for loop.  Follow with a compound statement and `;`.
 /// Often the elements of \a range (and thus the values of \p it) are indices
 /// for other ranges.
+///
+/// Use as a member function; use in isolation is \b deprecated.
 /// \param it variable name to introduce
 /// \param P sized random-access range
-/// \param name debugging name, convertible to \c std::string
-#define forall(it, P, name)                                                    \
-  ::flecsi::exec::forall_t{P, name}->*FLECSI_LAMBDA(auto && it)
-
-namespace detail {
-template<class R, class T>
-struct reduce_ref {
-  FLECSI_INLINE_TARGET void operator()(const T & v) const {
-    t = R::combine(t, v);
-  }
-  T & t;
-};
-} // namespace detail
+/// \param name optional debugging name, convertible to \c std::string; not
+///   available for the member function form
+/// \relates executor_base
+#define forall(it, ...)                                                        \
+  flecsi_macro_forall(__VA_ARGS__)->*FLECSI_LAMBDA(auto && it)
 
 /// Perform a reduction based on the elements of a range, potentially in
 /// parallel.  If GPU support is available, \a lambda is executed there.
@@ -287,21 +290,15 @@ struct reduce_ref {
 ///   calls the latter with each value participating in the reduction
 /// \param p sized random-access range
 /// \param name operation name, for debugging
+/// \deprecated Use \c accelerator::reduce.
 template<class R, class T, typename Policy, typename Lambda>
-[[nodiscard]] T
+[[deprecated("use accelerator::reduce")]] [[nodiscard]] T
 parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
-    auto policy_type = p.get_policy(); // before moving
-    T res;
-    Kokkos::parallel_reduce(
-      name,
-      policy_type,
-      [it = std::forward<Policy>(p).range,
-        f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i, T & tmp) {
-        f(it.begin()[i], detail::reduce_ref<R, T>{tmp});
-      },
-      kok::reducer_t<R, T>(res));
-    return res;
+    return kok::parallel_reduce<R, T>(name,
+      p.get_policy(),
+      std::forward<Policy>(p).range,
+      std::forward<Lambda>(lambda));
   }
   else {
     return parallel_reduce<R, T>(range_policy(std::forward<Policy>(p)),
@@ -321,30 +318,42 @@ struct reduceall_t {
   std::string name_;
 };
 
-template<class R, class T, class P>
-reduceall_t<P, R, T>
-make_reduce(P policy, std::string n) {
-  return {std::move(policy), n};
-}
-
 /// A parallel reduction loop.
 /// Follow with a compound statement to form an expression.
 /// Often the elements of \a range (and thus the values of \p it) are indices
 /// for other ranges.
+///
+/// Use as a member function; use in isolation is \b deprecated.
 /// \param it variable name to introduce for elements
 /// \param ref variable name to introduce for storing results; call it with
 ///   each value participating in the reduction
 /// \param p sized random-access range
 /// \param R reduction operation type
 /// \param T data type
-/// \param name debugging name, convertible to \c std::string
+/// \param name as for <code>\ref forall</code>
 /// \return the reduced result
-#define reduceall(it, ref, p, R, T, name)                                      \
-  ::flecsi::exec::make_reduce<R, T>(p, name)->*FLECSI_LAMBDA(                  \
-                                                 auto && it, auto ref)
+/// \relates executor_base
+#define reduceall(it, ref, p, R, T, ...)                                       \
+  flecsi_macro_reduceall(static_cast<std::add_pointer_t<R>>(nullptr),          \
+    static_cast<std::add_pointer_t<T>>(nullptr),                               \
+    p,                                                                         \
+    {__VA_ARGS__})                                                             \
+      ->*FLECSI_LAMBDA(auto && it, auto ref)
 
 /// \}
 } // namespace exec
 } // namespace flecsi
+
+// Ugly names to allow unqualified, member-function-compatible use in macros.
+template<class P>
+flecsi::exec::forall_t<P>
+flecsi_macro_forall(P && p, std::string n = {}) {
+  return {std::forward<P>(p), std::move(n)};
+}
+template<class R, class T, class P>
+flecsi::exec::reduceall_t<P, R, T>
+flecsi_macro_reduceall(R *, T *, P && p, std::optional<std::string> n) {
+  return {std::forward<P>(p), std::move(n).value_or("")};
+}
 
 #endif

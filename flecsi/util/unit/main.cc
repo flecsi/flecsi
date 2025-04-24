@@ -25,7 +25,7 @@ main(int argc, char ** argv) {
   util::unit::accelerator_config(cfg);
   if(flog_process.has_value())
     cfg.flog.process = flog_process;
-  const runtime run(cfg);
+  runtime run(cfg);
   flecsi::flog::add_output_stream("flog", std::clog, true);
   return run.control<control>();
 } // main

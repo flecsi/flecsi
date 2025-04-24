@@ -21,7 +21,8 @@ struct color_base {
 
 template<class P>
 struct color : color_base, data::partitioned<data::rows> {
-  color(const coloring & c) : partitioned(data::make_region<P>(c)) {}
+  color(scheduler &, const coloring & c)
+    : partitioned(data::make_region<P>(c)) {}
 };
 template<>
 struct detail::base<color> {
@@ -36,7 +37,7 @@ struct column_base {
 template<class P>
 struct column : column_base, color<P> {
   using column_base::coloring;
-  explicit column(coloring c) : color<P>({c, 1}) {}
+  explicit column(scheduler & s, coloring c) : color<P>(s, {c, 1}) {}
 };
 template<>
 struct detail::base<column> {

@@ -39,6 +39,12 @@ struct bind_accessors {
       regions_(regions), futures_(futures) {}
 
 protected:
+  void visit(processor_space_t<Proc> & s) {
+    const Legion::Task & t =
+      *legion_runtime_->get_current_task(legion_context_);
+    s.bind(t.index_domain.get_volume(), t.index_point.point_data[0]);
+  }
+
   // All accessors are handled in terms of their underlying raw accessors.
 
   template<typename D, Privileges P>

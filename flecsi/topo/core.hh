@@ -76,7 +76,7 @@ struct core : core_base { // with_ragged<P> is often another base class
   };
 
   /// A topology can be constructed from its \c coloring type.
-  explicit core(coloring);
+  core(scheduler &, const coloring &);
 
   /// Return the number of colors over which the topology is partitioned.
   Color colors() const;
@@ -99,7 +99,7 @@ struct core : core_base { // with_ragged<P> is often another base class
   /// \param f to deduce the above as well as for the field ID
   /// \return the copy plan to use, if any
   template<class T, data::layout L, typename P::index_space S>
-  [[nodiscard]] const data::copy_plan * ghost_copy(
+  [[nodiscard]] const data::copy_plan * ghost_copy(scheduler &,
     data::field_reference<T, L, P, S> const & f);
 };
 /// Each core topology type must register its base type.
@@ -195,9 +195,13 @@ struct specialization : specialization_base {
     /// Create the coloring object.
     /// \param aa arguments to \c D::color
     template<class... AA>
-    explicit mpi_coloring(AA &&... aa) {
+    explicit mpi_coloring(scheduler &, AA &&... aa) {
       slot.emplace(std::forward<AA>(aa)...);
     }
+    /// \deprecated Pass a \a scheduler.
+    template<class... AA>
+    [[deprecated("pass a scheduler")]] explicit mpi_coloring(AA &&... aa)
+      : mpi_coloring(*scheduler::instance, std::forward<AA>(aa)...) {}
 
     /// Get the resulting coloring.
     /// \{
@@ -244,9 +248,13 @@ struct specialization : specialization_base {
   ///
   /// This implementation does nothing.
   /// \param s the slot in which the core topology has just been constructed
-  static void initialize(slot & s, coloring const &) {
+  static void initialize(scheduler &, slot & s, coloring const &) {
     (void)s;
   }
+#ifdef DOXYGEN
+  /// \deprecated Accept a \c scheduler first.
+  static void initialize(slot & s, coloring const &);
+#endif
   /// \}
 };
 

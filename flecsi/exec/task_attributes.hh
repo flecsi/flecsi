@@ -46,13 +46,13 @@ enum task_attributes_mask_t : TaskAttributes {
 }; // task_attributes_mask_t
 
 /// The task attribute to use for tasks that use the
-/// \ref kernel "on-node parallelism interface".  Defined as \c toc or \c omp
-/// if support for one of those is available, otherwise \c loc.
+/// \ref kernel "on-node parallelism interface".
 /// \warning Using \c toc causes field data to be placed on the device, so
 ///   that it is accessible \e only via the parallelism interface.
 ///
 /// \ns.
-inline constexpr auto default_accelerator =
+/// \deprecated Use \c accelerator.
+[[deprecated("use accelerator")]] inline constexpr auto default_accelerator =
 #if defined(__NVCC__) || defined(__CUDACC__) || defined(__HIPCC__)
   toc
 #elif defined(REALM_USE_OPENMP)

@@ -40,10 +40,11 @@ do_call(call_policy & p) {
 const call::action<do_call, call_policy::single> phone;
 
 std::optional<dependencies_guard> dependent;
+std::optional<runtime> time;
 
 void
 finalize() { // not deprecated
-  context::ctx.reset();
+  time.reset();
   dependent.reset();
 }
 } // namespace
@@ -270,16 +271,17 @@ initialize(int argc, const char * const * argv, bool dependent) {
   if(ret == run::help || ret == run::command_line_error)
     cerr << go.usage(argv0);
 
-  const auto make = [](auto & o, auto & x) -> auto & {
+  const auto make = [](auto & o, auto & x) {
     flog_assert(!o, "already initialized");
-    return o.emplace(x);
+    o.emplace(x);
   };
   if(dependent) {
     run::dependencies_config dep;
     dep.mpi.push_back(argv0);
     make(run::dependent, dep);
   }
-  auto & ctx = make(run::context::ctx, cfg);
+  make(run::time, cfg);
+  auto & ctx = *run::context::ctx;
 #if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
   {
     const Color p = flog::state::instance().source_process();

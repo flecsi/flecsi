@@ -11,7 +11,7 @@ using namespace flecsi::util;
 //----------------------------------------------------------------------------//
 
 int
-sanity() {
+sanity(flecsi::scheduler &) {
   UNIT() {
     std::vector<std::byte> data;
 
@@ -71,7 +71,7 @@ private:
 }; // struct type_t
 
 int
-user_type() {
+user_type(flecsi::scheduler &) {
   UNIT() {
     std::vector<std::byte> data;
 
@@ -155,7 +155,7 @@ struct flecsi::util::serial::convert<simple_context_t> {
 };
 
 int
-simple_context() {
+simple_context(flecsi::scheduler &) {
   UNIT() {
     std::vector<std::byte> data;
 

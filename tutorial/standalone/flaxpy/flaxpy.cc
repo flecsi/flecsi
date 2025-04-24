@@ -88,33 +88,38 @@ const one_field::definition<flaxpy::dist_vector> x_field, y_field;
 
 // Define a task that initializes the elements of the distributed vector.
 void
-initialize_vectors_task(one_field::accessor<flecsi::wo> x_acc,
-  one_field::accessor<flecsi::wo> y_acc) {
+initialize_vectors_task(flecsi::exec::accelerator s,
+  one_field::accessor<flecsi::wo> x_acc,
+  one_field::accessor<flecsi::wo> y_acc) noexcept {
   // Arbitrarily initialize x[i] = i and y[i] = 0.  We use a forall
   // for the latter because it can run in parallel without access to
   // the index variable.
   auto p = x_acc.span().begin();
   for(size_t i :
-    flaxpy::divide_indices_among_colors(flecsi::colors())[flecsi::color()])
+    flaxpy::divide_indices_among_colors(s.launch().size)[s.launch().index])
     *p++ = i;
-  forall(elt, y_acc.span(), "init_y") { elt = 0; };
+  s.executor().forall(elt, y_acc.span()) {
+    elt = 0;
+  };
 }
 
 // Implement an action for the initialize control point.
 void
 initialize_action(flaxpy::control_policy & policy) {
+  auto & sch = policy.scheduler();
   // Specify one color per process.
   policy.dist_vector_slot.allocate(
-    flaxpy::dist_vector::mpi_coloring(flecsi::processes()));
-  flecsi::execute<initialize_vectors_task, flecsi::default_accelerator>(
-    x_field(policy.dist_vector_slot), y_field(policy.dist_vector_slot));
+    sch, flaxpy::dist_vector::mpi_coloring(sch, sch.runtime().processes()));
+  sch.execute<initialize_vectors_task>(flecsi::exec::on,
+    x_field(policy.dist_vector_slot),
+    y_field(policy.dist_vector_slot));
 }
 
 // Define a task that assigns Y <- a*X + Y.
 void
 mul_add_task(double a,
   one_field::accessor<flecsi::ro> x_acc,
-  one_field::accessor<flecsi::rw> y_acc) {
+  one_field::accessor<flecsi::rw> y_acc) noexcept {
   std::size_t num_local_elts = x_acc.span().size();
   for(std::size_t i = 0; i < num_local_elts; ++i)
     y_acc[i] += a * x_acc[i];
@@ -124,19 +129,16 @@ mul_add_task(double a,
 void
 mul_add_action(flaxpy::control_policy & policy) {
   const double a = 12.34; // Arbitrary scalar value to multiply
-  flecsi::execute<mul_add_task>(
+  policy.scheduler().execute<mul_add_task>(
     a, x_field(policy.dist_vector_slot), y_field(policy.dist_vector_slot));
 }
 
 // Define a task that adds up all values of Y and returns the sum.
 double
-reduce_y_task(one_field::accessor<flecsi::ro> y_acc) {
-  auto local_sum = reduceall(elt,
-    accum,
-    y_acc.span(),
-    flecsi::exec::fold::sum,
-    double,
-    "reduce_y_task") {
+reduce_y_task(flecsi::exec::accelerator s,
+  one_field::accessor<flecsi::ro> y_acc) noexcept {
+  const auto local_sum = s.executor().reduceall(
+    elt, accum, y_acc.span(), flecsi::exec::fold::sum, double) {
     accum(elt);
   };
   return local_sum;
@@ -145,10 +147,10 @@ reduce_y_task(one_field::accessor<flecsi::ro> y_acc) {
 // Implement an action for the finalize control point.
 void
 finalize_action(flaxpy::control_policy & policy) {
-  double sum = flecsi::reduce<reduce_y_task,
-    flecsi::exec::fold::sum,
-    flecsi::default_accelerator>(y_field(policy.dist_vector_slot))
-                 .get();
+  const double sum = policy.scheduler()
+                       .reduce<reduce_y_task, flecsi::exec::fold::sum>(
+                         flecsi::exec::on, y_field(policy.dist_vector_slot))
+                       .get();
   flog(info) << "The sum over all elements in the final vector is " << sum
              << std::endl;
 }
@@ -168,7 +170,7 @@ main(int argc, char ** argv) {
   // Initialize the FleCSI run-time system.
   flecsi::getopt()(argc, argv);
   const flecsi::run::dependencies_guard dg;
-  const flecsi::runtime run;
+  flecsi::runtime run;
   flecsi::flog::add_output_stream("clog", std::clog, true);
   // Execute our code control point by control point.
   return run.control<flaxpy::control>();

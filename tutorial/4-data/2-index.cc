@@ -11,24 +11,25 @@ using single = field<T, data::single>;
 const single<std::size_t>::definition<topo::index> ifield;
 
 void
-init(single<std::size_t>::accessor<wo> iv) {
-  flog(trace) << "initializing value on color " << color() << " of " << colors()
-              << std::endl;
-  iv = color();
+init(exec::cpu s, single<std::size_t>::accessor<wo> iv) noexcept {
+  flog(trace) << "initializing value on color " << s.launch().index << " of "
+              << s.launch().size << std::endl;
+  iv = s.launch().index;
 }
 
 void
-print(single<std::size_t>::accessor<ro> iv) {
-  flog(trace) << "index value: " << iv << " (color " << color() << " of "
-              << colors() << ")" << std::endl;
+print(exec::cpu s, single<std::size_t>::accessor<ro> iv) noexcept {
+  flog(trace) << "index value: " << iv << " (color " << s.launch().index
+              << " of " << s.launch().size << ")" << std::endl;
 }
 
 void
-advance(control_policy &) {
+advance(control_policy & p) {
+  auto & s = p.scheduler();
   topo::index::slot custom_topology;
-  custom_topology.allocate(4);
+  custom_topology.allocate(s, 4);
 
-  execute<init>(ifield(custom_topology));
-  execute<print>(ifield(custom_topology));
+  s.execute<init>(exec::on, ifield(custom_topology));
+  s.execute<print>(exec::on, ifield(custom_topology));
 } // advance()
 control::action<advance, cp::advance> advance_action;

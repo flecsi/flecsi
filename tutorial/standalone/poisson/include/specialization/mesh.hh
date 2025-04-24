@@ -114,16 +114,18 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
 
   using grect = std::array<std::array<double, 2>, 2>;
 
-  static void set_geometry(mesh::accessor<flecsi::rw> sm, grect const & g) {
+  static void set_geometry(mesh::accessor<flecsi::rw> sm,
+    grect const & g) noexcept {
     sm.set_geometry(
       std::abs(g[0][1] - g[0][0]) / (sm.axis<x_axis>().axis.extent - 1),
       std::abs(g[1][1] - g[1][0]) / (sm.axis<y_axis>().axis.extent - 1));
   }
 
-  static void initialize(flecsi::data::topology_slot<mesh> & s,
+  static void initialize(flecsi::scheduler & s,
+    flecsi::data::topology_slot<mesh> & m,
     coloring const &,
     grect const & geometry) {
-    flecsi::execute<set_geometry>(s, geometry);
+    s.execute<set_geometry>(m, geometry);
   } // initialize
 
 }; // struct mesh

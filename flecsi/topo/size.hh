@@ -92,8 +92,8 @@ inline const resize::Field::definition<resize> resize::field;
 
 /// Size information for a partition.
 struct with_size { // separate to control initialization order
-  explicit with_size(Color n, const resize::policy & p = {})
-    : sz(n), growth(p), rsz_required(make_future(false)) {}
+  explicit with_size(scheduler & s, Color n, const resize::policy & p = {})
+    : sz(s, n), growth(p), rsz_required(make_future(false)) {}
   /// Access the sizes.
   /// \return field reference for \c resize::Field
   auto sizes() {

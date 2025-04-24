@@ -12,7 +12,7 @@ using namespace flecsi;
  *----------------------------------------------------------------------------*/
 
 int
-log_driver() {
+log_driver(scheduler &) {
   UNIT() {
     {
       std::vector<std::size_t> v;
@@ -61,7 +61,7 @@ log_driver() {
 util::unit::driver<log_driver> log_test_driver;
 
 int
-init_a() {
+init_a(scheduler &) {
   flog(info) << "init" << std::endl;
   auto &sl = flog::state::instance().strip_level(), current = sl;
 
@@ -88,7 +88,7 @@ init_a() {
 util::unit::initialization<init_a> ia_action;
 
 int
-test1() {
+test1(scheduler &) {
   UNIT() {
 
     ASSERT_EQ(0, 0);
@@ -101,7 +101,7 @@ test1() {
 util::unit::driver<test1> test1_driver;
 
 int
-test2() {
+test2(scheduler &) {
   UNIT() {
 
     ASSERT_EQ(0, 0);
@@ -113,7 +113,7 @@ test2() {
 util::unit::driver<test2> test2_driver;
 
 int
-finalization() {
+finalization(scheduler &) {
   flog(info) << "finalize" << std::endl;
   return 0;
 }
@@ -125,7 +125,7 @@ util::unit::finalization<finalization> f_action;
  *----------------------------------------------------------------------------*/
 
 int
-task_pass() {
+task_pass() noexcept {
   UNIT("TASK") {
     flog(info) << "this test passes" << std::endl;
     ASSERT_EQ(1, 1);
@@ -133,7 +133,7 @@ task_pass() {
 }
 
 int
-task_assert_fail() {
+task_assert_fail() noexcept {
   UNIT("TASK") {
     flog(info) << "this test fails an assertion" << std::endl;
     ASSERT_EQ(+0, 1); // + should not appear in output
@@ -141,7 +141,7 @@ task_assert_fail() {
 }
 
 int
-task_expect_fail() {
+task_expect_fail() noexcept {
   UNIT("TASK") {
     flog(info) << "this test fails an expectation" << std::endl;
     EXPECT_EQ(+0, 1);
@@ -154,22 +154,22 @@ program_option<bool> fail("Test Options",
   {{flecsi::option_implicit, true}, {flecsi::option_zero}});
 
 int
-dag() {
+dag(scheduler & s) {
   UNIT() {
-    ASSERT_EQ(test<task_pass>(), 0);
-    ASSERT_NE(test<task_assert_fail>(), 0);
-    ASSERT_NE(test<task_expect_fail>(), 0);
+    ASSERT_EQ(s.test<task_pass>(), 0);
+    ASSERT_NE(s.test<task_assert_fail>(), 0);
+    ASSERT_NE(s.test<task_expect_fail>(), 0);
 
     flog(info) << "output from driver" << std::endl;
 
-    EXPECT_EQ(test<task_pass>(), 0);
-    EXPECT_NE(test<task_assert_fail>(), 0);
-    EXPECT_NE(test<task_expect_fail>(), 0);
+    EXPECT_EQ(s.test<task_pass>(), 0);
+    EXPECT_NE(s.test<task_assert_fail>(), 0);
+    EXPECT_NE(s.test<task_expect_fail>(), 0);
 
     // These show what happens during actual failure
     if(fail.has_value()) {
-      EXPECT_EQ(test<task_expect_fail>(), 0);
-      ASSERT_EQ(test<task_assert_fail>(), 0);
+      EXPECT_EQ(s.test<task_expect_fail>(), 0);
+      ASSERT_EQ(s.test<task_assert_fail>(), 0);
     } // if
   }; // UNIT
 } // dag
@@ -217,15 +217,13 @@ gpu_unit_test() {
 }
 
 int
-launch_gpu_unit() {
-  using flecsi::exec::parallel_reduce;
+launch_gpu_unit(exec::accelerator s) noexcept {
   using flecsi::exec::fold::sum;
   using flecsi::util::iota_view;
   const int num_threads{1};
-  return parallel_reduce<sum, int>(
+  return s.executor().reduce<sum, int>(
     iota_view<int>(0, num_threads),
-    FLECSI_LAMBDA(auto &&, auto op) { op(gpu_unit_test()); },
-    "run all tests");
+    FLECSI_LAMBDA(auto &&, auto op) { op(gpu_unit_test()); });
 }
 
 /*----------------------------------------------------------------------------*
@@ -233,10 +231,10 @@ launch_gpu_unit() {
  *----------------------------------------------------------------------------*/
 
 int
-unit_test_framework() {
+unit_test_framework(scheduler & s) {
   UNIT() {
-    EXPECT_EQ((test<launch_gpu_unit, default_accelerator>()), 0);
-    EXPECT_EQ(dag(), 0);
+    EXPECT_EQ(s.test<launch_gpu_unit>(exec::on), 0);
+    EXPECT_EQ(dag(s), 0);
   };
 }
 

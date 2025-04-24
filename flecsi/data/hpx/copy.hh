@@ -32,6 +32,7 @@ inline auto
 all_to_allv(F && f, run::communicator & comm) {
   using namespace ::hpx::collectives;
 
+  // NB: comm.comm().get_info() would require explicit set_info()
   auto size = run::context::instance().processes();
   std::vector<std::vector<std::size_t>> result;
   result.reserve(size);

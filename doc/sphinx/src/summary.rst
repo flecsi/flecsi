@@ -156,7 +156,7 @@ These types are defined in ``field.hh`` (but, as a principal name used by applic
 Topology objects are also caller-only; those at the top level are created by the class template ``topology_slot``.
 It defers the initialization of the topology instance, allowing it to be used as a member of a control policy object and be initialized by an action.
 It also provides a second phase of initialization that can be used to launch tasks operating on the new topology object.
-Because it operates entirely on dependent types, its header ``topology_slot.hh`` includes nothing but ``flog.hh``.
+Because it operates entirely on dependent types, its header ``topology_slot.hh`` is near the leaves of the include graph.
 
 Topology objects are constructed from *colorings*, which are descriptions of the computational domain as ordinary C++ data rather than fields.
 For reasons of efficiency and interoperability, these are often constructed by special "MPI tasks" (described below).
@@ -281,7 +281,7 @@ The usual argument replacements still apply, which allows MPI tasks to have acce
 Arguments that are not so interpreted need not have the same value on every shard.
 However, return values must follow the ordinary rules (so as to support futures and reductions).
 
-FleCSI also provides, in ``kernel.hh``, a wrapper interface for simple Kokkos parallel loops and reductions, including macros ``forall`` and ``reduceall`` that are followed by a lambda body (and a semicolon, since the lambda is an expression).
+FleCSI also provides, in ``launch.hh`` and ``kernel.hh``, a wrapper interface for simple Kokkos parallel loops and reductions, including macros ``forall`` and ``reduceall`` that are followed by a lambda body (and a semicolon, since the lambda is an expression).
 The same reduction types as for index launches are supported.
 
 Topologies

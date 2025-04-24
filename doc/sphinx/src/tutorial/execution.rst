@@ -21,6 +21,8 @@ Kernels
   example of using *forall* kernels in the *parallel* section of the
   tutorial. 
 
+Tasks are launched by *schedulers*.
+
 ----
 
 Example 1: Single Tasks
@@ -37,7 +39,8 @@ Consider the following from ``tutorial/3-execution/1-single-task.cc``:
   :start-at: // Trivial task (no arguments, no return).
   :end-at: }
 
-Execution of the task is trivial:
+Since they are not invoked directly, tasks cannot throw exceptions and must be declared ``noexcept``.
+Execution of the task is a trivial use of the ``scheduler`` provided to the action:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
@@ -101,11 +104,13 @@ An index task launch calls a given function a number of times asynchronously, ty
 The usual purpose is operating on different parts of a distributed data structure (different *colors* of a *topology*) in parallel.
 
 In this example we explicitly ask to call ``task`` 4 times via
-the ``launch_domain`` argument.
+the ``launch_domain`` argument; the task must declare a parameter for it, but it need not be named or used.
+To receive information about the task launch, a task can declare an *execution space* parameter; the task launch provides the dummy value ``exec::on`` to initialize it.
+An execution space parameter also controls where the task runs; ``exec::cpu`` is the default, but others will be used later.
 
 .. literalinclude:: ../../../../tutorial/3-execution/2-index-task.cc
   :language: cpp
-  :start-at: // Task with no arguments.
+  :start-at: // Task with special arguments.
   :end-at: // advance()
 
 Launch Domains
@@ -125,8 +130,8 @@ MPI task is an index task that has launch domain size equal to number of
 MPI ranks and index points mapped to corresponding MPI ranks. Executing
 MPI task adds synchronization between Legion and MPI and, therefore,
 should only be used when one needs to call MPI library.  
-To execute an MPI task, the second template argument to the ``execute``
-method should be set to ``mpi``.
+To execute an MPI task, ``flecsi::execute`` must be used, with its second template argument set to ``mpi``.
+The ``launch`` information provided is equivalent to ``process`` and ``processes``.
 
 .. literalinclude:: ../../../../tutorial/3-execution/3-mpi-task.cc
   :language: cpp

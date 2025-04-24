@@ -48,8 +48,9 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   template<Privileges>
   struct access;
 
-  narray(coloring const & c)
+  narray(scheduler & s, coloring const & c)
     : narray(
+        s,
         [&c]() -> auto & {
           flog_assert(c.idx_colorings.size() == index_spaces::size,
             c.idx_colorings.size()
@@ -79,12 +80,12 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   template<typename Type,
     data::layout Layout,
     typename Policy::index_space Space>
-  [[nodiscard]] const data::copy_plan * ghost_copy(
+  [[nodiscard]] const data::copy_plan * ghost_copy(scheduler & s,
     data::field_reference<Type, Layout, Policy, Space> const & f) {
     if constexpr(Layout == data::ragged) {
       using Impl = ragged_impl<Space, Type>;
       ragged_buffers_.template get<Space>()
-        .template xfer<Impl::start, Impl::xfer>(f, meta_field(this->meta));
+        .template xfer<Impl::start, Impl::xfer>(s, f, meta_field(this->meta));
       return nullptr;
     }
     else
@@ -269,11 +270,13 @@ private:
   };
 
   template<auto... Value, auto... CI>
-  narray(const coloring & c,
+  narray(scheduler & s,
+    const coloring & c,
     util::constants<Value...>,
     util::constants<CI...> /* deduce pack */)
-    : with_ragged<Policy>(c.colors()), with_meta<Policy>(c.colors()),
+    : with_ragged<Policy>(s, c.colors()), with_meta<Policy>(s, c.colors()),
       part_{{make_repartitioned<Policy, Value>(c.colors(),
+        s,
         [p =
             [&] {
               auto & idef = c.idx_colorings[index<Value>];
@@ -287,10 +290,10 @@ private:
               concatenate(partitions, c.colors(), MPI_COMM_WORLD);
               return partitions;
             }()](std::size_t i) { return p[i]; })...}},
-      plan_{{make_copy_plan<CI>(c.colors(), c.idx_colorings[index<CI>])...}},
-      ragged_buffers_{{data::buffers::core(
+      plan_{{make_copy_plan<CI>(s, c.colors(), c.idx_colorings[index<CI>])...}},
+      ragged_buffers_{{data::buffers::core(s,
         meta_data::peers(c.idx_colorings[index<CI>]))...}} {
-    auto lm = data::launch::make(this->meta);
+    auto lm = data::launch::make(s, this->meta);
     execute<set_meta<Value...>, mpi>(meta_field(lm), c);
     (
       [&] { // Sanity checks for indexes spaces for which privilege count is 1
@@ -354,7 +357,8 @@ private:
    @param idef index definition
   */
   template<index_space S>
-  data::copy_plan make_copy_plan(Color colors, index_definition const & idef) {
+  data::copy_plan
+  make_copy_plan(scheduler & s, Color colors, index_definition const & idef) {
 
     std::vector<std::size_t> num_intervals(colors, 0);
     std::vector<typename meta_data::intervals> intervals;
@@ -372,19 +376,19 @@ private:
     idx_itvls(idef, num_intervals, intervals, points, MPI_COMM_WORLD);
 
     // clang-format off
-    auto dest_task = [&intervals](auto f) {
-      auto lm = data::launch::make(f.topology());
+    auto dest_task = [&](auto f) {
+      auto lm = data::launch::make(s, f.topology());
       execute<set_dests, mpi>(lm(f), intervals);
     };
 
-    auto ptrs_task = [&points](auto f) {
-      auto lm = data::launch::make(f.topology());
+    auto ptrs_task = [&](auto f) {
+      auto lm = data::launch::make(s, f.topology());
       execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
         lm(f), points);
     };
     // clang-format on
 
-    return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
+    return {s, *this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
   }
 
   template<auto... Value> // index_spaces
@@ -425,7 +429,7 @@ private:
 
     using mfa = typename policy_meta::Field::template accessor<ro>;
 
-    static void start(fa v, mfa mf, data::buffers::Start mv) {
+    static void start(fa v, mfa mf, data::buffers::Start mv) noexcept {
       send(v,
         mf,
         true,
@@ -433,7 +437,7 @@ private:
         get_ngb_color_bounds(true, mf->index.template get<Space>()));
     } // start
 
-    static int xfer(fm_rw g, mfa mf, data::buffers::Transfer mv) {
+    static int xfer(fm_rw g, mfa mf, data::buffers::Transfer mv) noexcept {
       // get the meta data for the index space
       meta_data md = mf->index.template get<Space>();
 

@@ -24,7 +24,17 @@ namespace exec {
 
 template<processor Proc>
 struct task_prologue : prolog_base {
+  using prolog_base::prolog_base;
+
 protected:
+  template<class S>
+  static void visit(S & s, const on_t &) {
+    static_assert(
+      std::is_same_v<S, processor_space_t<Proc>>, "wrong execution space type");
+    auto & c = run::context::instance();
+    s.bind(c.colors(), c.color());
+  }
+
   template<typename R>
   static void visit(future<R, exec::launch_type_t::single> & single,
     const future<R, exec::launch_type_t::index> & index) {

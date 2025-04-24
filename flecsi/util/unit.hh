@@ -13,7 +13,8 @@
 namespace flecsi::util::unit {
 /// \defgroup unit Unit Testing
 /// Unit test framework much like Google Test but with task support.
-/// Each \a Target is a function with signature `int()`; if any returns a
+/// Each \a Target is a function with signature `int(flecsi::scheduler&)` or
+/// (\b deprecated) `int()`; if any returns a
 /// non-zero value, so does the process built with \c flecsi_add_test.
 /// Output is via \ref flog.
 ///
@@ -63,34 +64,49 @@ struct control_policy : flecsi::run::control_base {
 
 using control = flecsi::run::control<control_policy>;
 
-template<int (&F)(), test_control_points cp>
+using target_type = int (&)(scheduler &);
+template<target_type F, test_control_points cp>
 class action
 {
 private:
   static void wrap(control_policy & p) {
-    p.status |= F();
+    p.status |= F(p.scheduler());
   }
   control::action<wrap, cp> act;
 };
 
-using target_type = int (&)();
+namespace detail {
+template<target_type F>
+constexpr target_type
+adapt() {
+  return F;
+}
+template<int (&F)()>
+[[deprecated("accept a scheduler")]] constexpr target_type
+adapt() {
+  return *[](scheduler &) { return F(); };
+}
+} // namespace detail
+
 /// A test initialization registration.
 /// Declare a non-local variable of this type for each function.
 /// \tparam Target the function to call
-template<target_type Target>
-using initialization = action<Target, test_control_points::initialization>;
+template<auto & Target>
+using initialization =
+  action<detail::adapt<Target>(), test_control_points::initialization>;
 
 /// A test registration.
 /// Declare a non-local variable of this type for each function.
 /// \tparam Target the test function to call
-template<target_type Target>
-using driver = action<Target, test_control_points::driver>;
+template<auto & Target>
+using driver = action<detail::adapt<Target>(), test_control_points::driver>;
 
 /// A test finalization registration.
 /// Declare a non-local variable of this type for each function.
 /// \tparam Target the function to call
-template<target_type Target>
-using finalization = action<Target, test_control_points::finalization>;
+template<auto & Target>
+using finalization =
+  action<detail::adapt<Target>(), test_control_points::finalization>;
 
 inline void
 accelerator_config([[maybe_unused]] run::config & c) {

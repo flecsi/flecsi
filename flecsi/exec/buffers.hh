@@ -51,6 +51,8 @@ set_buffer(T & t, B & b) {
 struct param_buffers : bind_base<param_buffers> {
   using bind_base::visit;
 
+  void visit(const space_base &) {}
+
   template<data::layout L, typename D, Privileges P>
   void visit(data::accessor<L, D, P> &) {} // visit
 

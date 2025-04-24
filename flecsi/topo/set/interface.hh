@@ -51,9 +51,10 @@ struct set : set_base {
     }
   };
 
-  explicit set(coloring x)
+  explicit set(scheduler & s, coloring x)
     : p{static_cast<mesh_slot *>(x.ptr)}, part{make_repartitioned<Policy>(
                                             x.counts.size(),
+                                            s,
                                             [a = x.counts](std::size_t c) {
                                               return a[c];
                                             })} {}

@@ -32,6 +32,14 @@ Deprecated
   * ``ENABLE_KOKKOS`` |mdash| is ignored.
   * ``ENABLE_OPENMP`` |mdash| is ignored.
 
+* Runtime
+
+  * ``runtime::control`` on a ``const`` object |mdash| use a non-``const`` object
+  * existing ``control::invoke`` |mdash| provide a ``scheduler``
+  * initializing ``run::call`` with a nullary function |mdash| accept a ``scheduler``
+  * ``process`` and ``processes`` |mdash| use ``runtime`` versions
+  * ``color`` and ``colors`` |mdash| use the ``space_base`` members
+
 * Data
 
   * ``partition_privilege_t`` |mdash| use ``privilege``
@@ -40,11 +48,21 @@ Deprecated
 
   * ``future<R, index>::get`` |mdash| pass to a task or use ``all``
   * ``make_partial`` |mdash| use a lambda or ``std::bind``, which can now be task arguments
+  * ``default_accelerator`` |mdash| use ``accelerator``
   * ``idempotent`` task attribute |mdash| has never had any effect
 
 * Topologies
 
   * ``unstructured_base::coloring::index_space::entities`` |mdash| omit from initialization
+
+* On-node parallelism
+
+  * ``parallel_for``, ``parallel_reduce`` |mdash| use ``accelerator``
+  * ``forall``, ``reduceall`` without an execution space |mdash| use ``accelerator``
+
+* Utilities
+
+  * nullary unit-test functions |mdash| accept a ``scheduler``
 
 New features
 ^^^^^^^^^^^^
@@ -55,6 +73,12 @@ New features
   * ``FLECSI_CALIPER_DETAIL`` reports the level of annotation detail.
   * ``flecsi_enable_mpi`` no longer requires a second argument (to request the unavailable C++ bindings).
 
+* Runtime
+
+  * ``control::invoke`` accepts a ``scheduler`` (typically provided by ``runtime::control``).
+  * ``control_base::scheduler`` provides access to the ``scheduler`` with which actions can launch tasks.
+  * ``run::call`` supports functions that accept a ``scheduler``.
+
 * Data
 
   * Mutators support tracing.
@@ -64,6 +88,13 @@ New features
 
   * Task parameters can be of a broader set of types; in particular, they need not be serializable.
   * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
+  * ``exec::cpu``, ``exec::gpu``, and ``exec::omp`` are task parameter types that provide task-launch information and access to a Kokkos execution ``space``.
+    ``accelerator`` is the one of these preferred for parallel kernels.
+    ``exec::on`` is a token argument to pass for them.
+
+    * Kokkos executors can have a number of ``threads`` specified to optimize GPU execution.
+
+  * A ``scheduler`` launches tasks without attributes by reference to execution-space (template) parameters.
   * Index futures provide ``all`` to get all results.
 
 * Topologies
@@ -76,10 +107,15 @@ New features
   * FleCSI now supports HPX as a runtime backend.
     However, GPU tasks are not supported with current versions of HPX.
 
+* On-node parallelism
+
+  * ``forall`` and ``reduceall`` may be used without a name.
+
 * Utilities
 
   * ``mdspan`` and ``mdcolex`` provide ``element_type`` and ``value_type`` type aliases.
   * ``UNIT`` can be used in GPU kernels, with restrictions.
+  * Unit-test functions may accept a ``scheduler``.
 
 Changes in v2.3.3
 +++++++++++++++++

@@ -41,7 +41,7 @@ static_assert(!util::constants<>::size);
 
 // ---------------
 int
-common() {
+common(scheduler &) {
   UNIT() {
     // square
     UNIT_CAPTURE() << flecsi::util::square(10) << std::endl;
@@ -79,7 +79,7 @@ common() {
 
       const auto sym = flecsi::util::symbol<common>();
 #ifdef __GNUG__
-      EXPECT_EQ(sym, "common()");
+      EXPECT_EQ(sym, "common(flecsi::scheduler&)");
 #else
       EXPECT_NE(sym, "");
 #endif

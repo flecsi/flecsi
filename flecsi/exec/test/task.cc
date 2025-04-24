@@ -39,15 +39,24 @@ namespace hydro {
 
 template<typename TYPE>
 void
-simple(TYPE arg) {
+simple(TYPE arg) noexcept {
   flog(info) << "arg(" << arg << ")\n";
 } // simple
 
+struct move {
+  template<class S>
+  static void task(S, const std::unique_ptr<int> &) noexcept = delete;
+};
+template<>
 void
-moveTask(const std::unique_ptr<int> &) {}
+move::task(exec::cpu c, const std::unique_ptr<int> &) noexcept {
+  std::cerr << "moveTask: " << c.launch().index << '/' << c.launch().size
+            << '\n';
+}
+
 template<class T, class F>
 void
-seq(const T & s, F f) {
+seq(const T & s, F f) noexcept {
   [&](auto && log) {
     bool first = true;
     for(auto & x : s) {
@@ -70,17 +79,17 @@ mpi(int * p) {
 
 namespace {
 int
-index_task(exec::launch_domain) {
+index_task(const flecsi::runtime * r, exec::launch_domain) noexcept {
   UNIT("TASK") {
-    flog(info) << "processes: " << processes() << std::endl;
-    flog(info) << "process: " << process() << std::endl;
+    flog(info) << "processes: " << r->processes() << std::endl;
+    flog(info) << "process: " << r->process() << std::endl;
     // flog(info)
     // << "colors: " << colors() << std::endl; flog(info) << "color: " <<
     // color()
     // << std::endl;
 
-    EXPECT_LT(process(), processes());
-    EXPECT_GE(process(), 0u);
+    EXPECT_LT(r->process(), r->processes());
+    EXPECT_GE(r->process(), 0u);
     // EXPECT_LT(color(), domain.size());
     // EXPECT_GE(color(), 0u);
     // EXPECT_EQ(colors(), domain.size());
@@ -89,21 +98,22 @@ index_task(exec::launch_domain) {
 } // namespace
 
 void
-init_array(std::vector<field<reduction_type>::accessor<wo>> v) {
+init_array(exec::cpu s,
+  std::vector<field<reduction_type>::accessor<wo>> v) noexcept {
   flog_assert(v.size() == 1, "wrong accessor count");
   int i = 0;
   for(auto & vv : v.front().span()) {
-    vv = color() + i++;
+    vv = s.launch().index + i++;
   }
 }
 void
-init(field<reduction_type>::accessor<wo> v) {
+init(field<reduction_type>::accessor<wo> v) noexcept {
   for(auto & vv : v.span()) {
     vv = 0;
   }
 }
 int
-check(field<reduction_type>::accessor<ro> v, const int np) {
+check(field<reduction_type>::accessor<ro> v, const int np) noexcept {
   UNIT("TASK") {
     for(std::size_t i = 0; i < v.span().size(); ++i) {
       reduction_type n = np - 1 + i;
@@ -114,7 +124,7 @@ check(field<reduction_type>::accessor<ro> v, const int np) {
 }
 void
 reduction(std::tuple<field<reduction_type>::accessor<ro>,
-  field<reduction_type>::reduction<flecsi::exec::fold::sum>> t) {
+  field<reduction_type>::reduction<flecsi::exec::fold::sum>> t) noexcept {
   auto & [v, r] = t;
   assert(v.span().size() == r.span().size());
   for(std::size_t i = 0; i < v.span().size(); ++i) {
@@ -128,7 +138,7 @@ const field<reduction_type>::definition<arr> arr_f;
 const field<reduction_type>::definition<topo::global> gl_arr_f;
 
 int
-task_driver() {
+task_driver(scheduler & s) {
   UNIT() {
     {
       auto & c = run::context::instance();
@@ -142,13 +152,13 @@ task_driver() {
       EXPECT_LT(process, processes);
     }
 
-    execute<hydro::simple<float>>(6.2);
-    execute<hydro::simple<double>>(5.3);
-    execute<hydro::simple<const float &>>(4.4);
-    execute<hydro::simple<const double &>>(3.5);
+    s.execute<hydro::simple<float>>(6.2);
+    s.execute<hydro::simple<double>>(5.3);
+    s.execute<hydro::simple<const float &>>(4.4);
+    s.execute<hydro::simple<const double &>>(3.5);
     using V = std::vector<std::string>;
     const auto d = [n = 5](const std::string & s) { return s.substr(n); };
-    execute<hydro::seq<V, decltype(d)>>(
+    s.execute<hydro::seq<V, decltype(d)>>(
       V{"It's Elementary", "Dear, Dear Data"}, d);
 
     int x = 0;
@@ -157,37 +167,38 @@ task_driver() {
 
     constexpr bool add_four = (FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
                               (FLECSI_BACKEND != FLECSI_BACKEND_hpx);
-    EXPECT_EQ(
-      test<index_task>(exec::launch_domain{processes() + 4 * add_four}), 0);
+    EXPECT_EQ(s.test<index_task>(&s.runtime(),
+                exec::launch_domain{s.runtime().processes() + 4 * add_four}),
+      0);
 
     // Test reduction
-    auto np = processes();
+    auto np = s.runtime().processes();
     const int vpp = 5;
     // Array of initial values per color
     arr::slot arr_s;
-    arr_s.allocate(arr::coloring(np, vpp));
+    arr_s.allocate(s, arr::coloring(np, vpp));
     auto arr_vals = arr_f(arr_s);
-    flecsi::execute<init_array>(std::vector{arr_vals});
+    s.execute<init_array>(exec::on, std::vector{arr_vals});
     // Reduction
     topo::global::slot gl_arr_s;
-    gl_arr_s.allocate(vpp);
+    gl_arr_s.allocate(s, vpp);
     auto vals = gl_arr_f(gl_arr_s);
     // Init reduction array to 0
-    flecsi::execute<init>(vals);
+    s.execute<init>(vals);
     for(int i = 0; i < 2; ++i)
-      flecsi::execute<reduction>(std::tuple(arr_vals, vals));
-    EXPECT_EQ(test<check>(vals, np), 0);
+      s.execute<reduction>(std::tuple(arr_vals, vals));
+    EXPECT_EQ(s.test<check>(vals, np), 0);
 
     exec::trace t0, t1 = std::move(t0);
     t1.skip();
     for(int i = 0; i < 5; ++i) {
       auto g = t1.make_guard();
-      execute<hydro::simple<float>>(6.2);
+      s.execute<hydro::simple<float>>(6.2);
     }
 
     const float obj = 8.9;
-    execute<hydro::simple<const float *>>(&obj);
-    execute<hydro::moveTask>(std::make_unique<int>());
+    s.execute<hydro::simple<const float *>>(&obj);
+    s.execute<hydro::move>(exec::on, std::make_unique<int>());
   };
 } // task_driver
 

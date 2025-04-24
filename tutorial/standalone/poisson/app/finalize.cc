@@ -6,5 +6,5 @@ using namespace flecsi;
 
 void
 poisson::action::finalize(control_policy & cp) {
-  execute<task::io, mpi>(cp.m, ud(cp.m), "solution");
+  execute<task::io, mpi>(exec::on, cp.m, ud(cp.m), "solution");
 } // finalize

@@ -4,6 +4,7 @@
 #ifndef FLECSI_RUNTIME_HH
 #define FLECSI_RUNTIME_HH
 
+#include "flecsi/exec/fwd.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/run/control.hh"
 #include "flecsi/run/options.hh"
@@ -34,11 +35,22 @@ struct runtime {
     auto & r = run::context::ctx;
     flog_assert(!r, "runtime already initialized");
     r.emplace(c);
+    scheduler::instance.emplace(*this);
   }
   /// Immovable.
   runtime(runtime &&) = delete;
   ~runtime() {
+    scheduler::instance.reset();
     run::context::ctx.reset();
+  }
+
+  /// Return the rank of this process.
+  Color process() const {
+    return ctx().process();
+  }
+  /// Return the number of processes.
+  Color processes() const {
+    return ctx().processes();
   }
 
   /// Execute a control model.
@@ -46,26 +58,40 @@ struct runtime {
   /// \param aa arguments for \link run::control::invoke `C::invoke`\endlink
   /// \return resulting exit code
   template<class C, class... AA>
-  int control(AA &&... aa) const {
-    auto & ctx = run::context::instance();
-    return ctx.start([&] { return C::invoke(std::forward<AA>(aa)...); }, true);
+  int control(AA &&... aa) {
+    return ctx().start(
+      [&] { return C::invoke(*scheduler::instance, std::forward<AA>(aa)...); },
+      true);
+  }
+  /// \deprecated Use a non-\c const \c runtime.
+  template<class C, class... AA>
+  [[deprecated("use a non-const runtime")]] int control(AA &&... aa) const {
+    return const_cast<runtime &>(*this).control<C>(std::forward<AA>(aa)...);
+  }
+
+private:
+  // Non-static to support moving members here from context_t.
+  run::context_t & ctx() const {
+    return *run::context::ctx;
   }
 };
 
 /*!
   Return the current process id.  \ns.
+  \deprecated Use \c runtime::process.
  */
 
-inline Color
+[[deprecated("use runtime::process")]] inline Color
 process() {
   return run::context::instance().process();
 }
 
 /*!
   Return the number of processes.  \ns.
+  \deprecated Use \c runtime::processes.
  */
 
-inline Color
+[[deprecated("use runtime::processes")]] inline Color
 processes() {
   return run::context::instance().processes();
 }
@@ -102,9 +128,10 @@ threads() {
   which in that case equals to the color used from any topology.
 
   \ns.
+  \deprecated Use \c space_base.
  */
 
-inline Color
+[[deprecated("use space_base::launch")]] inline Color
 color() {
   return run::context::instance().color();
 }
@@ -116,9 +143,10 @@ color() {
   topology.
 
   \ns.
+  \deprecated Use \c space_base.
  */
 
-inline Color
+[[deprecated("use space_base::launch")]] inline Color
 colors() {
   return run::context::instance().colors();
 }

@@ -2,20 +2,19 @@
 #include <flecsi/runtime.hh>
 
 /*
-  The top-level action can be any C/C++ function that takes no arguments and
+  The control function can be any C/C++ function that takes a scheduler and
   returns an int.
 
   In this simple example, we only print a message to indicate that the
-  top-level action was actually executed by FleCSI. However, in a real
-  application, the top-level action would execute FleCSI tasks and other
-  functions to implement the simulation.
+  function was actually executed by FleCSI.  In a real application, it would
+  execute FleCSI tasks to implement the simulation.
  */
 
 int
-top_level_action() {
+simulation(flecsi::scheduler &) {
   std::cout << "Hello World" << std::endl;
   return 0;
-} // top_level_action
+} // simulation
 
 /*
   The main function must create a FleCSI \c runtime object.  Otherwise, the
@@ -28,5 +27,5 @@ main() {
   /*
     flecsi::run::call means to call the single function given as an argument.
    */
-  return flecsi::runtime().control<flecsi::run::call>(top_level_action);
+  return flecsi::runtime().control<flecsi::run::call>(simulation);
 } // main

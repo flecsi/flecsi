@@ -3,9 +3,10 @@
 using namespace flecsi;
 
 void
-poisson::task::red(mesh::accessor<ro> m,
+poisson::task::red(exec::accelerator s,
+  mesh::accessor<ro> m,
   field<double>::accessor<rw, ro> ua,
-  field<double>::accessor<ro, ro> fa) {
+  field<double>::accessor<ro, ro> fa) noexcept {
   auto u = m.mdspan<mesh::vertices>(ua);
   auto f = m.mdspan<mesh::vertices>(fa);
   const auto dxdy = m.dxdy();
@@ -14,7 +15,7 @@ poisson::task::red(mesh::accessor<ro> m,
   const auto factor = 1.0 / (2 * (dx_over_dy + dy_over_dx));
 
   // clang-format off
-  forall(j, m.vertices<mesh::y_axis>(),"red") {
+  s.executor().named("red").forall(j, m.vertices<mesh::y_axis>()) {
     for(auto i : m.red<mesh::x_axis>(j)) {
       u[j][i] = factor *
                 (dxdy * f[j][i] +
@@ -26,9 +27,10 @@ poisson::task::red(mesh::accessor<ro> m,
 } // smooth
 
 void
-poisson::task::black(mesh::accessor<ro> m,
+poisson::task::black(exec::accelerator s,
+  mesh::accessor<ro> m,
   field<double>::accessor<rw, ro> ua,
-  field<double>::accessor<ro, ro> fa) {
+  field<double>::accessor<ro, ro> fa) noexcept {
   auto u = m.mdspan<mesh::vertices>(ua);
   auto f = m.mdspan<mesh::vertices>(fa);
   const auto dxdy = m.dxdy();
@@ -37,7 +39,7 @@ poisson::task::black(mesh::accessor<ro> m,
   const auto factor = 1.0 / (2 * (dx_over_dy + dy_over_dx));
 
   // clang-format off
-  forall(j, m.vertices<mesh::y_axis>(),"black") {
+  s.executor().named("black").forall(j, m.vertices<mesh::y_axis>()) {
     for(auto i: m.black<mesh::x_axis>(j)) {
       u[j][i] = factor *
                 (dxdy * f[j][i] +

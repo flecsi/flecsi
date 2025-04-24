@@ -12,7 +12,7 @@ using namespace flecsi;
 const field<double>::definition<canon, canon::cells> pressure;
 
 void
-init(canon::accessor<ro> t, field<double>::accessor<wo> p) {
+init(canon::accessor<ro> t, field<double>::accessor<wo> p) noexcept {
   std::size_t off{0};
   for(const auto c : t.cells()) {
     p[c] = (off++) * 2.0;
@@ -20,28 +20,34 @@ init(canon::accessor<ro> t, field<double>::accessor<wo> p) {
 } // init
 
 void
-reduce1(canon::accessor<ro> t, field<double>::accessor<ro> p) {
-  auto res = reduceall(c, up, t.cells(), exec::fold::max, double, "reduce1") {
+reduce1(exec::accelerator s,
+  canon::accessor<ro> t,
+  field<double>::accessor<ro> p) noexcept {
+  auto res = s.executor().named("reduce1").reduceall(
+    c, up, t.cells(), exec::fold::max, double) {
     up(p[c]);
   }; // forall
 
   flog_assert(res == 6.0, res << " != 6.0");
+}
 
-} // reduce1
+struct reduce2 {
+  template<class S>
+  static void
+  task(S s, canon::accessor<ro> t, field<double>::accessor<ro> p) noexcept {
+    auto res = s.executor().template reduce<exec::fold::max, double>(
+      t.cells(), FLECSI_LAMBDA(auto c, auto up) { up(p[c]); });
+
+    flog_assert(res == 6.0, res << " != 6.0");
+  }
+};
+template<>
+void reduce2::task(exec::gpu,
+  canon::accessor<ro>,
+  field<double>::accessor<ro>) noexcept = delete;
 
 void
-reduce2(canon::accessor<ro> t, field<double>::accessor<ro> p) {
-  auto res = flecsi::exec::parallel_reduce<exec::fold::max, double>(
-    t.cells(),
-    FLECSI_LAMBDA(auto c, auto up) { up(p[c]); },
-    std::string("reduce2"));
-
-  flog_assert(res == 6.0, res << " != 6.0");
-
-} // reduce2
-
-void
-print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
+print(canon::accessor<ro> t, field<double>::accessor<ro> p) noexcept {
   std::size_t off{0};
   for(auto c : t.cells()) {
     flog(info) << "cell " << off++ << " has pressure " << p[c] << std::endl;
@@ -49,17 +55,19 @@ print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
 } // print
 
 void
-advance(control_policy &) {
+advance(control_policy & p) {
+  auto & s = p.scheduler();
+
   canon::slot canonical;
-  canonical.allocate(canon::mpi_coloring("test.txt"));
+  canonical.allocate(s, canon::mpi_coloring(s, "test.txt"));
 
   auto pf = pressure(canonical);
 
   // cpu task, default
-  execute<init>(canonical, pf);
-  execute<reduce1, default_accelerator>(canonical, pf);
-  execute<reduce2, default_accelerator>(canonical, pf);
+  s.execute<init>(canonical, pf);
+  s.execute<reduce1>(exec::on, canonical, pf);
+  s.execute<reduce2>(exec::on, canonical, pf);
   // cpu_task
-  execute<print>(canonical, pf);
+  s.execute<print>(canonical, pf);
 }
 control::action<advance, cp::advance> advance_action;

@@ -41,9 +41,12 @@ inline topo::index::slot process_topology;
 namespace detail {
 /// An RAII type to manage the global coloring and topologies.  \ns.
 struct data_guard {
+  explicit data_guard(scheduler & s = *scheduler::instance) : g(s), p(s) {}
+
+private:
   struct global_guard {
-    global_guard() {
-      global_topology.allocate({});
+    global_guard(scheduler & s) {
+      global_topology.allocate(s, {});
     }
     global_guard(global_guard &&) = delete;
     ~global_guard() {
@@ -51,8 +54,8 @@ struct data_guard {
     }
   } g;
   struct process_guard {
-    process_guard() {
-      process_topology.allocate(run::context::instance().processes());
+    process_guard(scheduler & s) {
+      process_topology.allocate(s, s.runtime().processes());
     }
     process_guard(process_guard &&) = delete;
     ~process_guard() {

@@ -9,6 +9,9 @@
 
 #include "flecsi/exec/task_attributes.hh"
 
+#include <optional>
+#include <utility>
+
 namespace flecsi {
 /// \addtogroup execution
 /// \{
@@ -57,6 +60,62 @@ auto
 execute(ARGS &&... args) {
   return reduce<TASK, void, ATTRIBUTES>(std::forward<ARGS>(args)...);
 } // execute
+
+struct runtime;
+
+/// Launches tasks according to their execution-space (template) parameters.
+/// An instance is passed to control-model actions that accept it.
+/// \note MPI tasks cannot use this interface.
+struct scheduler {
+  explicit scheduler(flecsi::runtime & r) : r(r) {}
+  /// Immovable.
+  scheduler(scheduler &&) = delete;
+
+  /// Launch a variant of a reduction task.
+  template<class, class R, class... AA>
+  auto reduce(AA &&...);
+  /// Launch a variant of a task.
+  /// \tparam V class with a static member \c task that is either a function
+  ///   or a function template with a single type template parameter \p S (the
+  ///   execution \ref space).  In the latter case, the signatures of the
+  ///   specializations for \c exec::cpu, \c exec::gpu, and \c exec::omp may
+  ///   vary only in that the type of a parameter may be \a S; an unspecified
+  ///   such specialization that is not deleted is launched.
+  template<class V, class... AA>
+  auto execute(AA &&... aa) {
+    return reduce<V, void>(std::forward<AA>(aa)...);
+  }
+  /// Execute a variant of a test task.
+  template<class V, class... AA>
+  [[nodiscard]] int test(AA &&... aa);
+
+  /// Launch a reduction task.
+  /// \tparam R reduction operation
+  /// \return a \ref future providing the reduced return value
+  /// \see \c execute about parameter and argument types.
+  template<auto &, class R, class... AA>
+  auto reduce(AA &&...);
+  /// Launch a task.
+  template<auto & F, class... AA>
+  auto execute(AA &&... aa) {
+    return reduce<F, void>(std::forward<AA>(aa)...);
+  }
+  /// Execute a test task.
+  template<auto &, class... AA>
+  [[nodiscard]] int test(AA &&...);
+
+  // Will become a non-static member of runtime in 3.
+  static std::optional<scheduler> instance;
+
+  /// Get the runtime (which created this scheduler).
+  const flecsi::runtime & runtime() const {
+    return r;
+  }
+
+private:
+  flecsi::runtime & r;
+};
+inline std::optional<scheduler> scheduler::instance;
 
 namespace exec {
 // Learn from backend whether a trace is supported, active, and not skipped.

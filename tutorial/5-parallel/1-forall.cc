@@ -12,7 +12,7 @@ using namespace flecsi;
 const field<double>::definition<canon, canon::cells> pressure;
 
 void
-init(canon::accessor<ro> t, field<double>::accessor<wo> p) {
+init(canon::accessor<ro> t, field<double>::accessor<wo> p) noexcept {
   std::size_t off{0};
   for(const auto c : t.cells()) {
     p[c] = (off++) * 2.0;
@@ -20,12 +20,16 @@ init(canon::accessor<ro> t, field<double>::accessor<wo> p) {
 } // init
 
 void
-modify(canon::accessor<ro> t, field<double>::accessor<rw> p) {
-  forall(c, t.cells(), "modify") { p[c] += 1; };
-} // modify
+modify(exec::accelerator s,
+  canon::accessor<ro> t,
+  field<double>::accessor<rw> p) noexcept {
+  s.executor().forall(c, t.cells()) {
+    p[c] += 1;
+  };
+}
 
 void
-print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
+print(canon::accessor<ro> t, field<double>::accessor<ro> p) noexcept {
   std::size_t off{0};
   for(auto c : t.cells()) {
     flog(info) << "cell " << off++ << " has pressure " << p[c] << std::endl;
@@ -33,19 +37,20 @@ print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
 } // print
 
 void
-advance(control_policy &) {
+advance(control_policy & p) {
+  auto & s = p.scheduler();
+
   canon::slot canonical;
-  canonical.allocate(canon::mpi_coloring("test.txt"));
+  canonical.allocate(s, canon::mpi_coloring(s, "test.txt"));
 
   auto pf = pressure(canonical);
 
   // cpu task, default
-  execute<init>(canonical, pf);
-  // accelerated task, will be executed on the Kokkos default execution space
-  // In case of Kokkos built with GPU, default execution space will be GPU
+  s.execute<init>(canonical, pf);
+  // Automatically select an execution space based on Kokkos configuration.
   // The runtime moves data between the host and device.
-  execute<modify, default_accelerator>(canonical, pf);
+  s.execute<modify>(exec::on, canonical, pf);
   // cpu_task
-  execute<print>(canonical, pf);
+  s.execute<print>(canonical, pf);
 }
 control::action<advance, cp::advance> advance_action;

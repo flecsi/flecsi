@@ -76,7 +76,7 @@ flecsi::program_option<std::string> passenger_list("passenger-list",
 // User-defined program options are available after getopt has been invoked.
 
 int
-top_level_action() {
+simulation(flecsi::scheduler &) {
   double price{0.0};
 
   // Add cost for trim level. This option does not have to be checked with
@@ -122,7 +122,7 @@ top_level_action() {
   std::cout << "Price: $" << price << std::endl;
 
   return 0;
-} // top_level_action
+} // simulation
 
 int
 main(int argc, char ** argv) {
@@ -135,5 +135,5 @@ main(int argc, char ** argv) {
     return 1;
   }
   const flecsi::run::dependencies_guard dg;
-  return flecsi::runtime().control<flecsi::run::call>(top_level_action);
+  return flecsi::runtime().control<flecsi::run::call>(simulation);
 } // main

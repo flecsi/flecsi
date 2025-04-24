@@ -44,7 +44,8 @@ template<PrivilegeCount NI, PrivilegeCount NO>
 void
 transpose(
   field<util::id, data::ragged>::accessor1<privilege_repeat<ro, NI>> input,
-  field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NO>> output) {
+  field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NO>>
+    output) noexcept {
   std::size_t e = 0;
   for(auto && i : input) {
     for(auto v : i)
@@ -320,7 +321,7 @@ struct unstructured_base {
   }
 
   static void copy_sizes(resize::Field::accessor<ro> src,
-    resize::Field::accessor<wo> dest) {
+    resize::Field::accessor<wo> dest) noexcept {
     dest = src.get();
   }
 
@@ -360,12 +361,15 @@ struct unstructured_base {
 
     using cga = field<util::id, data::ragged>::accessor<ro>;
 
-    static void start(fa v, cga, cga cgraph_shared, data::buffers::Start mv) {
+    static void
+    start(fa v, cga, cga cgraph_shared, data::buffers::Start mv) noexcept {
       send(v, cgraph_shared, true, mv);
     } // start
 
-    static int
-    xfer(fm_rw g, cga cgraph, cga cgraph_shared, data::buffers::Transfer mv) {
+    static int xfer(fm_rw g,
+      cga cgraph,
+      cga cgraph_shared,
+      data::buffers::Transfer mv) noexcept {
       // find the number of send buffers
       int p = 0;
       for(auto ps : cgraph_shared) { // over peers

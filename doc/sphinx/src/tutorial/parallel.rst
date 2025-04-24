@@ -16,15 +16,11 @@ parallelism. Currently, it uses Kokkos programing model.
 
 ----
 
-Example 1: forall macro / parallel_for interface
-++++++++++++++++++++++++++++++++++++++++++++++++
-This example is a modification of the data-dense tutorial example that replaces the data copy with a ``modify`` task that uses the ``forall`` macro.
-The task is executed with a second template parameter to ``execute``, which is a *processor_type*
-with *loc* (latency optimized core) as a default value.
-*default_accelerator* is a processor type that corresponds to Kokkos
-default execution space. For example, if Kokkos is built with Cuda and
-Serial, Cuda will be a default execution space or *toc* (throughput
-optimized core) *processor type* in FleCSI.
+Example 1: forall
++++++++++++++++++
+This example is a modification of the data-dense tutorial example that replaces the data copy with a ``modify`` task that supports Kokkos.
+The ``accelerator`` is an execution space that uses Kokkos parallelism on a GPU or via OpenMP if available.
+Every execution space has an ``executor`` that implements its parallelism (if any) via a ``forall`` macro that can be used as a member function.
 
 .. note::
 
@@ -39,11 +35,17 @@ optimized core) *processor type* in FleCSI.
 .. literalinclude:: ../../../../tutorial/5-parallel/1-forall.cc
   :language: cpp
 
-Example 2: reduceall macro / parallel_reduce interface
-++++++++++++++++++++++++++++++++++++++++++++++++++++++
-This example instead uses ``reduce1`` and ``reduce2`` tasks that use the ``reduceall`` macro interface and ``parallel_reduce`` function template interface respectively.
+Example 2: reduceall
+++++++++++++++++++++
+This example instead uses ``reduce1`` and ``reduce2`` tasks that use the ``reduceall`` macro interface and ``reduce`` function template interface respectively.
 The former accepts two names declared for use in the body: the range element, as for ``forall``, and a function that accepts values for the reduction.
-The latter supports further composition, such as client library interfaces that accept kernel functors.
+The latter supports further composition, such as client library interfaces that accept kernel functors; its analog for ``forall`` is called ``for_each``.
+Any of these can have a name attached as illustrated with the ``named`` function.
+
+``reduce2`` also illustrates defining a task as a function template so that it can use an execution space chosen by FleCSI.
+For syntactic reasons, the function template is wrapped in a ``struct``; it is always named ``task`` and has just one template parameter which is the execution space.
+Note that, to let FleCSI select which specializations to instantiate, the definition of the function template must be available when the task is launched (rather than being defined in another source file).
+The application can influence that choice: here, the ``gpu`` execution space is taken to be undesirable and is disabled by deleting its template specialization.
 
 .. literalinclude:: ../../../../tutorial/5-parallel/2-reduceall.cc
   :language: cpp

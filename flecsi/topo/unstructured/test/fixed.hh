@@ -75,13 +75,15 @@ struct fixed_mesh
     Coloring
    *--------------------------------------------------------------------------*/
 
-  static coloring
-  color(std::string const & filename, flecsi::Color ncolors, init & fields) {
+  static coloring color(const flecsi::runtime & r,
+    std::string const & filename,
+    flecsi::Color ncolors,
+    init & fields) {
     using namespace flecsi;
     using namespace flecsi::topo::unstructured_impl;
-    flog_assert(processes() == ncolors, "color to process mismatch");
+    flog_assert(r.processes() == ncolors, "color to process mismatch");
 
-    simple_definition sd(filename + "." + std::to_string(process()));
+    simple_definition sd(filename + "." + std::to_string(r.process()));
     fields.cid.push_back(std::move(sd.l2g_cells));
     fields.vid.push_back(std::move(sd.l2g_vertices));
     fields.c2v_connectivity.push_back(std::move(sd.c2v));
@@ -133,20 +135,21 @@ struct fixed_mesh
     }
   } // init_mesh_ids
 
-  static void initialize(flecsi::data::topology_slot<fixed_mesh> & s,
+  static void initialize(flecsi::scheduler & s,
+    flecsi::data::topology_slot<fixed_mesh> & m,
     coloring const &,
     const init & fields) {
     using namespace flecsi;
-    auto & c2v = s->get_connectivity<fixed_mesh::cells, fixed_mesh::vertices>();
-    auto & v2c = s->get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>();
+    auto & c2v = m->get_connectivity<fixed_mesh::cells, fixed_mesh::vertices>();
+    auto & v2c = m->get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>();
 
-    auto lm = data::launch::make(s);
+    auto lm = data::launch::make(s, m);
     execute<topo::unstructured_impl::init_connectivity<privilege_count<cells>>,
       mpi>(c2v(lm), fields.c2v_connectivity);
 
     constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
     constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
-    execute<topo::unstructured_impl::transpose<NPC, NPV>>(c2v(s), v2c(s));
+    s.execute<topo::unstructured_impl::transpose<NPC, NPV>>(c2v(m), v2c(m));
 
     execute<init_mesh_ids, mpi>(lm, cid(lm), vid(lm), fields.cid, fields.vid);
   } // initialize

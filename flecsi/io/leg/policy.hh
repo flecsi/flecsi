@@ -174,9 +174,10 @@ struct io_interface {
 
   explicit io_interface(Color ranks_per_file)
     : launch_space([&] {
-        int num_files = util::ceil_div(processes(), ranks_per_file);
+        int num_files =
+          util::ceil_div(run::context::instance().processes(), ranks_per_file);
         // TODO:  allow for num_files != # of ranks
-        assert(num_files == (int)processes());
+        assert(num_files == (int)run::context::instance().processes());
         Legion::Rect<1> file_color_bounds(0, num_files - 1);
         return data::leg::run().create_index_space(
           data::leg::ctx(), file_color_bounds);

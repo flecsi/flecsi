@@ -8,7 +8,7 @@ const field<double>::definition<fixed_mesh, fixed_mesh::vertices> density;
 
 void
 init_pressure(fixed_mesh::accessor<ro, ro, ro> m,
-  field<int>::accessor<wo, wo, wo> p) {
+  field<int>::accessor<wo, wo, wo> p) noexcept {
   for(auto c : m.cells()) {
     static_assert(std::is_same_v<decltype(c), topo::id<fixed_mesh::cells>>);
     p[c] = -1;
@@ -16,15 +16,18 @@ init_pressure(fixed_mesh::accessor<ro, ro, ro> m,
 }
 
 void
-update_pressure(fixed_mesh::accessor<ro, ro, ro> m,
-  field<int>::accessor<rw, rw, rw> p) {
-  int clr = color();
-  forall(c, m.cells(), "pressure_c") { p[c] = clr; };
+update_pressure(exec::accelerator s,
+  fixed_mesh::accessor<ro, ro, ro> m,
+  field<int>::accessor<rw, rw, rw> p) noexcept {
+  int clr = s.launch().index;
+  s.executor().forall(c, m.cells()) {
+    p[c] = clr;
+  };
 }
 
 void
 check_pressure(data::multi<fixed_mesh::accessor<ro, ro, ro>> mm,
-  data::multi<field<int>::accessor<ro, ro, ro>> pp) {
+  data::multi<field<int>::accessor<ro, ro, ro>> pp) noexcept {
   const auto pc = pp.components();
   auto i = pc.begin();
   for(auto [clr, m] : mm.components()) {
@@ -39,23 +42,27 @@ check_pressure(data::multi<fixed_mesh::accessor<ro, ro, ro>> mm,
 
 void
 init_density(fixed_mesh::accessor<ro, ro, ro> m,
-  field<double>::accessor<wo, wo, wo> d) {
+  field<double>::accessor<wo, wo, wo> d) noexcept {
   for(auto c : m.vertices()) {
     d[c] = -1;
   }
 }
 
 void
-update_density(fixed_mesh::accessor<ro, ro, ro> m,
-  field<double>::accessor<rw, rw, rw> d) {
-  auto clr = color();
-  forall(v, m.vertices(), "density_c") { d[v] = clr; };
+update_density(exec::accelerator s,
+  fixed_mesh::accessor<ro, ro, ro> m,
+  field<double>::accessor<rw, rw, rw> d) noexcept {
+  auto clr = s.launch().index;
+  s.executor().forall(v, m.vertices()) {
+    d[v] = clr;
+  };
 }
 
 void
-check_density(fixed_mesh::accessor<ro, ro, ro> m,
-  field<double>::accessor<ro, ro, ro> d) {
-  auto clr = color();
+check_density(exec::cpu s,
+  fixed_mesh::accessor<ro, ro, ro> m,
+  field<double>::accessor<ro, ro, ro> d) noexcept {
+  auto clr = s.launch().index;
   for(auto c : m.vertices()) {
     unsigned int v = d[c];
     flog_assert(v == clr, "invalid pressure");
@@ -63,9 +70,10 @@ check_density(fixed_mesh::accessor<ro, ro, ro> m,
 }
 
 int
-verify_mesh(fixed_mesh::accessor<ro, ro, ro> m,
+verify_mesh(exec::cpu s,
+  fixed_mesh::accessor<ro, ro, ro> m,
   field<util::gid>::accessor<ro, ro, ro> cids,
-  field<util::gid>::accessor<ro, ro, ro> vids) {
+  field<util::gid>::accessor<ro, ro, ro> vids) noexcept {
   UNIT("TASK") {
     auto & out = UNIT_CAPTURE();
 
@@ -86,8 +94,8 @@ verify_mesh(fixed_mesh::accessor<ro, ro, ro> m,
       out << "\n";
     }
     out << "\n";
-    EXPECT_TRUE(
-      UNIT_EQUAL_BLESSED("fixed_" + std::to_string(color()) + ".blessed"));
+    EXPECT_TRUE(UNIT_EQUAL_BLESSED(
+      "fixed_" + std::to_string(s.launch().index) + ".blessed"));
   };
 }
 
@@ -104,24 +112,26 @@ rotate(Color n) {
 }
 
 int
-fixed_driver() {
+fixed_driver(scheduler & s) {
   UNIT() {
     fixed_mesh::slot mesh;
     fixed_mesh::init fields;
-    mesh.allocate(
-      fixed_mesh::mpi_coloring("simple-4x4.fixed", 4, fields), fields);
+    mesh.allocate(s,
+      fixed_mesh::mpi_coloring(s, s.runtime(), "simple-4x4.fixed", 4, fields),
+      fields);
 
-    EXPECT_EQ(
-      test<verify_mesh>(mesh, fixed_mesh::cid(mesh), fixed_mesh::vid(mesh)), 0);
+    EXPECT_EQ(s.test<verify_mesh>(
+                exec::on, mesh, fixed_mesh::cid(mesh), fixed_mesh::vid(mesh)),
+      0);
 
-    execute<init_pressure>(mesh, pressure(mesh));
-    execute<update_pressure, default_accelerator>(mesh, pressure(mesh));
-    auto lm = data::launch::make(mesh, rotate(mesh.colors()));
-    execute<check_pressure>(lm, pressure(lm));
+    s.execute<init_pressure>(mesh, pressure(mesh));
+    s.execute<update_pressure>(exec::on, mesh, pressure(mesh));
+    auto lm = data::launch::make(s, mesh, rotate(mesh.colors()));
+    s.execute<check_pressure>(lm, pressure(lm));
 
-    execute<init_density>(mesh, density(mesh));
-    execute<update_density, default_accelerator>(mesh, density(mesh));
-    execute<check_density>(mesh, density(mesh));
+    s.execute<init_density>(mesh, density(mesh));
+    s.execute<update_density>(exec::on, mesh, density(mesh));
+    s.execute<check_density>(exec::on, mesh, density(mesh));
 
     std::swap(mesh, mesh);
   };

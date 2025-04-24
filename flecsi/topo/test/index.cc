@@ -12,10 +12,7 @@ struct Noisy {
   ~Noisy() {
     ++count;
   }
-  std::size_t i = value();
-  static std::size_t value() {
-    return color() + 1;
-  }
+  Noisy * p = this;
   static inline std::atomic<std::size_t> count;
 };
 
@@ -35,18 +32,18 @@ const intN::definition<trivial_array> arag;
 constexpr std::size_t column = 42;
 
 void
-allocate(topo::resize::Field::accessor<wo> a) {
-  a = color() + 1;
+allocate(exec::cpu s, topo::resize::Field::accessor<wo> a) noexcept {
+  a = s.launch().index + 1;
 }
 void
-irows(intN::mutator<wo> r) {
-  r[0].resize(color() + 1);
+irows(exec::cpu s, intN::mutator<wo> r) noexcept {
+  r[0].resize(s.launch().index + 1);
 }
 int
-drows(double_at::mutator<wo> s) {
+drows(exec::cpu s, double_at::mutator<wo> mm) noexcept {
   UNIT("TASK") {
-    const auto me = color();
-    const auto && m = s[0];
+    const auto me = s.launch().index;
+    const auto && m = mm[0];
     for(std::size_t c = 0; c <= me; ++c)
       m.try_emplace(column + c, me + c);
     for(const auto && p : m)
@@ -86,10 +83,11 @@ const noisy::definition<topo::index> noisy_field;
 const field<int *>::definition<topo::index> ptr_field;
 
 void
-assign(double_field::accessor<wo> p,
+assign(exec::cpu s,
+  double_field::accessor<wo> p,
   intN::accessor<rw> r,
-  double_at::accessor<rw> sp) {
-  const auto i = color();
+  double_at::accessor<rw> sp) noexcept {
+  const auto i = s.launch().index;
   flog(info) << "assign on " << i << std::endl;
   p = i;
   static_assert(std::is_same_v<decltype(r.get_offsets().span()),
@@ -99,22 +97,26 @@ assign(double_field::accessor<wo> p,
 } // assign
 
 std::size_t
-reset(noisy::accessor<wo>) { // must be an MPI task for correct total
-  return Noisy::count;
+reset(noisy::accessor<wo> a) noexcept { // must be an MPI task for correct total
+  return Noisy::count + (a->p != &*a);
 }
 void
 use_ptr(field<int *>::accessor<wo>) {} // must be an MPI task
 
 // The unnamed mutator still allocates according to the growth policy.
 void
-ragged_start(intN::accessor<ro> v, intN::mutator<wo>, buffers::Start mv) {
+ragged_start(intN::accessor<ro> v,
+  intN::mutator<wo>,
+  buffers::Start mv) noexcept {
   assert(mv.span().size() == 2u);
   bool sent = false;
   (void)buffers::ragged(mv[0], true)(v, 0, sent);
 }
 
 int
-ragged_xfer(intN::accessor<ro> v, intN::mutator<rw> g, buffers::Transfer mv) {
+ragged_xfer(intN::accessor<ro> v,
+  intN::mutator<rw> g,
+  buffers::Transfer mv) noexcept {
   buffers::ragged::read(g, mv[1], util::iota_view(0, 1));
   bool sent = false;
   (void)buffers::ragged{mv[0]}(v, 0, sent);
@@ -122,13 +124,13 @@ ragged_xfer(intN::accessor<ro> v, intN::mutator<rw> g, buffers::Transfer mv) {
 }
 
 int
-check(double_field::accessor<ro> p,
+check(exec::cpu es,
+  double_field::accessor<ro> p,
   intN::accessor<ro> r,
   intN::accessor<ro> g,
-  double_at::accessor<ro> sp,
-  noisy::accessor<ro> n) {
+  double_at::accessor<ro> sp) noexcept {
   UNIT("TASK") {
-    const auto me = color();
+    const auto me = es.launch().index;
     flog(info) << "check on " << me << std::endl;
     ASSERT_EQ(p, me);
     EXPECT_GE(r.get_base().span().size(), r.span().size() * 2);
@@ -138,17 +140,16 @@ check(double_field::accessor<ro> p,
     ASSERT_EQ(s.size(), me + 1);
     EXPECT_EQ(s.back(), 1);
     const auto sg = g[0];
-    ASSERT_EQ(sg.size(), me ? me : colors());
+    ASSERT_EQ(sg.size(), me ? me : es.launch().size);
     EXPECT_EQ(sg.back(), 1);
     ASSERT_EQ(sp.size(), 1u);
     const auto sr = sp[0];
     EXPECT_EQ(sr(column + me), 2 * me + 1);
-    EXPECT_EQ(n.get().i, Noisy::value());
   };
-} // print
+}
 
 int
-part(short_part::mutator<wo> a) {
+part(exec::cpu s, short_part::mutator<wo> a) noexcept {
   UNIT("TASK") {
     const short pi[] = {3, 0, 1, 4, 0, 0, 0, 1, 0, 0, 5, 0};
     short sum = 0, chk = 0;
@@ -186,7 +187,7 @@ part(short_part::mutator<wo> a) {
     EXPECT_EQ(*i3, 3);
     EXPECT_EQ(*i4, 4);
     EXPECT_EQ(i3, a.get_iterator_from_pointer(&*i3));
-    *a.begin() = color();
+    *a.begin() = s.launch().index;
   };
 }
 
@@ -195,12 +196,13 @@ constexpr int process_fraction = 2 - (FLECSI_BACKEND == FLECSI_BACKEND_mpi ||
                                        FLECSI_BACKEND == FLECSI_BACKEND_hpx);
 
 int
-use_map(data::multi<short_part::accessor<ro>> ma,
-  data::multi<intN::mutator<wo>> mm) {
+use_map(exec::cpu s,
+  Color p,
+  data::multi<short_part::accessor<ro>> ma,
+  data::multi<intN::mutator<wo>> mm) noexcept {
   UNIT() {
-    const auto p = processes(), nc = std::max(p / process_fraction, {1}),
-               c = color();
-    EXPECT_EQ(colors(), nc);
+    const auto nc = std::max(p / process_fraction, {1}), c = s.launch().index;
+    EXPECT_EQ(s.launch().size, nc);
     const auto ac = ma.components();
     EXPECT_EQ(ac.size(), p / nc + (c < p % nc));
     for(auto [c, a] : ac)
@@ -213,18 +215,18 @@ use_map(data::multi<short_part::accessor<ro>> ma,
 }
 
 int
-check_map(intN::accessor<ro> a) {
+check_map(exec::cpu s, intN::accessor<ro> a) noexcept {
   UNIT() {
-    const auto c = color();
+    const auto c = s.launch().index;
     ASSERT_EQ(a[0].size(), c + 1);
     EXPECT_EQ(a[0].back(), c);
   };
 }
 
 int
-index_driver() {
+index_driver(scheduler & s) {
   UNIT() {
-    const auto np = processes();
+    const auto np = s.runtime().processes();
     {
       region r({}, {});
       EXPECT_FALSE((r.ghost<privilege_pack<wo, wo, na>>(0)));
@@ -237,10 +239,10 @@ index_driver() {
     }
 
     Noisy::count = 0;
-    constexpr static auto alloc = [](auto f) {
+    const auto alloc = [&s](auto f) {
       auto & p = f.get_elements();
       p.growth = {0, 0, 0.25, 0.5, 1};
-      execute<allocate>(p.sizes());
+      s.execute<allocate>(exec::on, p.sizes());
       p.resize();
     };
     const auto pressure = pressure_field(process_topology);
@@ -250,45 +252,44 @@ index_driver() {
     const auto noise = noisy_field(process_topology);
     alloc(verts);
     alloc(vfrac);
-    ghost.get_elements().growth = {processes() + 1};
+    ghost.get_elements().growth = {np + 1};
     {
       // Use the mutator twice to record/replay the trace and to
       // make the new size visible to check below.
       exec::trace t;
       for(int i = 0; i < 2; i++)
-        t.make_guard(), execute<irows>(verts);
+        t.make_guard(), s.execute<irows>(exec::on, verts);
     }
-    EXPECT_EQ(test<drows>(vfrac), 0);
-    execute<assign>(pressure, verts, vfrac);
-    execute<reset>(noise);
-    EXPECT_EQ(
-      (reduce<reset, exec::fold::sum, flecsi::mpi>(noise).get()), processes());
+    EXPECT_EQ(s.test<drows>(exec::on, vfrac), 0);
+    s.execute<assign>(exec::on, pressure, verts, vfrac);
+    s.execute<reset>(noise);
+    EXPECT_EQ((reduce<reset, exec::fold::sum, flecsi::mpi>(noise).get()), np);
     execute<use_ptr, flecsi::mpi>(ptr_field(process_topology));
 
     // Rotate the ragged field by one color:
-    buffers::core([] {
-      const auto p = processes();
-      buffers::coloring ret(p);
-      Color i = 0;
-      for(auto & g : ret)
-        g.push_back(++i % p);
-      return ret;
-    }())
-      .xfer<ragged_start, ragged_xfer>(verts, ghost);
+    buffers::core(s,
+      [np] {
+        buffers::coloring ret(np);
+        Color i = 0;
+        for(auto & g : ret)
+          g.push_back(++i % np);
+        return ret;
+      }())
+      .xfer<ragged_start, ragged_xfer>(s, verts, ghost);
 
-    EXPECT_EQ(test<check>(pressure, verts, ghost, vfrac, noise), 0);
+    EXPECT_EQ(s.test<check>(exec::on, pressure, verts, ghost, vfrac), 0);
 
     // Duplicate work to support the MPI backend:
     trivial_array::slot a;
-    a.allocate(trivial_array::coloring(processes(), 12));
-    EXPECT_EQ(test<part>(particles(a)), 0);
-    execute<allocate>(arag(a).get_elements().sizes());
+    a.allocate(s, trivial_array::coloring(np, 12));
+    EXPECT_EQ(s.test<part>(exec::on, particles(a)), 0);
+    s.execute<allocate>(exec::on, arag(a).get_elements().sizes());
     arag(a).get_elements().resize();
 
     auto lm = launch::make(
-      a, launch::robin(a.colors(), std::max(np / process_fraction, {1})));
-    EXPECT_EQ(test<use_map>(particles(lm), arag(lm)), 0);
-    EXPECT_EQ(test<check_map>(arag(a)), 0);
+      s, a, launch::robin(a.colors(), std::max(np / process_fraction, {1})));
+    EXPECT_EQ(s.test<use_map>(exec::on, np, particles(lm), arag(lm)), 0);
+    EXPECT_EQ(s.test<check_map>(exec::on, arag(a)), 0);
   };
 } // index
 

@@ -11,11 +11,11 @@
 using namespace flecsi;
 
 int
-index_topology() {
+index_topology(scheduler & s) {
   UNIT() {
     using F = io::hdf5::file;
 
-    int my_rank = process();
+    int my_rank = s.runtime().process();
     const std::string file_name{"io_metadata.dat" + std::to_string(my_rank)};
 
     // create hdf5 file and checkpoint

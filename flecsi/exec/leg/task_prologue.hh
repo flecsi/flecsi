@@ -22,6 +22,8 @@ struct borrow_category;
 namespace exec {
 
 struct task_prologue_impl : prolog_base {
+  using prolog_base::prolog_base;
+
   std::vector<Legion::RegionRequirement> const & region_requirements() const {
     return region_reqs_;
   } // region_requirements
