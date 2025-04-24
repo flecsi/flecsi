@@ -1,0 +1,2153 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1829"
+   height="1430"
+   version="1.1"
+   viewBox="0 0 483.8 378.3"
+   id="svg60310"
+   sodipodi:docname="topologies.svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs60314" />
+  <sodipodi:namedview
+     id="namedview60312"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="0.61048951"
+     inkscape:cx="914.83963"
+     inkscape:cy="715.81901"
+     inkscape:window-width="3440"
+     inkscape:window-height="1371"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg60310" />
+  <g
+     transform="translate(128.1 97.76)"
+     id="g60308">
+    <path
+       d="m-57.31 104.7 46.13-68.22"
+       fill="none"
+       stroke="#000"
+       stroke-width=".2646px"
+       id="path59634" />
+    <g
+       transform="translate(573.3 690.1)"
+       id="g59672">
+      <rect
+         x="-673.3"
+         y="-590.4"
+         width="104.8"
+         height="152.4"
+         rx="8"
+         ry="8"
+         fill="#729fcf"
+         stroke="#204a87"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width=".5292"
+         id="rect59636" />
+      <rect
+         x="-663.9"
+         y="-575.8"
+         width="86.17"
+         height="78.44"
+         rx="4"
+         ry="4"
+         fill="#fff"
+         stroke="#204a87"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width=".5292"
+         id="rect59638" />
+      <g
+         transform="translate(8.554 1.058)"
+         id="g59652">
+        <rect
+           x="-672.5"
+           y="-492.1"
+           width="86.17"
+           height="20.54"
+           rx="4"
+           ry="4"
+           fill="#fff"
+           stroke="#204a87"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           stroke-width=".5292"
+           id="rect59640" />
+        <text
+           x="-629.48346"
+           y="-484.55197"
+           fill="#888a85"
+           font-family="FreeSans"
+           font-size="6.35px"
+           stroke-width=".2646"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text59644"><tspan
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-size="6.35px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan59642">index space</tspan></text>
+        <text
+           x="-629.38043"
+           y="-475.5141"
+           font-family="FreeSans"
+           font-size="7.056px"
+           stroke-width=".2646"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text59650"><tspan
+             x="-629.38043"
+             y="-475.5141"
+             font-size="7.056px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan59648"><tspan
+   font-family="FreeSans"
+   font-weight="600"
+   text-align="center"
+   text-anchor="middle"
+   id="tspan59646">28</tspan> cells</tspan></text>
+      </g>
+      <text
+         x="-620.78687"
+         y="-581.11334"
+         fill="#ffffff"
+         font-family="FreeSans"
+         font-size="7.056px"
+         stroke-width=".2646"
+         style="line-height:1.25"
+         xml:space="preserve"
+         id="text59656"><tspan
+           x="-620.78687"
+           y="-581.11334"
+           fill="#ffffff"
+           font-family="FreeSans"
+           font-size="7.056px"
+           font-weight="600"
+           stroke-width=".2646"
+           text-align="center"
+           text-anchor="middle"
+           id="tspan59654">trimesh topology instance</tspan></text>
+      <g
+         transform="translate(8.554 26.55)"
+         id="g59670">
+        <rect
+           x="-672.5"
+           y="-492.1"
+           width="86.17"
+           height="20.54"
+           rx="4"
+           ry="4"
+           fill="#fff"
+           stroke="#204a87"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           stroke-width=".5292"
+           id="rect59658" />
+        <text
+           x="-629.48346"
+           y="-484.55197"
+           fill="#888a85"
+           font-family="FreeSans"
+           font-size="6.35px"
+           stroke-width=".2646"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text59662"><tspan
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-size="6.35px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan59660">index space</tspan></text>
+        <text
+           x="-629.38043"
+           y="-475.5141"
+           font-family="FreeSans"
+           font-size="7.056px"
+           stroke-width=".2646"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text59668"><tspan
+             x="-629.38043"
+             y="-475.5141"
+             font-size="7.056px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan59666"><tspan
+   font-family="FreeSans"
+   font-weight="600"
+   text-align="center"
+   text-anchor="middle"
+   id="tspan59664">21</tspan> vertices</tspan></text>
+      </g>
+    </g>
+    <path
+       d="m76.8 104.7-46.13-68.22"
+       fill="none"
+       stroke="#000"
+       stroke-width=".2646px"
+       id="path59674" />
+    <g
+       transform="translate(-164.8 458.4)"
+       id="g59778">
+      <g
+         fill="#babdb6"
+         stroke="#555753"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width=".2646px"
+         id="g59732">
+        <path
+           d="m91.68-317.6h12.78v12.78z"
+           id="path59676" />
+        <path
+           d="m104.5-304.9h-12.78v-12.78z"
+           id="path59678" />
+        <path
+           d="m117.2-317.6v12.78h-12.78z"
+           id="path59680" />
+        <path
+           d="m104.5-304.9v-12.78h12.78z"
+           id="path59682" />
+        <path
+           d="m117.2-317.6h12.78v12.78z"
+           id="path59684" />
+        <path
+           d="m130-304.9h-12.78v-12.78z"
+           id="path59686" />
+        <path
+           d="m142.8-317.6v12.78h-12.78z"
+           id="path59688" />
+        <path
+           d="m130-304.9v-12.78h12.78z"
+           id="path59690" />
+        <path
+           d="m142.8-292.1h-12.78v-12.78z"
+           id="path59692" />
+        <path
+           d="m130-304.9h12.78v12.78z"
+           id="path59694" />
+        <path
+           d="m117.2-292.1v-12.78h12.78z"
+           id="path59696" />
+        <path
+           d="m130-304.9v12.78h-12.78z"
+           id="path59698" />
+        <path
+           d="m117.2-292.1h-12.78v-12.78z"
+           id="path59700" />
+        <path
+           d="m104.5-304.9h12.78v12.78z"
+           id="path59702" />
+        <path
+           d="m91.68-292.1v-12.78h12.78z"
+           id="path59704" />
+        <path
+           d="m104.5-304.9v12.78h-12.78z"
+           id="path59706" />
+        <path
+           d="m142.8-317.6h-12.78v-12.78z"
+           id="path59708" />
+        <path
+           d="m117.2-317.6v-12.78h12.78z"
+           id="path59710" />
+        <path
+           d="m130-330.4v12.78h-12.78z"
+           id="path59712" />
+        <path
+           d="m117.2-317.6h-12.78v-12.78z"
+           id="path59714" />
+        <path
+           d="m104.5-330.4h12.78v12.78z"
+           id="path59716" />
+        <path
+           d="m104.5-330.4v12.78h-12.78z"
+           id="path59718" />
+        <path
+           d="m91.68-292.1h12.78v12.78z"
+           id="path59720" />
+        <path
+           d="m117.2-292.1v12.78h-12.78z"
+           id="path59722" />
+        <path
+           d="m104.5-279.3v-12.78h12.78z"
+           id="path59724" />
+        <path
+           d="m117.2-292.1h12.78v12.78z"
+           id="path59726" />
+        <path
+           d="m130-279.3h-12.78v-12.78z"
+           id="path59728" />
+        <path
+           d="m130-279.3v-12.78h12.78z"
+           id="path59730" />
+      </g>
+      <g
+         fill="#555753"
+         id="g59776">
+        <circle
+           cx="142.8"
+           cy="-317.7"
+           r="1.044"
+           id="circle59734" />
+        <circle
+           cx="142.8"
+           cy="-304.9"
+           r="1.044"
+           id="circle59736" />
+        <circle
+           cx="142.8"
+           cy="-292.1"
+           r="1.044"
+           id="circle59738" />
+        <circle
+           cx="91.66"
+           cy="-317.7"
+           r="1.044"
+           id="circle59740" />
+        <circle
+           cx="91.66"
+           cy="-304.9"
+           r="1.044"
+           id="circle59742" />
+        <circle
+           cx="91.66"
+           cy="-292.1"
+           r="1.044"
+           id="circle59744" />
+        <circle
+           cx="104.5"
+           cy="-317.7"
+           r="1.044"
+           id="circle59746" />
+        <circle
+           cx="104.5"
+           cy="-304.9"
+           r="1.044"
+           id="circle59748" />
+        <circle
+           cx="104.5"
+           cy="-292.1"
+           r="1.044"
+           id="circle59750" />
+        <circle
+           cx="117.3"
+           cy="-317.7"
+           r="1.044"
+           id="circle59752" />
+        <circle
+           cx="117.3"
+           cy="-304.9"
+           r="1.044"
+           id="circle59754" />
+        <circle
+           cx="117.3"
+           cy="-292.1"
+           r="1.044"
+           id="circle59756" />
+        <circle
+           cx="129.9"
+           cy="-317.7"
+           r="1.044"
+           id="circle59758" />
+        <circle
+           cx="129.9"
+           cy="-304.9"
+           r="1.044"
+           id="circle59760" />
+        <circle
+           cx="129.9"
+           cy="-292.1"
+           r="1.044"
+           id="circle59762" />
+        <circle
+           cx="104.5"
+           cy="-330.5"
+           r="1.044"
+           id="circle59764" />
+        <circle
+           cx="117.3"
+           cy="-330.5"
+           r="1.044"
+           id="circle59766" />
+        <circle
+           cx="129.9"
+           cy="-330.5"
+           r="1.044"
+           id="circle59768" />
+        <circle
+           cx="104.5"
+           cy="-279.3"
+           r="1.044"
+           id="circle59770" />
+        <circle
+           cx="117.3"
+           cy="-279.3"
+           r="1.044"
+           id="circle59772" />
+        <circle
+           cx="129.9"
+           cy="-279.3"
+           r="1.044"
+           id="circle59774" />
+      </g>
+    </g>
+    <path
+       d="m33.2-25.12 46.13-35.97"
+       fill="none"
+       stroke="#000"
+       stroke-width=".2646px"
+       id="path59780" />
+    <path
+       d="m216.9-25.12-46.13-35.97"
+       fill="none"
+       stroke="#000"
+       stroke-width=".2646px"
+       id="path59782" />
+    <g
+       transform="translate(559.9 671.1)"
+       stroke-width=".2646"
+       id="g59790">
+      <rect
+         x="-487.3"
+         y="-752.8"
+         width="104.8"
+         height="20.53"
+         rx="8"
+         ry="8"
+         fill="#fff"
+         stroke="#888a85"
+         stroke-dasharray="1.05833, 1.05833"
+         stroke-dashoffset="2.646"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="rect59784" />
+      <text
+         x="-434.84009"
+         y="-740.00946"
+         fill="#555753"
+         font-family="FreeSans"
+         font-size="7.056px"
+         style="line-height:1.25"
+         xml:space="preserve"
+         id="text59788"><tspan
+           x="-434.84009"
+           y="-740.00946"
+           fill="#555753"
+           font-family="FreeSans"
+           font-size="7.056px"
+           font-weight="600"
+           stroke-width=".2646"
+           text-align="center"
+           text-anchor="middle"
+           id="tspan59786">unstructured</tspan></text>
+    </g>
+    <g
+       font-family="FreeSans"
+       font-size="10.58px"
+       stroke-width=".2646"
+       id="g59806">
+      <text
+         x="28.457548"
+         y="156.95862"
+         style="line-height:1.25"
+         xml:space="preserve"
+         id="text59794"><tspan
+           x="28.457548"
+           y="156.95862"
+           stroke-width=".2646"
+           id="tspan59792">topology instance</tspan></text>
+      <text
+         transform="rotate(-90)"
+         x="-34.891708"
+         y="-107.20538"
+         style="line-height:1.25"
+         xml:space="preserve"
+         id="text59798"><tspan
+           x="-34.891708"
+           y="-107.20538"
+           stroke-width=".2646"
+           id="tspan59796">specialization</tspan></text>
+      <text
+         transform="rotate(-90)"
+         x="58.111607"
+         y="-120.4345"
+         style="line-height:1.25"
+         xml:space="preserve"
+         id="text59804"><tspan
+           x="58.111607"
+           y="-120.4345"
+           id="tspan59800">topology</tspan><tspan
+           x="58.111607"
+           y="-107.20538"
+           id="tspan59802">category</tspan></text>
+    </g>
+    <g
+       transform="translate(688.7 690.1)"
+       id="g59844">
+      <rect
+         x="-673.3"
+         y="-590.4"
+         width="104.8"
+         height="152.4"
+         rx="8"
+         ry="8"
+         fill="#729fcf"
+         stroke="#204a87"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width=".5292"
+         id="rect59808" />
+      <rect
+         x="-663.9"
+         y="-575.8"
+         width="86.17"
+         height="78.44"
+         rx="4"
+         ry="4"
+         fill="#fff"
+         stroke="#204a87"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width=".5292"
+         id="rect59810" />
+      <g
+         transform="translate(8.554 1.058)"
+         id="g59824">
+        <rect
+           x="-672.5"
+           y="-492.1"
+           width="86.17"
+           height="20.54"
+           rx="4"
+           ry="4"
+           fill="#fff"
+           stroke="#204a87"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           stroke-width=".5292"
+           id="rect59812" />
+        <text
+           x="-629.48346"
+           y="-484.55197"
+           fill="#888a85"
+           font-family="FreeSans"
+           font-size="6.35px"
+           stroke-width=".2646"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text59816"><tspan
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-size="6.35px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan59814">index space</tspan></text>
+        <text
+           x="-629.38043"
+           y="-475.5141"
+           font-family="FreeSans"
+           font-size="7.056px"
+           stroke-width=".2646"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text59822"><tspan
+             x="-629.38043"
+             y="-475.5141"
+             font-size="7.056px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan59820"><tspan
+   font-family="FreeSans"
+   font-weight="600"
+   text-align="center"
+   text-anchor="middle"
+   id="tspan59818">16</tspan> cells</tspan></text>
+      </g>
+      <text
+         x="-620.78687"
+         y="-581.11334"
+         fill="#ffffff"
+         font-family="FreeSans"
+         font-size="7.056px"
+         stroke-width=".2646"
+         style="line-height:1.25"
+         xml:space="preserve"
+         id="text59828"><tspan
+           x="-620.78687"
+           y="-581.11334"
+           fill="#ffffff"
+           font-family="FreeSans"
+           font-size="7.056px"
+           font-weight="600"
+           stroke-width=".2646"
+           text-align="center"
+           text-anchor="middle"
+           id="tspan59826">trimesh topology instance</tspan></text>
+      <g
+         transform="translate(8.554 26.55)"
+         id="g59842">
+        <rect
+           x="-672.5"
+           y="-492.1"
+           width="86.17"
+           height="20.54"
+           rx="4"
+           ry="4"
+           fill="#fff"
+           stroke="#204a87"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           stroke-width=".5292"
+           id="rect59830" />
+        <text
+           x="-629.48346"
+           y="-484.55197"
+           fill="#888a85"
+           font-family="FreeSans"
+           font-size="6.35px"
+           stroke-width=".2646"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text59834"><tspan
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-size="6.35px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan59832">index space</tspan></text>
+        <text
+           x="-629.38043"
+           y="-475.5141"
+           font-family="FreeSans"
+           font-size="7.056px"
+           stroke-width=".2646"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text59840"><tspan
+             x="-629.38043"
+             y="-475.5141"
+             font-size="7.056px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan59838"><tspan
+   font-family="FreeSans"
+   font-weight="600"
+   text-align="center"
+   text-anchor="middle"
+   id="tspan59836">17</tspan> vertices</tspan></text>
+      </g>
+    </g>
+    <g
+       transform="translate(559.7 691.5)"
+       id="g59924">
+      <g
+         transform="translate(-699.3 -233)"
+         fill="#babdb6"
+         stroke="#555753"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width=".2646px"
+         id="g59886">
+        <path
+           d="m180.4-295.9 9.035-9.035 9.035 9.035z"
+           id="path59846" />
+        <path
+           d="m198.4-313.9 9.035 9.035-9.035 9.035z"
+           id="path59848" />
+        <path
+           d="m198.4-295.9-9.035-9.035 9.035-9.035z"
+           id="path59850" />
+        <path
+           d="m198.4-313.9 9.035-9.035 9.035 9.035z"
+           id="path59852" />
+        <path
+           d="m216.5-313.9-9.035 9.035-9.035-9.035z"
+           id="path59854" />
+        <path
+           d="m216.5-313.9-9.035-9.035 9.035-9.035z"
+           id="path59856" />
+        <path
+           d="m234.6-313.9-9.035 9.035-9.035-9.035z"
+           id="path59858" />
+        <path
+           d="m216.5-295.9-9.035-9.035 9.035-9.035z"
+           id="path59860" />
+        <path
+           d="m216.5-313.9 9.035 9.035-9.035 9.035z"
+           id="path59862" />
+        <path
+           d="m216.5-295.9-9.035 9.035-9.035-9.035z"
+           id="path59864" />
+        <path
+           d="m198.4-295.9 9.035-9.035 9.035 9.035z"
+           id="path59866" />
+        <path
+           d="m198.4-295.9 9.035 9.035-9.035 9.035z"
+           id="path59868" />
+        <path
+           d="m216.5-332-9.035 9.035-9.035-9.035z"
+           id="path59870" />
+        <path
+           d="m198.4-332 9.035 9.035-9.035 9.035z"
+           id="path59872" />
+        <path
+           d="m198.4-313.9-9.035 9.035-9.035-9.035z"
+           id="path59874" />
+        <path
+           d="m180.4-313.9 9.035 9.035-9.035 9.035z"
+           id="path59876" />
+        <path
+           d="m198.4-277.8 9.035-9.035 9.035 9.035z"
+           id="path59878" />
+        <path
+           d="m216.5-277.8-9.035-9.035 9.035-9.035z"
+           id="path59880" />
+        <path
+           d="m216.5-295.9 9.035-9.035 9.035 9.035z"
+           id="path59882" />
+        <path
+           d="m234.6-295.9-9.035-9.035 9.035-9.035z"
+           id="path59884" />
+      </g>
+      <g
+         transform="translate(-699.3 -233)"
+         fill="#555753"
+         id="g59922">
+        <circle
+           transform="rotate(-45)"
+           cx="387.8"
+           cy="-81.74"
+           r="1.044"
+           id="circle59888" />
+        <circle
+           transform="rotate(-45)"
+           cx="387.8"
+           cy="-56.11"
+           r="1.044"
+           id="circle59890" />
+        <circle
+           transform="rotate(-45)"
+           cx="336.7"
+           cy="-81.74"
+           r="1.044"
+           id="circle59892" />
+        <circle
+           transform="rotate(-45)"
+           cx="336.7"
+           cy="-56.11"
+           r="1.044"
+           id="circle59894" />
+        <circle
+           transform="rotate(-45)"
+           cx="349.5"
+           cy="-81.74"
+           r="1.044"
+           id="circle59896" />
+        <circle
+           transform="rotate(-45)"
+           cx="349.5"
+           cy="-68.95"
+           r="1.044"
+           id="circle59898" />
+        <circle
+           transform="rotate(-45)"
+           cx="349.5"
+           cy="-56.11"
+           r="1.044"
+           id="circle59900" />
+        <circle
+           transform="rotate(-45)"
+           cx="362.4"
+           cy="-81.74"
+           r="1.044"
+           id="circle59902" />
+        <circle
+           transform="rotate(-45)"
+           cx="362.4"
+           cy="-68.95"
+           r="1.044"
+           id="circle59904" />
+        <circle
+           transform="rotate(-45)"
+           cx="362.4"
+           cy="-56.11"
+           r="1.044"
+           id="circle59906" />
+        <circle
+           transform="rotate(-45)"
+           cx="375"
+           cy="-81.74"
+           r="1.044"
+           id="circle59908" />
+        <circle
+           transform="rotate(-45)"
+           cx="375"
+           cy="-68.95"
+           r="1.044"
+           id="circle59910" />
+        <circle
+           transform="rotate(-45)"
+           cx="375"
+           cy="-56.11"
+           r="1.044"
+           id="circle59912" />
+        <circle
+           transform="rotate(-45)"
+           cx="349.5"
+           cy="-94.47"
+           r="1.044"
+           id="circle59914" />
+        <circle
+           transform="rotate(-45)"
+           cx="375"
+           cy="-94.47"
+           r="1.044"
+           id="circle59916" />
+        <circle
+           transform="rotate(-45)"
+           cx="349.5"
+           cy="-43.29"
+           r="1.044"
+           id="circle59918" />
+        <circle
+           transform="rotate(-45)"
+           cx="375"
+           cy="-43.29"
+           r="1.044"
+           id="circle59920" />
+      </g>
+    </g>
+    <path
+       d="m173.4 101.5 46.13-34.79"
+       fill="none"
+       stroke="#000"
+       stroke-width=".2646px"
+       id="path59926" />
+    <path
+       d="m307.5 101.5-46.13-34.79"
+       fill="none"
+       stroke="#000"
+       stroke-width=".2646px"
+       id="path59928" />
+    <g
+       transform="translate(539.4 689.3)"
+       id="g60064">
+      <g
+         transform="translate(269 .8289)"
+         id="g59980">
+        <rect
+           x="-673.3"
+           y="-590.4"
+           width="104.8"
+           height="180.5"
+           rx="8"
+           ry="8"
+           fill="#fcaf3e"
+           stroke="#ce5c00"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           stroke-width=".5292"
+           id="rect59930" />
+        <rect
+           x="-663.9"
+           y="-575.8"
+           width="86.17"
+           height="78.44"
+           rx="4"
+           ry="4"
+           fill="#fff"
+           stroke="#ce5c00"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           stroke-width=".5292"
+           id="rect59932" />
+        <g
+           transform="translate(8.554 1.058)"
+           id="g59946">
+          <rect
+             x="-672.5"
+             y="-492.1"
+             width="86.17"
+             height="20.54"
+             rx="4"
+             ry="4"
+             fill="#fff"
+             stroke="#ce5c00"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             stroke-width=".5292"
+             id="rect59934" />
+          <text
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-family="FreeSans"
+             font-size="6.35px"
+             stroke-width=".2646"
+             style="line-height:1.25"
+             xml:space="preserve"
+             id="text59938"><tspan
+               x="-629.48346"
+               y="-484.55197"
+               fill="#888a85"
+               font-size="6.35px"
+               stroke-width=".2646"
+               text-align="center"
+               text-anchor="middle"
+               id="tspan59936">index space</tspan></text>
+          <text
+             x="-629.38043"
+             y="-475.5141"
+             font-family="FreeSans"
+             font-size="7.056px"
+             stroke-width=".2646"
+             style="line-height:1.25"
+             xml:space="preserve"
+             id="text59944"><tspan
+               x="-629.38043"
+               y="-475.5141"
+               font-size="7.056px"
+               stroke-width=".2646"
+               text-align="center"
+               text-anchor="middle"
+               id="tspan59942"><tspan
+   font-family="FreeSans"
+   font-weight="600"
+   text-align="center"
+   text-anchor="middle"
+   id="tspan59940">10</tspan> cells</tspan></text>
+        </g>
+        <text
+           x="-620.78687"
+           y="-581.11334"
+           fill="#ffffff"
+           font-family="FreeSans"
+           font-size="7.056px"
+           stroke-width=".2646"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text59950"><tspan
+             x="-620.78687"
+             y="-581.11334"
+             fill="#ffffff"
+             font-family="FreeSans"
+             font-size="7.056px"
+             font-weight="600"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan59948">quadmesh topology instance</tspan></text>
+        <g
+           transform="translate(8.554 26.55)"
+           id="g59964">
+          <rect
+             x="-672.5"
+             y="-492.1"
+             width="86.17"
+             height="20.54"
+             rx="4"
+             ry="4"
+             fill="#fff"
+             stroke="#ce5c00"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             stroke-width=".5292"
+             id="rect59952" />
+          <text
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-family="FreeSans"
+             font-size="6.35px"
+             stroke-width=".2646"
+             style="line-height:1.25"
+             xml:space="preserve"
+             id="text59956"><tspan
+               x="-629.48346"
+               y="-484.55197"
+               fill="#888a85"
+               font-size="6.35px"
+               stroke-width=".2646"
+               text-align="center"
+               text-anchor="middle"
+               id="tspan59954">index space</tspan></text>
+          <text
+             x="-629.38043"
+             y="-475.5141"
+             font-family="FreeSans"
+             font-size="7.056px"
+             stroke-width=".2646"
+             style="line-height:1.25"
+             xml:space="preserve"
+             id="text59962"><tspan
+               x="-629.38043"
+               y="-475.5141"
+               font-size="7.056px"
+               stroke-width=".2646"
+               text-align="center"
+               text-anchor="middle"
+               id="tspan59960"><tspan
+   font-family="FreeSans"
+   font-weight="600"
+   text-align="center"
+   text-anchor="middle"
+   id="tspan59958">20</tspan> vertices</tspan></text>
+        </g>
+        <g
+           transform="translate(8.554 52.04)"
+           id="g59978">
+          <rect
+             x="-672.5"
+             y="-492.1"
+             width="86.17"
+             height="20.54"
+             rx="4"
+             ry="4"
+             fill="#fff"
+             stroke="#ce5c00"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             stroke-width=".5292"
+             id="rect59966" />
+          <text
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-family="FreeSans"
+             font-size="6.35px"
+             stroke-width=".2646"
+             style="line-height:1.25"
+             xml:space="preserve"
+             id="text59970"><tspan
+               x="-629.48346"
+               y="-484.55197"
+               fill="#888a85"
+               font-size="6.35px"
+               stroke-width=".2646"
+               text-align="center"
+               text-anchor="middle"
+               id="tspan59968">index space</tspan></text>
+          <text
+             x="-629.38043"
+             y="-475.5141"
+             font-family="FreeSans"
+             font-size="7.056px"
+             stroke-width=".2646"
+             style="line-height:1.25"
+             xml:space="preserve"
+             id="text59976"><tspan
+               x="-629.38043"
+               y="-475.5141"
+               font-size="7.056px"
+               stroke-width=".2646"
+               text-align="center"
+               text-anchor="middle"
+               id="tspan59974"><tspan
+   font-family="FreeSans"
+   font-weight="600"
+   text-align="center"
+   text-anchor="middle"
+   id="tspan59972">29</tspan> edges</tspan></text>
+        </g>
+      </g>
+      <g
+         transform="translate(-8.079 1.164)"
+         id="g60062">
+        <g
+           fill="#babdb6"
+           stroke="#555753"
+           stroke-linecap="round"
+           stroke-width=".2646"
+           id="g59990">
+          <rect
+             x="-374.2"
+             y="-561.3"
+             width="12.18"
+             height="12.18"
+             id="rect59982" />
+          <rect
+             x="-362"
+             y="-561.3"
+             width="12.18"
+             height="12.18"
+             id="rect59984" />
+          <rect
+             x="-374.2"
+             y="-549.1"
+             width="12.18"
+             height="12.18"
+             id="rect59986" />
+          <rect
+             x="-362"
+             y="-549.1"
+             width="12.18"
+             height="12.18"
+             id="rect59988" />
+        </g>
+        <g
+           fill="#555753"
+           id="g60006">
+          <circle
+             cx="-374.3"
+             cy="-561.2"
+             r="1.044"
+             id="circle59992" />
+          <circle
+             cx="-374.3"
+             cy="-549.4"
+             r="1.044"
+             id="circle59994" />
+          <circle
+             cx="-362.1"
+             cy="-561.2"
+             r="1.044"
+             id="circle59996" />
+          <circle
+             cx="-362"
+             cy="-549.3"
+             r="1.044"
+             id="circle59998" />
+          <circle
+             cx="-362"
+             cy="-549.3"
+             r="1.044"
+             id="circle60000" />
+          <circle
+             cx="-362"
+             cy="-537"
+             r="1.044"
+             id="circle60002" />
+          <circle
+             cx="-374.1"
+             cy="-537.5"
+             r="1.044"
+             id="circle60004" />
+        </g>
+        <g
+           fill="#babdb6"
+           stroke="#555753"
+           stroke-linecap="round"
+           stroke-width=".2646"
+           id="g60016">
+          <rect
+             x="-325.5"
+             y="-537"
+             width="12.18"
+             height="12.18"
+             id="rect60008" />
+          <rect
+             x="-337.6"
+             y="-524.8"
+             width="12.18"
+             height="12.18"
+             id="rect60010" />
+          <rect
+             x="-325.5"
+             y="-524.8"
+             width="12.18"
+             height="12.18"
+             id="rect60012" />
+          <rect
+             x="-349.8"
+             y="-537"
+             width="12.18"
+             height="12.18"
+             id="rect60014" />
+        </g>
+        <circle
+           cx="-349.9"
+           cy="-524.8"
+           r="1.044"
+           fill="#555753"
+           id="circle60018" />
+        <rect
+           x="-349.8"
+           y="-549.1"
+           width="12.18"
+           height="12.18"
+           fill="#babdb6"
+           stroke="#555753"
+           stroke-linecap="round"
+           stroke-width=".2646"
+           id="rect60020" />
+        <g
+           fill="#555753"
+           id="g60028">
+          <circle
+             cx="-349.8"
+             cy="-561.2"
+             r="1.044"
+             id="circle60022" />
+          <circle
+             cx="-349.8"
+             cy="-549.2"
+             r="1.044"
+             id="circle60024" />
+          <circle
+             cx="-337.6"
+             cy="-549.2"
+             r="1.044"
+             id="circle60026" />
+        </g>
+        <rect
+           x="-337.6"
+           y="-537"
+           width="12.18"
+           height="12.18"
+           fill="#babdb6"
+           stroke="#555753"
+           stroke-linecap="round"
+           stroke-width=".2646"
+           id="rect60030" />
+        <g
+           fill="#555753"
+           id="g60060">
+          <circle
+             cx="-349.7"
+             cy="-536.9"
+             r="1.044"
+             id="circle60032" />
+          <circle
+             cx="-349.9"
+             cy="-537.1"
+             r="1.044"
+             id="circle60034" />
+          <circle
+             cx="-337.6"
+             cy="-537"
+             r="1.044"
+             id="circle60036" />
+          <circle
+             cx="-337.6"
+             cy="-536.9"
+             r="1.044"
+             id="circle60038" />
+          <circle
+             cx="-337.6"
+             cy="-537"
+             r="1.044"
+             id="circle60040" />
+          <circle
+             cx="-337.6"
+             cy="-524.8"
+             r="1.044"
+             id="circle60042" />
+          <circle
+             cx="-325.4"
+             cy="-524.8"
+             r="1.044"
+             id="circle60044" />
+          <circle
+             cx="-325.5"
+             cy="-537"
+             r="1.044"
+             id="circle60046" />
+          <circle
+             cx="-313.3"
+             cy="-536.9"
+             r="1.044"
+             id="circle60048" />
+          <circle
+             cx="-313.3"
+             cy="-524.9"
+             r="1.044"
+             id="circle60050" />
+          <circle
+             cx="-313.2"
+             cy="-512.6"
+             r="1.044"
+             id="circle60052" />
+          <circle
+             cx="-325.5"
+             cy="-512.6"
+             r="1.044"
+             id="circle60054" />
+          <circle
+             cx="-337.6"
+             cy="-513.1"
+             r="1.044"
+             id="circle60056" />
+          <circle
+             cx="-313.3"
+             cy="-512.8"
+             r="1.044"
+             id="circle60058" />
+        </g>
+      </g>
+    </g>
+    <g
+       transform="translate(527.5 689.3)"
+       id="g60226">
+      <g
+         transform="translate(396.3 .8289)"
+         id="g60116">
+        <rect
+           x="-673.3"
+           y="-590.4"
+           width="104.8"
+           height="180.5"
+           rx="8"
+           ry="8"
+           fill="#fcaf3e"
+           stroke="#ce5c00"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           stroke-width=".5292"
+           id="rect60066" />
+        <rect
+           x="-663.9"
+           y="-575.8"
+           width="86.17"
+           height="78.44"
+           rx="4"
+           ry="4"
+           fill="#fff"
+           stroke="#ce5c00"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           stroke-width=".5292"
+           id="rect60068" />
+        <g
+           transform="translate(8.554 1.058)"
+           id="g60082">
+          <rect
+             x="-672.5"
+             y="-492.1"
+             width="86.17"
+             height="20.54"
+             rx="4"
+             ry="4"
+             fill="#fff"
+             stroke="#ce5c00"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             stroke-width=".5292"
+             id="rect60070" />
+          <text
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-family="FreeSans"
+             font-size="6.35px"
+             stroke-width=".2646"
+             style="line-height:1.25"
+             xml:space="preserve"
+             id="text60074"><tspan
+               x="-629.48346"
+               y="-484.55197"
+               fill="#888a85"
+               font-size="6.35px"
+               stroke-width=".2646"
+               text-align="center"
+               text-anchor="middle"
+               id="tspan60072">index space</tspan></text>
+          <text
+             x="-629.38043"
+             y="-475.5141"
+             font-family="FreeSans"
+             font-size="7.056px"
+             stroke-width=".2646"
+             style="line-height:1.25"
+             xml:space="preserve"
+             id="text60080"><tspan
+               x="-629.38043"
+               y="-475.5141"
+               font-size="7.056px"
+               stroke-width=".2646"
+               text-align="center"
+               text-anchor="middle"
+               id="tspan60078"><tspan
+   font-family="FreeSans"
+   font-weight="600"
+   text-align="center"
+   text-anchor="middle"
+   id="tspan60076">13</tspan> cells</tspan></text>
+        </g>
+        <text
+           x="-620.78687"
+           y="-581.11334"
+           fill="#ffffff"
+           font-family="FreeSans"
+           font-size="7.056px"
+           stroke-width=".2646"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text60086"><tspan
+             x="-620.78687"
+             y="-581.11334"
+             fill="#ffffff"
+             font-family="FreeSans"
+             font-size="7.056px"
+             font-weight="600"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan60084">quadmesh topology instance</tspan></text>
+        <g
+           transform="translate(8.554 26.55)"
+           id="g60100">
+          <rect
+             x="-672.5"
+             y="-492.1"
+             width="86.17"
+             height="20.54"
+             rx="4"
+             ry="4"
+             fill="#fff"
+             stroke="#ce5c00"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             stroke-width=".5292"
+             id="rect60088" />
+          <text
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-family="FreeSans"
+             font-size="6.35px"
+             stroke-width=".2646"
+             style="line-height:1.25"
+             xml:space="preserve"
+             id="text60092"><tspan
+               x="-629.48346"
+               y="-484.55197"
+               fill="#888a85"
+               font-size="6.35px"
+               stroke-width=".2646"
+               text-align="center"
+               text-anchor="middle"
+               id="tspan60090">index space</tspan></text>
+          <text
+             x="-629.38043"
+             y="-475.5141"
+             font-family="FreeSans"
+             font-size="7.056px"
+             stroke-width=".2646"
+             style="line-height:1.25"
+             xml:space="preserve"
+             id="text60098"><tspan
+               x="-629.38043"
+               y="-475.5141"
+               font-size="7.056px"
+               stroke-width=".2646"
+               text-align="center"
+               text-anchor="middle"
+               id="tspan60096"><tspan
+   font-family="FreeSans"
+   font-weight="600"
+   text-align="center"
+   text-anchor="middle"
+   id="tspan60094">24</tspan> vertices</tspan></text>
+        </g>
+        <g
+           transform="translate(8.554 52.04)"
+           id="g60114">
+          <rect
+             x="-672.5"
+             y="-492.1"
+             width="86.17"
+             height="20.54"
+             rx="4"
+             ry="4"
+             fill="#fff"
+             stroke="#ce5c00"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             stroke-width=".5292"
+             id="rect60102" />
+          <text
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-family="FreeSans"
+             font-size="6.35px"
+             stroke-width=".2646"
+             style="line-height:1.25"
+             xml:space="preserve"
+             id="text60106"><tspan
+               x="-629.48346"
+               y="-484.55197"
+               fill="#888a85"
+               font-size="6.35px"
+               stroke-width=".2646"
+               text-align="center"
+               text-anchor="middle"
+               id="tspan60104">index space</tspan></text>
+          <text
+             x="-629.38043"
+             y="-475.5141"
+             font-family="FreeSans"
+             font-size="7.056px"
+             stroke-width=".2646"
+             style="line-height:1.25"
+             xml:space="preserve"
+             id="text60112"><tspan
+               x="-629.38043"
+               y="-475.5141"
+               font-size="7.056px"
+               stroke-width=".2646"
+               text-align="center"
+               text-anchor="middle"
+               id="tspan60110"><tspan
+   font-family="FreeSans"
+   font-weight="600"
+   text-align="center"
+   text-anchor="middle"
+   id="tspan60108">36</tspan> edges</tspan></text>
+        </g>
+      </g>
+      <g
+         transform="translate(-18.49 3.251)"
+         id="g60224">
+        <g
+           fill="#babdb6"
+           stroke="#555753"
+           stroke-linecap="round"
+           stroke-width=".2646"
+           id="g60126">
+          <rect
+             x="-224.2"
+             y="-557.3"
+             width="12.18"
+             height="12.18"
+             id="rect60118" />
+          <rect
+             x="-212.1"
+             y="-557.3"
+             width="12.18"
+             height="12.18"
+             id="rect60120" />
+          <rect
+             x="-224.2"
+             y="-545.1"
+             width="12.18"
+             height="12.18"
+             id="rect60122" />
+          <rect
+             x="-212.1"
+             y="-545.1"
+             width="12.18"
+             height="12.18"
+             id="rect60124" />
+        </g>
+        <circle
+           cx="-212.1"
+           cy="-545.3"
+           r="1.044"
+           fill="#555753"
+           id="circle60128" />
+        <circle
+           cx="-212.1"
+           cy="-545.3"
+           r="1.044"
+           fill="#555753"
+           id="circle60130" />
+        <g
+           fill="#babdb6"
+           stroke="#555753"
+           stroke-linecap="round"
+           stroke-width=".2646"
+           id="g60142">
+          <rect
+             x="-236.4"
+             y="-545.1"
+             width="12.18"
+             height="12.18"
+             id="rect60132" />
+          <rect
+             x="-199.9"
+             y="-557.3"
+             width="12.18"
+             height="12.18"
+             id="rect60134" />
+          <rect
+             x="-187.7"
+             y="-545.1"
+             width="12.18"
+             height="12.18"
+             id="rect60136" />
+          <rect
+             x="-212.1"
+             y="-569.5"
+             width="12.18"
+             height="12.18"
+             id="rect60138" />
+          <rect
+             x="-199.9"
+             y="-545.1"
+             width="12.18"
+             height="12.18"
+             id="rect60140" />
+        </g>
+        <circle
+           cx="-199.9"
+           cy="-545.2"
+           r="1.044"
+           fill="#555753"
+           id="circle60144" />
+        <circle
+           cx="-187.7"
+           cy="-545.2"
+           r="1.044"
+           fill="#555753"
+           id="circle60146" />
+        <rect
+           x="-224.2"
+           y="-532.9"
+           width="12.18"
+           height="12.18"
+           fill="#babdb6"
+           stroke="#555753"
+           stroke-linecap="round"
+           stroke-width=".2646"
+           id="rect60148" />
+        <circle
+           cx="-224.4"
+           cy="-545.4"
+           r="1.044"
+           fill="#555753"
+           id="circle60150" />
+        <g
+           fill="#babdb6"
+           stroke="#555753"
+           stroke-linecap="round"
+           stroke-width=".2646"
+           id="g60158">
+          <rect
+             x="-212.1"
+             y="-532.9"
+             width="12.18"
+             height="12.18"
+             id="rect60152" />
+          <rect
+             x="-199.9"
+             y="-532.9"
+             width="12.18"
+             height="12.18"
+             id="rect60154" />
+          <rect
+             x="-212.1"
+             y="-520.8"
+             width="12.18"
+             height="12.18"
+             id="rect60156" />
+        </g>
+        <g
+           fill="#555753"
+           id="g60222">
+          <circle
+             cx="-224.4"
+             cy="-557.4"
+             r="1.044"
+             id="circle60160" />
+          <circle
+             cx="-212.1"
+             cy="-557.2"
+             r="1.044"
+             id="circle60162" />
+          <circle
+             cx="-212.1"
+             cy="-557.2"
+             r="1.044"
+             id="circle60164" />
+          <circle
+             cx="-199.9"
+             cy="-557.2"
+             r="1.044"
+             id="circle60166" />
+          <circle
+             cx="-187.7"
+             cy="-557.2"
+             r="1.044"
+             id="circle60168" />
+          <circle
+             cx="-224.4"
+             cy="-533.1"
+             r="1.044"
+             id="circle60170" />
+          <circle
+             cx="-212.1"
+             cy="-533"
+             r="1.044"
+             id="circle60172" />
+          <circle
+             cx="-212.1"
+             cy="-533"
+             r="1.044"
+             id="circle60174" />
+          <circle
+             cx="-199.9"
+             cy="-532.9"
+             r="1.044"
+             id="circle60176" />
+          <circle
+             cx="-187.7"
+             cy="-532.9"
+             r="1.044"
+             id="circle60178" />
+          <circle
+             cx="-224.4"
+             cy="-520.9"
+             r="1.044"
+             id="circle60180" />
+          <circle
+             cx="-212.1"
+             cy="-520.7"
+             r="1.044"
+             id="circle60182" />
+          <circle
+             cx="-212.1"
+             cy="-520.7"
+             r="1.044"
+             id="circle60184" />
+          <circle
+             cx="-199.9"
+             cy="-520.7"
+             r="1.044"
+             id="circle60186" />
+          <circle
+             cx="-187.7"
+             cy="-520.7"
+             r="1.044"
+             id="circle60188" />
+          <circle
+             cx="-236.5"
+             cy="-545.4"
+             r="1.044"
+             id="circle60190" />
+          <circle
+             cx="-236.5"
+             cy="-533.1"
+             r="1.044"
+             id="circle60192" />
+          <circle
+             cx="-175.6"
+             cy="-545.4"
+             r="1.044"
+             id="circle60194" />
+          <circle
+             cx="-175.6"
+             cy="-533.1"
+             r="1.044"
+             id="circle60196" />
+          <circle
+             cx="-212.1"
+             cy="-569.4"
+             r="1.044"
+             id="circle60198" />
+          <circle
+             cx="-212.1"
+             cy="-569.4"
+             r="1.044"
+             id="circle60200" />
+          <circle
+             cx="-199.9"
+             cy="-569.3"
+             r="1.044"
+             id="circle60202" />
+          <circle
+             cx="-212.1"
+             cy="-569.4"
+             r="1.044"
+             id="circle60204" />
+          <circle
+             cx="-212.1"
+             cy="-569.4"
+             r="1.044"
+             id="circle60206" />
+          <circle
+             cx="-199.9"
+             cy="-569.3"
+             r="1.044"
+             id="circle60208" />
+          <circle
+             cx="-212.1"
+             cy="-508.7"
+             r="1.044"
+             id="circle60210" />
+          <circle
+             cx="-212.1"
+             cy="-508.7"
+             r="1.044"
+             id="circle60212" />
+          <circle
+             cx="-199.9"
+             cy="-508.6"
+             r="1.044"
+             id="circle60214" />
+          <circle
+             cx="-212.1"
+             cy="-508.7"
+             r="1.044"
+             id="circle60216" />
+          <circle
+             cx="-212.1"
+             cy="-508.7"
+             r="1.044"
+             id="circle60218" />
+          <circle
+             cx="-199.9"
+             cy="-508.6"
+             r="1.044"
+             id="circle60220" />
+        </g>
+      </g>
+    </g>
+    <g
+       transform="translate(525.6 671.1)"
+       stroke-width=".2646"
+       id="g60258">
+      <rect
+         x="-569.9"
+         y="-701.2"
+         width="104.8"
+         height="70.95"
+         rx="8"
+         ry="8"
+         fill="#d0dfef"
+         stroke="#204a87"
+         stroke-dashoffset="2.646"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="rect60228" />
+      <text
+         x="-517.37744"
+         y="-690.61816"
+         fill="#204a87"
+         font-family="FreeSans"
+         font-size="7.056px"
+         style="line-height:1.25"
+         xml:space="preserve"
+         id="text60232"><tspan
+           x="-517.37744"
+           y="-690.61816"
+           fill="#204a87"
+           font-family="FreeSans"
+           font-size="7.056px"
+           font-weight="600"
+           stroke-width=".2646"
+           text-align="center"
+           text-anchor="middle"
+           id="tspan60230">trimesh specialization</tspan></text>
+      <g
+         transform="translate(111.9 -192)"
+         id="g60244">
+        <rect
+           x="-672.5"
+           y="-492.1"
+           width="86.17"
+           height="20.54"
+           rx="4"
+           ry="4"
+           fill="#fff"
+           stroke="#204a87"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           id="rect60234" />
+        <text
+           x="-629.48346"
+           y="-484.55197"
+           fill="#888a85"
+           font-family="FreeSans"
+           font-size="6.35px"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text60238"><tspan
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-size="6.35px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan60236">index space</tspan></text>
+        <text
+           x="-629.38043"
+           y="-475.5141"
+           font-family="FreeSans"
+           font-size="7.056px"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text60242"><tspan
+             x="-629.38043"
+             y="-475.5141"
+             font-size="7.056px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan60240">cells</tspan></text>
+      </g>
+      <g
+         transform="translate(111.9 -166)"
+         id="g60256">
+        <rect
+           x="-672.5"
+           y="-492.1"
+           width="86.17"
+           height="20.54"
+           rx="4"
+           ry="4"
+           fill="#fff"
+           stroke="#204a87"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           id="rect60246" />
+        <text
+           x="-629.48346"
+           y="-484.55197"
+           fill="#888a85"
+           font-family="FreeSans"
+           font-size="6.35px"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text60250"><tspan
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-size="6.35px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan60248">index space</tspan></text>
+        <text
+           x="-629.38043"
+           y="-475.5141"
+           font-family="FreeSans"
+           font-size="7.056px"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text60254"><tspan
+             x="-629.38043"
+             y="-475.5141"
+             font-size="7.056px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan60252">vertices</tspan></text>
+      </g>
+    </g>
+    <g
+       transform="translate(762.8 671.1)"
+       stroke-width=".2646"
+       id="g60302">
+      <rect
+         x="-569.9"
+         y="-701.2"
+         width="104.8"
+         height="96.62"
+         rx="8"
+         ry="8"
+         fill="#fee9ca"
+         stroke="#ce5c00"
+         stroke-dashoffset="2.646"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="rect60260" />
+      <text
+         x="-517.37744"
+         y="-690.61816"
+         fill="#204a87"
+         font-family="FreeSans"
+         font-size="7.056px"
+         style="line-height:1.25"
+         xml:space="preserve"
+         id="text60264"><tspan
+           x="-517.37744"
+           y="-690.61816"
+           fill="#ce5c00"
+           font-family="FreeSans"
+           font-size="7.056px"
+           font-weight="600"
+           stroke-width=".2646"
+           text-align="center"
+           text-anchor="middle"
+           id="tspan60262">quadmesh specialization</tspan></text>
+      <g
+         transform="translate(111.9 -192)"
+         id="g60276">
+        <rect
+           x="-672.5"
+           y="-492.1"
+           width="86.17"
+           height="20.54"
+           rx="4"
+           ry="4"
+           fill="#fff"
+           stroke="#ce5c00"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           id="rect60266" />
+        <text
+           x="-629.48346"
+           y="-484.55197"
+           fill="#888a85"
+           font-family="FreeSans"
+           font-size="6.35px"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text60270"><tspan
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-size="6.35px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan60268">index space</tspan></text>
+        <text
+           x="-629.38043"
+           y="-475.5141"
+           font-family="FreeSans"
+           font-size="7.056px"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text60274"><tspan
+             x="-629.38043"
+             y="-475.5141"
+             font-size="7.056px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan60272">cells</tspan></text>
+      </g>
+      <g
+         transform="translate(111.9 -166)"
+         id="g60288">
+        <rect
+           x="-672.5"
+           y="-492.1"
+           width="86.17"
+           height="20.54"
+           rx="4"
+           ry="4"
+           fill="#fff"
+           stroke="#ce5c00"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           id="rect60278" />
+        <text
+           x="-629.48346"
+           y="-484.55197"
+           fill="#888a85"
+           font-family="FreeSans"
+           font-size="6.35px"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text60282"><tspan
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-size="6.35px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan60280">index space</tspan></text>
+        <text
+           x="-629.38043"
+           y="-475.5141"
+           font-family="FreeSans"
+           font-size="7.056px"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text60286"><tspan
+             x="-629.38043"
+             y="-475.5141"
+             font-size="7.056px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan60284">vertices</tspan></text>
+      </g>
+      <g
+         transform="translate(111.9 -140)"
+         id="g60300">
+        <rect
+           x="-672.5"
+           y="-492.1"
+           width="86.17"
+           height="20.54"
+           rx="4"
+           ry="4"
+           fill="#fff"
+           stroke="#ce5c00"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           id="rect60290" />
+        <text
+           x="-629.48346"
+           y="-484.55197"
+           fill="#888a85"
+           font-family="FreeSans"
+           font-size="6.35px"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text60294"><tspan
+             x="-629.48346"
+             y="-484.55197"
+             fill="#888a85"
+             font-size="6.35px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan60292">index space</tspan></text>
+        <text
+           x="-629.38043"
+           y="-475.5141"
+           font-family="FreeSans"
+           font-size="7.056px"
+           style="line-height:1.25"
+           xml:space="preserve"
+           id="text60298"><tspan
+             x="-629.38043"
+             y="-475.5141"
+             font-size="7.056px"
+             stroke-width=".2646"
+             text-align="center"
+             text-anchor="middle"
+             id="tspan60296">edges</tspan></text>
+      </g>
+    </g>
+    <text
+       transform="rotate(-90)"
+       x="-222.01123"
+       y="-107.20538"
+       font-family="FreeSans"
+       font-size="10.58px"
+       stroke-width=".2646"
+       style="line-height:1.25"
+       xml:space="preserve"
+       id="text60306"><tspan
+         x="-222.01123"
+         y="-107.20538"
+         stroke-width=".2646"
+         id="tspan60304">topology instances</tspan></text>
+  </g>
+</svg>
