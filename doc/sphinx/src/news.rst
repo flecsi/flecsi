@@ -135,6 +135,10 @@ Deprecated
 
 Fixed
 ^^^^^
+* Data
+
+  * The ``particle`` layout works on the ``global`` topology.
+
 * Legion backend
 
   * Unit tests work without Kokkos but with OpenMP.

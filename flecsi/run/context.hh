@@ -385,9 +385,9 @@ protected:
 
 private:
   template<class Topo, typename Topo::index_space Index, typename Instance>
-  void add_fields(Instance & slot) {
-    index_space_info_vector_.push_back({&slot.template get_region<Index>(),
-      &slot.template get_partition<Index>(),
+  void add_fields(Instance & topo) {
+    index_space_info_vector_.push_back({&topo.template get_region<Index>(),
+      &topo.template get_partition<Index>(),
       field_info_store<Topo, Index>(),
       util::type<Topo>() + '[' + std::to_string(Index) + ']'});
   } // add_fields

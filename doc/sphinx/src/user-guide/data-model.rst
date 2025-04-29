@@ -57,6 +57,12 @@ Moreover, with the Legion backend their number is not required to match the numb
   as a hydrodynamics solver and an energy source.  In that situation you
   could use fewer colors than processes so that some processes can perform calculations for the hydrodynamics while others perform calculations for the energy source.
 
+.. figure:: images/coloring.svg
+   :width: 30%
+   :align: center
+
+   An unstructured mesh topology instance with 4 colors.
+
 .. _ghost-elements:
 
 Ghost Elements
@@ -79,6 +85,13 @@ Field values can be communicated between colors via ghost elements.
 The read/write permissions of :ref:`accessors <field-accessors>`
 may distinguish between these three varieties of index points in order
 to expose additional opportunities for parallelization.
+
+.. figure:: images/extended-index-spaces.svg
+   :width: 80%
+   :align: center
+
+   Index spaces with ghost elements as seen by each color of a
+   topology instance.
 
 Fields
 ========================================================================
@@ -204,6 +217,19 @@ Each field has one of several pre-defined layouts, which specifies how field ele
 The field registration examples above use the ``dense`` layout by default.
 Other layouts are chosen with syntax like ``flecsi::field<double, flecsi::data::ragged>``.
 
+
+.. figure:: images/fields.svg
+   :width: 100%
+
+   Illustration of the single, dense and ragged layout for various index spaces and data types.
+
+.. figure:: images/sparse-and-particle.svg
+   :align: center
+   :width: 80%
+   
+   Fields in sparse and particle layouts.
+   
+   
 References
 ----------
 Fields are registered on topology *types*, so every instance of that topology type has the field.
