@@ -134,7 +134,7 @@ struct particle_base {
 
 template<class T>
 struct particle : particle_base {
-  particle(size_type s, size_type p, size_type n) : free{p, n}, skip(s) {}
+  particle() {}
   // This class is indestructible; we run T's destructor when necessary.
   template<class... AA>
   FLECSI_INLINE_TARGET link emplace(AA &&... aa) {

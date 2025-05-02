@@ -136,6 +136,17 @@ using arr = topo::array<void>;
 const field<reduction_type>::definition<arr> arr_f;
 
 const field<reduction_type>::definition<topo::global> gl_arr_f;
+const field<int, data::particle>::definition<topo::global> gpart;
+
+void
+gpinit(field<int, data::particle>::mutator<wo> m) noexcept {
+  m.insert(17);
+}
+int
+gpuse(field<int, data::particle>::accessor<ro> a,
+  exec::launch_domain) noexcept {
+  return std::accumulate(a.begin(), a.end(), 0);
+}
 
 int
 task_driver(scheduler & s) {
@@ -188,6 +199,11 @@ task_driver(scheduler & s) {
     for(int i = 0; i < 2; ++i)
       s.execute<reduction>(std::tuple(arr_vals, vals));
     EXPECT_EQ(s.test<check>(vals, np), 0);
+    execute<gpinit>(gpart(gl_arr_s));
+    EXPECT_EQ(
+      (reduce<gpuse, exec::fold::sum>(gpart(gl_arr_s), exec::launch_domain{np}))
+        .get(),
+      17 * np);
 
     exec::trace t0, t1 = std::move(t0);
     t1.skip();

@@ -23,6 +23,10 @@ Terminology
     For example, a specialization of the ``unstructured`` topology category for a two-dimensional mesh might define it in terms of vertices, edges, and elements but not faces.
     In fact, every topology type is such a specialization; we use the term "specialization" to emphasize the definition of the type rather than its use.
 
+.. figure:: images/topologies.svg
+
+   Two specializations of the unstructured topology category with different number of index spaces and multiple topology instances.
+
 Index Spaces
 ++++++++++++
 Just as "topology" can refer to a type or an instance of that type, the term "index space" can refer not only to the (say) 42 cells of a particular mesh but also to the choice between "cells" and "nodes" as the domain for a field (that might exist on multiple meshes).
@@ -87,6 +91,20 @@ The normal topology categories do require a specialization:
 * The ``unstructured`` topology comprises an arbitrary set of index spaces along with several kinds of graph adjacency information that support use as an unstructured mesh.
   The index spaces can be resized to support mesh refinement.
 
+.. figure:: images/narray-coloring.svg
+   :align: center
+   :width: 50%
+
+   An narray-based mesh topology instance with 4 colors.
+
+.. figure:: images/narray-extended-index-spaces.svg
+   :align: center
+   :width: 80%
+
+   Index spaces in an narray-based topology with ghost elements as seen by each
+   color of a topology instance. It illustrates how owned and ghost elements are
+   interleaved due to how they are stored in one-dimensional arrays.
+
 Colorings
 +++++++++
 A coloring is the layout information required to construct a topology instance, so called because it generally identifies which color owns each index point.
@@ -121,5 +139,11 @@ In simple cases, the result looks like
 
 which asks the ``canon`` topology to interpret the *test.txt* file as a coloring for its topology category (perhaps ``unstructured``).
 The name ``mpi_coloring`` serves as a reminder that this procedure is launched as an MPI task, as is often required for it to perform collective I/O or distribute data.
+
+.. figure:: images/mpi-coloring.svg
+   :align: center
+   :width: 50%
+
+   A mesh file loaded by 2 MPI ranks that divide it into 4 colors.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

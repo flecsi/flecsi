@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="306.80222"
+   height="300.38831"
+   version="1.1"
+   viewBox="0 0 81.174753 79.47774"
+   id="svg1324"
+   sodipodi:docname="coloring.svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1328" />
+  <sodipodi:namedview
+     id="namedview1326"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     units="px"
+     fit-margin-right="20"
+     fit-margin-top="20"
+     fit-margin-bottom="20"
+     fit-margin-left="20"
+     inkscape:zoom="1.491567"
+     inkscape:cx="-5.0282689"
+     inkscape:cy="77.100124"
+     inkscape:window-width="3440"
+     inkscape:window-height="1371"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1324" />
+  <g
+     transform="translate(-115.93659,-29.422918)"
+     id="g1304">
+    <g
+       stroke-width="0.2646"
+       id="g1240">
+      <g
+         fill="#fcaf3e"
+         stroke="#ce5c00"
+         stroke-linecap="round"
+         id="g1236">
+        <rect
+           x="126.2"
+           y="45.259998"
+           width="12.18"
+           height="12.18"
+           id="rect1230" />
+        <rect
+           x="138.39999"
+           y="45.259998"
+           width="12.18"
+           height="12.18"
+           id="rect1232" />
+        <rect
+           x="126.2"
+           y="57.439999"
+           width="12.18"
+           height="12.18"
+           id="rect1234" />
+      </g>
+      <rect
+         x="138.39999"
+         y="57.439999"
+         width="12.18"
+         height="12.18"
+         fill="#3465a4"
+         stroke="#204a87"
+         stroke-linecap="round"
+         id="rect1238" />
+    </g>
+    <g
+       fill="#ce5c00"
+       id="g1256">
+      <circle
+         cx="126.3"
+         cy="45.330002"
+         r="1.044"
+         id="circle1242" />
+      <circle
+         cx="126.3"
+         cy="57.360001"
+         r="1.044"
+         id="circle1244" />
+      <circle
+         cx="138.3"
+         cy="45.330002"
+         r="1.044"
+         id="circle1246" />
+      <circle
+         cx="138.3"
+         cy="57.360001"
+         r="1.044"
+         id="circle1248" />
+      <circle
+         cx="138.3"
+         cy="57.360001"
+         r="1.044"
+         id="circle1250" />
+      <circle
+         cx="138.3"
+         cy="69.68"
+         r="1.044"
+         id="circle1252" />
+      <circle
+         cx="126.3"
+         cy="69.68"
+         r="1.044"
+         id="circle1254" />
+    </g>
+    <g
+       fill="#cc0000"
+       stroke="#a40000"
+       stroke-linecap="round"
+       stroke-width="0.2646"
+       id="g1264">
+      <rect
+         x="174.89999"
+         y="69.620003"
+         width="12.18"
+         height="12.18"
+         id="rect1258" />
+      <rect
+         x="162.7"
+         y="81.790001"
+         width="12.18"
+         height="12.18"
+         id="rect1260" />
+      <rect
+         x="174.89999"
+         y="81.790001"
+         width="12.18"
+         height="12.18"
+         id="rect1262" />
+    </g>
+    <rect
+       x="150.60001"
+       y="69.620003"
+       width="12.18"
+       height="12.18"
+       fill="#73d216"
+       stroke="#4e9a06"
+       stroke-linecap="round"
+       stroke-width="0.2646"
+       id="rect1266" />
+    <circle
+       cx="150.5"
+       cy="81.709999"
+       r="1.044"
+       fill="#4e9a06"
+       id="circle1268" />
+    <rect
+       x="150.60001"
+       y="57.439999"
+       width="12.18"
+       height="12.18"
+       fill="#3465a4"
+       stroke="#204a87"
+       stroke-linecap="round"
+       stroke-width="0.2646"
+       id="rect1270" />
+    <circle
+       cx="150.5"
+       cy="45.330002"
+       r="1.044"
+       fill="#ce5c00"
+       id="circle1272" />
+    <circle
+       cx="150.5"
+       cy="57.360001"
+       r="1.044"
+       fill="#ce5c00"
+       id="circle1274" />
+    <circle
+       cx="162.8"
+       cy="57.360001"
+       r="1.044"
+       fill="#204a87"
+       id="circle1276" />
+    <rect
+       x="162.7"
+       y="69.620003"
+       width="12.18"
+       height="12.18"
+       fill="#73d216"
+       stroke="#4e9a06"
+       stroke-linecap="round"
+       stroke-width="0.2646"
+       id="rect1278" />
+    <circle
+       cx="150.5"
+       cy="69.68"
+       r="1.044"
+       fill="#204a87"
+       id="circle1280" />
+    <circle
+       cx="162.8"
+       cy="69.68"
+       r="1.044"
+       fill="#204a87"
+       id="circle1282" />
+    <g
+       fill="#4e9a06"
+       id="g1290">
+      <circle
+         cx="162.8"
+         cy="81.709999"
+         r="1.044"
+         id="circle1284" />
+      <circle
+         cx="174.89999"
+         cy="81.709999"
+         r="1.044"
+         id="circle1286" />
+      <circle
+         cx="174.89999"
+         cy="69.68"
+         r="1.044"
+         id="circle1288" />
+    </g>
+    <g
+       fill="#a40000"
+       id="g1302">
+      <circle
+         cx="187.10001"
+         cy="69.68"
+         r="1.044"
+         id="circle1292" />
+      <circle
+         cx="187.10001"
+         cy="81.709999"
+         r="1.044"
+         id="circle1294" />
+      <circle
+         cx="174.89999"
+         cy="93.809998"
+         r="1.044"
+         id="circle1296" />
+      <circle
+         cx="162.8"
+         cy="93.809998"
+         r="1.044"
+         id="circle1298" />
+      <circle
+         cx="187.10001"
+         cy="93.809998"
+         r="1.044"
+         id="circle1300" />
+    </g>
+  </g>
+</svg>

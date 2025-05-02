@@ -421,6 +421,7 @@ struct mutator<ragged, T, P>
     "the data type should not throw from a move assignment.");
   static_assert(std::is_nothrow_destructible_v<T>,
     "the data type should not throw from a destructor.");
+  static_assert(privilege_write(P), "mutators cannot be read-only");
 
   using base_type = ragged_accessor<T,
     P,
@@ -1345,6 +1346,8 @@ struct accessor<particle, T, P> : particle_accessor<T, P, false> {
 /// \tparam P if write-only, all particles are discarded
 template<class T, Privileges P>
 struct mutator<particle, T, P> : particle_accessor<T, P, true> {
+  static_assert(privilege_write(P), "mutators cannot be read-only");
+
   using base_type = particle_accessor<T, P, true>;
   using typename base_type::iterator;
   using typename base_type::value_type;
@@ -1454,6 +1457,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
 private:
   FLECSI_INLINE_TARGET void init() const {
     const auto s = this->span();
+    std::uninitialized_default_construct(s.begin(), s.end());
     if(const auto n = s.size()) {
       auto & a = s.front();
       a.free = {0, 1};
