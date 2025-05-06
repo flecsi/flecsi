@@ -211,7 +211,7 @@ private:
   std::optional<data::copy_plan> cp_top_tree_nodes, cp_entities;
 
   // Buffer for ghosts shared
-  data::buffers::core buf;
+  data::buffers::topology buf;
 
   /// Hashing table type
   using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, Policy>;

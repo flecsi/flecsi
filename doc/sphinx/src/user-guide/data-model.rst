@@ -102,17 +102,17 @@ Only tasks can access the actual data.
 Registration
 ------------------------------------------------------------------------
 
-Index spaces are organized into :doc:`topologies <topologies>`; variables are defined on an index space by registering fields on its topology type.
-Supposing we have a topology type ``topo_t``, we can write
+Index spaces are organized into :doc:`topologies <topologies>`; variables are defined on an index space by registering fields on its topology.
+The tag type used for the registration (and other purposes to be discussed) is a *specialization*.
+Supposing we have a specialization ``topo_t``, we can write
 
 .. code-block:: cpp
 
   const flecsi::field<double>::definition<topo_t, topo_t::cells> mass_field;
   const flecsi::field<double>::definition<topo_t, topo_t::faces> massflux_field;
 
-The ``mass_field`` variable declaration states that the ``topo_t`` topology has a mass in each
-cell.  The ``massflux_field`` variable declaration states that the
-``topo_t`` topology has a mass flux on each face.
+The ``mass_field`` variable declaration states that the ``topo_t`` specialization has a mass in each cell.
+The ``massflux_field`` variable declaration states that ``topo_t`` has a mass flux on each face.
 
 If you have multiple fields on the same index space, you can declare
 them in a way that's analogous to a struct of arrays or in a way that's
@@ -232,8 +232,8 @@ Other layouts are chosen with syntax like ``flecsi::field<double, flecsi::data::
    
 References
 ----------
-Fields are registered on topology *types*, so every instance of that topology type has the field.
-It is therefore as if a member were added to a C++ struct: one might imagine defining ``mass_field`` on the topology ``topo_t``, creating an instance of ``topo_t`` called ``grid``, and writing ``grid.mass_field``.
+Fields are registered on specializations as a whole; every instance of the associated topology type has the field.
+It is therefore as if a member were added to a C++ struct: one might imagine defining ``mass_field`` on the specialization ``topo_t``, creating an instance from it called ``grid``, and writing ``grid.mass_field``.
 However, the language does not actually allow extending a type.
 Instead, the
 field objects themselves become tools to extract the field data, so you

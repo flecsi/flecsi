@@ -311,7 +311,7 @@ public:
   /*!
     Register field information.
 
-    \tparam Topo topology type
+    \tparam Topo specialization
     \tparam Index topology-relative index space
     \tparam Field field data type
     \param id field ID
@@ -330,7 +330,7 @@ public:
     Return the stored field info for the given topology type and layout
     (\c const version).
 
-    \tparam Topo topology type
+    \tparam Topo specialization
     \tparam Index topology-relative index space
    */
   template<class Topo, typename Topo::index_space Index = Topo::default_space()>
@@ -397,11 +397,11 @@ private:
     util::constants<Index...> /* to deduce pack */) {
     // global topology doesn't define get_partition, so skip it for now
     if constexpr(!std::is_same_v<topo::global_base, typename Topo::base>) {
-      // register core fields
+      // register ordinary fields
       (add_fields<Topo, Index>(slot.get()), ...);
       // if present, register ragged fields
       if constexpr(std::is_base_of_v<topo::with_ragged_base,
-                     typename Topo::core>) {
+                     typename Topo::topology>) {
         (
           [&] {
             for(const auto & fip :

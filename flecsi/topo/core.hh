@@ -44,7 +44,7 @@ struct policy<C<P>> {
 // To obtain the base class without instantiating a core topology type:
 template<template<class> class T>
 using base_t = typename detail::base<T>::type;
-// Map P::core to P:
+// Map P::topology to P:
 template<class T>
 using policy_t = typename detail::policy<T>::type;
 
@@ -56,7 +56,7 @@ struct with_cleanup {
 /// An example topology base that is not really implemented.
 struct core_base {
   /// The type, independent of specialization, from which the corresponding
-  /// core topology type is constructed.
+  /// topology type is constructed.
   using coloring = std::nullptr_t;
 };
 
@@ -174,10 +174,10 @@ struct help : specialization_base {}; // intervening class avoids warnings
 /// \tparam D derived topology type
 template<template<class> class C, class D>
 struct specialization : specialization_base {
-  using core = C<D>;
+  using topology = C<D>;
   /// The core topology base type, which can provide specialization utilities.
   using base = base_t<C>;
-  // This is just core::coloring, but core is incomplete here.
+  // This is just topology::coloring, but topology is incomplete here.
   using coloring = typename base::coloring; ///< The coloring type.
 
   // NB: a nested class would prevent template argument deduction.
@@ -247,7 +247,7 @@ struct specialization : specialization_base {
   /// additional parameters to be supplied there.
   ///
   /// This implementation does nothing.
-  /// \param s the slot in which the core topology has just been constructed
+  /// \param s the slot in which the topology has just been constructed
   static void initialize(scheduler &, slot & s, coloring const &) {
     (void)s;
   }

@@ -24,21 +24,21 @@ namespace data {
   Topology accessor type. Topology accessors are defined by the interface of
   the underlying, user-defined type, i.e., unlike field accessors,
   the specialization can customize topologies to add types and interfaces
-  that are not part of the core FleCSI topology type. By inheriting from the
-  customized topology type, we pick up these additions.
+  that are not part of the core FleCSI topology interface.  By inheriting from
+  the customized topology interface, we pick up these additions.
 
   Pass a \c topology_slot to a task that expects a \c topology_accessor.
 
-  \tparam T topology type
+  \tparam T specialization
   \tparam Priv privilege pack
 
   \note Usually accessed as \c T::accessor.
  */
 template<class T, Privileges Priv>
 struct topology_accessor
-  : T::template interface<typename T::core::template access<Priv>>,
+  : T::template interface<typename T::topology::template access<Priv>>,
     send_tag {
-  using core = typename T::core::template access<Priv>;
+  using core = typename T::topology::template access<Priv>;
   static_assert(sizeof(typename T::template interface<core>) == sizeof(core),
     "topology interfaces may not add data members");
 

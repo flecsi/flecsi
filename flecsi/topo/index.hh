@@ -140,7 +140,7 @@ namespace detail {
 template<class T>
 struct ragged_partitions {
   using base_type = T;
-  using Partition = typename T::core;
+  using Partition = typename T::topology;
 
   ragged_partitions() = default;
   // std::map doesn't propagate copyability:
@@ -299,7 +299,7 @@ struct meta : specialization<user, meta<P>> {};
 template<class P>
 struct with_meta { // for interface consistency
   with_meta(scheduler & s, Color n) : meta(s, user_base::coloring(n, 1)) {}
-  typename topo::meta<P>::core meta;
+  typename topo::meta<P>::topology meta;
 };
 
 /// \defgroup spec Predefined specializations
@@ -326,22 +326,27 @@ namespace detail {
 template<class Q>
 struct borrow_ragged_partition {
   borrow_ragged_partition(scheduler &,
-    typename Q::core &,
+    typename Q::topology &,
     const data::borrow &,
     bool) {}
 };
-template<class Q, bool = std::is_base_of_v<with_ragged<Q>, typename Q::core>>
+template<class Q,
+  bool = std::is_base_of_v<with_ragged<Q>, typename Q::topology>>
 struct borrow_ragged {
-  borrow_ragged(scheduler &, typename Q::core &, const data::borrow &, bool) {}
+  borrow_ragged(scheduler &,
+    typename Q::topology &,
+    const data::borrow &,
+    bool) {}
 };
-template<class Q, bool = std::is_base_of_v<with_meta<Q>, typename Q::core>>
+template<class Q, bool = std::is_base_of_v<with_meta<Q>, typename Q::topology>>
 struct borrow_meta {
-  borrow_meta(scheduler &, typename Q::core &, const data::borrow &, bool) {}
+  borrow_meta(scheduler &, typename Q::topology &, const data::borrow &, bool) {
+  }
 };
 } // namespace detail
 /// Topology-specific extension to support multi-color topology accessors.
 /// Befriended by the \c borrow_category specialization that inherits from it.
-/// \tparam T core topology type
+/// \tparam T topology type
 template<class T>
 struct borrow_extra {
   /// Constructor invoked by \c borrow_category with its arguments.
@@ -358,17 +363,17 @@ struct borrow_base {
     bool first;
   };
 
-  /// The core borrow topology for a subtopology.
-  /// \tparam core topology type
+  /// The borrow topology type for a subtopology.
+  /// \tparam C subtopology type
   template<class C>
-  using wrap = typename borrow<policy_t<C>>::core;
+  using wrap = typename borrow<policy_t<C>>::topology;
 
   /// Get the derived object from a \c borrow_extra specialization.
   /// \param e usually \c *this
   /// \return the \c borrow_category specialization to which \a e refers
   template<template<class> class C, class T>
   static auto & derived(borrow_extra<C<T>> & e) {
-    return static_cast<typename borrow<T>::core &>(e);
+    return static_cast<typename borrow<T>::topology &>(e);
   }
 };
 
@@ -380,10 +385,10 @@ struct borrow_category : borrow_base,
                          detail::borrow_ragged_partition<typename P::Base>,
                          detail::borrow_ragged<typename P::Base>,
                          detail::borrow_meta<typename P::Base>,
-                         borrow_extra<typename P::Base::core> {
+                         borrow_extra<typename P::Base::topology> {
   using index_space = typename P::index_space;
   using index_spaces = typename P::index_spaces;
-  using Base = typename P::Base::core;
+  using Base = typename P::Base::topology;
 
   // The underlying topology's accessor is reused, wrapped in a multiplexer
   // that corresponds to more than one instance of this class.
@@ -391,7 +396,7 @@ struct borrow_category : borrow_base,
   explicit borrow_category(scheduler & s, const coloring & c)
     : borrow_category(s, *static_cast<Base *>(c.topo), *c.proj, c.first) {}
   /// Borrow a topology.
-  /// \param t underlying core topology
+  /// \param t underlying topology
   /// \param b selection of colors from \a t
   /// \param f whether this is the first of a set of several borrowings used
   ///   together for many-to-many access
@@ -432,7 +437,7 @@ private:
   friend typename borrow_category::borrow_ragged_partition;
   friend typename borrow_category::borrow_extra;
 
-  Base * base; ///< The underlying core topology.
+  Base * base; ///< The underlying topology.
   const data::borrow * proj;
   bool first;
 };
@@ -458,7 +463,7 @@ struct borrow : specialization<borrow_category, borrow<Q>> {
 template<class Q>
 struct borrow_sizes {
   borrow_sizes(scheduler & s,
-    typename Q::core & t,
+    typename Q::topology & t,
     const data::borrow & b,
     bool f)
     : borrow_sizes(s, t, b, f, typename Q::index_spaces()) {}
@@ -474,13 +479,13 @@ struct borrow_sizes {
 private:
   template<typename Q::index_space... SS>
   borrow_sizes(scheduler & s,
-    typename Q::core & t,
+    typename Q::topology & t,
     const data::borrow & b,
     bool f,
     util::constants<SS...>)
     : sz{{{{s, t.template get_partition<SS>().sz, b, f}...}}} {}
 
-  util::key_array<borrow<resize>::core, typename Q::index_spaces> sz;
+  util::key_array<borrow<resize>::topology, typename Q::index_spaces> sz;
 };
 template<class P>
 struct borrow_extra<ragged_partition_category<P>> : borrow_sizes<P> {
@@ -493,7 +498,7 @@ struct borrow_ragged_partition<ragged_partition> {
   using Base = ragged_partition;
 
   borrow_ragged_partition(scheduler & s,
-    Base::core & r,
+    Base::topology & r,
     const data::borrow & b,
     bool f)
     : sz(s, r.sz, b, f) {}
@@ -502,30 +507,30 @@ struct borrow_ragged_partition<ragged_partition> {
     return resize::field(sz);
   }
   void resize() {
-    const auto & b = static_cast<borrow<Base>::core &>(*this);
+    const auto & b = static_cast<borrow<Base>::topology &>(*this);
     if(b.first)
       b.base->resize();
   }
 
   bool maybe_resize() {
-    const auto & b = static_cast<borrow<Base>::core &>(*this);
+    const auto & b = static_cast<borrow<Base>::topology &>(*this);
     return b.first && b.base->maybe_resize();
   }
 
   void reduce_rsz_required() {
-    const auto & b = static_cast<borrow<Base>::core &>(*this);
+    const auto & b = static_cast<borrow<Base>::topology &>(*this);
     if(b.first)
       b.base->reduce_rsz_required();
   }
 
   void set_rsz_required(bool r) {
-    const auto & b = static_cast<borrow<Base>::core &>(*this);
+    const auto & b = static_cast<borrow<Base>::topology &>(*this);
     if(b.first)
       b.base->set_rsz_required(r);
   }
 
 protected:
-  borrow<topo::resize>::core sz;
+  borrow<topo::resize>::topology sz;
 };
 struct borrow_ragged_partitions
   : detail::ragged_partitions<borrow<ragged_partition>> {
@@ -567,7 +572,7 @@ private:
 template<class Q>
 struct borrow_ragged<Q, true> {
   borrow_ragged(scheduler & s,
-    typename Q::core & t,
+    typename Q::topology & t,
     const data::borrow & b,
     bool f)
     : ragged(s, t.ragged, b, f) {}
@@ -576,11 +581,11 @@ struct borrow_ragged<Q, true> {
 template<class Q>
 struct borrow_meta<Q, true> {
   borrow_meta(scheduler & s,
-    typename Q::core & t,
+    typename Q::topology & t,
     const data::borrow & b,
     bool f)
     : meta(s, t.meta, b, f) {}
-  typename borrow<topo::meta<Q>>::core meta;
+  typename borrow<topo::meta<Q>>::topology meta;
 };
 } // namespace detail
 

@@ -39,7 +39,7 @@ private:
     prefixes_base::Field::accessor<ro>,
     used::Field::accessor<wo>) noexcept;
 
-  used::core rects;
+  used::topology rects;
 };
 /// \}
 } // namespace leg

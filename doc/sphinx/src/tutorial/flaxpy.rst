@@ -98,30 +98,29 @@ Data structures
 +++++++++++++++
 
 FleCSI does not provide ready-to-use, distributed data-structure types.
-Rather, it provides "proto data-structure types" called *core topologies*.
+Rather, it provides "proto data-structure types" called *topology categories*.
 These require additional compile-time information, such as the number
 of dimensions of a multidimensional array, and additional run-time
 information, such as how to distribute their data, to form a concrete
 data structure.  Applications are expected to define *specializations*
 to provide all of this information.
 
-FLAXPY is based on the ``user`` core topology, so named because it is
-arguably the simplest core topology that behaves as a user would expect.
+FLAXPY is based on the ``user`` category, so named because it is the simplest available to users.
 It is essentially a 1-D vector of user-defined *fields* with
 no support for ghost cells.
-All core topologies specify a ``coloring`` type, which represents
+Each category specifies a ``coloring`` type, which represents
 additional run-time data the topology needs
 to produce a concrete data structure.
 A specialization must define a ``color`` member function that
 accepts whatever parameters make sense for that specialization
 and returns a ``coloring``.
-The ``user`` core topology defines its ``coloring`` type as
+The ``user`` category defines its ``coloring`` type as
 a ``std::vector<std::size_t>`` that represents
 the number of vector indices to assign to each *color*.
 (A color is a unit of data upon which a point task operates.)
 ``user`` does not require that the specialization provide
 any compile-time information,
-but most other core topologies do.
+but most other categories do.
 
 FleCSI provides the ``equal_map`` utility for dividing indices as equally as possible among colors.
 The following helper function, still within the ``flaxpy`` namespace,
@@ -414,7 +413,7 @@ Try
   across multiple nodes in a cluster, or
 
 * [**advanced**] modifying ``flaxpy.cc`` to construct a specialization
-  of ``narray`` (a multidimensional-array core topology) instead of a
+  of ``narray`` (a multidimensional-array category) instead of a
   specialization of ``user``.  See the source code to the
   :doc:`Poisson example <poisson>`, in particular
   ``tutorial/standalone/poisson/include/specialization/mesh.hh``, for

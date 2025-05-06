@@ -112,7 +112,7 @@ struct region : region_base {
     const field_reference<T, L, Topo, S> & f) {
     constexpr auto np = privilege_count(P);
     static_assert(np == Topo::template privilege_count<S>,
-      "privilege-count mismatch between accessor and topology type");
+      "wrong number of privileges for specialization");
     if constexpr(np > 1)
       if(ghost<P>(f.fid()))
         return f.topology().ghost_copy(s, f);

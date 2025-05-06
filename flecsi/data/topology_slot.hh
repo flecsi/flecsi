@@ -40,7 +40,7 @@ struct accepts_scheduler<P,
 ///   returns.
 template<typename Topo>
 struct topology_slot : convert_tag {
-  using core = typename Topo::core;
+  using topology = typename Topo::topology;
   using coloring = typename Topo::coloring;
 
   /// Create the topology.
@@ -48,7 +48,7 @@ struct topology_slot : convert_tag {
   ///   topo::specialization::mpi_coloring `mpi_coloring`\endlink)
   /// \param aa further specialization-specific parameters
   template<typename... AA>
-  core & allocate(scheduler & s, const coloring & c, AA &&... aa) {
+  topology & allocate(scheduler & s, const coloring & c, AA &&... aa) {
     data.emplace(s, c);
     if constexpr(detail::accepts_scheduler<Topo, util::types<AA...>>::value)
       Topo::initialize(s, *this, c, std::forward<AA>(aa)...);
@@ -61,7 +61,7 @@ struct topology_slot : convert_tag {
   }
   /// \deprecated Pass a \c scheduler.
   template<typename... AA>
-  [[deprecated("pass a scheduler")]] core & allocate(const coloring & c,
+  [[deprecated("pass a scheduler")]] topology & allocate(const coloring & c,
     AA &&... aa) {
     return allocate(*scheduler::instance, c, std::forward<AA>(aa)...);
   }
@@ -76,18 +76,18 @@ struct topology_slot : convert_tag {
     return data.has_value();
   }
 
-  core & get() {
+  topology & get() {
     flog_assert(data, "topology not allocated");
     return *data;
   }
-  const core & get() const {
+  const topology & get() const {
     return const_cast<topology_slot &>(*this).get();
   }
 
-  core * operator->() {
+  topology * operator->() {
     return &*data;
   }
-  const core * operator->() const {
+  const topology * operator->() const {
     return &*data;
   }
 
@@ -97,7 +97,7 @@ struct topology_slot : convert_tag {
   }
 
 private:
-  util::move_optional<core> data;
+  util::move_optional<topology> data;
 }; // struct topology_slot
 
 /// \}

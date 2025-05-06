@@ -21,7 +21,7 @@ Terminology
     on the needs of the domain experts, but will often include queries
     about the physical layout of points within the simulation space.
     For example, a specialization of the ``unstructured`` topology category for a two-dimensional mesh might define it in terms of vertices, edges, and elements but not faces.
-    In fact, every topology type is such a specialization; we use the term "specialization" to emphasize the definition of the type rather than its use.
+    In fact, every topology type is associated with such a specialization; the term "specialization" emphasizes the definition rather than the resulting type to be used.
 
 .. figure:: images/topologies.svg
 
@@ -137,7 +137,7 @@ In simple cases, the result looks like
     // ...
   }
 
-which asks the ``canon`` topology to interpret the *test.txt* file as a coloring for its topology category (perhaps ``unstructured``).
+which asks the ``canon`` specialization to interpret the *test.txt* file as a coloring for its topology category (perhaps ``unstructured``).
 The name ``mpi_coloring`` serves as a reminder that this procedure is launched as an MPI task, as is often required for it to perform collective I/O or distribute data.
 
 .. figure:: images/mpi-coloring.svg

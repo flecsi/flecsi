@@ -76,7 +76,7 @@ private:
 };
 
 namespace detail {
-template<class T, auto S, class = void> // core topology type
+template<class T, auto S, class = void> // topology type
 struct cleanup {
   static data::cleanup & get(T & t) {
     return t.template get_partition<S>().cleanup;
@@ -184,7 +184,7 @@ template<class T, layout L, class Topo, typename Topo::index_space Space>
 struct field_reference : convert_tag {
   using value_type = T;
   using Topology = Topo;
-  using topology_t = typename Topo::core;
+  using topology_t = typename Topo::topology;
   static constexpr auto space = Space;
 
   field_reference(field_id_t f, topology_t & t) : fid_(f), topology_(&t) {}
@@ -218,7 +218,7 @@ struct field_reference : convert_tag {
   /// \note \p L must be \c ragged or \c sparse.
   auto & get_elements() const {
     static_assert(L == ragged || L == sparse, "not a dynamic field");
-    // A (borrowing of) ragged_partition::core:
+    // A (borrowing of) ragged_partition::topology:
     return topology_->ragged.template get<Space>()[fid_];
   }
   void cleanup(std::function<void()> f) const {
@@ -326,7 +326,7 @@ struct field : data::detail::field_base<T, L> {
   /// Field definitions are typically declared \c const. If placed in a header
   /// make sure to declare them as <tt>inline const</tt> to avoid breaking ODR.
   ///
-  /// \tparam Topo (specialized) topology type
+  /// \tparam Topo specialization
   /// \tparam Space index space
   template<class Topo, typename Topo::index_space Space = Topo::default_space()>
   struct definition : Register<Topo, Space> {
@@ -338,7 +338,7 @@ struct field : data::detail::field_base<T, L> {
     auto operator()(data::topology_slot<Topo> & t) const {
       return (*this)(t.get());
     }
-    Reference<Topo, Space> operator()(typename Topo::core & t) const {
+    Reference<Topo, Space> operator()(typename Topo::topology & t) const {
       return {this->fid, t};
     }
     // For borrow topologies:

@@ -66,7 +66,7 @@ struct claims { // to know the colors for each multi<> component
     s.execute<fill>(exec::on, topo::claims::field(clm), c);
   }
 
-  topo::claims::core clm;
+  topo::claims::topology clm;
 
 private:
   static void fill(exec::cpu s,
@@ -84,7 +84,7 @@ template<class P>
 struct mapping : convert_tag {
   using Borrow = topo::borrow<P>;
 
-  mapping(scheduler & s, typename P::core & t, const Claims & clm) {
+  mapping(scheduler & s, typename P::topology & t, const Claims & clm) {
     // Transpose clm for the data::borrow objects.
     // There is at least one round to hold metadata.
     bool more = true;
@@ -132,7 +132,7 @@ struct mapping : convert_tag {
 private:
   // Owns a set of claims for potentially several (nested) borrow topologies.
   struct round : claims {
-    round(scheduler & s, typename P::core & t, borrow::Claims c, bool first)
+    round(scheduler & s, typename P::topology & t, borrow::Claims c, bool first)
       : claims(s, c), proj(std::move(c)) {
       b.allocate(s, {&t, &proj, first});
     }

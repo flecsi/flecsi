@@ -267,7 +267,7 @@ index_driver(scheduler & s) {
     execute<use_ptr, flecsi::mpi>(ptr_field(process_topology));
 
     // Rotate the ragged field by one color:
-    buffers::core(s,
+    buffers::topology(s,
       [np] {
         buffers::coloring ret(np);
         Color i = 0;

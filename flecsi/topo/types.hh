@@ -93,7 +93,7 @@ using lists_t = typename detail::lists<T, typename P::entity_lists>::type;
 
 // Subtopologies for the distinguished entities requested by a topology.
 template<class P>
-struct lists : lists_t<typename array<P>::core, P> {
+struct lists : lists_t<typename array<P>::topology, P> {
   using Base = typename lists::key_tuple;
 
   // Initializes each subtopology to zero size on every color.
@@ -108,12 +108,12 @@ private:
   lists(scheduler & s, Color nc, util::types<VT...> /* deduce pack */)
     : Base{make_base1(s, nc, typename VT::type())...} {}
   template<auto... VV>
-  util::key_array<typename array<P>::core, util::constants<VV...>> make_base1(
-    scheduler & s,
+  util::key_array<typename array<P>::topology, util::constants<VV...>>
+  make_base1(scheduler & s,
     Color nc,
     util::constants<VV...> /* to deduce a pack */) {
     return {{((void)VV,
-      typename array<P>::core(s, typename array<P>::coloring(nc)))...}};
+      typename array<P>::topology(s, typename array<P>::coloring(nc)))...}};
   }
 };
 

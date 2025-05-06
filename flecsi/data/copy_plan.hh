@@ -67,7 +67,7 @@ struct copy_plan {
   }
 
 private:
-  detail::intervals::core dest_ptrs_;
+  detail::intervals::topology dest_ptrs_;
   intervals dest_;
   copy_engine engine;
 

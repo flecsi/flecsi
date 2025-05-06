@@ -188,7 +188,7 @@ struct sph_ntree_t
   static void sph_reset(flecsi::scheduler & s,
     flecsi::data::topology_slot<sph_ntree_t> & ts) {
     // Reset the data structure
-    core::reset(s, ts);
+    topology::reset(s, ts);
     generate_ntree(s, ts);
   }
 
