@@ -79,6 +79,8 @@ New features
   * ``control::invoke`` accepts a ``scheduler`` (typically provided by ``runtime::control``).
   * ``control_base::scheduler`` provides access to the ``scheduler`` with which actions can launch tasks.
   * ``run::call`` supports functions that accept a ``scheduler``.
+  * ``control::write_graph`` and ``control::write_actions`` write Dot graphs of a control model.
+    (This was added without a release note in 2.3.0.)
 
 * Data
 
@@ -111,6 +113,8 @@ New features
   * ``narray`` specializations need not define ``dimension``.
   * ``unstructured_base::peer_entities`` is a new type alias for convenience.
   * ``unstructured_base::coloring::index_space`` can be initialized without ``entities``, which is unused.
+  * ``user`` is a simple topology category without ghosts.
+    (This was added without a release note in 2.2.0.)
 
 * HPX backend
 
