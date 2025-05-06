@@ -88,7 +88,7 @@ New features
 
     * ``specialization::topology`` is a convenience alias for it.
     * ``specialization::ptr`` is the appropriate ``std::unique_ptr`` type to hold a topology instance; like the deprecated ``topology_slot``, it is movable and can defer initialization.
-    * ``scheduler::allocate`` fills in a ``ptr`` and calls ``specialization::initialize`` (which is not otherwise auomatic) with the ``scheduler`` and new topology instance.
+    * ``scheduler::allocate`` fills in a ``ptr`` and calls ``specialization::initialize`` (which is not otherwise automatic) with the ``scheduler`` and new topology instance.
     * ``get`` and ``operator->`` in ``topology_slot`` access the ``topology``.
 
   * Mutators support tracing.
@@ -100,7 +100,7 @@ New features
   * Task parameters can be of a broader set of types; in particular, they need not be serializable.
   * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
   * ``exec::cpu``, ``exec::gpu``, and ``exec::omp`` are task parameter types that provide task-launch information and access to a Kokkos execution ``space``.
-    ``accelerator`` is the one of these preferred for parallel kernels.
+    ``exec::accelerator`` is the one of these preferred for parallel kernels.
     ``exec::on`` is a token argument to pass for them.
 
     * Kokkos executors can have a number of ``threads`` specified to optimize GPU execution.
