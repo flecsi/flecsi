@@ -454,9 +454,7 @@ test_mesh(scheduler & s,
     idef.diagonals = diagonals;
     idef.full_ghosts = full_ghosts;
 
-    // create and allocate mesh slot
-    typename mesh<D>::slot m;
-    m.allocate(s, typename mesh<D>::mpi_coloring(s, idef));
+    typename mesh<D>::topology m(s, typename mesh<D>::mpi_coloring(s, idef));
 
     s.execute<init_field>(exec::on, f(m));
 
@@ -502,17 +500,18 @@ narray_driver(scheduler & s) {
 
     {
       // 1D Mesh
-      mesh1d::slot m1;
+      mesh1d::topology m1(s, [&] {
+        mesh1d::gcoord indices{9};
+        mesh1d::index_definition idef;
+        idef.axes = mesh1d::base::make_axes(s.runtime().processes(), indices);
+        idef.axes[0].hdepth = 1;
+        idef.axes[0].bdepth = 2;
+        idef.diagonals = true;
+        idef.full_ghosts = true;
 
-      mesh1d::gcoord indices{9};
-      mesh1d::index_definition idef;
-      idef.axes = mesh1d::base::make_axes(s.runtime().processes(), indices);
-      idef.axes[0].hdepth = 1;
-      idef.axes[0].bdepth = 2;
-      idef.diagonals = true;
-      idef.full_ghosts = true;
+        return mesh1d::mpi_coloring(s, idef);
+      }());
 
-      m1.allocate(s, mesh1d::mpi_coloring(s, idef));
       s.execute<init_field>(exec::on, f1(m1));
       s.execute<print_field<1>>(m1, f1(m1));
       s.execute<update_field<1>>(exec::on, m1, f1(m1));
@@ -721,19 +720,19 @@ narray_driver(scheduler & s) {
     if constexpr(FLECSI_BACKEND != FLECSI_BACKEND_mpi &&
                  FLECSI_BACKEND != FLECSI_BACKEND_hpx) {
       // 4D Mesh
-      mesh4d::slot m4;
+      mesh4d::topology m4(s, [&] {
+        mesh4d::gcoord indices{4, 4, 4, 4};
+        mesh4d::index_definition idef;
+        idef.axes = mesh4d::base::make_axes(16, indices);
+        for(auto & a : idef.axes) {
+          a.hdepth = 1;
+          a.bdepth = 1;
+        }
+        idef.diagonals = true;
+        idef.full_ghosts = true;
 
-      mesh4d::gcoord indices{4, 4, 4, 4};
-      mesh4d::index_definition idef;
-      idef.axes = mesh4d::base::make_axes(16, indices);
-      for(auto & a : idef.axes) {
-        a.hdepth = 1;
-        a.bdepth = 1;
-      }
-      idef.diagonals = true;
-      idef.full_ghosts = true;
-
-      m4.allocate(s, mesh4d::mpi_coloring(s, idef));
+        return mesh4d::mpi_coloring(s, idef);
+      }());
       EXPECT_EQ(s.test<check_4dmesh>(m4), 0);
     }
 

@@ -493,7 +493,7 @@ struct index_definition {
 
 /// Specialization-independent definitions.
 /// Name as \c base in an \c narray specialization.
-struct narray_base {
+struct narray_base : base {
   /// The type describing one axis in a task.
   using axis = narray_impl::axis; // shadowed for internal use
   /// The type describing the usage of one axis in a task.

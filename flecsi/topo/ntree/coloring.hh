@@ -13,7 +13,7 @@ namespace topo {
 /// \{
 
 /// Ntree topology base
-struct ntree_base {
+struct ntree_base : base {
 
   /// Index spaces used for the ntree topology
   enum index_space {

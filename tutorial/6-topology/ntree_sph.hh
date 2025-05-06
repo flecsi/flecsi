@@ -144,28 +144,27 @@ struct sph_ntree_t
   // Compute the range of the domain, the keys for each entities and generate
   // the N-Tree data structure
   static void generate_ntree(flecsi::scheduler & s,
-    flecsi::data::topology_slot<sph_ntree_t> & ts) {
+    sph_ntree_t::topology & nt) {
     // Initialize key values: compute range and keys
     {
-      flecsi::topo::global::slot red;
-      red.allocate(s, 1);
+      flecsi::topo::global::topology red(s, 1);
       auto r = range_reduction_f(red);
       s.execute<init_reduction>(r);
-      s.execute<range_task>(ts, r);
-      s.execute<keys_task>(ts, r);
+      s.execute<range_task>(nt, r);
+      s.execute<keys_task>(nt, r);
     }
 
-    ts->make_tree(s, ts);
-    s.execute<compute_centroid<true>>(ts);
-    s.execute<compute_centroid<false>>(ts);
-    ts->share_ghosts(s, ts);
+    nt.make_tree(s);
+    s.execute<compute_centroid<true>>(nt);
+    s.execute<compute_centroid<false>>(nt);
+    nt.share_ghosts(s);
   } // generate_ntree
 
   static void initialize(flecsi::scheduler & s,
-    flecsi::data::topology_slot<sph_ntree_t> & ts,
+    sph_ntree_t::topology & nt,
     const coloring & c,
     flecsi::util::id nents) {
-    auto lm_ts = flecsi::data::launch::make(s, ts);
+    auto lm = flecsi::data::launch::make(s, nt);
     const auto ours = flecsi::util::equal_map(
       c.nparts_, s.runtime().processes())[s.runtime().process()];
     std::vector<flecsi::util::id> offsets;
@@ -175,21 +174,19 @@ struct sph_ntree_t
       offsets.push_back(o);
       o += b[i];
     }
-    flecsi::execute<init_fields, flecsi::mpi>(lm_ts, nents, offsets);
+    flecsi::execute<init_fields, flecsi::mpi>(lm, nents, offsets);
   }
 
-  static void build_ntree(flecsi::scheduler & s,
-    flecsi::data::topology_slot<sph_ntree_t> & ts) {
-    generate_ntree(s, ts);
+  static void build_ntree(flecsi::scheduler & s, sph_ntree_t::topology & nt) {
+    generate_ntree(s, nt);
   }
 
   // Reset and recreate the N-Tree data structure following a change in position
   // of the entities
-  static void sph_reset(flecsi::scheduler & s,
-    flecsi::data::topology_slot<sph_ntree_t> & ts) {
+  static void sph_reset(flecsi::scheduler & s, sph_ntree_t::topology & nt) {
     // Reset the data structure
-    core::reset(s, ts);
-    generate_ntree(s, ts);
+    nt.reset(s);
+    generate_ntree(s, nt);
   }
 
   // N-Tree coloring

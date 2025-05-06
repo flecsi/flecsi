@@ -26,8 +26,7 @@ print(exec::cpu s, single<std::size_t>::accessor<ro> iv) noexcept {
 void
 advance(control_policy & p) {
   auto & s = p.scheduler();
-  topo::index::slot custom_topology;
-  custom_topology.allocate(s, 4);
+  topo::index::topology custom_topology(s, 4);
 
   s.execute<init>(exec::on, ifield(custom_topology));
   s.execute<print>(exec::on, ifield(custom_topology));

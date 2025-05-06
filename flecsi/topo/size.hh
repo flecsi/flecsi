@@ -102,7 +102,7 @@ struct with_size { // separate to control initialization order
   void set_rsz_required(bool r) {
     rsz_required = make_future(r);
   }
-  resize::core sz;
+  resize::topology sz;
   /// Automatic growth control.
   resize::policy growth;
   future<bool> rsz_required;

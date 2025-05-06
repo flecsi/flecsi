@@ -152,7 +152,7 @@ private:
         }
       },
       ragged_buffers_{
-        {data::buffers::core(s, c.idx_spaces[index<CI>].peers)...}
+        {data::buffers::topology(s, c.idx_spaces[index<CI>].peers)...}
       }
   {
     allocate_connectivities(s, c, connect_);
@@ -292,7 +292,7 @@ private:
       typename field<T>::template definition<Policy, SS>>...>;
   };
 
-  typename ctopo::core ctopo_;
+  typename ctopo::topology ctopo_;
 
   static inline const util::key_array<
     typename field<util::id, data::ragged>::template definition<ctopo>,
@@ -307,7 +307,7 @@ private:
   lists<Policy> special_;
   // Initializing this depends on the above:
   util::key_array<data::copy_plan, copy_spaces> plan_;
-  util::key_array<data::buffers::core, copy_spaces> ragged_buffers_;
+  util::key_array<data::buffers::topology, copy_spaces> ragged_buffers_;
 
 }; // struct unstructured
 

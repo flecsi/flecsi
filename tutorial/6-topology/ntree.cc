@@ -68,17 +68,18 @@ initialize_action(sph::control_policy & cp) {
   auto & s = cp.scheduler();
 
   const int nents = sph::n_entities.value();
-  cp.sph_ntree.allocate(
-    s, sph_ntree_t::mpi_coloring(s, s.runtime().processes(), nents), nents);
+  s.allocate(cp.sph_ntree,
+    sph_ntree_t::mpi_coloring(s, s.runtime().processes(), nents),
+    nents);
 
-  auto rho = density(cp.sph_ntree);
-  auto p = pressure(cp.sph_ntree);
-  auto v = velocity(cp.sph_ntree);
-  auto u = energy(cp.sph_ntree);
-  auto is_w = is_wall(cp.sph_ntree);
-  s.execute<init_sodtube_task>(cp.sph_ntree, rho, p, v, u, is_w);
+  auto rho = density(*cp.sph_ntree);
+  auto p = pressure(*cp.sph_ntree);
+  auto v = velocity(*cp.sph_ntree);
+  auto u = energy(*cp.sph_ntree);
+  auto is_w = is_wall(*cp.sph_ntree);
+  s.execute<init_sodtube_task>(*cp.sph_ntree, rho, p, v, u, is_w);
 
-  sph_ntree_t::build_ntree(s, cp.sph_ntree);
+  sph_ntree_t::build_ntree(s, *cp.sph_ntree);
   cp.max_iterations = sph::n_iterations.value();
 }
 
@@ -132,34 +133,34 @@ void
 iterate_action(sph::control_policy & cp) {
   auto & s = cp.scheduler();
 
-  auto rho = density(cp.sph_ntree);
-  auto p = pressure(cp.sph_ntree);
-  auto u = energy(cp.sph_ntree);
-  auto v = velocity(cp.sph_ntree);
-  auto dvdt = acceleration(cp.sph_ntree);
-  auto dudt = d_energy(cp.sph_ntree);
-  auto is_w = is_wall(cp.sph_ntree);
+  auto rho = density(*cp.sph_ntree);
+  auto p = pressure(*cp.sph_ntree);
+  auto u = energy(*cp.sph_ntree);
+  auto v = velocity(*cp.sph_ntree);
+  auto dvdt = acceleration(*cp.sph_ntree);
+  auto dudt = d_energy(*cp.sph_ntree);
+  auto is_w = is_wall(*cp.sph_ntree);
 
   flog(info) << "Iteration: " << cp.step << '\n';
-  s.execute<density_task>(cp.sph_ntree, rho);
-  s.execute<eos_task>(cp.sph_ntree, p, rho, u);
-  s.execute<acceleration_task>(cp.sph_ntree, dvdt, v, rho, p, u);
-  s.execute<dudt_task>(cp.sph_ntree, dudt, v, rho, p, u, is_w);
-  s.execute<advance_task>(cp.sph_ntree, v, dvdt, u, dudt, is_w);
-  sph_ntree_t::sph_reset(s, cp.sph_ntree);
+  s.execute<density_task>(*cp.sph_ntree, rho);
+  s.execute<eos_task>(*cp.sph_ntree, p, rho, u);
+  s.execute<acceleration_task>(*cp.sph_ntree, dvdt, v, rho, p, u);
+  s.execute<dudt_task>(*cp.sph_ntree, dudt, v, rho, p, u, is_w);
+  s.execute<advance_task>(*cp.sph_ntree, v, dvdt, u, dudt, is_w);
+  sph_ntree_t::sph_reset(s, *cp.sph_ntree);
 }
 
 void
 output_action(sph::control_policy & cp) {
-  auto rho = density(cp.sph_ntree);
-  auto p = pressure(cp.sph_ntree);
-  auto u = energy(cp.sph_ntree);
-  auto v = velocity(cp.sph_ntree);
-  auto dvdt = acceleration(cp.sph_ntree);
-  auto dudt = d_energy(cp.sph_ntree);
+  auto rho = density(*cp.sph_ntree);
+  auto p = pressure(*cp.sph_ntree);
+  auto u = energy(*cp.sph_ntree);
+  auto v = velocity(*cp.sph_ntree);
+  auto dvdt = acceleration(*cp.sph_ntree);
+  auto dudt = d_energy(*cp.sph_ntree);
 
   auto f = cp.scheduler().execute<output_task>(
-    exec::on, cp.sph_ntree, rho, p, v, u, dudt, dvdt, cp.step, cp.intv);
+    exec::on, *cp.sph_ntree, rho, p, v, u, dudt, dvdt, cp.step, cp.intv);
   f.wait();
   merge_output(cp);
 }

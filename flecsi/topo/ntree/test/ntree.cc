@@ -84,21 +84,20 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   } // init_fields
 
   static void initialize(flecsi::scheduler & s,
-    data::topology_slot<sph_ntree_t> & ts,
+    sph_ntree_t::topology & nt,
     const coloring &,
     std::optional<freader> & hd) {
-    auto lm_ts = data::launch::make(s, ts);
-    flecsi::execute<init_fields, flecsi::mpi>(lm_ts, *hd);
+    auto lm = data::launch::make(s, nt);
+    flecsi::execute<init_fields, flecsi::mpi>(lm, *hd);
   }
 
-  static void build_ntree(flecsi::scheduler & s,
-    data::topology_slot<sph_ntree_t> & ts) {
-    ts->make_tree(s, ts);
+  static void build_ntree(flecsi::scheduler & s, sph_ntree_t::topology & nt) {
+    nt.make_tree(s);
 
-    s.execute<compute_centroid<true>>(ts);
-    s.execute<compute_centroid<false>>(ts);
+    s.execute<compute_centroid<true>>(nt);
+    s.execute<compute_centroid<false>>(nt);
 
-    ts->share_ghosts(s, ts);
+    nt.share_ghosts(s);
   }
 
   static coloring color(const std::string & name, std::optional<freader> & hd) {
@@ -294,13 +293,15 @@ check_sort_task(typename field<int>::accessor<ro> v) noexcept {
 int
 ntree_driver(scheduler & s) {
   UNIT("NTREE") {
-    sph_ntree_t::slot sph_ntree;
+    sph_ntree_t::ptr p;
 
     {
       std::optional<sph_ntree_t::freader> hd;
-      sph_ntree.allocate(
-        s, sph_ntree_t::mpi_coloring(s, "coordinates.blessed", hd), hd);
+      s.allocate(
+        p, sph_ntree_t::mpi_coloring(s, "coordinates.blessed", hd), hd);
     }
+    auto & sph_ntree = *p;
+
     // Initialize user fields
     auto d = id_check(sph_ntree);
     s.execute<init_ids>(exec::on, sph_ntree, d);
@@ -314,8 +315,7 @@ ntree_driver(scheduler & s) {
 
     // Sort utility testing
     // Sort/shuffle an array multiple times
-    arr::slot arr_s;
-    arr_s.allocate(s, arr::coloring(4, 100));
+    arr::topology arr_s(s, arr::coloring(4, 100));
 
     util::sort sort(s, arr_f(arr_s));
 

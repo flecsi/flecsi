@@ -24,21 +24,21 @@ namespace data {
   Topology accessor type. Topology accessors are defined by the interface of
   the underlying, user-defined type, i.e., unlike field accessors,
   the specialization can customize topologies to add types and interfaces
-  that are not part of the core FleCSI topology type. By inheriting from the
-  customized topology type, we pick up these additions.
+  that are not part of the core FleCSI topology interface.  By inheriting from
+  the customized topology interface, we pick up these additions.
 
-  Pass a \c topology_slot to a task that expects a \c topology_accessor.
+  Pass a topology instance to a task that expects a \c topology_accessor.
 
-  \tparam T topology type
+  \tparam T specialization
   \tparam Priv privilege pack
 
   \note Usually accessed as \c T::accessor.
  */
 template<class T, Privileges Priv>
 struct topology_accessor
-  : T::template interface<typename T::core::template access<Priv>>,
+  : T::template interface<typename T::topology::template access<Priv>>,
     send_tag {
-  using core = typename T::core::template access<Priv>;
+  using core = typename T::topology::template access<Priv>;
   static_assert(sizeof(typename T::template interface<core>) == sizeof(core),
     "topology interfaces may not add data members");
 
@@ -52,20 +52,26 @@ namespace exec::detail {
 template<class T, Privileges P>
 struct task_param<data::topology_accessor<T, P>> {
   using type = data::topology_accessor<T, P>;
+  static type replace(typename T::topology &) {
+    return type();
+  }
+  static type replace(typename topo::borrow<T>::topology &) {
+    return type();
+  }
   static type replace(typename T::slot &) {
     return type();
   }
-  static type replace(data::topology_slot<topo::borrow<T>> &) {
-    return type();
-  }
 };
-// Defined here to avoid circularity; it matters only with a
-// topology_accessor parameter.  There are no global topology accessors,
-// thus no specialization for them.
-template<class P, class T>
-struct launch<P, data::topology_slot<T>> {
+template<class T, Privileges P>
+struct launch<data::topology_accessor<T, P>, data::topology_slot<T>> {
   static Index get(const data::topology_slot<T> & t) {
     return t.get().colors();
+  }
+};
+template<class T, Privileges P>
+struct launch<data::topology_accessor<T, P>, typename T::topology> {
+  static Index get(const typename T::topology & t) {
+    return t.colors();
   }
 };
 } // namespace exec::detail

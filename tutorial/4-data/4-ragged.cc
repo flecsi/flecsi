@@ -39,8 +39,7 @@ void
 advance(control_policy & p) {
   auto & s = p.scheduler();
 
-  canon::slot mesh;
-  mesh.allocate(s, canon::mpi_coloring(s, "4"));
+  canon::topology mesh(s, canon::mpi_coloring(s, "4"));
 
   const auto f = rag(mesh);
 

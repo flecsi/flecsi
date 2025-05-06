@@ -21,7 +21,7 @@ Terminology
     on the needs of the domain experts, but will often include queries
     about the physical layout of points within the simulation space.
     For example, a specialization of the ``unstructured`` topology category for a two-dimensional mesh might define it in terms of vertices, edges, and elements but not faces.
-    In fact, every topology type is such a specialization; we use the term "specialization" to emphasize the definition of the type rather than its use.
+    In fact, every topology type is associated with such a specialization; the term "specialization" emphasizes the definition rather than the resulting type to be used.
 
 .. figure:: images/topologies.svg
 
@@ -115,16 +115,14 @@ As a trivial example, the ``global`` and ``index`` topologies can use just an in
   using namespace flecsi;
 
   int simulation(scheduler &s) {
-    topo::global::slot pair;
-    topo::index::slot hydro_indices;
-    pair.allocate(s, 2);
-    hydro_indices.allocate(s, 42);
+    topo::global::topology pair(s, 2);
+    topo::index::topology hydro_indices(s, 42);
     // ...
   }
 
 Note the different interpretations of the sizes: ``pair`` doesn't have colors and holds 2 field values, while ``hydro_indices`` has 42 colors with one field value each.
 
-Note also that the lifetime of topology instances must be limited to the control model execution (achieved here by making the slots local variables).
+Note also that the lifetime of topology instances must be limited to the control model execution (achieved here by making them local variables).
 
 While the coloring type depends on the topology category and not the specialization, specializations for non-trivial topologies typically assist the application in constructing one.
 In simple cases, the result looks like
@@ -132,12 +130,11 @@ In simple cases, the result looks like
 .. code-block:: cpp
 
   int simulation(scheduler &s) {
-    canon::slot mesh;
-    mesh.allocate(s, canon::mpi_coloring(s, "test.txt"));
+    canon::topology mesh(s, canon::mpi_coloring(s, "test.txt"));
     // ...
   }
 
-which asks the ``canon`` topology to interpret the *test.txt* file as a coloring for its topology category (perhaps ``unstructured``).
+which asks the ``canon`` specialization to interpret the *test.txt* file as a coloring for its topology category (perhaps ``unstructured``).
 The name ``mpi_coloring`` serves as a reminder that this procedure is launched as an MPI task, as is often required for it to perform collective I/O or distribute data.
 
 .. figure:: images/mpi-coloring.svg

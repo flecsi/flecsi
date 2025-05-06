@@ -275,8 +275,7 @@ CMake files to allow using it in your own applications.
 
      int mytest_driver(scheduler &s) {
        UNIT() {
-         topo::index::slot my_topology;
-         my_topology.allocate(s, 4);
+         topo::index::topology my_topology(s, 4);
          s.execute<init>(ifield(my_topology), 1669);
          EXPECT_TRUE(true);
          EXPECT_EQ(s.test<verify>(ifield(my_topology)), 0);

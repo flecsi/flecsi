@@ -291,7 +291,7 @@ private:
               return partitions;
             }()](std::size_t i) { return p[i]; })...}},
       plan_{{make_copy_plan<CI>(s, c.colors(), c.idx_colorings[index<CI>])...}},
-      ragged_buffers_{{data::buffers::core(s,
+      ragged_buffers_{{data::buffers::topology(s,
         meta_data::peers(c.idx_colorings[index<CI>]))...}} {
     auto lm = data::launch::make(s, this->meta);
     execute<set_meta<Value...>, mpi>(meta_field(lm), c);
@@ -527,7 +527,7 @@ private:
   // index-space specific parts
   util::key_array<repartitioned, index_spaces> part_;
   util::key_array<data::copy_plan, copy_spaces> plan_;
-  util::key_array<data::buffers::core, copy_spaces> ragged_buffers_;
+  util::key_array<data::buffers::topology, copy_spaces> ragged_buffers_;
 }; // struct narray
 
 template<class P>

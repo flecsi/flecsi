@@ -51,8 +51,7 @@ int
 future_driver(scheduler & s) {
   UNIT() {
     double d = 3.1;
-    topo::global::slot g2;
-    g2.allocate(s, 2);
+    topo::global::topology g2(s, 2);
     const auto energy = energy_field(g2);
 
     // single future

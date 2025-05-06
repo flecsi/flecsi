@@ -38,14 +38,14 @@ poisson::action::solve(control_policy & cp) {
       util::annotation::detail::low>
       aguard("poisson-cycle");
     for(std::size_t i{0}; i < sub; ++i) {
-      s.execute<task::red>(exec::on, cp.m, ud(cp.m), fd(cp.m));
-      s.execute<task::black>(exec::on, cp.m, ud(cp.m), fd(cp.m));
+      s.execute<task::red>(exec::on, *cp.m, ud(*cp.m), fd(*cp.m));
+      s.execute<task::black>(exec::on, *cp.m, ud(*cp.m), fd(*cp.m));
     } // for
     ita += sub;
 
-    s.execute<task::discrete_operator>(cp.m, ud(cp.m), Aud(cp.m));
+    s.execute<task::discrete_operator>(*cp.m, ud(*cp.m), Aud(*cp.m));
     auto residual =
-      s.reduce<task::diff, exec::fold::sum>(cp.m, fd(cp.m), Aud(cp.m));
+      s.reduce<task::diff, exec::fold::sum>(*cp.m, fd(*cp.m), Aud(*cp.m));
     err = std::sqrt(residual.get());
     flog(info) << "residual: " << err << " (" << ita << " iterations)"
                << std::endl;

@@ -19,41 +19,24 @@ namespace data {
 
 struct convert_tag {}; // must be recognized as a task argument
 
-namespace detail {
-template<class, class, class = void>
-struct accepts_scheduler : std::false_type {};
-template<class P, class... AA>
-struct accepts_scheduler<P,
-  util::types<AA...>,
-  decltype(void(P::initialize(std::declval<scheduler &>(),
-    std::declval<typename P::slot &>(),
-    std::declval<const typename P::coloring &>(),
-    std::declval<AA>()...)))> : std::true_type {};
-} // namespace detail
-
 /// A movable slot that holds a topology, constructed upon request.
 /// Declare a task parameter as a \c topology_accessor to use the topology.
 /// \note A \c specialization provides aliases for both these types.
-/// \warning No topologies may exist outside of \c start or \c control.
-///   If a \c
-///   topology_slot outlives that function, use \c #deallocate before it
-///   returns.
+/// \warning If a \c topology_slot outlives \c start or \c control, use \c
+///   #deallocate before it returns.
+/// \deprecated Store topology instances directly or under \c std::unique_ptr.
 template<typename Topo>
 struct topology_slot : convert_tag {
-  using core = typename Topo::core;
+  using topology = typename Topo::topology;
   using coloring = typename Topo::coloring;
 
   /// Create the topology.
-  /// \param c coloring (perhaps from an \link
-  ///   topo::specialization::mpi_coloring `mpi_coloring`\endlink)
+  /// \param c coloring
   /// \param aa further specialization-specific parameters
   template<typename... AA>
-  core & allocate(scheduler & s, const coloring & c, AA &&... aa) {
+  topology & allocate(scheduler & s, const coloring & c, AA &&... aa) {
     data.emplace(s, c);
-    if constexpr(detail::accepts_scheduler<Topo, util::types<AA...>>::value)
-      Topo::initialize(s, *this, c, std::forward<AA>(aa)...);
-    else
-      Topo::initialize(*this, c, std::forward<AA>(aa)...);
+    Topo::initialize(*this, c, std::forward<AA>(aa)...);
     // TODO:  fix issues with automatic register
     // run::context::instance().add_topology<Topo>(*this);
 
@@ -61,7 +44,7 @@ struct topology_slot : convert_tag {
   }
   /// \deprecated Pass a \c scheduler.
   template<typename... AA>
-  [[deprecated("pass a scheduler")]] core & allocate(const coloring & c,
+  [[deprecated("pass a scheduler")]] topology & allocate(const coloring & c,
     AA &&... aa) {
     return allocate(*scheduler::instance, c, std::forward<AA>(aa)...);
   }
@@ -76,18 +59,20 @@ struct topology_slot : convert_tag {
     return data.has_value();
   }
 
-  core & get() {
+  /// Get the topology instance, which must exist.
+  topology & get() {
     flog_assert(data, "topology not allocated");
     return *data;
   }
-  const core & get() const {
+  const topology & get() const {
     return const_cast<topology_slot &>(*this).get();
   }
 
-  core * operator->() {
+  /// Access a member of the topology instance, which must exist.
+  topology * operator->() {
     return &*data;
   }
-  const core * operator->() const {
+  const topology * operator->() const {
     return &*data;
   }
 
@@ -97,7 +82,7 @@ struct topology_slot : convert_tag {
   }
 
 private:
-  util::move_optional<core> data;
+  util::move_optional<topology> data;
 }; // struct topology_slot
 
 /// \}

@@ -211,7 +211,7 @@ private:
   std::optional<data::copy_plan> cp_top_tree_nodes, cp_entities;
 
   // Buffer for ghosts shared
-  data::buffers::core buf;
+  data::buffers::topology buf;
 
   /// Hashing table type
   using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, Policy>;
@@ -702,91 +702,95 @@ private:
   // ---------------------------- Top tree construction -----------------------
 public:
   /// Build the local tree and share the tree boundaries
-  static void make_tree(scheduler & s, typename Policy::slot & ts) {
+  void make_tree(scheduler & s) {
     //  Sort entities
-    util::sort(s, e_keys(ts))();
-    s.execute<recolor_task>(ts);
+    util::sort(s, e_keys(*this))();
+    s.execute<recolor_task>(*this);
     s.execute<exchange_boundaries_task>(
-      e_keys(ts), meta_field(ts->meta), data_field(ts));
+      e_keys(*this), meta_field(this->meta), data_field(*this));
 
-    ts->cp_data_tree.issue_copy({data_field.fid});
+    cp_data_tree.issue_copy({data_field.fid});
 
     // Create the local tree
     // Return the list of nodes to share (top of the tree)
-    auto fm_top_tree = s.execute<make_tree_local_task>(
-      e_keys(ts), n_keys(ts), data_field(ts), hcells(ts), meta_field(ts->meta));
+    auto fm_top_tree = s.execute<make_tree_local_task>(e_keys(*this),
+      n_keys(*this),
+      data_field(*this),
+      hcells(*this),
+      meta_field(this->meta));
 
     {
-      auto & p = ts->template get_partition<top_tree_ents>();
+      auto & p = get_partition<top_tree_ents>();
       s.execute<copy_sizes_top_tree_task<entities>>(p.sizes(), fm_top_tree);
       p.resize();
     }
 
     {
-      auto & p = ts->template get_partition<top_tree_nodes>();
+      auto & p = get_partition<top_tree_nodes>();
       s.execute<copy_sizes_top_tree_task<nodes>>(p.sizes(), fm_top_tree);
       p.resize();
     }
 
     s.execute<fill_top_tree_task>(
-      hcells(ts), top_tree_ents_field(ts), top_tree_nodes_field(ts));
+      hcells(*this), top_tree_ents_field(*this), top_tree_nodes_field(*this));
 
-    auto lm_top_tree = data::launch::make(
-      s, ts, data::launch::gather(ts->colors(), ts->colors()));
+    auto lm_top_tree =
+      data::launch::make(s, *this, data::launch::gather(colors(), colors()));
 
     // Add the new hcells to the local tree + return new sizes for allocation
-    s.execute<make_tree_distributed_task>(n_keys(ts),
-      meta_field(ts->meta),
-      data_field(ts),
-      hcells(ts),
+    s.execute<make_tree_distributed_task>(n_keys(*this),
+      meta_field(this->meta),
+      data_field(*this),
+      hcells(*this),
       top_tree_ents_field(lm_top_tree),
       top_tree_nodes_field(lm_top_tree));
 
     {
-      auto & p = ts->template get_partition<entities>();
-      s.execute<copy_sizes_meta_top_tree_task>(p.sizes(), meta_field(ts->meta));
+      auto & p = get_partition<entities>();
+      s.execute<copy_sizes_meta_top_tree_task>(
+        p.sizes(), meta_field(this->meta));
       p.resize();
     }
 
     // Fake initialization for the new ghosts
     for(auto & f : run::context::field_info_store<Policy, entities>()) {
       auto fr = data::field_reference<std::byte, data::raw, Policy, entities>(
-        f->fid, ts.get());
+        f->fid, *this);
       s.execute<fake_initialize>(fr);
     }
 
-    ts->cp_entities.emplace(
+    cp_entities.emplace(
       s,
-      ts.get(),
-      data::copy_plan::Sizes(ts->colors(), 1),
+      *this,
+      data::copy_plan::Sizes(colors(), 1),
       [&](auto f) {
         s.execute<set_destination_meta_top_tree<entities>>(
-          f, meta_field(ts->meta));
+          f, meta_field(this->meta));
       },
       [&](auto f) {
         s.execute<set_top_tree_ptrs<entities>>(
-          f, meta_field(ts->meta), top_tree_ents_field(lm_top_tree));
+          f, meta_field(this->meta), top_tree_ents_field(lm_top_tree));
       },
       util::constant<entities>());
 
-    ts->cp_top_tree_nodes.emplace(
+    cp_top_tree_nodes.emplace(
       s,
-      ts.get(),
-      data::copy_plan::Sizes(ts->colors(), 1),
+      *this,
+      data::copy_plan::Sizes(colors(), 1),
       [&](auto f) {
         s.execute<set_destination_meta_top_tree<nodes>>(
-          f, meta_field(ts->meta));
+          f, meta_field(this->meta));
       },
       [&](auto f) {
         s.execute<set_top_tree_ptrs<nodes>>(
-          f, meta_field(ts->meta), top_tree_nodes_field(lm_top_tree));
+          f, meta_field(this->meta), top_tree_nodes_field(lm_top_tree));
       },
       util::constant<nodes>());
   }
   /// \deprecated Pass a \c scheduler.
   [[deprecated("pass a scheduler")]] static void make_tree(
     typename Policy::slot & ts) {
-    make_tree(*scheduler::instance, ts);
+    ts->make_tree(*scheduler::instance);
   }
 
   // ---------------------------- Ghosts exchange tasks -----------------------
@@ -993,102 +997,106 @@ private:
 public:
   /// Search entities' neighbors and complete the hmap, create copy plans (or
   /// buffer)
-  static void share_ghosts(scheduler & s, typename Policy::slot & ts) {
-
+  void share_ghosts(scheduler & s) {
     // Remove copy plan
-    ts->cp_entities.reset();
+    cp_entities.reset();
 
     // Find entities that will be used
-    s.execute<find_local_task<true>>(ts, share_ghosts_comms_field(ts));
+    s.execute<find_local_task<true>>(*this, share_ghosts_comms_field(*this));
 
     {
-      auto & p = ts->template get_partition<share_ghosts_cid_comm>();
-      s.execute<copy_sizes_task>(p.sizes(), share_ghosts_comms_field(ts));
+      auto & p = get_partition<share_ghosts_cid_comm>();
+      s.execute<copy_sizes_task>(p.sizes(), share_ghosts_comms_field(*this));
       p.resize();
     }
 
-    s.execute<find_local_task<false>>(ts, share_ghosts_cid_comm_field(ts));
-    ts->cp_share_ghosts_comms.issue_copy({share_ghosts_comms_field.fid});
+    s.execute<find_local_task<false>>(
+      *this, share_ghosts_cid_comm_field(*this));
+    cp_share_ghosts_comms.issue_copy({share_ghosts_comms_field.fid});
 
-    s.execute<reset_ghosts>(meta_field(ts->meta), hcells(ts));
+    s.execute<reset_ghosts>(meta_field(this->meta), hcells(*this));
 
     {
-      auto & p = ts->template get_partition<entities>();
+      auto & p = get_partition<entities>();
       s.execute<copy_sizes_resize_task<true>>(
-        p.sizes(), meta_field(ts->meta), share_ghosts_comms_field(ts));
+        p.sizes(), meta_field(this->meta), share_ghosts_comms_field(*this));
       p.resize();
     }
 
-    s.execute<xfer_entities_req_start>(
-      e_i(ts), comms_field(ts), *(ts->buf), share_ghosts_cid_comm_field(ts));
-    while(s.reduce<xfer_entities_req, exec::fold::sum>(e_i(ts),
-             meta_field(ts->meta),
-             comms_field(ts),
-             *(ts->buf),
-             share_ghosts_cid_comm_field(ts),
-             e_colors(ts))
+    s.execute<xfer_entities_req_start>(e_i(*this),
+      comms_field(*this),
+      *(buf),
+      share_ghosts_cid_comm_field(*this));
+    while(s.reduce<xfer_entities_req, exec::fold::sum>(e_i(*this),
+             meta_field(this->meta),
+             comms_field(*this),
+             *(buf),
+             share_ghosts_cid_comm_field(*this),
+             e_colors(*this))
             .get()) {
     } // while
 
     // Count all sizes for each color, use special field
-    s.execute<find_distant_task<true>>(ts, share_ghosts_comms_field(ts));
+    s.execute<find_distant_task<true>>(*this, share_ghosts_comms_field(*this));
 
     // Resize share_ghosts_buffer_comm_field
     {
-      auto & p = ts->template get_partition<share_ghosts_buffer_comm>();
-      s.execute<copy_sizes_task>(p.sizes(), share_ghosts_comms_field(ts));
+      auto & p = get_partition<share_ghosts_buffer_comm>();
+      s.execute<copy_sizes_task>(p.sizes(), share_ghosts_comms_field(*this));
       p.resize();
     }
     // Now fill info
-    s.execute<find_distant_task<false>>(ts, share_ghosts_buffer_comm_field(ts));
-    ts->cp_share_ghosts_comms.issue_copy({share_ghosts_comms_field.fid});
+    s.execute<find_distant_task<false>>(
+      *this, share_ghosts_buffer_comm_field(*this));
+    cp_share_ghosts_comms.issue_copy({share_ghosts_comms_field.fid});
 
     // Resize
     {
-      auto & p = ts->template get_partition<share_ghosts_distant_buffer_comm>();
+      auto & p = get_partition<share_ghosts_distant_buffer_comm>();
       s.execute<copy_sizes_resize_task<false>>(
-        p.sizes(), meta_field(ts->meta), share_ghosts_comms_field(ts));
+        p.sizes(), meta_field(this->meta), share_ghosts_comms_field(*this));
       p.resize();
     }
 
     // Perform buffered copy
     s.execute<xfer_entities_cp_start>(
-      comms_field(ts), *(ts->buf), share_ghosts_buffer_comm_field(ts));
+      comms_field(*this), *(buf), share_ghosts_buffer_comm_field(*this));
     while(s.reduce<xfer_entities_cp, exec::fold::sum>(
-             share_ghosts_distant_buffer_comm_field(ts),
-             meta_field(ts->meta),
-             comms_field(ts),
-             *(ts->buf),
-             share_ghosts_buffer_comm_field(ts))
+             share_ghosts_distant_buffer_comm_field(*this),
+             meta_field(this->meta),
+             comms_field(*this),
+             *(buf),
+             share_ghosts_buffer_comm_field(*this))
             .get())
       ;
 
     // Load entities destinated for this rank
-    s.execute<load_entities_task>(hcells(ts),
-      meta_field(ts->meta),
-      share_ghosts_distant_buffer_comm_field(ts));
+    s.execute<load_entities_task>(hcells(*this),
+      meta_field(this->meta),
+      share_ghosts_distant_buffer_comm_field(*this));
 
     {
-      auto & p = ts->template get_partition<entities>();
+      auto & p = get_partition<entities>();
       s.execute<resize_entities_update_meta_task>(
-        p.sizes(), meta_field(ts->meta));
+        p.sizes(), meta_field(this->meta));
       p.resize();
     }
 
     // create copy plan for ghosts entities
     auto entities_dests_task = [&](auto f) {
-      s.execute<set_destination_meta>(f, meta_field(ts->meta));
+      s.execute<set_destination_meta>(f, meta_field(this->meta));
     };
     auto entities_ptrs_task = [&](auto f) {
-      s.execute<set_entities_ptrs>(
-        f, meta_field(ts->meta), share_ghosts_distant_buffer_comm_field(ts));
+      s.execute<set_entities_ptrs>(f,
+        meta_field(this->meta),
+        share_ghosts_distant_buffer_comm_field(*this));
     };
 
     // Merge the cp_top_tree_entities into the cp_entities to avoid copy plan on
     // the same index space
-    ts->cp_entities.emplace(s,
-      ts.get(),
-      data::copy_plan::Sizes(ts->colors(), 1),
+    cp_entities.emplace(s,
+      *this,
+      data::copy_plan::Sizes(colors(), 1),
       entities_dests_task,
       entities_ptrs_task,
       util::constant<entities>());
@@ -1096,14 +1104,14 @@ public:
     // Fake initialization for the new ghosts
     for(auto & f : run::context::field_info_store<Policy, entities>()) {
       auto fr = data::field_reference<std::byte, data::raw, Policy, entities>(
-        f->fid, ts.get());
+        f->fid, *this);
       s.execute<fake_initialize>(fr);
     }
   }
   /// \deprecated Pass a \c scheduler.
   [[deprecated("pass a scheduler")]] static void share_ghosts(
     typename Policy::slot & ts) {
-    share_ghosts(*scheduler::instance, ts);
+    ts->share_ghosts(*scheduler::instance);
   }
 
   static void fake_initialize(
@@ -1127,21 +1135,21 @@ private:
 public:
   /// Reset the ntree topology. After this call the ntree can be re-build with
   /// make_tree and share_ghosts.
-  static void reset(scheduler & s, typename Policy::slot & ts) {
-    s.execute<reset_task>(meta_field(ts->meta), hcells(ts), n_i(ts));
-    ts->cp_top_tree_nodes.reset();
-    ts->cp_entities.reset();
+  void reset(scheduler & s) {
+    s.execute<reset_task>(meta_field(this->meta), hcells(*this), n_i(*this));
+    cp_top_tree_nodes.reset();
+    cp_entities.reset();
 
     // Resize the entities
-    auto & p = ts.get().template get_partition<entities>();
-    std::vector<util::id> nents_rz(ts->colors());
-    s.execute<copy_sizes_meta_task>(p.sizes(), meta_field(ts->meta));
+    auto & p = get_partition<entities>();
+    std::vector<util::id> nents_rz(colors());
+    s.execute<copy_sizes_meta_task>(p.sizes(), meta_field(this->meta));
     p.resize();
   }
   /// \deprecated Pass a \c scheduler.
   [[deprecated("pass a scheduler")]] static void reset(
     typename Policy::slot & ts) {
-    reset(*scheduler::instance, ts);
+    ts->reset(*scheduler::instance);
   }
 
   //---------------------------------------------------------------------------

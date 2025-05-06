@@ -14,11 +14,11 @@ namespace topo {
 /// Can be used for coloring and binning particles.
 /// \ingroup topology
 /// \{
-struct set_base {
+struct set_base : base {
   /// This struct gives the coloring interface for the Set topology.
   /// \ingroup set
   struct coloring {
-    /// Pointer to the underlying topology slot
+    /// Pointer to the underlying topology
     void * ptr;
     /// Counts per color
     std::vector<std::size_t> counts;
@@ -33,7 +33,7 @@ template<typename Policy>
 struct set : set_base {
 
   using index_space = typename Policy::index_space;
-  using mesh_slot = typename Policy::mesh_type::slot;
+  using mesh = typename Policy::mesh_type::topology;
 
   template<Privileges Priv>
   struct access {
@@ -52,12 +52,11 @@ struct set : set_base {
   };
 
   explicit set(scheduler & s, coloring x)
-    : p{static_cast<mesh_slot *>(x.ptr)}, part{make_repartitioned<Policy>(
-                                            x.counts.size(),
-                                            s,
-                                            [a = x.counts](std::size_t c) {
-                                              return a[c];
-                                            })} {}
+    : p{static_cast<mesh *>(x.ptr)}, part{make_repartitioned<Policy>(
+                                       x.counts.size(),
+                                       s,
+                                       [a = x.counts](
+                                         std::size_t c) { return a[c]; })} {}
 
   Color colors() const {
 
@@ -76,7 +75,7 @@ struct set : set_base {
   }
 
 private:
-  mesh_slot * p;
+  mesh * p;
   repartitioned part;
 };
 

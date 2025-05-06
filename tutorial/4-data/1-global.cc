@@ -24,8 +24,7 @@ print(single<double>::accessor<ro> gv) noexcept {
 void
 advance(control_policy & p) {
   auto & s = p.scheduler();
-  topo::global::slot gtopo;
-  gtopo.allocate(s, 1);
+  topo::global::topology gtopo(s, 1);
   const auto v = gfield(gtopo);
   s.execute<init>(42.0, v);
   s.execute<print>(v);

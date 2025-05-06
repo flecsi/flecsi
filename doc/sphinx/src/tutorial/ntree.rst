@@ -75,9 +75,9 @@ The N-Tree setup happens in ``initialize_action``:
 
 Firstly, the initial information about the entities is retrieved, either from a file or directly generated in the program. In this example we compute this information directly in the program. This vital information is used to create the N-Tree data structure through our SPH specialization using coordinates, mass, and radius.
 The coloring ``sph_ntree_t::mpi_coloring`` is constructed internally via the ``color`` function from the specialization. It defines how the particles are distributed among all the colors. In this example the specialization just provides a simple load-balancing scheme with an equal number of entities per color.
-The call to ``allocate`` creates the basic memory layout to input the initial particle information but does not generate the N-Tree data structure.
-At this stage we can populate the different user-defined fields. These fields are defined at the top of the ``ntree.cc`` file:
-
+``scheduler::allocate`` creates a topology instance, filling in the ``sph_ntree_t::ptr`` argument and calling ``sph_ntree_t::initialize`` to creates the basic memory layout to input the initial particle information.
+Before generating the N-Tree data structure, we must populate the different user-defined fields.
+These fields are defined at the top of the ``ntree.cc`` file:
 
 .. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
   :language: cpp

@@ -34,7 +34,7 @@ operator*(cp control_point) {
 
 struct control_policy : flecsi::run::control_base {
 
-  sph_ntree_t::slot sph_ntree;
+  sph_ntree_t::ptr sph_ntree;
   std::size_t max_iterations = 100;
   std::size_t step = 0;
   std::size_t intv = 100;
