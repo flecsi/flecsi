@@ -122,7 +122,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   }
 
   static void initialize(flecsi::scheduler & s,
-    flecsi::data::topology_slot<mesh> & m,
+    mesh::topology & m,
     coloring const &,
     grect const & geometry) {
     s.execute<set_geometry>(m, geometry);

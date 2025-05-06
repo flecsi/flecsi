@@ -335,9 +335,13 @@ struct field : data::detail::field_base<T, L> {
 
     /// Return a reference to a field instance.
     /// \param t topology instance (must be allocated)
-    auto operator()(data::topology_slot<Topo> & t) const {
+    /// \deprecated Pass the instance directly (perhaps with `t.get()`).
+    [[deprecated("pass t.get()")]] auto operator()(
+      data::topology_slot<Topo> & t) const {
       return (*this)(t.get());
     }
+    /// Return a reference to a field instance.
+    /// \param t topology instance
     Reference<Topo, Space> operator()(typename Topo::topology & t) const {
       return {this->fid, t};
     }
@@ -428,7 +432,7 @@ struct accessor_member : field_accessor<decltype(F), Priv> {
     // Using get_base() works around a GCC 9 bug that claims that the
     // inheritance of various accessor types is ambiguous.
     std::forward<G>(g)(get_base(),
-      [&s](auto & t) { return F(std::invoke(std::forward<S>(s), t.get())); });
+      [&s](auto & t) { return F(std::invoke(std::forward<S>(s), t)); });
   }
 
   base_type & get_base() {

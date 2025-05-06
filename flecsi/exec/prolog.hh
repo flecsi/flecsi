@@ -108,6 +108,11 @@ private:
     p.send(visitor(a));
   }
 
+  template<class P, class T>
+  void visit(P & p, data::topology_slot<T> & t) {
+    visit(p, t.get());
+  }
+
   template<class P, class A>
   void visit(std::vector<P> & pv, const std::vector<A> & av) {
     // av has been moved from only when the type is uninteresting.

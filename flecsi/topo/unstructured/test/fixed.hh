@@ -136,12 +136,12 @@ struct fixed_mesh
   } // init_mesh_ids
 
   static void initialize(flecsi::scheduler & s,
-    flecsi::data::topology_slot<fixed_mesh> & m,
+    fixed_mesh::topology & m,
     coloring const &,
     const init & fields) {
     using namespace flecsi;
-    auto & c2v = m->get_connectivity<fixed_mesh::cells, fixed_mesh::vertices>();
-    auto & v2c = m->get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>();
+    auto & c2v = m.get_connectivity<fixed_mesh::cells, fixed_mesh::vertices>();
+    auto & v2c = m.get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>();
 
     auto lm = data::launch::make(s, m);
     execute<topo::unstructured_impl::init_connectivity<privilege_count<cells>>,

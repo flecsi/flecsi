@@ -103,13 +103,13 @@ struct mapping : convert_tag {
   }
 
   Color colors() const {
-    return rnd.front().b->colors();
+    return rnd.front().b.colors();
   }
   Color depth() const { // never 0
     return rnd.size();
   }
   auto & operator[](Color i) {
-    return rnd[i].b.get();
+    return rnd[i].b;
   }
   auto claims(Color i) {
     return topo::claims::field(rnd[i].clm);
@@ -133,16 +133,14 @@ private:
   // Owns a set of claims for potentially several (nested) borrow topologies.
   struct round : claims {
     round(scheduler & s, typename P::topology & t, borrow::Claims c, bool first)
-      : claims(s, c), proj(std::move(c)) {
-      b.allocate(s, {&t, &proj, first});
-    }
+      : claims(s, c), proj(std::move(c)), b(s, {&t, &proj, first}) {}
     round(round &&) = delete; // address stability
 
   private:
     borrow proj;
 
   public:
-    typename Borrow::slot b;
+    typename Borrow::topology b;
   };
 
   std::deque<round> rnd;
@@ -150,35 +148,30 @@ private:
 template<class T>
 mapping(T &, const Claims &) -> mapping<topo::policy_t<T>>;
 
+/// Create a \c mapping.
 template<class T>
 mapping<topo::policy_t<T>>
-make(scheduler & s, T & t) { // convenience for subtopology initialization
-  return {s, t, block(t.colors(), s.runtime().processes())};
-}
-/// Create a \c mapping.
-template<class P>
-mapping<P>
-make(scheduler & s, topology_slot<P> & t, const Claims & c) {
-  return {s, t.get(), c};
-}
-/// \deprecated Pass a \c scheduler.
-template<class P>
-[[deprecated("pass a scheduler")]] mapping<P>
-make(topology_slot<P> & t, const Claims & c) {
-  return make(*scheduler::instance, t, c);
+make(scheduler & s, T & t, const Claims & c) {
+  return {s, t, c};
 }
 /// Create a \c mapping for initialization using an MPI task.
 /// The \c Claims are constructed using \link block() `block`\endlink.
-template<class P>
-mapping<P>
-make(scheduler & s, topology_slot<P> & t) {
-  return make(s, t.get());
+template<class T>
+mapping<topo::policy_t<T>>
+make(scheduler & s, T & t) {
+  return make(s, t, block(t.colors(), s.runtime().processes()));
 }
-/// \deprecated Pass a \c scheduler.
+/// \deprecated Pass the topology instance directly (and a \c scheduler).
 template<class P>
-[[deprecated("pass a scheduler")]] mapping<P>
+[[deprecated("pass a scheduler and t.get()")]] mapping<P>
+make(topology_slot<P> & t, const Claims & c) {
+  return make(*scheduler::instance, t, c);
+}
+/// \deprecated Pass the topology instance directly (and a \c scheduler).
+template<class P>
+[[deprecated("pass a scheduler and t.get()")]] mapping<P>
 make(topology_slot<P> & t) {
-  return make(*scheduler::instance, t);
+  return make(*scheduler::instance, t.get());
 }
 
 /// \}

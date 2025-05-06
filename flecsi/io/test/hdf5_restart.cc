@@ -110,16 +110,14 @@ namespace {
 int
 restart_driver(scheduler & s) {
   UNIT() {
-    mesh1d::slot m;
-
-    {
+    mesh1d::topology m(s, [&] {
       mesh1d::gcoord indices{64};
       Color colors{4};
       mesh1d::index_definition idef;
       idef.axes = mesh1d::base::make_axes(colors, indices);
-      m.allocate(s, mesh1d::mpi_coloring(s, idef));
-      run::context::instance().add_topology(m);
-    }
+      return mesh1d::mpi_coloring(s, idef);
+    }());
+    run::context::instance().add_topology(m);
 
     const auto check_attach = [&](bool Attach) {
       UNIT() {

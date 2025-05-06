@@ -34,8 +34,6 @@ namespace flecsi {
 namespace data {
 struct region;
 struct partition;
-template<class Topo>
-struct topology_slot;
 } // namespace data
 
 namespace topo {
@@ -344,9 +342,9 @@ public:
     Index space interface.
    *--------------------------------------------------------------------------*/
 
-  template<class Topo>
-  void add_topology(typename data::topology_slot<Topo> & slot) {
-    add_index_spaces<Topo>(slot, typename Topo::index_spaces());
+  template<template<class> class C, class P>
+  void add_topology(C<P> & topo) {
+    add_index_spaces<P>(topo, typename P::index_spaces());
   }
 
   const std::vector<index_space_info_t> & get_index_space_info() const {
@@ -393,12 +391,12 @@ private:
   } // add_fields
 
   template<class Topo, typename Topo::index_space... Index>
-  void add_index_spaces(typename Topo::slot & slot,
+  void add_index_spaces(typename Topo::topology & topo,
     util::constants<Index...> /* to deduce pack */) {
     // global topology doesn't define get_partition, so skip it for now
     if constexpr(!std::is_same_v<topo::global_base, typename Topo::base>) {
       // register ordinary fields
-      (add_fields<Topo, Index>(slot.get()), ...);
+      (add_fields<Topo, Index>(topo), ...);
       // if present, register ragged fields
       if constexpr(std::is_base_of_v<topo::with_ragged_base,
                      typename Topo::topology>) {
@@ -406,7 +404,7 @@ private:
           [&] {
             for(const auto & fip :
               field_info_store<topo::ragged<Topo>, Index>()) {
-              auto & t = slot->ragged.template get<Index>()[fip->fid];
+              auto & t = topo.ragged.template get<Index>()[fip->fid];
               // Clang doesn't like "t.space" as a constant expression:
               constexpr auto space =
                 std::remove_reference_t<decltype(t)>::space;

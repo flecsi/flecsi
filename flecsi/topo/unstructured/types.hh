@@ -140,7 +140,7 @@ operator<<(std::ostream & stream, index_color const & ic) {
 
 /// Specialization-independent definitions.
 /// Name as \c base in an \c unstructured specialization.
-struct unstructured_base {
+struct unstructured_base : base {
   /// The type for specifying an index space for a single color.
   using index_color = unstructured_impl::index_color;
 

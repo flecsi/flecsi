@@ -100,7 +100,7 @@ make_repartitioned(Color r, scheduler & s, F f) {
 }
 
 // Stores the flattened elements of the ragged fields on an index space.
-struct ragged_partition_base : repartition {
+struct ragged_partition_base : base, repartition {
   using coloring = std::pair<data::region *, field_id_t>;
   static constexpr single_space space = elements; // for run::context
 
@@ -172,7 +172,7 @@ private:
   std::unique_ptr<data::region> reg;
 };
 
-struct ragged_base {
+struct ragged_base : base {
   using coloring = std::nullptr_t;
 };
 template<class>
@@ -227,7 +227,7 @@ struct detail::base<ragged_category> {
 };
 
 // The user-facing variant of the color category supports ragged fields.
-struct index_base : column_base {};
+struct index_base : base, column_base {};
 
 template<class P>
 struct index_category : index_base, column<P>, with_ragged<P>, with_cleanup {
@@ -240,6 +240,7 @@ struct detail::base<index_category> {
 };
 
 // A subtopology for holding internal arrays without ragged support.
+// Allowed to be movable for convenience.
 struct array_base {
   using coloring = std::vector<std::size_t>;
 };
@@ -356,7 +357,7 @@ template<class>
 struct borrow;
 
 /// Specialization-independent definitions.
-struct borrow_base {
+struct borrow_base : data::convert_tag {
   struct coloring {
     void * topo;
     const data::borrow * proj;

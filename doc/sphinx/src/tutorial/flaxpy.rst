@@ -169,8 +169,8 @@ Specializations typically require run-time information to produce a
 usable object.  This information may not be available until a number
 of libraries (FleCSI, Legion, MPI, and the like) have initialized and
 perhaps synchronized across a distributed system.
-To allow the lifetime of these objects to be controlled properly, FleCSI imposes a particular means of instantiating a specialization based on what it calls *slots*.
-The (topology) *slot* that will be used within FLAXPY's `Actions`_ are defined within the control policy (discussed next).
+To conveniently defer construction of these objects, FleCSI supplies a ``ptr`` type.
+The topology pointer that will be used within FLAXPY's `Actions`_ is defined within the control policy (discussed next).
 
 Control flow
 ++++++++++++
@@ -232,7 +232,7 @@ FLAXPY indicates with the following code that
 ``initialize`` runs first,
 then ``mul_add``,
 and lastly ``finalize``.
-It also defines a topology slot to hold the field data:
+It also defines a topology pointer to hold the field data:
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
@@ -266,7 +266,7 @@ The variables declared by the preceding code (``init``, ``ma``, and
 ``fin``) are never used.  They exist only for the side effects induced
 by instantiating a ``flaxpy::control::action``.
 
-The ``initialize_action`` action uses the slot and ``color`` function
+The ``initialize_action`` action uses the pointer and ``color`` function
 defined above in `Data structures`_
 to allocate memory for the ``dist_vector`` specialization; it queries FleCSI for the number of processes and uses that value for the color count.
 Once this memory is allocated,

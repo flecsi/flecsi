@@ -65,7 +65,11 @@ struct control_policy : flecsi::run::control_base {
   using control_points =
     list<point<cp::initialize>, point<cp::mul_add>, point<cp::finalize>>;
 
-  dist_vector::slot dist_vector_slot;
+  dist_vector::ptr dist_vector_ptr;
+
+  auto & vector() {
+    return *dist_vector_ptr;
+  }
 };
 
 // Define a fully qualified control type that implements our control policy.
@@ -108,11 +112,10 @@ void
 initialize_action(flaxpy::control_policy & policy) {
   auto & sch = policy.scheduler();
   // Specify one color per process.
-  policy.dist_vector_slot.allocate(
-    sch, flaxpy::dist_vector::mpi_coloring(sch, sch.runtime().processes()));
-  sch.execute<initialize_vectors_task>(flecsi::exec::on,
-    x_field(policy.dist_vector_slot),
-    y_field(policy.dist_vector_slot));
+  sch.allocate(policy.dist_vector_ptr,
+    flaxpy::dist_vector::mpi_coloring(sch, sch.runtime().processes()));
+  sch.execute<initialize_vectors_task>(
+    flecsi::exec::on, x_field(policy.vector()), y_field(policy.vector()));
 }
 
 // Define a task that assigns Y <- a*X + Y.
@@ -130,7 +133,7 @@ void
 mul_add_action(flaxpy::control_policy & policy) {
   const double a = 12.34; // Arbitrary scalar value to multiply
   policy.scheduler().execute<mul_add_task>(
-    a, x_field(policy.dist_vector_slot), y_field(policy.dist_vector_slot));
+    a, x_field(policy.vector()), y_field(policy.vector()));
 }
 
 // Define a task that adds up all values of Y and returns the sum.
@@ -149,7 +152,7 @@ void
 finalize_action(flaxpy::control_policy & policy) {
   const double sum = policy.scheduler()
                        .reduce<reduce_y_task, flecsi::exec::fold::sum>(
-                         flecsi::exec::on, y_field(policy.dist_vector_slot))
+                         flecsi::exec::on, y_field(policy.vector()))
                        .get();
   flog(info) << "The sum over all elements in the final vector is " << sum
              << std::endl;

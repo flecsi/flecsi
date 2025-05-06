@@ -42,6 +42,7 @@ Deprecated
 
 * Data
 
+  * ``topology_slot`` |mdash| use topology instances directly or (for movability) via ``ptr``
   * ``partition_privilege_t`` |mdash| use ``privilege``
 
 * Execution
@@ -98,6 +99,12 @@ New features
   * Index futures provide ``all`` to get all results.
 
 * Topologies
+
+  * Topology objects can be created directly.
+
+    * They are of the type ``specialization::topology``, which (unlike ``topology_slot``) is immovable.
+    * ``specialization::ptr`` is the appropriate ``std::unique_ptr`` type to hold a topology instance; like the deprecated ``topology_slot``, it is movable and can defer initialization.
+    * ``scheduler::allocate`` fills in a ``ptr`` and calls ``specialization::initialize`` (which is not otherwise auomatic) with the ``scheduler`` and new topology instance.
 
   * ``narray`` specializations need not define ``dimension``.
   * ``unstructured_base::coloring::index_space`` can be initialized without ``entities``, which is unused.

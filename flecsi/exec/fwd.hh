@@ -9,6 +9,7 @@
 
 #include "flecsi/exec/task_attributes.hh"
 
+#include <memory>
 #include <optional>
 #include <utility>
 
@@ -103,6 +104,17 @@ struct scheduler {
   /// Execute a test task.
   template<auto &, class... AA>
   [[nodiscard]] int test(AA &&...);
+
+  /// Create a topology instance with specialization support.
+  /// Calls the specialization's \c initialize on the topology instance.
+  /// \param p where to store the topology
+  /// \param c coloring (perhaps from an \link
+  ///   topo::specialization::mpi_coloring `mpi_coloring`\endlink)
+  /// \param aa further specialization-specific parameters
+  /// \return the new instance
+  template<class T, class... AA>
+  auto &
+  allocate(std::unique_ptr<T> & p, const typename T::coloring & c, AA &&... aa);
 
   // Will become a non-static member of runtime in 3.
   static std::optional<scheduler> instance;

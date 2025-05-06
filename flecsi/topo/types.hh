@@ -125,9 +125,7 @@ connect_send(F && f, util::key_tuple<VT...> & accs, C & flds) {
     [&] {
       std::size_t i = 0;
       for(auto & a : accs.template get<VT::value>())
-        f(a, [&](auto & t) {
-          return flds.template get<VT::value>()[i++](t.get());
-        });
+        f(a, [&](auto & t) { return flds.template get<VT::value>()[i++](t); });
     }(),
     ...);
 }
@@ -143,7 +141,7 @@ lists_send(F && f,
       std::size_t i = 0;
       for(auto & a : accs.template get<VT::value>()) {
         f(a, [&](auto & t) {
-          return fld(std::invoke(sub, t.get()).template get<VT::value>()[i++]);
+          return fld(std::invoke(sub, t).template get<VT::value>()[i++]);
         });
       }
     }(),

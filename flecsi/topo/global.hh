@@ -13,7 +13,7 @@ namespace topo {
 /// \addtogroup topology
 /// \{
 
-struct global_base {
+struct global_base : base {
   struct coloring {
     coloring(util::id n = 1) : size(n) {}
     util::id size;

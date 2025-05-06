@@ -186,13 +186,11 @@ task_driver(scheduler & s) {
     auto np = s.runtime().processes();
     const int vpp = 5;
     // Array of initial values per color
-    arr::slot arr_s;
-    arr_s.allocate(s, arr::coloring(np, vpp));
+    arr::topology arr_s(s, arr::coloring(np, vpp));
     auto arr_vals = arr_f(arr_s);
     s.execute<init_array>(exec::on, std::vector{arr_vals});
     // Reduction
-    topo::global::slot gl_arr_s;
-    gl_arr_s.allocate(s, vpp);
+    topo::global::topology gl_arr_s(s, vpp);
     auto vals = gl_arr_f(gl_arr_s);
     // Init reduction array to 0
     s.execute<init>(vals);

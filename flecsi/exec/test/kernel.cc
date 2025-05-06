@@ -1,5 +1,6 @@
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
+#include "flecsi/topology.hh"
 #include "flecsi/util/unit.hh"
 
 using namespace flecsi;
@@ -105,7 +106,8 @@ reduce_mdrange_vec(accelerator s, intN::accessor<rw> a) noexcept {
 int
 kernel_driver(scheduler & s) {
   UNIT() {
-    const auto ar = array_field(process_topology);
+    topo::index::topology pt(s, s.runtime().processes());
+    const auto ar = array_field(pt);
     s.execute<modify>(on, ar);
     EXPECT_EQ(s.test<check>(ar), 0);
     s.execute<modify_policy>(on, ar);

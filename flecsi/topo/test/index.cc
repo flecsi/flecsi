@@ -245,11 +245,11 @@ index_driver(scheduler & s) {
       s.execute<allocate>(exec::on, p.sizes());
       p.resize();
     };
-    const auto pressure = pressure_field(process_topology);
-    const auto verts = verts_field(process_topology),
-               ghost = ghost_field(process_topology);
-    const auto vfrac = vfrac_field(process_topology);
-    const auto noise = noisy_field(process_topology);
+    topo::index::topology pt(s, s.runtime().processes());
+    const auto pressure = pressure_field(pt);
+    const auto verts = verts_field(pt), ghost = ghost_field(pt);
+    const auto vfrac = vfrac_field(pt);
+    const auto noise = noisy_field(pt);
     alloc(verts);
     alloc(vfrac);
     ghost.get_elements().growth = {np + 1};
@@ -264,7 +264,7 @@ index_driver(scheduler & s) {
     s.execute<assign>(exec::on, pressure, verts, vfrac);
     s.execute<reset>(noise);
     EXPECT_EQ((reduce<reset, exec::fold::sum, flecsi::mpi>(noise).get()), np);
-    execute<use_ptr, flecsi::mpi>(ptr_field(process_topology));
+    execute<use_ptr, flecsi::mpi>(ptr_field(pt));
 
     // Rotate the ragged field by one color:
     buffers::topology(s,
@@ -280,8 +280,7 @@ index_driver(scheduler & s) {
     EXPECT_EQ(s.test<check>(exec::on, pressure, verts, ghost, vfrac), 0);
 
     // Duplicate work to support the MPI backend:
-    trivial_array::slot a;
-    a.allocate(s, trivial_array::coloring(np, 12));
+    trivial_array::topology a(s, trivial_array::coloring(np, 12));
     EXPECT_EQ(s.test<part>(exec::on, particles(a)), 0);
     s.execute<allocate>(exec::on, arag(a).get_elements().sizes());
     arag(a).get_elements().resize();

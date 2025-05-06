@@ -14,7 +14,7 @@ struct spec_setopo_t : topo::specialization<topo::set, spec_setopo_t> {
 
   using mesh_type = fixed_mesh;
 
-  static coloring color(mesh_type::slot * ptr) {
+  static coloring color(mesh_type::topology * ptr) {
 
     coloring c;
 
@@ -93,14 +93,13 @@ set_driver(scheduler & s) {
   UNIT() {
     using mesh_type = spec_setopo_t::mesh_type;
 
-    mesh_type::slot mesh_underlying;
+    mesh_type::ptr p;
     mesh_type::init fields;
-    spec_setopo_t::slot spec_setopo;
-
-    mesh_underlying.allocate(s,
+    auto & mesh_underlying = s.allocate(p,
       mesh_type::mpi_coloring(s, s.runtime(), "simple-4x4.fixed", 4, fields),
       fields);
-    spec_setopo.allocate(s, spec_setopo_t::mpi_coloring(s, &mesh_underlying));
+    spec_setopo_t::topology spec_setopo(
+      s, spec_setopo_t::mpi_coloring(s, &mesh_underlying));
 
     auto particle_t = particles(spec_setopo);
     s.execute<init_fields>(

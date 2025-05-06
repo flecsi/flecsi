@@ -36,10 +36,8 @@ void
 advance(control_policy & p) {
   auto & s = p.scheduler();
 
-  canon::slot canonical, cp;
   canon::mpi_coloring c(s, "test.txt");
-  canonical.allocate(s, c);
-  cp.allocate(s, c);
+  canon::topology canonical(s, c), cp(s, c);
 
   auto pf = pressure(canonical), pf2 = pressure(cp);
 

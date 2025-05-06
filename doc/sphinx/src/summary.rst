@@ -153,10 +153,9 @@ If ``L`` is ``raw``, the field is registered on the global FleCSI *context* with
 Otherwise, the ``definition`` recursively registers appropriate underlying fields (via specializations of the helper class templates ``field_base`` and ``field_register``).
 These types are defined in ``field.hh`` (but, as a principal name used by application code, ``field`` appears directly in the ``flecsi`` namespace).
 
-Topology objects are also caller-only; those at the top level are created by the class template ``topology_slot``.
-It defers the initialization of the topology instance, allowing it to be used as a member of a control policy object and be initialized by an action.
+Topology objects are also caller-only; special support for creating application-level instances is provided by ``scheduler::allocate``.
+Using ``specialization::ptr`` allows deferring the initialization of a topology instance that is a member of a control policy object until an appropriate action.
 It also provides a second phase of initialization that can be used to launch tasks operating on the new topology object.
-Because it operates entirely on dependent types, its header ``topology_slot.hh`` is near the leaves of the include graph.
 
 Topology objects are constructed from *colorings*, which are descriptions of the computational domain as ordinary C++ data rather than fields.
 For reasons of efficiency and interoperability, these are often constructed by special "MPI tasks" (described below).
@@ -195,7 +194,7 @@ Additionally, ``ragged`` mutators are implemented in terms of the same underlyin
 All these types are defined in ``accessor.hh``, but the (undefined) primary templates are declared in the lower-level ``field.hh``.
 
 Because the structural information about a topology is often necessary for using the physics fields defined on it, each topology defines a *topology accessor* type that packages accessors for the fields that hold that structural information (registered by the topology itself), further extending the hierarchy of composite accessors.
-Topology accessors are of course also task-only; a topology accessor parameter is matched by a topology slot argument.
+Topology accessors are of course also task-only; a topology accessor parameter is matched by a topology instance argument.
 The topology's ``access`` type is used wrapped in the ``topology_accessor`` class template defined in ``topology_accessor.hh``.
 
 To help specify the members of topology accessors, which typically are accessors for preselected fields, ``field.hh`` also defines the class template ``accessor_member`` that accepts (a reference to) the field as a template argument and automatically initializes the accessor with the correct field ID.

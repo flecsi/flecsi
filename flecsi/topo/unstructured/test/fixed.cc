@@ -114,9 +114,9 @@ rotate(Color n) {
 int
 fixed_driver(scheduler & s) {
   UNIT() {
-    fixed_mesh::slot mesh;
     fixed_mesh::init fields;
-    mesh.allocate(s,
+    fixed_mesh::ptr m;
+    auto & mesh = s.allocate(m,
       fixed_mesh::mpi_coloring(s, s.runtime(), "simple-4x4.fixed", 4, fields),
       fields);
 
@@ -132,8 +132,6 @@ fixed_driver(scheduler & s) {
     s.execute<init_density>(mesh, density(mesh));
     s.execute<update_density>(exec::on, mesh, density(mesh));
     s.execute<check_density>(exec::on, mesh, density(mesh));
-
-    std::swap(mesh, mesh);
   };
 }
 

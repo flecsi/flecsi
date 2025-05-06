@@ -29,7 +29,6 @@ enum single_space {
   elements ///< The single index space.
 };
 
-/// \cond core
 namespace detail {
 template<template<class> class>
 struct base;
@@ -52,22 +51,35 @@ struct with_cleanup {
   data::cleanup cleanup;
 };
 
+struct base : data::convert_tag {
+  base() = default;
+  base(base &&) = delete;
+};
+
 #ifdef DOXYGEN
+/// \if core
 /// An example topology base that is not really implemented.
-struct core_base {
+/// \endif
+struct core_base : base {
   /// The type, independent of specialization, from which the corresponding
   /// topology type is constructed.
   using coloring = std::nullptr_t;
 };
 
 /// An example core topology that is not really implemented.
+/// Pass to a task expecting a \c topology_accessor.
+/// \warning No topologies may exist outside of \c start or \c control.
+/// \if core
 /// \tparam P topology specialization, used here as a policy
+/// \endif
 template<class P>
 struct core : core_base { // with_ragged<P> is often another base class
+  /// \if core
   /// Default-constructible base for topology accessors. This struct
   /// provides the interface to the topology and can be used by a
   /// specialization developer to implement tailor-made methods
   /// needed by their applications.
+  /// \endif
   template<Privileges Priv>
   struct access {
     /// \see send_tag
@@ -77,9 +89,13 @@ struct core : core_base { // with_ragged<P> is often another base class
 
   /// A topology can be constructed from its \c coloring type.
   core(scheduler &, const coloring &);
+  /// Immovable<!-- typically and because of base -->.
+  core(core &&) = delete;
 
   /// Return the number of colors over which the topology is partitioned.
   Color colors() const;
+
+  /// \cond core
 
   /// Find the region for an index space.
   template<typename P::index_space>
@@ -101,15 +117,18 @@ struct core : core_base { // with_ragged<P> is often another base class
   template<class T, data::layout L, typename P::index_space S>
   [[nodiscard]] const data::copy_plan * ghost_copy(scheduler &,
     data::field_reference<T, L, P, S> const & f);
+
+  /// \endcond
 };
+/// \if core
 /// Each core topology type must register its base type.
+/// \endif
 template<>
 struct detail::base<core> {
   /// The base type.
   using type = core_base;
 };
 #endif
-/// \endcond
 
 /// Utilities and defaults for specializations.
 struct specialization_base {
@@ -163,7 +182,7 @@ struct specialization_base {
   /// \}
 
   /// Specializations cannot be constructed.
-  /// Use slots to create topology instances.
+  /// Create topology instances instead with \c specialization::topology.
   specialization_base() = delete;
 };
 /// Convenience base class for specialization class templates.
@@ -174,7 +193,12 @@ struct help : specialization_base {}; // intervening class avoids warnings
 /// \tparam D derived topology type
 template<template<class> class C, class D>
 struct specialization : specialization_base {
+  /// The topology instance type.
+  /// \see <code>\ref core</code>
   using topology = C<D>;
+  /// A (movable) unique pointer to the topology type.
+  /// \see scheduler::allocate
+  using ptr = std::unique_ptr<topology>;
   /// The core topology base type, which can provide specialization utilities.
   using base = base_t<C>;
   // This is just topology::coloring, but topology is incomplete here.
@@ -183,6 +207,7 @@ struct specialization : specialization_base {
   // NB: a nested class would prevent template argument deduction.
 
   /// The slot type for declaring topology instances.
+  /// \deprecated Use \c topology.
   using slot = data::topology_slot<D>;
   /// The slot type for holding a \c coloring object.
   /// \deprecated Use \c mpi_coloring.
@@ -217,7 +242,8 @@ struct specialization : specialization_base {
     data::coloring_slot<D> slot;
   };
 
-  /// The topology accessor to use as a parameter to receive a \c slot.
+  /// The topology accessor to use as a parameter to receive a topology
+  /// instance.
   /// \tparam Priv the appropriate number of privileges
   template<privilege... Priv>
   using accessor = data::topology_accessor<D, privilege_pack<Priv...>>;
@@ -248,13 +274,19 @@ struct specialization : specialization_base {
   ///
   /// This implementation does nothing.
   /// \param s the slot in which the topology has just been constructed
-  static void initialize(scheduler &, slot & s, coloring const &) {
+  /// \deprecated Use \c scheduler::allocate if desired.
+  static void initialize(slot & s, coloring const &) {
     (void)s;
   }
-#ifdef DOXYGEN
-  /// \deprecated Accept a \c scheduler first.
-  static void initialize(slot & s, coloring const &);
-#endif
+  /// Specialization-specific initialization.
+  /// Called by \c scheduler::allocate; specializations may specify
+  /// additional parameters to be supplied there.
+  ///
+  /// This implementation does nothing.
+  /// \param t the topology instance, just constructed
+  static void initialize(scheduler &, topology & t, coloring const &) {
+    (void)t;
+  }
   /// \}
 };
 

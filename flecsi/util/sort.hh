@@ -88,10 +88,12 @@ struct sort_base {
 protected:
   using hist_int_t = std::uint64_t;
 
-  sort_base(scheduler & s, std::size_t c) {
+  sort_base(scheduler & s, std::size_t c)
+    : transfer_t(s, std::vector<std::size_t>(c, 0)),
+      idx_t(s, std::vector<std::size_t>(c, 0)),
+      meta_t(s, std::vector<std::size_t>(c, 1)),
+      probes_t(s, std::vector<std::size_t>(c, 0)), intervals_t(s, {c, c - 1}) {
     colors = c;
-    std::vector<std::size_t> sizes(colors, 0);
-    probes_s.allocate(s, sizes);
   }
 
   struct min {
@@ -178,27 +180,24 @@ protected:
   static inline const field<int>::definition<topo::global> copy_g_f;
   static inline const field<std::size_t>::definition<topo::global> sizes_g_f;
 
-  topo::global::slot hist_g_s;
-  topo::global::slot copy_g_s;
-  topo::global::slot sizes_g_s;
+  topo::global::ptr hist_g_p, copy_g_p, sizes_g_p;
 
   struct sort_array_type {};
 
   using sort_array_t = topo::array<sort_array_type>;
 
   // Transfer indices
-  sort_array_t::slot transfer_s;
+  sort_array_t::topology transfer_t;
   const static inline field<std::size_t>::definition<sort_array_t> transfer_f;
 
   // Indices for the sort
-  sort_array_t::slot idx_s;
+  sort_array_t::topology idx_t;
   const static inline field<std::size_t>::definition<sort_array_t> indices_f;
 
-  sort_array_t::slot meta_s;
-  sort_array_t::slot probes_s;
+  sort_array_t::topology meta_t, probes_t;
 
   struct sort_color : topo::specialization<topo::color, sort_color> {};
-  sort_color::slot intervals_s;
+  sort_color::topology intervals_t;
 
   static inline std::size_t colors = 1;
 
@@ -568,17 +567,8 @@ public:
     : sort::sort_privilege(s, fr.topology().colors()), sched(&s), values(fr),
       epsilon(eps),
       lm_probes(data::launch::make(s,
-        sort::probes_s,
+        sort::probes_t,
         data::launch::gather(sort_base::colors, sort_base::colors))) {
-
-    std::vector<std::size_t> sizes(sort_base::colors, 0);
-    sort::idx_s.allocate(s, sizes);
-    sort::transfer_s.allocate(s, sizes);
-    std::fill(sizes.begin(), sizes.end(), 1);
-    sort::meta_s.allocate(s, sizes);
-    std::fill(sizes.begin(), sizes.end(), sort_base::colors - 1);
-    sort::intervals_s.allocate(s, {sort_base::colors, sort_base::colors - 1});
-
     // Fields ignored for copies
     ignored_fields.insert(ignored_fields.end(),
       {values.fid(),
@@ -601,12 +591,12 @@ public:
     auto & tt = values.topology();
 
     // Global sizes
-    sort::sizes_g_s.allocate(*sched, sort_base::colors);
+    sched->allocate(sort::sizes_g_p, sort_base::colors);
     sched->execute<sort_base::init_sizes_task>(
-      sort::sizes_g_f(sort::sizes_g_s));
+      sort::sizes_g_f(*sort::sizes_g_p));
     // Copy area
-    sort::copy_g_s.allocate(*sched, sort_base::colors * sort_base::colors);
-    sched->execute<sort_base::init_copy_task>(sort::copy_g_f(sort::copy_g_s));
+    sched->allocate(sort::copy_g_p, sort_base::colors * sort_base::colors);
+    sched->execute<sort_base::init_copy_task>(sort::copy_g_f(*sort::copy_g_p));
 
     std::vector<std::size_t> sizes(sort_base::colors, 0);
 
@@ -614,19 +604,19 @@ public:
     auto fm_tsizes = sched->reduce<sort::size_task, exec::fold::sum>(values);
     // Resize the index array to fit the values
     sched->execute<sort::copy_sizes_task>(
-      sort::idx_s->sizes(), tt.template get_partition<space>().sizes());
-    sort::idx_s->resize();
+      sort::idx_t.sizes(), tt.template get_partition<space>().sizes());
+    sort::idx_t.resize();
 
     // Local sort
     sched->execute<sort::sort_values_task>(
-      values, sort::indices_f(sort::idx_s));
+      values, sort::indices_f(sort::idx_t));
     // apply this displacement to all other fields
     // Apply the copy plan on all fields
     for(auto & af : apply_fields) {
       auto fr = data::field_reference<std::byte, data::raw, topology, space>(
         af->fid, tt);
       sched->execute<sort::sort_others_task>(
-        fr, sort::indices_f(sort::idx_s), af->type_size);
+        fr, sort::indices_f(sort::idx_t), af->type_size);
     }
 
     // Check if the array is already sorted
@@ -643,11 +633,11 @@ public:
     }
 
     // Init meta data
-    auto meta_fh = sort::meta_f(sort::meta_s);
+    auto meta_fh = sort::meta_f(sort::meta_t);
     sched->execute<sort::init_meta_task>(values, meta_fh);
 
     // Init intervals using the values (local min/max)
-    auto intervals_fh = sort::intervals_f(sort::intervals_s);
+    auto intervals_fh = sort::intervals_f(sort::intervals_t);
     auto fm_min =
       sched->reduce<sort::reduce_min_meta_task, sort_base::min>(meta_fh);
     auto fm_max =
@@ -665,7 +655,7 @@ public:
         sched
           ->reduce<sort::template probes_task<true>, exec::fold::sum>(exec::on,
             values,
-            sort::probes_s->sizes(),
+            sort::probes_t.sizes(),
             intervals_fh,
             tsizes,
             i,
@@ -675,12 +665,12 @@ public:
       if(totalprobes == 0)
         continue;
       // Resize probes array
-      sort::probes_s->resize();
+      sort::probes_t.resize();
 
       // Sample probes
       sched->execute<sort::template probes_task<false>>(exec::on,
         values,
-        sort::probes_f(sort::probes_s),
+        sort::probes_f(sort::probes_t),
         intervals_fh,
         tsizes,
         i,
@@ -688,8 +678,8 @@ public:
         epsilon);
       // Allocate histogram
       // Should not allocate but resize.
-      sort::hist_g_s.allocate(*sched, totalprobes + 1);
-      auto hist_fh = sort::hist_g_f(sort::hist_g_s);
+      sched->allocate(sort::hist_g_p, totalprobes + 1);
+      auto hist_fh = sort::hist_g_f(*sort::hist_g_p);
       sched->execute<sort::init_hist_task>(hist_fh);
 
       sched->execute<sort::histo_task>(
@@ -699,16 +689,16 @@ public:
         intervals_fh, hist_fh, sort::probes_f(lm_probes), tsizes);
     } // for
 
-    auto sizes_fh = sort::sizes_g_f(sort::sizes_g_s);
-    auto copy_fh = sort::copy_g_f(sort::copy_g_s);
+    auto sizes_fh = sort::sizes_g_f(*sort::sizes_g_p);
+    auto copy_fh = sort::copy_g_f(*sort::copy_g_p);
     // Transfer array (destination of the entities)
     // Need to be of the same size as the array of values to sort
-    auto transfer_fh = sort::transfer_f(sort::transfer_s);
+    auto transfer_fh = sort::transfer_f(sort::transfer_t);
     // Copy the same sizes as the topology
     sched->execute<sort::copy_sizes_task>(
-      sort::transfer_s->sizes(), tt.template get_partition<space>().sizes());
+      sort::transfer_t.sizes(), tt.template get_partition<space>().sizes());
     // Apply resize
-    sort::transfer_s->resize();
+    sort::transfer_t.resize();
 
     // Init transfer: who goes where from initial values + reduce sizes
     sched->execute<sort::update_transfer_task>(
@@ -721,8 +711,8 @@ public:
       exec::on, tt.template get_partition<space>().sizes(), copy_fh, meta_fh);
     tt.template get_partition<space>().resize();
     sched->execute<sort::update_sizes_task>(
-      exec::on, sort::idx_s->sizes(), copy_fh, meta_fh);
-    sort::idx_s->resize();
+      exec::on, sort::idx_t.sizes(), copy_fh, meta_fh);
+    sort::idx_t.resize();
 
     sched->execute<sort::fake_initialize>(values);
     for(auto & af : apply_fields) {
@@ -753,13 +743,13 @@ public:
 
     // 1 Apply sort on values and keep track of changes
     sched->execute<sort::reorder_values_task>(
-      exec::on, values, intervals_fh, sort::indices_f(sort::idx_s));
+      exec::on, values, intervals_fh, sort::indices_f(sort::idx_t));
 
     for(auto & af : apply_fields) {
       auto fr = data::field_reference<std::byte, data::raw, topology, space>(
         af->fid, tt);
       sched->execute<sort::reorder_other_task>(
-        fr, sort::indices_f(sort::idx_s), af->type_size);
+        fr, sort::indices_f(sort::idx_t), af->type_size);
     }
 
     // Resize
@@ -767,8 +757,8 @@ public:
       exec::on, tt.template get_partition<space>().sizes(), sizes_fh);
     tt.template get_partition<space>().resize();
     sched->execute<sort::update_sizes_copy_task>(
-      exec::on, sort::idx_s->sizes(), sizes_fh);
-    sort::idx_s->resize();
+      exec::on, sort::idx_t.sizes(), sizes_fh);
+    sort::idx_t.resize();
 
     sched->execute<sort::fake_initialize>(values);
     for(auto & af : apply_fields) {
@@ -778,13 +768,13 @@ public:
     }
 
     sched->execute<sort::sort_values_task>(
-      values, sort::indices_f(sort::idx_s));
+      values, sort::indices_f(sort::idx_t));
 
     for(auto & af : apply_fields) {
       auto fr = data::field_reference<std::byte, data::raw, topology, space>(
         af->fid, tt);
       sched->execute<sort::sort_others_task>(
-        fr, sort::indices_f(sort::idx_s), af->type_size);
+        fr, sort::indices_f(sort::idx_t), af->type_size);
     }
   } // sort
 

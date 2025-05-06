@@ -119,6 +119,16 @@ scheduler::test(AA &&... aa) {
   return reduce<V, exec::fold::sum>(std::forward<AA>(aa)...).get();
 }
 
+template<class T, class... AA>
+auto &
+scheduler::allocate(std::unique_ptr<T> & p,
+  const typename T::coloring & c,
+  AA &&... aa) {
+  p = std::make_unique<T>(*this, c);
+  topo::policy_t<T>::initialize(*this, *p, c, std::forward<AA>(aa)...);
+  return *p;
+}
+
 // To avoid compile- and runtime recursion, only user tasks trigger logging.
 template<auto & Task,
   class Reduction,
