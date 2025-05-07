@@ -14,14 +14,7 @@ using namespace flecsi;
 int
 log_driver() {
   UNIT() {
-    {
-      std::vector<std::size_t> v;
-      for(std::size_t i{0}; i < 10; ++i) {
-        v.emplace_back(i);
-      }
-
-      EXPECT_EQ(flog::to_string(v), "[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]");
-    }
+    EXPECT_EQ(flog::to_string(std::vector<bool>{false, true}), "[0, 1]");
 
     {
       std::vector<std::vector<std::size_t>> v;
