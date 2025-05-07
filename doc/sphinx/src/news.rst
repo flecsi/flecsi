@@ -39,6 +39,7 @@ Fixed
 
 * Legion backend
 
+  * ``std::vector<bool>`` can be used as a task parameter.
   * Unit tests work without Kokkos but with OpenMP.
 
 * Utilities

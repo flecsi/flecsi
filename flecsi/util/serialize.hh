@@ -166,7 +166,7 @@ struct container {
   template<class P>
   static void put(P & p, const T & c) {
     serial::put(p, c.size());
-    for(auto & t : c)
+    for(const typename T::value_type & t : c)
       serial::put(p, t);
   }
   static T get(const std::byte *& p) {
