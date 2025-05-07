@@ -23,7 +23,7 @@ poisson::task::red(exec::accelerator s,
                  dx_over_dy * (u[j + 1][i] + u[j - 1][i]));
     } // for
   }; // forall
-  // clang format on
+  // clang-format on
 } // smooth
 
 void
@@ -47,5 +47,5 @@ poisson::task::black(exec::accelerator s,
                  dx_over_dy * (u[j + 1][i] + u[j - 1][i]));
     } // for
   }; // forall
-  // clang format on
+  // clang-format on
 } // smooth

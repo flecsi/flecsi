@@ -16,7 +16,7 @@ sanity(flecsi::scheduler &) {
     std::vector<std::byte> data;
 
     {
-      std::vector<double> v{0.0, 1.0, 2.0, 3.0, 4.0};
+      std::vector<bool> v{false, true};
       std::map<size_t, size_t> m{{0, 1}, {1, 0}};
       std::unordered_map<size_t, size_t> um{{2, 1}, {3, 2}};
       std::set<size_t> s{0, 1, 2, 3, 4};
@@ -27,12 +27,9 @@ sanity(flecsi::scheduler &) {
     {
       const auto * p = data.data();
 
-      const auto v = serial::get<std::vector<double>>(p);
-      ASSERT_EQ(v[0], 0.0);
-      ASSERT_EQ(v[1], 1.0);
-      ASSERT_EQ(v[2], 2.0);
-      ASSERT_EQ(v[3], 3.0);
-      ASSERT_EQ(v[4], 4.0);
+      const auto v = serial::get<std::vector<bool>>(p);
+      ASSERT_FALSE(v[0]);
+      ASSERT_TRUE(v[1]);
 
       const auto m = serial::get<std::map<size_t, size_t>>(p);
       ASSERT_EQ(m.at(0), 1u);
@@ -49,6 +46,12 @@ sanity(flecsi::scheduler &) {
       ASSERT_NE(s.find(3), s.end());
       ASSERT_NE(s.find(4), s.end());
     } // scope
+
+    {
+      const auto ff = mpi::all_gatherv(true);
+      EXPECT_FALSE(ff.empty());
+      EXPECT_EQ(std::find(ff.begin(), ff.end(), false), ff.end());
+    }
   };
 } // sanity
 

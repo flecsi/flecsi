@@ -403,9 +403,6 @@ this:
 
 Try
 
-* passing ``--help`` to ``flaxpy`` to view the supported command-line
-  options,
-
 * passing ``--length=2000000`` to ``flaxpy`` to run DAXPY on a vector
   that is twice as long as the default,
 
