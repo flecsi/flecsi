@@ -35,6 +35,7 @@ Fixed
 ^^^^^
 * Data
 
+  * ``field<bool, data::ragged>::mutator`` works.
   * The ``particle`` layout works on the ``global`` topology.
 
 * Legion backend
