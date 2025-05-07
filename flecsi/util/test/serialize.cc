@@ -46,6 +46,12 @@ sanity() {
       ASSERT_NE(s.find(3), s.end());
       ASSERT_NE(s.find(4), s.end());
     } // scope
+
+    {
+      const auto ff = mpi::all_gatherv(true);
+      EXPECT_FALSE(ff.empty());
+      EXPECT_EQ(std::find(ff.begin(), ff.end(), false), ff.end());
+    }
   };
 } // sanity
 
