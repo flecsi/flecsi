@@ -114,11 +114,9 @@ private:
   }
 
   template<class P, class A>
-  void visit(std::vector<P> & pv, const std::vector<A> & av) {
-    // av has been moved from only when the type is uninteresting.
-    flog_assert(
-      pv.size() == av.size() || (!detail::must_convert<A>::value && av.empty()),
-      "parameter/argument count mismatch");
+  std::enable_if_t<detail::must_convert<A>::value> visit(std::vector<P> & pv,
+    const std::vector<A> & av) {
+    flog_assert(pv.size() == av.size(), "parameter/argument count mismatch");
     P * p = pv.data();
     for(auto & a : av)
       visit(*p++, a);

@@ -198,6 +198,7 @@ protected:
     for(auto & t : v)
       d().visit(t);
   }
+  void visit(std::vector<bool> &) {}
   template<class... TT>
   void visit(std::tuple<TT...> & t) {
     std::apply(
@@ -679,8 +680,9 @@ struct launch<std::vector<P>, std::vector<A>> {
   using type = decltype(launch<P, A>::get(std::declval<A>()));
   static type get(const std::vector<A> & v) {
     launch_combine ret{type()};
-    for(auto & a : v)
-      ret = ret | launch_combine(launch<P, A>::get(a));
+    if constexpr(!std::is_same_v<A, bool>)
+      for(auto & a : v)
+        ret = ret | launch_combine(launch<P, A>::get(a));
     return ret.value();
   }
 };
