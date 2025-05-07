@@ -23,6 +23,9 @@ const intN::definition<topo::index> verts_field, ghost_field;
 using double_at = field<double, sparse>;
 const double_at::definition<topo::index> vfrac_field;
 
+using boolN = field<bool, ragged>;
+const boolN::definition<topo::index> bool_field;
+
 struct trivial_array : topo::specialization<topo::user, trivial_array> {};
 
 using short_part = field<short, particle>;
@@ -95,6 +98,17 @@ assign(exec::cpu s,
   r[0].back() = 1;
   ++sp[0](column + i);
 } // assign
+
+int
+binit(boolN::mutator<wo> m) noexcept {
+  UNIT() {
+    const auto r = m[0];
+    r.resize(1);
+    bool & b = r[0];
+    EXPECT_FALSE(b);
+    r.erase(r.begin());
+  };
+}
 
 std::size_t
 reset(noisy::accessor<wo> a) noexcept { // must be an MPI task for correct total
@@ -262,6 +276,7 @@ index_driver(scheduler & s) {
     }
     EXPECT_EQ(s.test<drows>(exec::on, vfrac), 0);
     s.execute<assign>(exec::on, pressure, verts, vfrac);
+    EXPECT_EQ(s.test<binit>(bool_field(pt)), 0);
     s.execute<reset>(noise);
     EXPECT_EQ((reduce<reset, exec::fold::sum, flecsi::mpi>(noise).get()), np);
     execute<use_ptr, flecsi::mpi>(ptr_field(pt));

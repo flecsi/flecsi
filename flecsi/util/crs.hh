@@ -20,12 +20,6 @@ namespace util {
 /// \addtogroup utils
 /// \{
 
-template<typename T, typename U>
-std::vector<T>
-as(std::vector<U> const & v) {
-  return {v.begin(), v.end()};
-} // as
-
 /// Efficient (compressed-row) storage for a sequence of sequences of
 /// integers.  There are no constraints on the size or contents of either
 /// the sequences or sequences of sequences: sequences can be different

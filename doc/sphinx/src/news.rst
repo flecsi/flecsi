@@ -144,16 +144,19 @@ Fixed
 ^^^^^
 * Data
 
+  * ``field<bool, data::ragged>::mutator`` works.
   * The ``particle`` layout works on the ``global`` topology.
 
 * Legion backend
 
+  * ``std::vector<bool>`` can be used as a task parameter.
   * Unit tests work without Kokkos but with OpenMP.
 
 * Utilities
 
   * MPI collective helpers make use of MPI-4 large count support when available.
     Overflows due to MPI-3 restrictions are trapped.
+  * ``mpi::all_gatherv`` works with ``bool``.
 
 Changes in v2.3.2 (March 11 2025)
 +++++++++++++++++++++++++++++++++
