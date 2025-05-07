@@ -733,7 +733,7 @@ std::vector<T>
 all_gatherv(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = info(comm);
   std::vector<T> result;
-  if constexpr(bit_copyable_v<T>) {
+  if constexpr(bit_copyable_v<T> && !std::is_same_v<T, bool>) {
     const auto typ = type<T>();
     result.resize(size);
     test(MPI_Allgather(&t, 1, typ, result.data(), 1, typ, comm));

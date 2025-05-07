@@ -79,6 +79,23 @@ destroy(const field_reference<T, L, Topo, S> & r) {
 }
 template<class T, Privileges P>
 using element_t = std::conditional_t<privilege_write(P), T, const T>;
+
+struct Bool {
+  Bool(bool b = false) noexcept : b(b) {}
+  operator bool &() noexcept {
+    return b;
+  }
+  operator const bool &() const noexcept {
+    return b;
+  }
+
+  template<class T>
+  using maybe = std::conditional_t<std::is_same_v<T, bool>, Bool, T>;
+
+private:
+  bool b;
+};
+
 template<class T, Privileges P, bool M>
 using particle_raw =
   typename field<T, data::particle>::base_type::template accessor1<
@@ -405,7 +422,7 @@ struct mutator<ragged, T, P>
 
   struct Overflow {
     size_type del;
-    std::vector<T> buffer;
+    std::vector<detail::Bool::maybe<T>> buffer;
   };
 
   using TaskBuffer = std::vector<Overflow>;
@@ -426,7 +443,9 @@ private:
 
     T & operator[](size_type i) const noexcept {
       assert(i < size() && "index out of range");
-      return i < span.size() ? span[i] : overflow->buffer[i - span.size()];
+      if(i < span.size())
+        return span[i];
+      return overflow->buffer[i - span.size()];
     }
 
     size_type size() const noexcept {
