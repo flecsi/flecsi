@@ -263,6 +263,10 @@ check_parameters() {
       ((!std::is_pointer_v<PP> || std::is_const_v<std::remove_pointer_t<PP>> ||
         std::is_function_v<std::remove_pointer_t<PP>>)&&...),
       "only MPI tasks can accept non-const pointers");
+    static_assert((std::is_move_constructible_v<std::decay_t<PP>> && ...),
+      "only MPI tasks can accept non-movable parameters");
+    static_assert((std::is_copy_constructible_v<PP> && ...),
+      "only MPI tasks can accept non-copyable parameters by value");
   }
   static_assert((!detail::bad_accessor<M, std::decay_t<PP>> && ...),
     "only MPI tasks without ghosts can accept non-portable field accessors");
@@ -421,7 +425,7 @@ struct agent : executor_base<agent<S>> {
 };
 
 /// An execution space.
-struct space_base : data::bind_tag {
+struct space_base : data::bind_tag, data::convert_tag {
   /// Information about an index launch.
   struct tasks {
     Color size, ///< Number of point tasks launched.

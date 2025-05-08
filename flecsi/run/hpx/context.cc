@@ -91,18 +91,17 @@ context_t::termination_detection() {
 } // namespace flecsi::run
 
 namespace flecsi::detail {
+namespace {
+void
+storage(task_local_data * p) noexcept {
+  ::hpx::threads::set_thread_data(
+    ::hpx::threads::get_outer_self_id(), reinterpret_cast<std::size_t>(p));
+}
+} // namespace
 
 void
 create_storage() {
-  auto * stg = storage();
-  if(stg == nullptr) {
-    // first creation of thread local storage
-    ::hpx::threads::set_thread_data(::hpx::threads::get_outer_self_id(),
-      reinterpret_cast<std::size_t>(new task_local_data()));
-  }
-  else {
-    ++stg->count;
-  }
+  storage(new task_local_data());
 }
 
 task_local_data *
@@ -113,11 +112,7 @@ storage() noexcept {
 
 void
 reset_storage() noexcept {
-  auto * stg = storage();
-  flog_assert(stg != nullptr, "thread local storage should still exist");
-  if(--stg->count == 0) {
-    ::hpx::threads::set_thread_data(::hpx::threads::get_outer_self_id(), 0);
-    delete stg;
-  }
+  delete storage();
+  storage(nullptr);
 }
 } // namespace flecsi::detail

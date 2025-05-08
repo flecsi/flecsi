@@ -293,8 +293,8 @@ private:
       plan_{{make_copy_plan<CI>(s, c.colors(), c.idx_colorings[index<CI>])...}},
       ragged_buffers_{{data::buffers::topology(s,
         meta_data::peers(c.idx_colorings[index<CI>]))...}} {
-    auto lm = data::launch::make(s, this->meta);
-    execute<set_meta<Value...>, mpi>(meta_field(lm), c);
+    execute<set_meta<Value...>, mpi>(
+      meta_field(data::launch::make(s, this->meta)), c);
     (
       [&] { // Sanity checks for indexes spaces for which privilege count is 1
         if(Policy::template privilege_count<Value> == 1) {

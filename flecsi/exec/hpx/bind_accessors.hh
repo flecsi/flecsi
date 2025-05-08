@@ -88,9 +88,6 @@ protected:
         comm.gen());
 
       return fut.then(::hpx::launch::sync, [storage](auto && fut) {
-        // manage task_local variables for this task
-        run::task_local_base::guard tlg;
-
         auto && data = fut.get();
         flog_assert(data.size() == storage.size(),
           "received size of data must be the same as the storage size");

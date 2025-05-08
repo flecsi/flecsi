@@ -357,6 +357,11 @@ struct field : data::detail::field_base<T, L> {
       data::launch::mapping<Topo> & m) const {
       return {this->fid, m};
     }
+    /// \overload
+    data::multi_reference<T, L, Topo, Space> operator()(
+      data::launch::mapping<Topo> && m) const {
+      return (*this)(m);
+    }
   };
 
   /// Fields cannot be constructed.  Use \c definition instead.

@@ -84,6 +84,7 @@ New features
 
   * Mutators support tracing.
   * ``privilege`` is the new name of ``partition_privilege_t``.
+  * Launch map rvalues can be used to create field references.
 
 * Execution
 
@@ -107,6 +108,7 @@ New features
     * ``scheduler::allocate`` fills in a ``ptr`` and calls ``specialization::initialize`` (which is not otherwise auomatic) with the ``scheduler`` and new topology instance.
 
   * ``narray`` specializations need not define ``dimension``.
+  * ``unstructured_base::peer_entities`` is a new type alias for convenience.
   * ``unstructured_base::coloring::index_space`` can be initialized without ``entities``, which is unused.
 
 * HPX backend
