@@ -425,7 +425,7 @@ struct agent : executor_base<agent<S>> {
 };
 
 /// An execution space.
-struct space_base : data::bind_tag {
+struct space_base : data::bind_tag, data::convert_tag {
   /// Information about an index launch.
   struct tasks {
     Color size, ///< Number of point tasks launched.
