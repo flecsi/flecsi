@@ -106,6 +106,7 @@ New features
     * They are of the type ``specialization::topology``, which (unlike ``topology_slot``) is immovable.
     * ``specialization::ptr`` is the appropriate ``std::unique_ptr`` type to hold a topology instance; like the deprecated ``topology_slot``, it is movable and can defer initialization.
     * ``scheduler::allocate`` fills in a ``ptr`` and calls ``specialization::initialize`` (which is not otherwise auomatic) with the ``scheduler`` and new topology instance.
+    * ``get`` and ``operator->`` in ``topology_slot`` access the topology instance.
 
   * ``narray`` specializations need not define ``dimension``.
   * ``unstructured_base::peer_entities`` is a new type alias for convenience.
