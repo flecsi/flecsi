@@ -10,7 +10,7 @@
 #include "flecsi/run/context.hh"
 #include "flecsi/util/constant.hh"
 
-#include <optional>
+#include <memory>
 
 namespace flecsi {
 namespace data {
@@ -35,7 +35,7 @@ struct topology_slot : convert_tag {
   /// \param aa further specialization-specific parameters
   template<typename... AA>
   topology & allocate(scheduler & s, const coloring & c, AA &&... aa) {
-    data.emplace(s, c);
+    data = std::make_unique<topology>(s, c);
     Topo::initialize(*this, c, std::forward<AA>(aa)...);
     // TODO:  fix issues with automatic register
     // run::context::instance().add_topology<Topo>(*this);
@@ -56,7 +56,7 @@ struct topology_slot : convert_tag {
 
   /// Return whether or not this slot is allocated.
   bool is_allocated() const {
-    return data.has_value();
+    return !!data;
   }
 
   /// Get the topology instance, which must exist.
@@ -82,7 +82,7 @@ struct topology_slot : convert_tag {
   }
 
 private:
-  util::move_optional<topology> data;
+  typename Topo::ptr data;
 }; // struct topology_slot
 
 /// \}
