@@ -4,14 +4,9 @@
 #ifndef FLECSI_EXEC_MPI_TASK_PROLOGUE_HH
 #define FLECSI_EXEC_MPI_TASK_PROLOGUE_HH
 
-#include "flecsi/config.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/exec/mpi/future.hh"
-#include "flecsi/util/demangle.hh"
-
-#include <mpi.h>
-
-#include <memory>
+#include "flecsi/util/mpi.hh"
 
 namespace flecsi {
 namespace topo {
