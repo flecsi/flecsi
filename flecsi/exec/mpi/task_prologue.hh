@@ -55,14 +55,11 @@ protected:
     constexpr bool glob =
       std::is_same_v<typename Topo::base, topo::global_base>;
 
-    // Perform ghost copy using host side storage. This might copy data
-    // from the device side first.
     if constexpr(glob) {
       if(t.template get_region<Space>()
            .template ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
         const auto bcast = [&](auto root) {
-          // This is a special case of ghost_copy thus we need the storage
-          // in HostSpace rather than ExecutionSpace.
+          // This "ghost copy" is implemented only for the host:
           auto host_storage = t->template get_storage<T, (root ? ro : wo)>(f);
           util::mpi::test(MPI_Bcast(const_cast<T *>(host_storage.data()),
             host_storage.size(),
