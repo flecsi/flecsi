@@ -1,5 +1,6 @@
 flecsi_headers(
   backend.hh
+  bind_parameters.hh
   buffers.hh
   fold.hh
   fwd.hh
