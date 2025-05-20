@@ -402,6 +402,8 @@ private:
   size_t nelems = 0;
 };
 
+using storages = std::vector<std::variant<region_impl *, partition *>>;
+
 } // namespace mpi
 
 // This type must be defined outside of namespace mpi to support

@@ -6,6 +6,7 @@
 
 #include "flecsi/config.hh"
 #include "flecsi/data/privilege.hh"
+#include "flecsi/exec/launch.hh"
 
 #include <tuple>
 
@@ -13,7 +14,7 @@
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include "flecsi/exec/leg/bind_accessors.hh"
 #elif FLECSI_BACKEND == FLECSI_BACKEND_mpi
-#error "The MPI backend has no need for bind_accessors"
+#include "flecsi/exec/prolog.hh"
 #endif
 
 /// \cond core

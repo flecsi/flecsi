@@ -24,9 +24,9 @@ if(FLECSI_BACKEND STREQUAL "legion")
 elseif(FLECSI_BACKEND STREQUAL "mpi")
   flecsi_headers(
     mpi/future.hh
+    mpi/params.hh
     mpi/policy.hh
     mpi/reduction_wrapper.hh
-    mpi/task_prologue.hh
     mpi/tracer.hh
   )
 elseif(FLECSI_BACKEND STREQUAL "hpx")

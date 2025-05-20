@@ -41,7 +41,7 @@ private:
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include "flecsi/exec/leg/task_prologue.hh"
 #elif FLECSI_BACKEND == FLECSI_BACKEND_mpi
-#include "flecsi/exec/mpi/task_prologue.hh"
+#include "flecsi/exec/mpi/params.hh"
 #endif
 
 /// \cond core
