@@ -6,9 +6,7 @@
 
 #include "flecsi/exec/fwd.hh"
 #include "flecsi/flog.hh"
-#include "flecsi/run/backend.hh"
-#include "flecsi/run/context.hh"
-#include "flecsi/util/constant.hh"
+#include "flecsi/util/types.hh" // Color
 
 #include <memory>
 
@@ -37,9 +35,6 @@ struct topology_slot : convert_tag {
   topology & allocate(scheduler & s, const coloring & c, AA &&... aa) {
     data = std::make_unique<topology>(s, c);
     Topo::initialize(*this, c, std::forward<AA>(aa)...);
-    // TODO:  fix issues with automatic register
-    // run::context::instance().add_topology<Topo>(*this);
-
     return get();
   }
   /// \deprecated Pass a \c scheduler.
