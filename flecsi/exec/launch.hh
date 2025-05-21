@@ -31,9 +31,7 @@ struct bind_tag {};
 /// itself accepts a callback that, on the caller side only, is used to
 /// transform the task arguments.  Those task arguments may include
 /// borrow_category versions of the underlying topologies and field references
-/// to such versions.  The MPI backend handles both sides (for a single
-/// argument/parameter) in a single pass, transforming the arguments and
-/// initializing the (single copy of the) parameters immediately.
+/// to such versions.
 struct send_tag {};
 /// \endcond
 

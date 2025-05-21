@@ -180,8 +180,7 @@ private:
   base_type base;
 }; // struct accessor
 
-/// Accessor for computing reductions. This class is supported for GPU
-/// execution.
+/// Accessor for computing reductions.  \gpu.
 /// Name via \c field::reduction.
 /// Usable only with the global topology.  Pass a normal \c field_reference.
 /// The previous field value contributes to the result.
