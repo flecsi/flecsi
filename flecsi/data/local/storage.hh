@@ -9,14 +9,13 @@
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/mpi.hh"
 
-#include <Kokkos_DualView.hpp>
+#include <Kokkos_Core.hpp>
 
 #include <cstddef>
 #include <numeric>
 #include <unordered_map>
 #include <utility>
 #include <variant>
-#include <vector>
 
 namespace flecsi {
 namespace data {
