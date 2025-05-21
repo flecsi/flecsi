@@ -4,6 +4,7 @@
 #ifndef FLECSI_EXEC_MPI_POLICY_HH
 #define FLECSI_EXEC_MPI_POLICY_HH
 
+#include "flecsi/exec/bind_parameters.hh"
 #include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/launch.hh"
 #include "flecsi/exec/mpi/future.hh"
@@ -47,11 +48,8 @@ reduce_internal(Args &&... args) {
   auto task_name = util::symbol<F>();
   auto finalize = param_buffers{params, task_name};
 
-  // Now we have accessors, we need to bind the accessor to real memory
-  // for the data field. We also need to patch up default conversion
-  // from args to params, especially for the future<>. Ghost copy for
-  // the fields is also done in the prolog.
-  const prolog<proc> pr(params, args...);
+  prolog<proc> pr(params, args...);
+  bind_parameters<proc> bp(params, std::move(pr.storage));
 
   run::context_t::depth_guard rg;
   run::task_local_base::guard tlg;

@@ -12,7 +12,6 @@
 #include "flecsi/data/hpx/copy.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"
-#include "flecsi/exec/hpx/bind_accessors.hh"
 #include "flecsi/exec/hpx/future.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/demangle.hh"
@@ -84,14 +83,12 @@ protected:
     }
     else if(t.template get_region<Space>()
               .template ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
-      // Create a new task that performs the required ghost-copy and make the
+      // Perform the required "ghost copy" on the host and make the
       // task currently being created depend on the results of the ghost-copy
       // operation.
       data::init_delayed_ghost_copy(
         field, field, [r = t.share(), f](run::communicator & comm) mutable {
           using data_type = ::hpx::serialization::serialize_buffer<T>;
-          // This is a special case of ghost_copy thus we need the storage in
-          // HostSpace rather than ExecutionSpace.
           using namespace ::hpx::collectives;
           if(comm.comm().is_root()) {
             auto host_storage = r->template get_storage<T>(f);
@@ -213,7 +210,7 @@ private:
   std::vector<data::backend_storage *> read, write;
 
   // collect regions and partitions each of the arguments is associated with
-  std::vector<region_or_partition> regions_partitions;
+  data::local::storages regions_partitions;
   bool need_comm = false;
 };
 
