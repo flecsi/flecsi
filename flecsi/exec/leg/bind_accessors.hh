@@ -15,10 +15,9 @@
 
 #include <memory>
 
-namespace flecsi {
+namespace flecsi::exec {
 /// \addtogroup legion-execution
 /// \{
-namespace exec {
 
 /*!
   The bind_accessors type is called to walk the user task arguments inside of
@@ -106,7 +105,6 @@ private:
 }; // struct bind_accessors
 
 /// \}
-} // namespace exec
-} // namespace flecsi
+} // namespace flecsi::exec
 
 #endif

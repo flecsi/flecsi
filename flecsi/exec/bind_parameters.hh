@@ -7,18 +7,15 @@
 #include "flecsi/config.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/exec/launch.hh"
-#include "flecsi/flog.hh"
 #include "flecsi/util/annotation.hh"
-#include "flecsi/util/demangle.hh"
 
-#include <functional>
 #include <tuple>
 
 // bind_accessors is implemented per backend:
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include "flecsi/exec/leg/bind_accessors.hh"
 #elif FLECSI_BACKEND == FLECSI_BACKEND_mpi
-#error "The MPI backend has no need for bind_accessors"
+#include "flecsi/exec/prolog.hh"
 #elif FLECSI_BACKEND == FLECSI_BACKEND_hpx
 #include "flecsi/exec/hpx/bind_accessors.hh"
 #endif
@@ -39,6 +36,9 @@ protected:
   /// Send a raw field reference to a raw accessor.
   template<typename T, Privileges P>
   void visit(data::accessor<data::raw, T, P> &);
+  /// Send a global field reference to a reduction accessor.
+  template<class R, typename T>
+  void visit(data::reduction_accessor<R, T> &);
 };
 #endif
 

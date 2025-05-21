@@ -25,10 +25,6 @@
 namespace flecsi {
 namespace exec {
 
-using region_or_partition =
-  std::variant<std::shared_ptr<data::local::region_impl>,
-    std::shared_ptr<data::local::partition_impl>>;
-
 /*!
   The bind_accessors type is called to walk the user task arguments inside of an
   executing HPX task to properly complete the users accessors, i.e., by pointing
@@ -39,7 +35,7 @@ using region_or_partition =
 template<processor Proc>
 struct bind_accessors {
   explicit bind_accessors(run::communicator * comm,
-    std::vector<region_or_partition> & regions_partitions)
+    data::local::storages & regions_partitions)
     : comm(comm), regions_partitions(regions_partitions) {}
 
 protected:
@@ -117,7 +113,7 @@ private:
   std::size_t argument = 0;
 
   // regions_partitions is held alive by the task
-  std::vector<region_or_partition> & regions_partitions;
+  data::local::storages & regions_partitions;
 };
 } // namespace exec
 } // namespace flecsi
