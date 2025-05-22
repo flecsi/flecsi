@@ -8,7 +8,6 @@
 
 #include "flecsi/config.hh"
 #include "flecsi/exec/bind_parameters.hh"
-#include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/hpx/future.hh"
 #include "flecsi/exec/hpx/reduction_wrapper.hh"
 #include "flecsi/exec/launch.hh"

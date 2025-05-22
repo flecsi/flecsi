@@ -48,8 +48,8 @@ reduce_internal(Args &&... args) {
   auto task_name = util::symbol<F>();
   auto finalize = param_buffers{params, task_name};
 
-  prolog<proc> pr(params, args...);
-  bind_parameters<proc> bp(params, std::move(pr.storage));
+  auto storage = prolog<proc>(params, args...).detach();
+  bind_parameters<proc> bp(params, storage);
 
   run::context_t::depth_guard rg;
   run::task_local_base::guard tlg;
