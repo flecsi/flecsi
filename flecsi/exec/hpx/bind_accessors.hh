@@ -7,14 +7,9 @@
 #include <hpx/modules/collectives.hpp>
 #include <hpx/modules/serialization.hpp>
 
-#include "flecsi/config.hh"
-#include "flecsi/data/privilege.hh"
-#include "flecsi/data/topology.hh"
-#include "flecsi/exec/hpx/future.hh"
 #include "flecsi/exec/hpx/reduction_wrapper.hh"
+#include "flecsi/exec/prolog.hh"
 #include "flecsi/flog.hh"
-#include "flecsi/util/annotation.hh"
-#include "flecsi/util/demangle.hh"
 
 #include <cstddef>
 #include <functional>
@@ -33,48 +28,13 @@ namespace exec {
   This is the other half of the wire protocol implemented by \c task_prologue.
  */
 template<processor Proc>
-struct bind_accessors {
+struct bind_accessors : local::bind<bind_accessors<Proc>, Proc> {
   explicit bind_accessors(run::communicator * comm,
     data::local::storages & regions_partitions)
-    : comm(comm), regions_partitions(regions_partitions) {}
+    : bind_accessors::bind(regions_partitions), comm(comm) {}
 
-protected:
-  void visit(processor_space_t<Proc> & s) {
-    auto & c = run::context::instance();
-    s.bind(c.colors(), c.color());
-  }
-
-  template<typename T, privilege P>
-  auto next_storage(field_id_t f) {
-    flog_assert(argument < regions_partitions.size(),
-      "there shouldn't be more arguments than partitions/regions");
-    return std::visit(
-      [f](
-        auto && r_or_p) { return r_or_p->template get_storage<T, P, Proc>(f); },
-      regions_partitions[argument++]);
-  }
-
-  // visit generic topology
-  template<typename T, Privileges P>
-  void visit(data::accessor<data::raw, T, P> & accessor) {
-    // Bind the ExecutionSpace storage to the accessor. This will also trigger a
-    // host <-> device copy if needed.
-    auto const storage = next_storage<T, privilege_merge(P)>(accessor.field());
-    accessor.bind(storage);
-  }
-
-  // visit for reduction operation
   template<typename R, typename T>
-  void visit(data::reduction_accessor<R, T> & accessor) {
-    field_id_t const f = accessor.field();
-
-    auto storage = next_storage<T, rw>(f);
-    accessor.bind(storage);
-
-    // Reset the storage to identity on all processes except rank 0
-    if(run::context::instance().process() != 0)
-      std::fill(storage.begin(), storage.end(), R::template identity<T>);
-
+  void reduce(util::span<T> storage) {
     reductions.push_back([storage](run::communicator & comm) {
       using data_type = ::hpx::serialization::serialize_buffer<T>;
       using namespace ::hpx::collectives;
@@ -92,11 +52,7 @@ protected:
     });
   }
 
-public:
   ~bind_accessors() {
-    flog_assert(argument == regions_partitions.size(),
-      "all fields should be used by bind_accessors");
-
     flog_assert(reductions.empty() || comm, "no communicator for reductions");
     std::vector<data::fate> requests;
     requests.reserve(reductions.size());
@@ -109,11 +65,6 @@ private:
   run::communicator * comm;
   std::vector<std::function<::hpx::future<void>(run::communicator &)>>
     reductions;
-
-  std::size_t argument = 0;
-
-  // regions_partitions is held alive by the task
-  data::local::storages & regions_partitions;
 };
 } // namespace exec
 } // namespace flecsi

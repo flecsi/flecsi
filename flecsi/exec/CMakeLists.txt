@@ -24,6 +24,7 @@ if(FLECSI_BACKEND STREQUAL "legion")
   )
 elseif(FLECSI_BACKEND STREQUAL "mpi")
   flecsi_headers(
+    local/params.hh
     mpi/future.hh
     mpi/params.hh
     mpi/policy.hh
@@ -32,6 +33,7 @@ elseif(FLECSI_BACKEND STREQUAL "mpi")
   )
 elseif(FLECSI_BACKEND STREQUAL "hpx")
   flecsi_headers(
+    local/params.hh
     hpx/bind_accessors.hh
     hpx/future.hh
     hpx/policy.hh
