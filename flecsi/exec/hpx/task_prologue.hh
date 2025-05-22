@@ -126,6 +126,7 @@ public:
         task_name = std::move(task_name),
         comm = need_comm && future ? &future.comm() : own.get(),
         own = std::move(own)](data::dependencies::type deps) mutable {
+        const auto done = out(); // HPX doesn't destroy functors promptly
         // manage task_local variables for this task
         run::task_local_base::guard tlg;
 
@@ -139,7 +140,7 @@ public:
         for(auto && f : std::forward<decltype(deps)>(deps))
           f.get();
 
-        return (void)out(), task(regions_partitions, comm, std::move(params));
+        return task(regions_partitions, comm, std::move(params));
       },
       dependencies.detach())
                .share();
