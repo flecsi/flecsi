@@ -119,8 +119,7 @@ reduce_internal(Args &&... args) {
     (Attributes & ~processor_mask) | as_mask(wrap::LegionProcessor)>;
 
   const auto add = [&](auto & l) {
-    for(auto & req : pro.region_requirements())
-      l.add_region_requirement(req);
+    l.region_requirements = std::move(pro).region_requirements();
     l.futures = std::move(pro).futures();
     switch(processor_type) {
       case processor::toc:
