@@ -31,27 +31,16 @@ protected:
     const data::field_reference<T, data::raw, Topo, Space> & ref) {
     const field_id_t f = ref.fid();
     auto & t = ref.topology();
-    constexpr bool glob =
-      std::is_same_v<typename Topo::base, topo::global_base>;
+    auto & s = t.template get_partition<Space>();
 
-    if constexpr(glob) {
-      if(t.template get_region<Space>()
-           .template ghost<privilege_pack<get_privilege(0, P), ro>>(f))
+    if constexpr(std::is_same_v<typename Topo::base, topo::global_base>) {
+      if(s.template ghost<privilege_pack<get_privilege(0, P), ro>>(f))
         d().template broadcast<T>(t, f);
     }
     else
       add_copy<P>(ref);
 
-    auto & s = [&]() -> auto & {
-      if constexpr(glob)
-        return t;
-      else
-        // The partition controls how much memory is allocated.
-        return t.template get_partition<Space>();
-    }
-    ();
     d().template raw<P>(s[f]);
-
     storage.push_back(get_selected(t) ? s.share() : nullptr);
   } // visit generic topology
 

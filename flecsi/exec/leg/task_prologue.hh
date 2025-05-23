@@ -60,8 +60,6 @@ private:
   }
 
 protected:
-  // This implementation can be generic because all topologies are expected to
-  // provide get_region (and, with one exception, get_partition).
   template<typename D,
     Privileges P,
     class Topo,
