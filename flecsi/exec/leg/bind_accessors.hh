@@ -36,6 +36,9 @@ struct bind_accessors {
     std::vector<Legion::Future> const & futures)
     : legion_runtime_(legion_runtime), legion_context_(legion_context),
       regions_(regions), futures_(futures) {}
+  ~bind_accessors() {
+    flog_assert(region == regions_.size(), "not enough parameters");
+  }
 
 protected:
   void visit(processor_space_t<Proc> & s) {
@@ -48,7 +51,7 @@ protected:
 
   template<typename D, Privileges P>
   void visit(data::accessor<data::raw, D, P> & accessor) {
-    auto & reg = regions_[region++];
+    auto & reg = next();
     // For incomplete launch maps:
     if(!reg.get_logical_region().exists())
       return;
@@ -63,7 +66,7 @@ protected:
 
   template<class R, typename D>
   void visit(data::reduction_accessor<R, D> & reduce) {
-    auto & reg = regions_[region++];
+    auto & reg = next();
     const Legion::ReductionAccessor<exec::fold::wrap<R, D>,
       false,
       data::leg::region_dimensions,
@@ -74,6 +77,11 @@ protected:
   }
 
 private:
+  const Legion::PhysicalRegion & next() {
+    flog_assert(region < regions_.size(), "too many parameters");
+    return regions_[region++];
+  }
+
   template<typename A, typename LA>
   void bind(const Legion::PhysicalRegion & reg, A & acc, const LA & aa) const {
     const auto dom = legion_runtime_->get_index_space_domain(
