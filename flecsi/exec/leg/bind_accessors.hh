@@ -19,6 +19,10 @@ namespace flecsi::exec {
 /// \addtogroup legion-execution
 /// \{
 
+namespace leg {
+using Indices = std::vector<std::vector<Legion::RegionRequirement>::size_type>;
+}
+
 /*!
   The bind_accessors type is called to walk the user task arguments inside of
   an executing legion task to properly complete the users accessors, i.e., by
@@ -33,11 +37,12 @@ struct bind_accessors {
   bind_accessors(Legion::Runtime * legion_runtime,
     Legion::Context & legion_context,
     std::vector<Legion::PhysicalRegion> const & regions,
+    const leg::Indices & which,
     std::vector<Legion::Future> const & futures)
     : legion_runtime_(legion_runtime), legion_context_(legion_context),
-      regions_(regions), futures_(futures) {}
+      regions_(regions), which(which), futures_(futures) {}
   ~bind_accessors() {
-    flog_assert(region == regions_.size(), "not enough parameters");
+    flog_assert(region == which.size(), "not enough parameters");
   }
 
 protected:
@@ -78,8 +83,8 @@ protected:
 
 private:
   const Legion::PhysicalRegion & next() {
-    flog_assert(region < regions_.size(), "too many parameters");
-    return regions_[region++];
+    flog_assert(region < which.size(), "too many parameters");
+    return regions_[which[region++]];
   }
 
   template<typename A, typename LA>
@@ -107,6 +112,7 @@ private:
   Legion::Context & legion_context_;
   size_t region = 0;
   const std::vector<Legion::PhysicalRegion> & regions_;
+  const leg::Indices & which;
   size_t future_id = 0;
   const std::vector<Legion::Future> & futures_;
 

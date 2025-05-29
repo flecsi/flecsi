@@ -96,10 +96,12 @@ reduce_internal(Args &&... args) {
   // temporaries).
 
   run::any any;
-  auto & params = any.emplace(detail::make_parameters<mpi_task, param_tuple>(
-    std::forward<Args>(args)...));
-  prolog<mask_to_processor_type(Attributes)> pro(params, args...);
-  std::optional<param_tuple> mpi_params;
+  auto & params =
+    any.emplace(leg::parameters(detail::make_parameters<mpi_task, param_tuple>(
+      std::forward<Args>(args)...)));
+  prolog<mask_to_processor_type(Attributes)> pro(params.params, args...);
+  params.which = std::move(pro).region_indices();
+  std::optional<leg::parameters<param_tuple>> mpi_params;
   std::vector<std::byte> buf;
   if constexpr(mpi_task) {
     // MPI tasks must be invoked collectively from one task on each rank.

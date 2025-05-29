@@ -156,7 +156,9 @@ named(const Legion::LogicalPartition & p, const char * n) {
   return p;
 }
 
-struct region {
+struct storage {};
+
+struct region : storage {
   region(size2 s, const fields & fs, const char * name = nullptr)
     : logical_region([&] { // TIP: IIFE (q.v.) allows statements here
         auto & r = run();
@@ -221,7 +223,7 @@ private:
   Fields fields, resized;
 };
 
-struct partition_base {
+struct partition_base : storage {
   shared_index_partition index_partition;
   Legion::LogicalPartition logical_partition;
 
