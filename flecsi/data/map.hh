@@ -149,16 +149,16 @@ template<class T>
 mapping(T &, const Claims &) -> mapping<topo::policy_t<T>>;
 
 /// Create a \c mapping.
-template<class T>
-mapping<topo::policy_t<T>>
-make(scheduler & s, T & t, const Claims & c) {
+template<class P>
+mapping<P>
+make(scheduler & s, topology<P> & t, const Claims & c) {
   return {s, t, c};
 }
 /// Create a \c mapping for initialization using an MPI task.
 /// The \c Claims are constructed using \link block() `block`\endlink.
-template<class T>
-mapping<topo::policy_t<T>>
-make(scheduler & s, T & t) {
+template<class P>
+mapping<P>
+make(scheduler & s, topology<P> & t) {
   return make(s, t, block(t.colors(), s.runtime().processes()));
 }
 /// \deprecated Pass the topology instance directly (and a \c scheduler).

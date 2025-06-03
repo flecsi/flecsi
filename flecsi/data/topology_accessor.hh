@@ -27,7 +27,7 @@ namespace data {
   that are not part of the core FleCSI topology interface.  By inheriting from
   the customized topology interface, we pick up these additions.
 
-  Pass a topology instance to a task that expects a \c topology_accessor.
+  Pass a \c topology to a task that expects a \c topology_accessor.
 
   \tparam T specialization
   \tparam Priv privilege pack
@@ -62,15 +62,15 @@ struct task_param<data::topology_accessor<T, P>> {
     return type();
   }
 };
-template<class T, Privileges P>
-struct launch<data::topology_accessor<T, P>, data::topology_slot<T>> {
+template<class P, class T>
+struct launch<P, data::topology_slot<T>> {
   static Index get(const data::topology_slot<T> & t) {
     return t.get().colors();
   }
 };
-template<class T, Privileges P>
-struct launch<data::topology_accessor<T, P>, typename T::topology> {
-  static Index get(const typename T::topology & t) {
+template<class P, class T>
+struct launch<P, topology<T>> {
+  static Index get(const topology<T> & t) {
     return t.colors();
   }
 };

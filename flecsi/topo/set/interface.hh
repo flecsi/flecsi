@@ -30,7 +30,7 @@ struct set_base : base {
 ///
 /// The Set topology supports a single index space.
 template<typename Policy>
-struct set : set_base {
+struct topology<Policy, set_base> : set_base {
 
   using index_space = typename Policy::index_space;
   using mesh = typename Policy::mesh_type::topology;
@@ -51,7 +51,7 @@ struct set : set_base {
     }
   };
 
-  explicit set(scheduler & s, coloring x)
+  topology(scheduler & s, coloring x)
     : p{static_cast<mesh *>(x.ptr)}, part{make_repartitioned<Policy>(
                                        x.counts.size(),
                                        s,
@@ -79,6 +79,9 @@ private:
   repartitioned part;
 };
 
+/// Topology category.
+template<class P>
+using set = topology<P, set_base>;
 template<>
 struct detail::base<set> {
   using type = set_base;

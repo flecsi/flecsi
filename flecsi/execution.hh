@@ -122,11 +122,11 @@ scheduler::test(AA &&... aa) {
 
 template<class T, class... AA>
 auto &
-scheduler::allocate(std::unique_ptr<T> & p,
+scheduler::allocate(std::unique_ptr<topology<T>> & p,
   const typename T::coloring & c,
   AA &&... aa) {
-  p = std::make_unique<T>(*this, c);
-  topo::policy_t<T>::initialize(*this, *p, c, std::forward<AA>(aa)...);
+  p = std::make_unique<topology<T>>(*this, c);
+  T::initialize(*this, *p, c, std::forward<AA>(aa)...);
   return *p;
 }
 

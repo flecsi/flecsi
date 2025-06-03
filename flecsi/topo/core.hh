@@ -29,13 +29,14 @@ enum single_space {
   elements ///< The single index space.
 };
 
+/// \cond core
 namespace detail {
 template<template<class> class>
 struct base;
 template<class>
 struct policy;
-template<template<class> class C, class P>
-struct policy<C<P>> {
+template<class P>
+struct policy<flecsi::topology<P>> {
   using type = P;
 };
 } // namespace detail
@@ -57,9 +58,7 @@ struct base : data::convert_tag {
 };
 
 #ifdef DOXYGEN
-/// \if core
 /// An example topology base that is not really implemented.
-/// \endif
 struct core_base : base {
   /// The type, independent of specialization, from which the corresponding
   /// topology type is constructed.
@@ -67,35 +66,21 @@ struct core_base : base {
 };
 
 /// An example core topology that is not really implemented.
-/// Pass to a task expecting a \c topology_accessor.
-/// \warning No topologies may exist outside of \c start or \c control.
-/// \if core
 /// \tparam P topology specialization, used here as a policy
-/// \endif
+/// \see <code>\ref topology</code> for public requirements
+/// \see with_ragged, with_meta
 template<class P>
-struct core : core_base { // with_ragged<P> is often another base class
-  /// \if core
+struct topology<P, core_base> : core_base {
   /// Default-constructible base for topology accessors. This struct
   /// provides the interface to the topology and can be used by a
   /// specialization developer to implement tailor-made methods
   /// needed by their applications.
-  /// \endif
   template<Privileges Priv>
   struct access {
     /// \see send_tag
     template<class F>
     void send(F &&);
   };
-
-  /// A topology can be constructed from its \c coloring type.
-  core(scheduler &, const coloring &);
-  /// Immovable<!-- typically and because of base -->.
-  core(core &&) = delete;
-
-  /// Return the number of colors over which the topology is partitioned.
-  Color colors() const;
-
-  /// \cond core
 
   /// Find the region for an index space.
   template<typename P::index_space>
@@ -117,18 +102,18 @@ struct core : core_base { // with_ragged<P> is often another base class
   template<class T, data::layout L, typename P::index_space S>
   [[nodiscard]] const data::copy_plan * ghost_copy(scheduler &,
     data::field_reference<T, L, P, S> const & f);
-
-  /// \endcond
 };
-/// \if core
+/// Each category must provide an alias template for \c specialization.
+template<class P>
+using core = topology<P, core_base>;
 /// Each core topology type must register its base type.
-/// \endif
 template<>
 struct detail::base<core> {
   /// The base type.
   using type = core_base;
 };
 #endif
+/// \endcond
 
 /// Utilities and defaults for specializations.
 struct specialization_base {
@@ -189,12 +174,12 @@ struct specialization_base {
 struct help : specialization_base {}; // intervening class avoids warnings
 
 /// CRTP base for specializations.
-/// \tparam C core topology
+/// \tparam C topology category
 /// \tparam D derived topology type
 template<template<class> class C, class D>
 struct specialization : specialization_base {
   /// The topology instance type.
-  /// \see <code>\ref core</code>
+  /// \see <code>\ref topology</code>
   using topology = C<D>;
   /// A (movable) unique pointer to the topology type.
   /// \see scheduler::allocate

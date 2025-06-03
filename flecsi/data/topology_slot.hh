@@ -4,7 +4,7 @@
 #ifndef FLECSI_DATA_TOPOLOGY_SLOT_HH
 #define FLECSI_DATA_TOPOLOGY_SLOT_HH
 
-#include "flecsi/exec/fwd.hh"
+#include "flecsi/exec/fwd.hh" // scheduler
 #include "flecsi/flog.hh"
 #include "flecsi/util/types.hh" // Color
 
@@ -22,7 +22,7 @@ struct convert_tag {}; // must be recognized as a task argument
 /// \note A \c specialization provides aliases for both these types.
 /// \warning If a \c topology_slot outlives \c start or \c control, use \c
 ///   #deallocate before it returns.
-/// \deprecated Store topology instances directly or under \c std::unique_ptr.
+/// \deprecated Use \c Topo::topology or \c Topo::ptr.
 template<typename Topo>
 struct topology_slot : convert_tag {
   using topology = typename Topo::topology;

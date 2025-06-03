@@ -25,6 +25,10 @@ namespace topo {
 /// \ingroup topology
 /// \{
 
+/// Topology category.
+template<class P>
+using narray = topology<P, narray_base>;
+
 /*!
   Narray Topology.
   Colors are assigned lexicographically; the first dimension varies fastest.
@@ -32,7 +36,8 @@ namespace topo {
    \ref narray_specialization.
   */
 template<typename Policy>
-struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
+struct topology<Policy, narray_base>
+  : narray_base, with_ragged<Policy>, with_meta<Policy> {
 
   using index_space = typename Policy::index_space;
   using index_spaces = typename Policy::index_spaces;
@@ -48,8 +53,8 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   template<Privileges>
   struct access;
 
-  narray(scheduler & s, coloring const & c)
-    : narray(
+  topology(scheduler & s, coloring const & c)
+    : topology(
         s,
         [&c]() -> auto & {
           flog_assert(c.idx_colorings.size() == index_spaces::size,
@@ -270,7 +275,7 @@ private:
   };
 
   template<auto... Value, auto... CI>
-  narray(scheduler & s,
+  topology(scheduler & s,
     const coloring & c,
     util::constants<Value...>,
     util::constants<CI...> /* deduce pack */)
@@ -517,7 +522,7 @@ private:
   /*--------------------------------------------------------------------------*
     Private data members.
    *--------------------------------------------------------------------------*/
-  friend borrow_extra<narray>;
+  friend borrow_extra<topology>;
 
   // fields for storing topology meta data per index-space
   static inline const typename policy_meta::Field::template definition<
@@ -540,7 +545,7 @@ struct borrow_extra<narray<P>> : borrow_sizes<P> {
 /// \see specialization_base::interface
 template<typename Policy>
 template<Privileges Priv>
-struct narray<Policy>::access {
+struct topology<Policy, narray_base>::access {
   ///  This method provides a mdspan of the field underlying data.
   ///  It can be used to create data views with the shape appropriate to S.
   /// \host, although the values in
@@ -578,7 +583,7 @@ private:
   util::key_array<data::scalar_access<topo::resize::field, Priv>, index_spaces>
     size_;
 
-  data::scalar_access<narray::meta_field, Priv> meta_;
+  data::scalar_access<meta_field, Priv> meta_;
 
   template<index_space S, class C>
   auto check_extents(const C & c) const {
@@ -830,10 +835,6 @@ private:
     return meta_->index.template get<S>().axcol.template get<A>();
   }
 }; // struct narray<Policy>::access
-
-/*----------------------------------------------------------------------------*
-  Define Base.
- *----------------------------------------------------------------------------*/
 
 template<>
 struct detail::base<narray> {

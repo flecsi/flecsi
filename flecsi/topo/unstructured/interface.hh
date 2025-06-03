@@ -25,12 +25,15 @@ namespace topo {
 /// \ingroup topology
 /// \{
 
+/// Topology category.
+template<class P>
+using unstructured = topology<P, unstructured_base>;
+
 /// Topology type.
 /// \tparam Policy the specialization, following unstructured_specialization
 template<typename Policy>
-struct unstructured : unstructured_base,
-                      with_ragged<Policy>,
-                      with_meta<Policy> {
+struct topology<Policy, unstructured_base>
+  : unstructured_base, with_ragged<Policy>, with_meta<Policy> {
 
   /*--------------------------------------------------------------------------*
     Public types.
@@ -47,8 +50,8 @@ struct unstructured : unstructured_base,
     Constructor.
    *--------------------------------------------------------------------------*/
 
-  unstructured(scheduler & s, coloring const & c)
-    : unstructured(
+  topology(scheduler & s, coloring const & c)
+    : topology(
         s,
         [&c]() -> auto & {
           flog_assert(c.idx_spaces.size() == index_spaces::size,
@@ -130,7 +133,7 @@ private:
 
   // clang-format off
   template<auto... VV, auto... CI>
-  unstructured(scheduler & s, unstructured_base::coloring const & c,
+  topology(scheduler & s, unstructured_base::coloring const & c,
     util::constants<VV...>, util::constants<CI...> /* deduce pack */)
     : with_ragged<Policy>(s, c.colors),
       with_meta<Policy>(s, c.colors),
@@ -277,10 +280,7 @@ private:
     return part_[i].sz;
   }
 
-  /*--------------------------------------------------------------------------*
-    Private data members.
-   *--------------------------------------------------------------------------*/
-  friend borrow_extra<unstructured>;
+  friend borrow_extra<topology>;
 
   static inline const connect_t<Policy> connect_;
 
@@ -309,8 +309,7 @@ private:
   // Initializing this depends on the above:
   util::key_array<data::copy_plan, copy_spaces> plan_;
   util::key_array<data::buffers::topology, copy_spaces> ragged_buffers_;
-
-}; // struct unstructured
+};
 
 template<class P>
 struct borrow_extra<unstructured<P>> : borrow_sizes<P> {
@@ -344,7 +343,7 @@ private:
 /// \see specialization_base::interface
 template<typename Policy>
 template<Privileges Privileges>
-struct unstructured<Policy>::access {
+struct topology<Policy, topo::unstructured_base>::access {
   // For unstructured_base::bounding_box, which can't use the specialization's
   // interface.
   friend unstructured_base;
@@ -355,7 +354,7 @@ struct unstructured<Policy>::access {
       a.topology_send(
         f, [&i](auto & u) -> auto & { return u.get_sizes(i++); });
 
-    connect_send(f, connect_, unstructured::connect_);
+    connect_send(f, connect_, topology::connect_);
     lists_send(
       f, special_, special_field, [
       ](auto & u) -> auto & { return u.special_; });
@@ -363,7 +362,7 @@ struct unstructured<Policy>::access {
 
 protected:
   using entity_list = typename Policy::entity_list;
-  access() : connect_(unstructured::connect_) {}
+  access() : connect_(topology::connect_) {}
 
   /*!
     Return an index space as a range.

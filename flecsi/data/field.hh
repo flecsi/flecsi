@@ -16,6 +16,10 @@ struct with_cleanup; // defined in terms of cleanup
 
 template<class>
 struct ragged; // defined in terms of field
+
+struct borrow_base;
+template<class P>
+using borrow_category = topology<P, borrow_base>;
 } // namespace topo
 
 namespace data {
@@ -345,11 +349,10 @@ struct field : data::detail::field_base<T, L> {
     Reference<Topo, Space> operator()(typename Topo::topology & t) const {
       return {this->fid, t};
     }
-    // For borrow topologies:
-    template<template<class> class C, class P>
+    template<class P>
     std::enable_if_t<std::is_same_v<typename P::Base, Topo>,
       Reference<P, Space>>
-    operator()(C<P> & t) const {
+    operator()(topo::borrow_category<P> & t) const {
       return {this->fid, t};
     }
     /// Return a reference to a mapped field instance.

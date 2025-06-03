@@ -42,7 +42,7 @@ Deprecated
 
 * Data
 
-  * ``topology_slot`` |mdash| use topology instances directly or (for movability) via ``ptr``
+  * ``topology_slot`` |mdash| use ``topology`` or (for movability) ``ptr``
   * ``partition_privilege_t`` |mdash| use ``privilege``
 
 * Execution
@@ -82,6 +82,13 @@ New features
 
 * Data
 
+  * ``topology`` is the type of topology instances; unlike ``topology_slot``, it is immovable.
+
+    * ``specialization::topology`` is a convenience alias for it.
+    * ``specialization::ptr`` is the appropriate ``std::unique_ptr`` type to hold a topology instance; like the deprecated ``topology_slot``, it is movable and can defer initialization.
+    * ``scheduler::allocate`` fills in a ``ptr`` and calls ``specialization::initialize`` (which is not otherwise auomatic) with the ``scheduler`` and new topology instance.
+    * ``get`` and ``operator->`` in ``topology_slot`` access the ``topology``.
+
   * Mutators support tracing.
   * ``privilege`` is the new name of ``partition_privilege_t``.
   * Launch map rvalues can be used to create field references.
@@ -100,13 +107,6 @@ New features
   * Index futures provide ``all`` to get all results.
 
 * Topologies
-
-  * Topology objects can be created directly.
-
-    * They are of the type ``specialization::topology``, which (unlike ``topology_slot``) is immovable.
-    * ``specialization::ptr`` is the appropriate ``std::unique_ptr`` type to hold a topology instance; like the deprecated ``topology_slot``, it is movable and can defer initialization.
-    * ``scheduler::allocate`` fills in a ``ptr`` and calls ``specialization::initialize`` (which is not otherwise auomatic) with the ``scheduler`` and new topology instance.
-    * ``get`` and ``operator->`` in ``topology_slot`` access the topology instance.
 
   * ``narray`` specializations need not define ``dimension``.
   * ``unstructured_base::peer_entities`` is a new type alias for convenience.

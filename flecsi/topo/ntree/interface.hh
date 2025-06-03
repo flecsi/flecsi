@@ -54,7 +54,7 @@ namespace topo {
 /// \tparam Policy the specialization, following \ref ntree_specialization
 /// \see [The N-Tree tutorial](../../src/tutorial/ntree.html)
 template<typename Policy>
-struct ntree : ntree_base, with_meta<Policy> {
+struct topology<Policy, ntree_base> : ntree_base, with_meta<Policy> {
 
 private:
   constexpr static Dimension dimension = Policy::dimension;
@@ -82,7 +82,7 @@ public:
   // This allocates the different index space and create the copy_plan for the
   // meta data. This copy_plan never changes throughout the lifetime of the
   // tree.
-  ntree(scheduler & s, const coloring & c)
+  topology(scheduler & s, const coloring & c)
     : with_meta<Policy>(s, c.nparts_),
       part{{rep<entities>(s, c, c.entities_sizes_),
         rep<nodes>(s, c, c.nodes_sizes_),
@@ -214,7 +214,7 @@ private:
   data::buffers::topology buf;
 
   /// Hashing table type
-  using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, Policy>;
+  using hmap_t = util::hashtable<key_t, hcell_t, Policy>;
 
   FLECSI_INLINE_TARGET static hmap_t map(
     typename field<hmap_pair_t>::template accessor<rw, na> hcells) {
@@ -1194,26 +1194,26 @@ public:
 /// See \ref specialization_base::interface
 template<class Policy>
 template<Privileges Priv>
-struct ntree<Policy>::access {
+struct topology<Policy, ntree_base>::access {
   template<const auto & F>
   using accessor = data::accessor_member<F, Priv>;
   /// Entities keys
-  accessor<ntree::e_keys> e_keys;
+  accessor<topology::e_keys> e_keys;
   /// Entities Color
-  accessor<ntree::e_colors> e_colors;
+  accessor<topology::e_colors> e_colors;
   /// Entities Id (for key collisions)
-  accessor<ntree::e_ids> e_ids;
+  accessor<topology::e_ids> e_ids;
   /// Nodes keys
-  accessor<ntree::n_keys> n_keys;
+  accessor<topology::n_keys> n_keys;
   // Entities interaction fields
-  accessor<ntree::e_i> e_i;
+  accessor<topology::e_i> e_i;
   /// Nodes interaction fields
-  accessor<ntree::n_i> n_i;
+  accessor<topology::n_i> n_i;
 
 private:
-  accessor<ntree::data_field> data_field;
-  accessor<ntree::hcells> hcells;
-  data::scalar_access<ntree::meta_field, privilege_pack<ro>> mf;
+  accessor<topology::data_field> data_field;
+  accessor<topology::hcells> hcells;
+  data::scalar_access<meta_field, privilege_pack<ro>> mf;
 
 public:
   template<class F>
@@ -1231,7 +1231,7 @@ public:
   }
 
   /// Hashing table type
-  using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, Policy>;
+  using hmap_t = util::hashtable<key_t, hcell_t, Policy>;
 
 #ifdef FLECSI_DEVICE_CODE
   using vector_type =
@@ -1246,9 +1246,8 @@ public:
   // strictly internal, we are using a const_cast to get an unprotected access
   // to the field.
   FLECSI_INLINE_TARGET hmap_t map() const {
-    return util::span<ntree::hmap_pair_t>(
-      const_cast<ntree::hmap_pair_t *>(hcells.span().data()),
-      hcells.span().size());
+    return util::span<hmap_pair_t>(
+      const_cast<hmap_pair_t *>(hcells.span().data()), hcells.span().size());
   }
 
   // Standard traversal function
@@ -1651,9 +1650,11 @@ public:
     gv.write(std::move(fname).str());
   }
 #endif
+};
 
-}; // namespace topo
-
+/// Topology category.
+template<class P>
+using ntree = topology<P, ntree_base>;
 template<>
 struct detail::base<ntree> {
   using type = ntree_base;

@@ -120,12 +120,14 @@ private:
     reg->partition_notify(fid);
   }
 };
-template<class>
-struct ragged_partition_category : ragged_partition_base {
+template<class P>
+struct topology<P, ragged_partition_base> : ragged_partition_base {
   using ragged_partition_base::ragged_partition_base;
 
   using repartition::access;
 };
+template<class P>
+using ragged_partition_category = topology<P, ragged_partition_base>;
 template<>
 struct detail::base<ragged_partition_category> {
   using type = ragged_partition_base;
@@ -175,9 +177,11 @@ private:
 struct ragged_base : base {
   using coloring = std::nullptr_t;
 };
-template<class>
-struct ragged_category : ragged_base {
-  ragged_category() = delete; // used only for registering fields
+template<class P>
+using ragged_category = topology<P, ragged_base>;
+template<class P>
+struct topology<P, ragged_base> : ragged_base {
+  topology() = delete; // used only for registering fields
 };
 
 template<class P>
@@ -230,10 +234,13 @@ struct detail::base<ragged_category> {
 struct index_base : base, column_base {};
 
 template<class P>
-struct index_category : index_base, column<P>, with_ragged<P>, with_cleanup {
-  explicit index_category(scheduler & s, coloring c)
-    : column<P>(s, c), with_ragged<P>(s, c) {}
+struct topology<P, index_base>
+  : index_base, column<P>, with_ragged<P>, with_cleanup {
+  topology(scheduler & s, coloring c)
+    : column<P>(s, c), topology::with_ragged(s, c) {}
 };
+template<class P>
+using index_category = topology<P, index_base>;
 template<>
 struct detail::base<index_category> {
   using type = index_base;
@@ -245,8 +252,8 @@ struct array_base {
   using coloring = std::vector<std::size_t>;
 };
 template<class P>
-struct array_category : array_base, repartitioned {
-  explicit array_category(scheduler & s, const coloring & c)
+struct topology<P, array_base> : array_base, repartitioned {
+  topology(scheduler & s, const coloring & c)
     : repartitioned(make_repartitioned<P>(c.size(), s, [c](std::size_t i) {
         return c[i];
       })) {}
@@ -254,6 +261,8 @@ struct array_category : array_base, repartitioned {
   using repartition::access;
 };
 
+template<class P>
+using array_category = topology<P, array_base>;
 template<>
 struct detail::base<array_category> {
   using type = array_base;
@@ -263,17 +272,15 @@ struct detail::base<array_category> {
 template<class P>
 struct array : topo::specialization<array_category, array<P>> {};
 
-//---------------------------------------------------------------------------//
-// User topology.
-//---------------------------------------------------------------------------//
+/// \defgroup user Simple data
+/// Simple parallel data access.
+/// \{
 
 // The simplest topology that behaves as expected by application code.
 struct user_base : array_base {};
 
 /// The User topology is a bare-bones topology supporting a single
-/// index space.  It implements arguably the simplest topology that
-/// provides useful functionality for parallel data accesses.  The
-/// User topology represents a single index space whose size can vary
+/// index space whose size can vary
 /// by color.  Ghost copies are not supported.
 ///
 /// \tparam P the specialization
@@ -283,15 +290,21 @@ struct user_base : array_base {};
 /// color in the single index space.  Because the User topology is
 /// hard-wired for a single index space, specializations defining
 /// their own `index_space` and `index_spaces` are not supported.
+/// \ingroup topology
 template<class P>
-struct user : user_base, array_category<P>, with_ragged<P> {
-  explicit user(scheduler & s, const coloring & c)
-    : user::array_category(s, c), user::with_ragged(s, c.size()) {}
+struct topology<P, user_base> : user_base, array_category<P>, with_ragged<P> {
+  topology(scheduler & s, const coloring & c)
+    : array_category<P>(s, c), topology::with_ragged(s, c.size()) {}
 };
+/// Topology category.
+template<class P>
+using user = topology<P, user_base>;
 template<>
 struct detail::base<user> {
   using type = user_base;
 };
+
+/// \}
 
 // A subtopology for holding topology-specific metadata per color.
 template<class P>
@@ -346,11 +359,11 @@ struct borrow_meta {
 };
 } // namespace detail
 /// Topology-specific extension to support multi-color topology accessors.
-/// Befriended by the \c borrow_category specialization that inherits from it.
+/// Befriended by the \c borrow_base topology that inherits from it.
 /// \tparam T topology type
 template<class T>
 struct borrow_extra {
-  /// Constructor invoked by \c borrow_category with its arguments.
+  /// Invoked by the derived class constructor with its arguments.
   borrow_extra(scheduler &, T &, const data::borrow &, bool) {}
 };
 template<class>
@@ -371,10 +384,10 @@ struct borrow_base : data::convert_tag {
 
   /// Get the derived object from a \c borrow_extra specialization.
   /// \param e usually \c *this
-  /// \return the \c borrow_category specialization to which \a e refers
-  template<template<class> class C, class T>
-  static auto & derived(borrow_extra<C<T>> & e) {
-    return static_cast<typename borrow<T>::topology &>(e);
+  /// \return the \c borrow::topology object to which \a e refers
+  template<class T>
+  static auto & derived(borrow_extra<flecsi::topology<T>> & e) {
+    return static_cast<flecsi::topology<borrow<T>> &>(e);
   }
 };
 
@@ -382,11 +395,12 @@ struct borrow_base : data::convert_tag {
 /// different number of colors and be partial or non-injective.  Several may
 /// be used in concert for many-to-many mappings.
 template<class P>
-struct borrow_category : borrow_base,
-                         detail::borrow_ragged_partition<typename P::Base>,
-                         detail::borrow_ragged<typename P::Base>,
-                         detail::borrow_meta<typename P::Base>,
-                         borrow_extra<typename P::Base::topology> {
+struct topology<P, borrow_base>
+  : borrow_base,
+    detail::borrow_ragged_partition<typename P::Base>,
+    detail::borrow_ragged<typename P::Base>,
+    detail::borrow_meta<typename P::Base>,
+    borrow_extra<typename P::Base::topology> {
   using index_space = typename P::index_space;
   using index_spaces = typename P::index_spaces;
   using Base = typename P::Base::topology;
@@ -394,18 +408,20 @@ struct borrow_category : borrow_base,
   // The underlying topology's accessor is reused, wrapped in a multiplexer
   // that corresponds to more than one instance of this class.
 
-  explicit borrow_category(scheduler & s, const coloring & c)
-    : borrow_category(s, *static_cast<Base *>(c.topo), *c.proj, c.first) {}
+  topology(scheduler & s, const coloring & c)
+    : topology(s, *static_cast<Base *>(c.topo), *c.proj, c.first) {}
   /// Borrow a topology.
   /// \param t underlying topology
   /// \param b selection of colors from \a t
   /// \param f whether this is the first of a set of several borrowings used
   ///   together for many-to-many access
-  borrow_category(scheduler & s, Base & t, const data::borrow & b, bool f)
-    : borrow_category::borrow_ragged_partition(s, t, b, f),
-      borrow_category::borrow_ragged(s, t, b, f),
-      borrow_category::borrow_meta(s, t, b, f),
-      borrow_category::borrow_extra(s, t, b, f), base(&t), proj(&b), first(f) {}
+  topology(scheduler & s, Base & t, const data::borrow & b, bool f)
+    : topology::borrow_ragged_partition(s, t, b, f), topology::borrow_ragged(s,
+                                                       t,
+                                                       b,
+                                                       f),
+      topology::borrow_meta(s, t, b, f), topology::borrow_extra(s, t, b, f),
+      base(&t), proj(&b), first(f) {}
 
   Color colors() const {
     return proj->size();
@@ -435,8 +451,8 @@ struct borrow_category : borrow_base,
   }
 
 private:
-  friend typename borrow_category::borrow_ragged_partition;
-  friend typename borrow_category::borrow_extra;
+  friend typename topology::borrow_ragged_partition;
+  friend typename topology::borrow_extra;
 
   Base * base; ///< The underlying topology.
   const data::borrow * proj;
