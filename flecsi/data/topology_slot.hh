@@ -4,13 +4,11 @@
 #ifndef FLECSI_DATA_TOPOLOGY_SLOT_HH
 #define FLECSI_DATA_TOPOLOGY_SLOT_HH
 
-#include "flecsi/exec/fwd.hh"
+#include "flecsi/exec/fwd.hh" // scheduler
 #include "flecsi/flog.hh"
-#include "flecsi/run/backend.hh"
-#include "flecsi/run/context.hh"
-#include "flecsi/util/constant.hh"
+#include "flecsi/util/types.hh" // Color
 
-#include <optional>
+#include <memory>
 
 namespace flecsi {
 namespace data {
@@ -24,7 +22,7 @@ struct convert_tag {}; // must be recognized as a task argument
 /// \note A \c specialization provides aliases for both these types.
 /// \warning If a \c topology_slot outlives \c start or \c control, use \c
 ///   #deallocate before it returns.
-/// \deprecated Store topology instances directly or under \c std::unique_ptr.
+/// \deprecated Use \c Topo::topology or \c Topo::ptr.
 template<typename Topo>
 struct topology_slot : convert_tag {
   using topology = typename Topo::topology;
@@ -35,11 +33,8 @@ struct topology_slot : convert_tag {
   /// \param aa further specialization-specific parameters
   template<typename... AA>
   topology & allocate(scheduler & s, const coloring & c, AA &&... aa) {
-    data.emplace(s, c);
+    data = std::make_unique<topology>(s, c);
     Topo::initialize(*this, c, std::forward<AA>(aa)...);
-    // TODO:  fix issues with automatic register
-    // run::context::instance().add_topology<Topo>(*this);
-
     return get();
   }
   /// \deprecated Pass a \c scheduler.
@@ -56,7 +51,7 @@ struct topology_slot : convert_tag {
 
   /// Return whether or not this slot is allocated.
   bool is_allocated() const {
-    return data.has_value();
+    return !!data;
   }
 
   /// Get the topology instance, which must exist.
@@ -82,7 +77,7 @@ struct topology_slot : convert_tag {
   }
 
 private:
-  util::move_optional<topology> data;
+  typename Topo::ptr data;
 }; // struct topology_slot
 
 /// \}

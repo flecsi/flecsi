@@ -33,7 +33,7 @@ struct bind_tag {};
 /// accepts a callback that is used to process the subcomponents and which
 /// itself accepts a callback that, on the caller side only, is used to
 /// transform the task arguments.  Those task arguments may include
-/// borrow_category versions of the underlying topologies and field references
+/// topo::borrow versions of the underlying topologies and field references
 /// to such versions.
 struct send_tag {};
 /// \endcond

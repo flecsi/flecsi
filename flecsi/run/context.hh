@@ -6,6 +6,7 @@
 
 #include "flecsi/config.hh"
 #include "flecsi/data/field_info.hh"
+#include "flecsi/exec/fwd.hh" // topology
 #include "flecsi/flog.hh"
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/demangle.hh"
@@ -342,9 +343,9 @@ public:
     Index space interface.
    *--------------------------------------------------------------------------*/
 
-  template<template<class> class C, class P>
-  void add_topology(C<P> & topo) {
-    add_index_spaces<P>(topo, typename P::index_spaces());
+  template<class P>
+  void add_topology(topology<P> & topo) {
+    add_index_spaces(topo, typename P::index_spaces());
   }
 
   const std::vector<index_space_info_t> & get_index_space_info() const {
@@ -391,7 +392,7 @@ private:
   } // add_fields
 
   template<class Topo, typename Topo::index_space... Index>
-  void add_index_spaces(typename Topo::topology & topo,
+  void add_index_spaces(topology<Topo> & topo,
     util::constants<Index...> /* to deduce pack */) {
     // global topology doesn't define get_partition, so skip it for now
     if constexpr(!std::is_same_v<topo::global_base, typename Topo::base>) {

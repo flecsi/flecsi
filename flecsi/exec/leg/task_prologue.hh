@@ -15,8 +15,6 @@ namespace flecsi {
 
 namespace topo {
 struct global_base;
-template<class>
-struct borrow_category;
 } // namespace topo
 
 namespace exec {

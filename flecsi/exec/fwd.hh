@@ -8,12 +8,43 @@
 #define FLECSI_EXEC_FWD_HH
 
 #include "flecsi/exec/task_attributes.hh"
+#include "flecsi/util/types.hh" // Color
 
 #include <memory>
 #include <optional>
 #include <utility>
 
 namespace flecsi {
+struct scheduler;
+
+namespace topo {
+template<class, class>
+struct topology;
+}
+
+/// A topology instance.
+/// Pass to a task expecting a \c topology_accessor.
+/// \tparam Topo specialization
+/// \note A \c specialization provides aliases for both these types.
+/// \warning No topologies may exist outside of \c start or \c control.
+///
+/// \ns.
+/// \ingroup data
+template<class Topo>
+#ifdef DOXYGEN
+struct topology {
+  /// A topology can be constructed from its \c coloring type.
+  topology(scheduler &, const typename Topo::coloring &);
+  /// Immovable.
+  topology(topology &&) = delete; // some internal topologies are movable
+
+  /// Return the number of colors over which the topology is partitioned.
+  Color colors() const;
+};
+#else
+using topology = topo::topology<Topo, typename Topo::base>;
+#endif
+
 /// \addtogroup execution
 /// \{
 
@@ -113,8 +144,9 @@ struct scheduler {
   /// \param aa further specialization-specific parameters
   /// \return the new instance
   template<class T, class... AA>
-  auto &
-  allocate(std::unique_ptr<T> & p, const typename T::coloring & c, AA &&... aa);
+  auto & allocate(std::unique_ptr<topology<T>> & p,
+    const typename T::coloring & c,
+    AA &&... aa);
 
   // Will become a non-static member of runtime in 3.
   static std::optional<scheduler> instance;

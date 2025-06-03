@@ -28,7 +28,7 @@ is natural to use the ``data::single`` layout.
   :start-at: template<typename T>
   :end-at: const single<double>::definition<global> gfield;
 
-To create a topology instance, declare a variable of type ``topology`` initialized with an argument appropriate to the topology called a *coloring*.
+To create a topology instance, declare a variable of type ``topology`` initialized with a scheduler and an argument appropriate to the topology called a *coloring*.
 In general, a coloring describes the structure of a topology and its distribution among colors.
 The global topology is a special case that does not actually use colors; its "coloring" is simply a count of values for each field.
 Writing to a global field requires a single task launch.

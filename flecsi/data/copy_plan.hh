@@ -34,13 +34,12 @@ inline const field<data::intervals::Value>::definition<intervals>
 struct copy_plan {
   using Sizes = detail::intervals::coloring;
 
-  template<template<class> class C, // allows deducing P
-    class P,
+  template<class P,
     typename P::index_space S = P::default_space(),
     class D,
     class F>
   copy_plan(scheduler & s,
-    C<P> & t,
+    topology<P> & t,
     const Sizes & ndests,
     D && dests, // function of a field reference for intervals
     F && src, // similarly for source points
@@ -185,19 +184,26 @@ protected:
     std::copy(v1.begin(), v1.end(), a.span().end() - n);
   }
 };
-
 template<class P>
-struct buffers_category : buffers_base, topo::array_category<P> {
+using buffers_category = topo::topology<P, buffers_base>;
+} // namespace detail
+/// \}
+} // namespace data
+
+namespace topo {
+template<class P>
+struct topology<P, data::detail::buffers_base> : data::detail::buffers_base,
+                                                 array_category<P> {
   using buffers_base::coloring; // to override that from array_category
 
-  explicit buffers_category(scheduler & s, const coloring & c)
-    : buffers_category(s, c, [&c] {
+  topology(scheduler & s, const coloring & c)
+    : topology(s, c, [&c] {
         Points ret(c.size());
         Color i = 0;
         for(auto & s : c) {
           std::size_t j = 0;
           for(auto & d : s)
-            ret[d].push_back(copy_engine::point(i, j++));
+            ret[d].push_back(data::copy_engine::point(i, j++));
           ++i;
         }
         return ret;
@@ -235,7 +241,7 @@ struct buffers_category : buffers_base, topo::array_category<P> {
 
   // Data is actually moved by ordinary ghost copies for buffer accessors:
   template<class R>
-  [[nodiscard]] const copy_plan * ghost_copy(scheduler &, const R &) {
+  [[nodiscard]] const data::copy_plan * ghost_copy(scheduler &, const R &) {
     return &cp;
   }
 
@@ -249,10 +255,10 @@ private:
    @param recv It has the actual source coordinates (color and source-local
    index) for each buffer to be received.
   */
-  buffers_category(scheduler & s, const coloring & c, const Points & recv)
-    : topo::array_category<P>(s,
+  topology(scheduler & s, const coloring & c, const Points & recv)
+    : array_category<P>(s,
         [&] {
-          topo::array_base::coloring ret;
+          array_base::coloring ret;
           ret.reserve(c.size());
           auto * p = recv.data();
           for(auto & s : c)
@@ -262,7 +268,7 @@ private:
       cp(
         s,
         *this,
-        copy_plan::Sizes(c.size(), 1),
+        data::copy_plan::Sizes(c.size(), 1),
         [&](auto f) {
           Intervals ret;
           ret.reserve(c.size());
@@ -273,15 +279,14 @@ private:
         },
         [&](auto f) { s.execute<set_ptrs>(f, recv); }) {}
 
-  copy_plan cp;
+  data::copy_plan cp;
 };
-} // namespace detail
-  /// \}
-} // namespace data
 template<>
-struct topo::detail::base<data::detail::buffers_category> {
+struct detail::base<data::detail::buffers_category> {
   using type = data::detail::buffers_base;
 };
+} // namespace topo
+
 namespace data {
 /// \addtogroup topology-data
 /// \{
@@ -295,11 +300,11 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
 
   /// Alias Start is used to provide accessor to the sending buffers. It should
   /// be part of the signature of the two function objects (F, G) needed by the
-  /// "xfer" method of underlying buffers_category.
+  /// topoogy::xfer method.
   using Start = field<Buffer>::accessor<wo, na>;
   /// Alias Transfer is used to provide accessor to the receiving buffers. It
   /// should be part of the signature of the two function objects (F, G) needed
-  /// by the "xfer" method of underlying buffers_category. Since copy_plan
+  /// by the topology::xfer method. Since copy_plan
   /// supports only copies between parts of the same logical region, we can't
   /// use WRITE_DISCARD for the send buffer.  We therefore use rw for it so that
   /// transfer functions can use it to resume large jobs.
@@ -330,7 +335,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
      @param i the index i over the topology index-space of the field, e.g.,
               cell i for an unstructured topology specialization with cells.
      \param sent set whenever any data is sent, indicating that another
-       iteration of \c buffers_category::xfer is required to receive it
+       iteration of \c topology::xfer is required to receive it
 
      \return boolean indicating that row data can be fitted in the buffer.
     */

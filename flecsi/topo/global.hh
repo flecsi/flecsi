@@ -21,10 +21,12 @@ struct global_base : base {
 };
 
 template<class P>
-struct global_category : global_base, data::region, with_cleanup {
-  global_category(scheduler &, const coloring & c)
+struct topology<P, global_base> : global_base, data::region, with_cleanup {
+  topology(scheduler &, const coloring & c)
     : region(data::make_region<P>({1, c.size})) {}
 };
+template<class P>
+using global_category = topology<P, global_base>;
 template<>
 struct detail::base<global_category> {
   using type = global_base;

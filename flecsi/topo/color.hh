@@ -9,6 +9,7 @@
 #define FLECSI_TOPO_COLOR_HH
 
 #include "flecsi/data/topology.hh"
+#include "flecsi/exec/fwd.hh" // topology
 
 namespace flecsi::topo {
 /// \addtogroup topology
@@ -22,10 +23,12 @@ struct color_base {
 };
 
 template<class P>
-struct color : color_base, data::partitioned<data::rows> {
-  color(scheduler &, const coloring & c)
+struct topology<P, color_base> : color_base, data::partitioned<data::rows> {
+  topology(scheduler &, const coloring & c)
     : partitioned(data::make_region<P>(c)) {}
 };
+template<class P>
+using color = topology<P, color_base>;
 template<>
 struct detail::base<color> {
   using type = color_base;
@@ -37,10 +40,12 @@ struct column_base {
 };
 
 template<class P>
-struct column : column_base, color<P> {
+struct topology<P, column_base> : column_base, color<P> {
   using column_base::coloring;
-  explicit column(scheduler & s, coloring c) : color<P>(s, {c, 1}) {}
+  topology(scheduler & s, coloring c) : color<P>(s, {c, 1}) {}
 };
+template<class P>
+using column = topology<P, column_base>;
 template<>
 struct detail::base<column> {
   using type = column_base;
