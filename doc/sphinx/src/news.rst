@@ -15,8 +15,8 @@ Release Notes
 
    The bullets in each such discussion are in descending order of importance.
 
-Changes in v2.4.0
-+++++++++++++++++
+Changes in v2.4.0 (June 5 2025)
++++++++++++++++++++++++++++++++
 
 Possible incompatibilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -24,6 +24,11 @@ Possible incompatibilities
 
   * Kokkos is now a required build dependency.
   * OpenMP support depends on Kokkos configuration.
+
+* Data
+
+  * The automatic resizing for ragged fields no longer occurs after a manual update of the sizes.
+    (This was changed without a release note in 2.3.2.)
 
 Deprecated
 ^^^^^^^^^^
@@ -64,6 +69,8 @@ Deprecated
 * Utilities
 
   * nullary unit-test functions |mdash| accept a ``scheduler``
+  * ``util::annotation::context::ann`` |mdash| use ``guard`` or ``rguard``
+
 
 New features
 ^^^^^^^^^^^^
@@ -130,22 +137,6 @@ New features
   * ``mdspan`` and ``mdcolex`` provide ``element_type`` and ``value_type`` type aliases.
   * ``UNIT`` can be used in GPU kernels, with restrictions.
   * Unit-test functions may accept a ``scheduler``.
-
-Changes in v2.3.3
-+++++++++++++++++
-Possible incompatibilities
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-* Data
-
-  * The automatic resizing for ragged fields no longer occurs after a manual update of the sizes.
-    (This was changed without a release note in 2.3.2.)
-
-
-Deprecated
-^^^^^^^^^^
-* Utilities
-
-  * ``util::annotation::context::ann`` |mdash| use ``guard`` or ``rguard``
 
 Fixed
 ^^^^^
