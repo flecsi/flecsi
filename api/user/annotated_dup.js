@@ -32,9 +32,18 @@ var annotated_dup =
           [ "reduce", "structflecsi_1_1exec_1_1fold_1_1reduce.html", null ],
           [ "sum", "structflecsi_1_1exec_1_1fold_1_1sum.html", null ]
         ] ],
+        [ "agent", "structflecsi_1_1exec_1_1agent.html", "structflecsi_1_1exec_1_1agent" ],
+        [ "blocks", "structflecsi_1_1exec_1_1blocks.html", "structflecsi_1_1exec_1_1blocks" ],
+        [ "cpu", "structflecsi_1_1exec_1_1cpu.html", null ],
+        [ "executor", "structflecsi_1_1exec_1_1executor.html", "structflecsi_1_1exec_1_1executor" ],
+        [ "executor_base", "structflecsi_1_1exec_1_1executor__base.html", "structflecsi_1_1exec_1_1executor__base" ],
         [ "full_range", "structflecsi_1_1exec_1_1full__range.html", null ],
+        [ "gpu", "structflecsi_1_1exec_1_1gpu.html", null ],
         [ "launch_domain", "structflecsi_1_1exec_1_1launch__domain.html", null ],
+        [ "omp", "structflecsi_1_1exec_1_1omp.html", null ],
         [ "prefix_range", "structflecsi_1_1exec_1_1prefix__range.html", "structflecsi_1_1exec_1_1prefix__range" ],
+        [ "space", "structflecsi_1_1exec_1_1space.html", "structflecsi_1_1exec_1_1space" ],
+        [ "space_base", "structflecsi_1_1exec_1_1space__base.html", "structflecsi_1_1exec_1_1space__base" ],
         [ "sub_range", "structflecsi_1_1exec_1_1sub__range.html", "structflecsi_1_1exec_1_1sub__range" ],
         [ "trace", "structflecsi_1_1exec_1_1trace.html", "structflecsi_1_1exec_1_1trace" ]
       ] ],
@@ -67,20 +76,20 @@ var annotated_dup =
         [ "global", "structflecsi_1_1topo_1_1global.html", null ],
         [ "help", "structflecsi_1_1topo_1_1help.html", null ],
         [ "index", "structflecsi_1_1topo_1_1index.html", null ],
-        [ "narray", "structflecsi_1_1topo_1_1narray.html", null ],
         [ "narray_base", "structflecsi_1_1topo_1_1narray__base.html", "structflecsi_1_1topo_1_1narray__base" ],
         [ "narray_specialization", "structflecsi_1_1topo_1_1narray__specialization.html", "structflecsi_1_1topo_1_1narray__specialization" ],
-        [ "ntree", "structflecsi_1_1topo_1_1ntree.html", null ],
         [ "ntree_base", "structflecsi_1_1topo_1_1ntree__base.html", "structflecsi_1_1topo_1_1ntree__base" ],
         [ "ntree_specialization", "structflecsi_1_1topo_1_1ntree__specialization.html", "structflecsi_1_1topo_1_1ntree__specialization" ],
         [ "repartition", "structflecsi_1_1topo_1_1repartition.html", "structflecsi_1_1topo_1_1repartition" ],
         [ "resize", "structflecsi_1_1topo_1_1resize.html", "structflecsi_1_1topo_1_1resize" ],
         [ "specialization", "structflecsi_1_1topo_1_1specialization.html", "structflecsi_1_1topo_1_1specialization" ],
         [ "specialization_base", "structflecsi_1_1topo_1_1specialization__base.html", "structflecsi_1_1topo_1_1specialization__base" ],
-        [ "unstructured", "structflecsi_1_1topo_1_1unstructured.html", "structflecsi_1_1topo_1_1unstructured" ],
+        [ "topology< P, user_base >", "structflecsi_1_1topo_1_1topology_3_01P_00_01user__base_01_4.html", null ],
+        [ "topology< Policy, narray_base >", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4.html", null ],
+        [ "topology< Policy, ntree_base >", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4" ],
+        [ "topology< Policy, unstructured_base >", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01unstructured__base_01_4.html", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01unstructured__base_01_4" ],
         [ "unstructured_base", "structflecsi_1_1topo_1_1unstructured__base.html", "structflecsi_1_1topo_1_1unstructured__base" ],
         [ "unstructured_specialization", "structflecsi_1_1topo_1_1unstructured__specialization.html", "structflecsi_1_1topo_1_1unstructured__specialization" ],
-        [ "user", "structflecsi_1_1topo_1_1user.html", null ],
         [ "with_size", "structflecsi_1_1topo_1_1with__size.html", "structflecsi_1_1topo_1_1with__size" ]
       ] ],
       [ "util", null, [
@@ -119,11 +128,13 @@ var annotated_dup =
       ] ],
       [ "field", "structflecsi_1_1field.html", "structflecsi_1_1field" ],
       [ "future", "structflecsi_1_1future.html", null ],
+      [ "future< Return >", "structflecsi_1_1future_3_01Return_01_4.html", "structflecsi_1_1future_3_01Return_01_4" ],
+      [ "future< Return, exec::launch_type_t::index >", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4" ],
       [ "getopt", "structflecsi_1_1getopt.html", "structflecsi_1_1getopt" ],
       [ "program_option", "structflecsi_1_1program__option.html", "structflecsi_1_1program__option" ],
       [ "runtime", "structflecsi_1_1runtime.html", "structflecsi_1_1runtime" ],
-      [ "task_local", "structflecsi_1_1task__local.html", "structflecsi_1_1task__local" ]
-    ] ],
-    [ "future< Return >", "structfuture_3_01Return_01_4.html", "structfuture_3_01Return_01_4" ],
-    [ "future< Return, exec::launch_type_t::index >", "structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html", "structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4" ]
+      [ "scheduler", "structflecsi_1_1scheduler.html", "structflecsi_1_1scheduler" ],
+      [ "task_local", "structflecsi_1_1task__local.html", "structflecsi_1_1task__local" ],
+      [ "topology", "structflecsi_1_1topology.html", "structflecsi_1_1topology" ]
+    ] ]
 ];

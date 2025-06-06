@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -128,12 +128,12 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:gacc815362045ebe3e3b6e64d01fb982c7" id="r_gacc815362045ebe3e3b6e64d01fb982c7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gacc815362045ebe3e3b6e64d01fb982c7">forall</a>(it,  P,  name)</td></tr>
-<tr class="memdesc:gacc815362045ebe3e3b6e64d01fb982c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">A parallel range-for loop.  <br /></td></tr>
-<tr class="separator:gacc815362045ebe3e3b6e64d01fb982c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga943c167b2bebf9bab4c9ae7896e3fae3" id="r_ga943c167b2bebf9bab4c9ae7896e3fae3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga943c167b2bebf9bab4c9ae7896e3fae3">reduceall</a>(it,  ref,  p,  R,  T,  name)</td></tr>
-<tr class="memdesc:ga943c167b2bebf9bab4c9ae7896e3fae3"><td class="mdescLeft">&#160;</td><td class="mdescRight">A parallel reduction loop.  <br /></td></tr>
-<tr class="separator:ga943c167b2bebf9bab4c9ae7896e3fae3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga43115ae58c2e0eed28a49f203c2814da" id="r_ga43115ae58c2e0eed28a49f203c2814da"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga43115ae58c2e0eed28a49f203c2814da">forall</a>(it, ...)</td></tr>
+<tr class="memdesc:ga43115ae58c2e0eed28a49f203c2814da"><td class="mdescLeft">&#160;</td><td class="mdescRight">A parallel range-for loop.  <br /></td></tr>
+<tr class="separator:ga43115ae58c2e0eed28a49f203c2814da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga460b12536f66e2289a119fe3fffbd9cb" id="r_ga460b12536f66e2289a119fe3fffbd9cb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga460b12536f66e2289a119fe3fffbd9cb">reduceall</a>(it,  ref,  p,  R,  T, ...)</td></tr>
+<tr class="memdesc:ga460b12536f66e2289a119fe3fffbd9cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">A parallel reduction loop.  <br /></td></tr>
+<tr class="separator:ga460b12536f66e2289a119fe3fffbd9cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -149,17 +149,13 @@ Functions</h2></td></tr>
 <tr class="memitem:gaca59feefdea8ba70944196b24a3b8d25"><td class="memTemplItemLeft" align="right" valign="top">T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#gaca59feefdea8ba70944196b24a3b8d25">parallel_reduce</a> (Policy &amp;&amp;p, Lambda &amp;&amp;lambda, const std::string &amp;name=&quot;&quot;)</td></tr>
 <tr class="memdesc:gaca59feefdea8ba70944196b24a3b8d25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform a reduction based on the elements of a range, potentially in parallel.  <br /></td></tr>
 <tr class="separator:gaca59feefdea8ba70944196b24a3b8d25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga7532c1db2f0229cf76a7b23087fd4728" id="r_ga7532c1db2f0229cf76a7b23087fd4728"><td class="memTemplParams" colspan="2">template&lt;int T, int B, class Range &gt; </td></tr>
-<tr class="memitem:ga7532c1db2f0229cf76a7b23087fd4728"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ga7532c1db2f0229cf76a7b23087fd4728">threads</a> (Range range)</td></tr>
-<tr class="memdesc:ga7532c1db2f0229cf76a7b23087fd4728"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function supports to fine-tune the number of blocks and threads for GPU execution.  <br /></td></tr>
-<tr class="separator:ga7532c1db2f0229cf76a7b23087fd4728"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Local concurrent operations. </p>
-<p>If Kokkos is not available, they simply execute serially. To avoid unnecessary copies, one needs to pass a view since the ranges provided by the user are copied. </p>
+<p>They use the default Kokkos execution space. To avoid unnecessary copies, one needs to pass a view since the ranges provided by the user are copied. </p>
 <h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="gacc815362045ebe3e3b6e64d01fb982c7" name="gacc815362045ebe3e3b6e64d01fb982c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gacc815362045ebe3e3b6e64d01fb982c7">&#9670;&#160;</a></span>forall</h2>
+<a id="ga43115ae58c2e0eed28a49f203c2814da" name="ga43115ae58c2e0eed28a49f203c2814da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga43115ae58c2e0eed28a49f203c2814da">&#9670;&#160;</a></span>forall</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -172,30 +168,26 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>P</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>name</em></span>&#160;)</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em></em></span>...&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>A parallel range-for loop. </p>
-<p>Follow with a compound statement and <code>;</code>. Often the elements of <em>range</em> (and thus the values of <code>it</code>) are indices for other ranges. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Follow with a compound statement and <code>;</code>. Often the elements of <em>range</em> (and thus the values of <code>it</code>) are indices for other ranges.</p>
+<p>Use as a member function; use in isolation is <b>deprecated</b>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">it</td><td>variable name to introduce </td></tr>
     <tr><td class="paramname">P</td><td>sized random-access range </td></tr>
-    <tr><td class="paramname">name</td><td>debugging name, convertible to <code>std::string</code> </td></tr>
+    <tr><td class="paramname">name</td><td>optional debugging name, convertible to <code>std::string</code>; not available for the member function form </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="ga943c167b2bebf9bab4c9ae7896e3fae3" name="ga943c167b2bebf9bab4c9ae7896e3fae3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga943c167b2bebf9bab4c9ae7896e3fae3">&#9670;&#160;</a></span>reduceall</h2>
+<a id="ga460b12536f66e2289a119fe3fffbd9cb" name="ga460b12536f66e2289a119fe3fffbd9cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga460b12536f66e2289a119fe3fffbd9cb">&#9670;&#160;</a></span>reduceall</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -228,20 +220,21 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>name</em></span>&#160;)</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em></em></span>...&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>A parallel reduction loop. </p>
-<p>Follow with a compound statement to form an expression. Often the elements of <em>range</em> (and thus the values of <code>it</code>) are indices for other ranges. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Follow with a compound statement to form an expression. Often the elements of <em>range</em> (and thus the values of <code>it</code>) are indices for other ranges.</p>
+<p>Use as a member function; use in isolation is <b>deprecated</b>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">it</td><td>variable name to introduce for elements </td></tr>
     <tr><td class="paramname">ref</td><td>variable name to introduce for storing results; call it with each value participating in the reduction </td></tr>
     <tr><td class="paramname">p</td><td>sized random-access range </td></tr>
     <tr><td class="paramname">R</td><td>reduction operation type </td></tr>
     <tr><td class="paramname">T</td><td>data type </td></tr>
-    <tr><td class="paramname">name</td><td>debugging name, convertible to <code>std::string</code> </td></tr>
+    <tr><td class="paramname">name</td><td>as for <code><a class="el" href="#ga43115ae58c2e0eed28a49f203c2814da">forall</a></code> </td></tr>
   </table>
   </dd>
 </dl>
@@ -250,41 +243,6 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="ga7532c1db2f0229cf76a7b23087fd4728" name="ga7532c1db2f0229cf76a7b23087fd4728"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga7532c1db2f0229cf76a7b23087fd4728">&#9670;&#160;</a></span>threads()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;int T, int B, class Range &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">auto threads </td>
-          <td>(</td>
-          <td class="paramtype">Range</td>          <td class="paramname"><span class="paramname"><em>range</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>This function supports to fine-tune the number of blocks and threads for GPU execution. </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">T</td><td>maximum number of threads per block </td></tr>
-    <tr><td class="paramname">B</td><td>minimum number of blocks per grid </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">range</td><td>sized random-access range </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Policy object constructed with parameters <code>T</code> and <code>B</code> for the sized random-access range <code>range</code>. </dd></dl>
-
-</div>
-</div>
 <a id="ga79deec12cea01d954b674b6959e372f1" name="ga79deec12cea01d954b674b6959e372f1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga79deec12cea01d954b674b6959e372f1">&#9670;&#160;</a></span>mdiota_view()</h2>
 
@@ -352,6 +310,7 @@ template&lt;typename Policy , typename Lambda &gt; </div>
   </table>
   </dd>
 </dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000011">Deprecated</a></b></dt><dd>Use <code>accelerator::for_each</code>. </dd></dl>
 
 </div>
 </div>
@@ -405,6 +364,7 @@ template&lt;class R , class T , typename Policy , typename Lambda &gt; </div>
   </table>
   </dd>
 </dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000012">Deprecated</a></b></dt><dd>Use <code>accelerator::reduce</code>. </dd></dl>
 
 </div>
 </div>

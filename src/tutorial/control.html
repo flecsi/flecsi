@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Control Model &mdash; FleCSI 2.3.2 documentation</title>
+  <title>Control Model &mdash; FleCSI 2.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.2
+                Version: 2.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -60,7 +60,6 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Control Model</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#control-flow-graphs-directed-acyclic-graphs">Control-Flow Graphs &amp; Directed Acyclic Graphs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#flecsibility">FleCSIbility</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#examples">Examples</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#example-1-simple">Example 1: Simple</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#example-2-cycles">Example 2: Cycles</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#example-3-dependencies">Example 3: Dependencies</a></li>
@@ -68,10 +67,8 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="execution.html#tasks">Tasks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="data.html">Data Model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="parallel.html">Distributed and shared memory parallelism</a></li>
-<li class="toctree-l3"><a class="reference internal" href="parallel.html#shared-memory">Shared memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parallel.html">Shared-memory parallelism</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ntree.html">N-Tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
 <li class="toctree-l3"><a class="reference internal" href="poisson.html">Poisson</a></li>
@@ -116,10 +113,7 @@
 of an application
 using a control-flow graph (CFG) of <em>control points</em>,
 under each of which a directed acyclic graph (DAG) of <em>actions</em> can be defined.
-An action typically launches at least one <em>task</em>,
-which is granted access to a subset (color) of a distributed data structure.
-A task launch produces one <em>point task</em> (instance) per color.
-Point tasks run concurrently with respect to each other.</p>
+Actions in turn launch <em>tasks</em> to operate on distributed data.</p>
 <aside class="sidebar">
 <p class="sidebar-title">Control-model concepts</p>
 <p><strong>Control Points</strong> are the logical steps in a control-flow graph.
@@ -271,10 +265,6 @@ extension of the application.</p>
 <p><span class="caption-number">Fig. 4 </span><span class="caption-text">Control Model After Extension.</span><a class="headerlink" href="#id4" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
-</section>
-<hr class="docutils" />
-<section id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this heading"></a></h2>
 <p>The rest of this tutorial demonstrates how application developers can
 use the FleCSI control model to create extensible applications.
 We begin with an extremely simple control model but quickly build to a

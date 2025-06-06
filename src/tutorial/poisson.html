@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Poisson &mdash; FleCSI 2.3.2 documentation</title>
+  <title>Poisson &mdash; FleCSI 2.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.2
+                Version: 2.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -59,10 +59,8 @@
 <li class="toctree-l3"><a class="reference internal" href="runtime.html">Runtime Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="control.html">Control Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="execution.html#tasks">Tasks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="data.html">Data Model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="parallel.html">Distributed and shared memory parallelism</a></li>
-<li class="toctree-l3"><a class="reference internal" href="parallel.html#shared-memory">Shared memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parallel.html">Shared-memory parallelism</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ntree.html">N-Tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Poisson</a><ul>
@@ -239,7 +237,7 @@ internally by FleCSI, you can likely use this file as is (with a different names
 <span class="w">  </span><span class="n">cfg</span><span class="p">.</span><span class="n">legion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;-ll:ocpu&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;-ll:onuma&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;0&quot;</span><span class="p">};</span>
 <span class="cp">#endif</span>
 <span class="cp">#endif</span>
-<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">runtime</span><span class="w"> </span><span class="n">run</span><span class="p">(</span><span class="n">cfg</span><span class="p">);</span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">runtime</span><span class="w"> </span><span class="n">run</span><span class="p">(</span><span class="n">cfg</span><span class="p">);</span>
 <span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;clog&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">clog</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">run</span><span class="p">.</span><span class="n">control</span><span class="o">&lt;</span><span class="n">poisson</span><span class="o">::</span><span class="n">control</span><span class="o">&gt;</span><span class="p">();</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>

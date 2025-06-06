@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CMake for FleCSI client applications &mdash; FleCSI 2.3.2 documentation</title>
+  <title>CMake for FleCSI client applications &mdash; FleCSI 2.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.2
+                Version: 2.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -320,23 +320,22 @@ are not automatically added to the <code class="docutils literal notranslate"><s
 <span class="k">using</span><span class="w"> </span><span class="n">single</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="k">const</span><span class="w"> </span><span class="n">single</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ifield</span><span class="p">;</span>
 
-<span class="kt">void</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="n">single</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">iv</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="n">single</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">iv</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">iv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">39</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="kt">int</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="n">single</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">iv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="n">single</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">iv</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">UNIT</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">ASSERT_EQ</span><span class="p">(</span><span class="n">iv</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="p">);</span>
 <span class="w">  </span><span class="p">};</span>
 <span class="p">}</span>
 
-<span class="kt">int</span><span class="w"> </span><span class="nf">mytest_driver</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">mytest_driver</span><span class="p">(</span><span class="n">scheduler</span><span class="w"> </span><span class="o">&amp;</span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">UNIT</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">::</span><span class="n">slot</span><span class="w"> </span><span class="n">my_topology</span><span class="p">;</span>
-<span class="w">    </span><span class="n">my_topology</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="mi">4</span><span class="p">);</span>
-<span class="w">    </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ifield</span><span class="p">(</span><span class="n">my_topology</span><span class="p">),</span><span class="w"> </span><span class="mi">1669</span><span class="p">);</span>
+<span class="w">    </span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">::</span><span class="n">topology</span><span class="w"> </span><span class="n">my_topology</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">);</span>
+<span class="w">    </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ifield</span><span class="p">(</span><span class="n">my_topology</span><span class="p">),</span><span class="w"> </span><span class="mi">1669</span><span class="p">);</span>
 <span class="w">    </span><span class="n">EXPECT_TRUE</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
-<span class="w">    </span><span class="n">EXPECT_EQ</span><span class="p">(</span><span class="n">test</span><span class="o">&lt;</span><span class="n">verify</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ifield</span><span class="p">(</span><span class="n">my_topology</span><span class="p">)),</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">    </span><span class="n">EXPECT_EQ</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">test</span><span class="o">&lt;</span><span class="n">verify</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ifield</span><span class="p">(</span><span class="n">my_topology</span><span class="p">)),</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="w">  </span><span class="p">};</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// mytest_driver</span>
 

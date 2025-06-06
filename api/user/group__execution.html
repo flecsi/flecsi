@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -106,6 +106,7 @@ $(function(){initNavTree('group__execution.html',''); initResizable(true); });
   <div class="summary">
 <a href="#groups">Topics</a> &#124;
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
@@ -127,8 +128,32 @@ Topics</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1agent.html">agent&lt; S &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A node-local context for potentially parallel operations.  <a href="structflecsi_1_1exec_1_1agent.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1blocks.html">blocks&lt; S, T, B &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parallel operations with thread configuration.  <a href="structflecsi_1_1exec_1_1blocks.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1cpu.html">cpu</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Single-core execution space.  <a href="structflecsi_1_1exec_1_1cpu.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1executor.html">executor&lt; S, T, B &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parallel operations given a name for debugging or profiling.  <a href="structflecsi_1_1exec_1_1executor.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1executor__base.html">executor_base&lt; D &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executor derivation.  <a href="structflecsi_1_1exec_1_1executor__base.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1future.html">future&lt; Return, Launch &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structfuture_3_01Return_01_4.html">Single</a> or <a class="el" href="structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html">multiple</a> future.  <a href="structflecsi_1_1future.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structflecsi_1_1future_3_01Return_01_4.html">Single</a> or <a class="el" href="structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html">multiple</a> future.  <a href="structflecsi_1_1future.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1future_3_01Return_01_4.html">future&lt; Return &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Single-valued future.  <a href="structflecsi_1_1future_3_01Return_01_4.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html">future&lt; Return, exec::launch_type_t::index &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multi-valued future from an index launch.  <a href="structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1gpu.html">gpu</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPU execution space.  <a href="structflecsi_1_1exec_1_1gpu.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1trace_1_1guard.html">trace::guard</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">RAII guard for executing a trace.  <a href="structflecsi_1_1exec_1_1trace_1_1guard.html#details">More...</a><br /></td></tr>
@@ -139,12 +164,30 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1multi.html">multi&lt; class &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A sequence of accessors obtained from a <code><a class="el" href="structflecsi_1_1data_1_1launch_1_1mapping.html" title="A prepared assignment of colors.">launch::mapping</a></code>.  <a href="structflecsi_1_1data_1_1multi.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1omp.html">omp</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">OpenMP execution space.  <a href="structflecsi_1_1exec_1_1omp.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1scheduler.html">scheduler</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Launches tasks according to their execution-space (template) parameters.  <a href="structflecsi_1_1scheduler.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1space.html">space&lt; S &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execution space operations.  <a href="structflecsi_1_1exec_1_1space.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1space__base.html">space_base</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An execution space.  <a href="structflecsi_1_1exec_1_1space__base.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1task__local.html">task_local&lt; T &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A global variable with a task-specific value.  <a href="structflecsi_1_1task__local.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1trace.html">trace</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Records execution of a loop whose iterations all execute the same sequence of tasks.  <a href="structflecsi_1_1exec_1_1trace.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ga739ea61220513a3182eaa55afc439e08" id="r_ga739ea61220513a3182eaa55afc439e08"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga739ea61220513a3182eaa55afc439e08">accelerator</a></td></tr>
+<tr class="memdesc:ga739ea61220513a3182eaa55afc439e08"><td class="mdescLeft">&#160;</td><td class="mdescRight">The available accelerated execution space.  <br /></td></tr>
+<tr class="separator:ga739ea61220513a3182eaa55afc439e08"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -155,6 +198,10 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:gaae23f4fb2194d0509bbc17e3208ee43f" id="r_gaae23f4fb2194d0509bbc17e3208ee43f"><td class="memTemplParams" colspan="2">template&lt;class T , class... AA&gt; </td></tr>
+<tr class="memitem:gaae23f4fb2194d0509bbc17e3208ee43f"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#gaae23f4fb2194d0509bbc17e3208ee43f">allocate</a> (std::unique_ptr&lt; <a class="el" href="structflecsi_1_1topology.html">topology</a>&lt; T &gt; &gt; &amp;p, const typename T::coloring &amp;c, AA &amp;&amp;... aa)</td></tr>
+<tr class="memdesc:gaae23f4fb2194d0509bbc17e3208ee43f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a topology instance with specialization support.  <br /></td></tr>
+<tr class="separator:gaae23f4fb2194d0509bbc17e3208ee43f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga191a812b44259a5c9f02ae092f1d0648" id="r_ga191a812b44259a5c9f02ae092f1d0648"><td class="memTemplParams" colspan="2">template&lt;auto &amp; TASK, TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::leaf, typename... ARGS&gt; </td></tr>
 <tr class="memitem:ga191a812b44259a5c9f02ae092f1d0648"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ga191a812b44259a5c9f02ae092f1d0648">execute</a> (ARGS &amp;&amp;... args)</td></tr>
 <tr class="memdesc:ga191a812b44259a5c9f02ae092f1d0648"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute a task.  <br /></td></tr>
@@ -167,6 +214,10 @@ Functions</h2></td></tr>
 <tr class="memitem:gafadad11d9825d4175ac5d62db431e39e"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#gafadad11d9825d4175ac5d62db431e39e">reduce</a> (Args &amp;&amp;...)</td></tr>
 <tr class="memdesc:gafadad11d9825d4175ac5d62db431e39e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute a reduction task.  <br /></td></tr>
 <tr class="separator:gafadad11d9825d4175ac5d62db431e39e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab307ce242c906cc4222c187b467c20df" id="r_gab307ce242c906cc4222c187b467c20df"><td class="memTemplParams" colspan="2">template&lt;class V , class... AA&gt; </td></tr>
+<tr class="memitem:gab307ce242c906cc4222c187b467c20df"><td class="memTemplItemLeft" align="right" valign="top">int&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#gab307ce242c906cc4222c187b467c20df">test</a> (AA &amp;&amp;... aa)</td></tr>
+<tr class="memdesc:gab307ce242c906cc4222c187b467c20df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute a variant of a test task.  <br /></td></tr>
+<tr class="separator:gab307ce242c906cc4222c187b467c20df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga51b0923f64f86267bd1d6f5da0108fe7" id="r_ga51b0923f64f86267bd1d6f5da0108fe7"><td class="memTemplParams" colspan="2">template&lt;auto &amp; TASK, TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::leaf, typename... ARGS&gt; </td></tr>
 <tr class="memitem:ga51b0923f64f86267bd1d6f5da0108fe7"><td class="memTemplItemLeft" align="right" valign="top">int&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ga51b0923f64f86267bd1d6f5da0108fe7">test</a> (ARGS &amp;&amp;... args)</td></tr>
 <tr class="memdesc:ga51b0923f64f86267bd1d6f5da0108fe7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute a test task.  <br /></td></tr>
@@ -177,11 +228,33 @@ Variables</h2></td></tr>
 <tr class="memitem:ga9e9a08cdd28a4ed3b153a4b587974190" id="r_ga9e9a08cdd28a4ed3b153a4b587974190"><td class="memItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga9e9a08cdd28a4ed3b153a4b587974190">default_accelerator</a></td></tr>
 <tr class="memdesc:ga9e9a08cdd28a4ed3b153a4b587974190"><td class="mdescLeft">&#160;</td><td class="mdescRight">The task attribute to use for tasks that use the <a class="el" href="group__kernel.html">on-node parallelism interface</a>.  <br /></td></tr>
 <tr class="separator:ga9e9a08cdd28a4ed3b153a4b587974190"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2689ee76d1bd3bcc48dde682ac74a3b2" id="r_ga2689ee76d1bd3bcc48dde682ac74a3b2"><td class="memItemLeft" align="right" valign="top">constexpr on_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga2689ee76d1bd3bcc48dde682ac74a3b2">on</a></td></tr>
+<tr class="memdesc:ga2689ee76d1bd3bcc48dde682ac74a3b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Placeholder argument that corresponds to an execution-<a class="el" href="structflecsi_1_1exec_1_1space.html">space</a> task parameter.  <br /></td></tr>
+<tr class="separator:ga2689ee76d1bd3bcc48dde682ac74a3b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Launching tasks and kernels. </p>
-<p>Tasks are coarse-grained and use distributed-memory with restricted side effects; kernels are fine-grained and data-parallel, possibly using an accelerator. </p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;flecsi/execution.hh&quot;</span></div>
-</div><!-- fragment --> <h2 class="groupheader">Enumeration Type Documentation</h2>
+<p>Tasks are coarse-grained and use distributed-memory with restricted side effects; kernels are fine-grained and data-parallel, possibly using an accelerator.</p>
+<p>Contents are in <code>flecsi::exec</code> unless otherwise specified. </p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;flecsi/execution.hh&quot;</span></div>
+</div><!-- fragment --> <h2 class="groupheader">Typedef Documentation</h2>
+<a id="ga739ea61220513a3182eaa55afc439e08" name="ga739ea61220513a3182eaa55afc439e08"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga739ea61220513a3182eaa55afc439e08">&#9670;&#160;</a></span>accelerator</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#ga739ea61220513a3182eaa55afc439e08">accelerator</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The available accelerated execution space. </p>
+<p>Defined as <code>gpu</code> or <code>omp</code> if support for one of those is available, otherwise <code>cpu</code>. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Enumeration Type Documentation</h2>
 <a id="ga7b0ca5b879fe56b356b7c20a1f43bea4" name="ga7b0ca5b879fe56b356b7c20a1f43bea4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga7b0ca5b879fe56b356b7c20a1f43bea4">&#9670;&#160;</a></span>task_attributes_mask_t</h2>
 
@@ -195,8 +268,10 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Task attribute flags. </p>
+<p>Appears directly in <code>flecsi</code>. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga7b0ca5b879fe56b356b7c20a1f43bea4a8517ab127dc92dc48a341cad79bf1744" name="gga7b0ca5b879fe56b356b7c20a1f43bea4a8517ab127dc92dc48a341cad79bf1744"></a>idempotent&#160;</td><td class="fielddoc"><p>Task may be replicated to reduce communication. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga7b0ca5b879fe56b356b7c20a1f43bea4a8517ab127dc92dc48a341cad79bf1744" name="gga7b0ca5b879fe56b356b7c20a1f43bea4a8517ab127dc92dc48a341cad79bf1744"></a>idempotent&#160;</td><td class="fielddoc"><p>Ignored. </p>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000015">Deprecated</a></b></dt><dd>No effect. </dd></dl>
 </td></tr>
 <tr><td class="fieldname"><a id="gga7b0ca5b879fe56b356b7c20a1f43bea4a42ce44086a5876a041d194b5a7df34cd" name="gga7b0ca5b879fe56b356b7c20a1f43bea4a42ce44086a5876a041d194b5a7df34cd"></a>loc&#160;</td><td class="fielddoc"><p>Run on a Latency-Optimized Core (a CPU). </p>
 </td></tr>
@@ -243,15 +318,13 @@ template&lt;auto &amp; Task, class Reduction , TaskAttributes Attributes = flecs
 <p>Execute a reduction task. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">Task</td><td>The user task. </td></tr>
     <tr><td class="paramname">Reduction</td><td>The reduction operation type. </td></tr>
-    <tr><td class="paramname">Attributes</td><td>The task attributes mask. </td></tr>
-    <tr><td class="paramname">Args</td><td>The user-specified task arguments. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>a <a class="el" href="structflecsi_1_1future.html">future</a> providing the reduced return value</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="#ga191a812b44259a5c9f02ae092f1d0648" title="Execute a task.">execute</a></code> about parameter and argument types. </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="#ga191a812b44259a5c9f02ae092f1d0648" title="Execute a task.">execute</a></code> about parameter and argument types.</dd></dl>
+<p>Appears directly in <code>flecsi</code>. </p>
 
 </div>
 </div>
@@ -275,14 +348,14 @@ template&lt;auto &amp; TASK, TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::l
 <p>Execute a task. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">TASK</td><td>The user task. Its parameters must support <a class="el" href="group__serial.html">Serialization</a>. If <em>ATTRIBUTES</em> specifies an MPI task, parameters need merely be movable. </td></tr>
+    <tr><td class="paramname">TASK</td><td>The user task. Its parameters must be copyable or a reference to a const, movable type. Any that is a pointer must be to a const type or to a function. If <em>ATTRIBUTES</em> specifies an MPI task, parameters need merely be movable. </td></tr>
     <tr><td class="paramname">ATTRIBUTES</td><td>The task attributes mask. </td></tr>
-    <tr><td class="paramname">ARGS</td><td>The user-specified task arguments, implicitly converted to the parameter types for <em>TASK</em>. Certain FleCSI-defined parameter types accept particular, different argument types that serve as selectors for information stored by the backend; each type involved documents the correspondence. </td></tr>
+    <tr><td class="paramname">ARGS</td><td>The user-specified task arguments, implicitly converted to the parameter types for <em>TASK</em>. Certain FleCSI-defined parameter types accept particular, different argument types that serve as selectors for information stored by the backend; each type involved documents the correspondence. Additionally, a parameter may be a <code>std::vector</code> of such a type or a <code>std::tuple</code> that includes such a type; it accepts a <code>std::vector</code> of or a <code>std::tuple</code> including the corresponding argument type. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>a <a class="el" href="structflecsi_1_1future.html">future</a> providing the value(s) returned from the task</dd></dl>
-<dl class="section note"><dt>Note</dt><dd>Avoid passing large objects to tasks repeatedly; use global variables (and, perhaps, pass keys to select from them) or fields. </dd></dl>
+<p>Appears directly in <code>flecsi</code>. </p>
 
 </div>
 </div>
@@ -312,29 +385,29 @@ template&lt;auto &amp; F, class... AA&gt; </div>
 </div><div class="memdoc">
 
 <p>Partially apply a function. </p>
-<p>Lambdas and <code>bind</code> objects may not in general be passed to tasks. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">F</td><td>function to call </td></tr>
-    <tr><td class="paramname">AA</td><td>serializable types </td></tr>
+    <tr><td class="paramname">AA</td><td>leading arguments </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>a function object that can be an argument to a task </dd></dl>
-<dl class="section note"><dt>Note</dt><dd>The task will usually be a function template:<div class="fragment"><div class="line"><span class="keywordtype">void</span> func(<span class="comment">/*...*/</span>);</div>
+<dl class="section return"><dt>Returns</dt><dd>a function object </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>A task that accepts the result will usually be a function template: <div class="fragment"><div class="line"><span class="keywordtype">void</span> func(<span class="comment">/*...*/</span>);</div>
 <div class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> F&gt;</div>
 <div class="line"><span class="keywordtype">void</span> task(F f) {f(<span class="comment">/* ... */</span>);}</div>
-<div class="line"><span class="keywordtype">void</span> client() {</div>
+<div class="line"><span class="keywordtype">void</span> client(scheduler &amp;s) {</div>
 <div class="line">  <span class="keyword">auto</span> p = <a class="code hl_function" href="#gac28f2f0eafd476e4798d91d751e90ff6">make_partial&lt;func&gt;</a>(<span class="comment">/*...*/</span>);</div>
-<div class="line">  <a class="code hl_function" href="#ga191a812b44259a5c9f02ae092f1d0648">execute</a>&lt;task&lt;<span class="keyword">decltype</span>(p)&gt;&gt;(p);  <span class="comment">// note explicit template argument</span></div>
+<div class="line">  s.execute&lt;task&lt;<span class="keyword">decltype</span>(p)&gt;&gt;(p);  <span class="comment">// note explicit template argument</span></div>
 <div class="line">}</div>
-<div class="ttc" id="agroup__execution_html_ga191a812b44259a5c9f02ae092f1d0648"><div class="ttname"><a href="#ga191a812b44259a5c9f02ae092f1d0648">flecsi::execute</a></div><div class="ttdeci">auto execute(ARGS &amp;&amp;... args)</div><div class="ttdoc">Execute a task.</div><div class="ttdef"><b>Definition</b> fwd.hh:56</div></div>
-<div class="ttc" id="agroup__execution_html_gac28f2f0eafd476e4798d91d751e90ff6"><div class="ttname"><a href="#gac28f2f0eafd476e4798d91d751e90ff6">flecsi::make_partial</a></div><div class="ttdeci">constexpr exec::partial&lt; F, std::decay_t&lt; AA &gt;... &gt; make_partial(AA &amp;&amp;... aa)</div><div class="ttdoc">Partially apply a function.</div><div class="ttdef"><b>Definition</b> launch.hh:252</div></div>
-</div><!-- fragment --> </dd></dl>
+<div class="ttc" id="agroup__execution_html_gac28f2f0eafd476e4798d91d751e90ff6"><div class="ttname"><a href="#gac28f2f0eafd476e4798d91d751e90ff6">flecsi::make_partial</a></div><div class="ttdeci">constexpr exec::partial&lt; F, std::decay_t&lt; AA &gt;... &gt; make_partial(AA &amp;&amp;... aa)</div><div class="ttdoc">Partially apply a function.</div><div class="ttdef"><b>Definition</b> launch.hh:619</div></div>
+</div><!-- fragment --></dd></dl>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000013">Deprecated</a></b></dt><dd>Use a lambda or <code>std::bind</code>. </dd></dl>
 
 </div>
 </div>
 <a id="ga51b0923f64f86267bd1d6f5da0108fe7" name="ga51b0923f64f86267bd1d6f5da0108fe7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga51b0923f64f86267bd1d6f5da0108fe7">&#9670;&#160;</a></span>test()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga51b0923f64f86267bd1d6f5da0108fe7">&#9670;&#160;</a></span>test() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -360,19 +433,105 @@ template&lt;auto &amp; TASK, TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::l
 
 <p>Execute a test task. </p>
 <p>This interface is provided for FleCSI's unit testing framework. Test tasks must return an integer that is non-zero on failure, and zero otherwise.</p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">TASK</td><td>The user task. Its parameters may be of any default-constructible, trivially-move-assignable, non-pointer type, any type that supports the Legion return-value serialization interface, or any of several standard containers of such types. If <em>ATTRIBUTES</em> specifies an MPI task, parameters need merely be movable. </td></tr>
-    <tr><td class="paramname">ATTRIBUTES</td><td>The task attributes mask. </td></tr>
-    <tr><td class="paramname">ARGS</td><td>The user-specified task arguments, implicitly converted to the parameter types for <em>TASK</em>.</td></tr>
+<dl class="section see"><dt>See also</dt><dd><code><a class="el" href="#ga191a812b44259a5c9f02ae092f1d0648" title="Execute a task.">execute</a></code> about parameter and argument types.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>zero on success, non-zero on failure.</dd></dl>
+<p>Appears directly in <code>flecsi</code>. </p>
+
+</div>
+</div>
+<a id="gab307ce242c906cc4222c187b467c20df" name="gab307ce242c906cc4222c187b467c20df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab307ce242c906cc4222c187b467c20df">&#9670;&#160;</a></span>test() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class V , class... AA&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int test </td>
+          <td>(</td>
+          <td class="paramtype">AA &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>aa</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">nodiscard</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Execute a variant of a test task. </p>
+
+</div>
+</div>
+<a id="gaae23f4fb2194d0509bbc17e3208ee43f" name="gaae23f4fb2194d0509bbc17e3208ee43f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaae23f4fb2194d0509bbc17e3208ee43f">&#9670;&#160;</a></span>allocate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class T , class... AA&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">auto &amp; allocate </td>
+          <td>(</td>
+          <td class="paramtype">std::unique_ptr&lt; <a class="el" href="structflecsi_1_1topology.html">topology</a>&lt; T &gt; &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>p</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const typename T::coloring &amp;</td>          <td class="paramname"><span class="paramname"><em>c</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">AA &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>aa</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Create a topology instance with specialization support. </p>
+<p>Calls the specialization's <code>initialize</code> on the topology instance. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">p</td><td>where to store the topology </td></tr>
+    <tr><td class="paramname">c</td><td>coloring (perhaps from an <a class="el" href="structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html"><code>mpi_coloring</code></a>) </td></tr>
+    <tr><td class="paramname">aa</td><td>further specialization-specific parameters </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>zero on success, non-zero on failure. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>the new instance </dd></dl>
 
 </div>
 </div>
 <h2 class="groupheader">Variable Documentation</h2>
+<a id="ga2689ee76d1bd3bcc48dde682ac74a3b2" name="ga2689ee76d1bd3bcc48dde682ac74a3b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2689ee76d1bd3bcc48dde682ac74a3b2">&#9670;&#160;</a></span>on</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">on_t on</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Placeholder argument that corresponds to an execution-<a class="el" href="structflecsi_1_1exec_1_1space.html">space</a> task parameter. </p>
+
+</div>
+</div>
 <a id="ga9e9a08cdd28a4ed3b153a4b587974190" name="ga9e9a08cdd28a4ed3b153a4b587974190"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga9e9a08cdd28a4ed3b153a4b587974190">&#9670;&#160;</a></span>default_accelerator</h2>
 
@@ -394,7 +553,8 @@ template&lt;auto &amp; TASK, TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::l
 </div><div class="memdoc">
 
 <p>The task attribute to use for tasks that use the <a class="el" href="group__kernel.html">on-node parallelism interface</a>. </p>
-<p>Defined as <code>toc</code> or <code>omp</code> if support for one of those is available, otherwise <code>loc</code>. </p><dl class="section warning"><dt>Warning</dt><dd>Using <code>toc</code> causes field data to be placed on the device, so that it is accessible <em>only</em> via the parallelism interface. </dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>Using <code>toc</code> causes field data to be placed on the device, so that it is accessible <em>only</em> via the parallelism interface.</dd></dl>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000014">Deprecated</a></b></dt><dd>Use <code>accelerator</code>. </dd></dl>
 
 </div>
 </div>

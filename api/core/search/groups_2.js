@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['data_0',['Data',['../group__legion-data.html',1,'Legion Data'],['../group__mpi-data.html',1,'MPI Data']]],
-  ['data_20model_1',['Data Model',['../group__data.html',1,'']]],
-  ['dimensional_20array_2',['Multi-dimensional Array',['../group__narray.html',1,'']]],
-  ['dimensional_20tree_3',['N-dimensional Tree',['../group__ntree.html',1,'']]]
+  ['configuration_0',['Configuration',['../group__config.html',1,'']]],
+  ['control_20model_1',['Control Model',['../group__control.html',1,'']]],
+  ['curves_2',['Filling Curves',['../group__fillingcurves.html',1,'']]]
 ];

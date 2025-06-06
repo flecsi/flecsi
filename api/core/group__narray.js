@@ -1,23 +1,23 @@
 var group__narray =
 [
-    [ "access< Priv >", "structflecsi_1_1topo_1_1narray_1_1access.html", [
-      [ "mdspan", "structflecsi_1_1topo_1_1narray_1_1access.html#a753aa95b55b177c8e11846fad0acf413", null ],
-      [ "mdcolex", "structflecsi_1_1topo_1_1narray_1_1access.html#aa5ce6d57355fcd7986143133f5c58a5b", null ],
-      [ "global", "structflecsi_1_1topo_1_1narray_1_1access.html#a9316d898b7e28f3724fe425a54dc06f9", null ],
-      [ "offset", "structflecsi_1_1topo_1_1narray_1_1access.html#a4af75b080edb208b8f5eff1d01f2cc9e", null ],
-      [ "extents", "structflecsi_1_1topo_1_1narray_1_1access.html#a37adaa0ad555533b154175780f08c268", null ],
-      [ "logical", "structflecsi_1_1topo_1_1narray_1_1access.html#a5e877c6deb3f1b0b9bedc3c4d6428a29", null ],
-      [ "extended", "structflecsi_1_1topo_1_1narray_1_1access.html#af07e4221a8d313f6e156edb3a824ecb0", null ],
-      [ "policy_meta", "structflecsi_1_1topo_1_1narray_1_1access.html#a5364a2af42031ad86f1af286c92aa61e", null ],
-      [ "axis", "structflecsi_1_1topo_1_1narray_1_1access.html#af097490f675d4d894fb74ac9097a03fc", null ],
-      [ "is_low", "structflecsi_1_1topo_1_1narray_1_1access.html#afe6941cd23fe3ca5e295ddd25ae2b568", null ],
-      [ "is_high", "structflecsi_1_1topo_1_1narray_1_1access.html#ad1543b43317c198e4b7d29c2c261f664", null ],
-      [ "is_interior", "structflecsi_1_1topo_1_1narray_1_1access.html#ac797962ad3b1c047254b769257cd50d0", null ],
-      [ "is_degenerate", "structflecsi_1_1topo_1_1narray_1_1access.html#ab72e2e53c109e86785b3b26522b0f30d", null ],
-      [ "global_id", "structflecsi_1_1topo_1_1narray_1_1access.html#a80abe66f209cc88b8a560dec349850fd", null ],
-      [ "size", "structflecsi_1_1topo_1_1narray_1_1access.html#a2879689d9c2c2ec8b7c97663e9f9c3d3", null ],
-      [ "range", "structflecsi_1_1topo_1_1narray_1_1access.html#aa027cddbb858ffa915ea2eb628e889da", null ],
-      [ "offset", "structflecsi_1_1topo_1_1narray_1_1access.html#a9a799a42a2509ef53bd8f33936ccb65d", null ]
+    [ "access< Priv >", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html", [
+      [ "mdspan", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#a753aa95b55b177c8e11846fad0acf413", null ],
+      [ "mdcolex", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#aa5ce6d57355fcd7986143133f5c58a5b", null ],
+      [ "global", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#a9316d898b7e28f3724fe425a54dc06f9", null ],
+      [ "offset", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#a4af75b080edb208b8f5eff1d01f2cc9e", null ],
+      [ "extents", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#a37adaa0ad555533b154175780f08c268", null ],
+      [ "logical", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#a5e877c6deb3f1b0b9bedc3c4d6428a29", null ],
+      [ "extended", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#af07e4221a8d313f6e156edb3a824ecb0", null ],
+      [ "policy_meta", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#a5364a2af42031ad86f1af286c92aa61e", null ],
+      [ "axis", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#af097490f675d4d894fb74ac9097a03fc", null ],
+      [ "is_low", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#afe6941cd23fe3ca5e295ddd25ae2b568", null ],
+      [ "is_high", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#ad1543b43317c198e4b7d29c2c261f664", null ],
+      [ "is_interior", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#ac797962ad3b1c047254b769257cd50d0", null ],
+      [ "is_degenerate", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#ab72e2e53c109e86785b3b26522b0f30d", null ],
+      [ "global_id", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#a80abe66f209cc88b8a560dec349850fd", null ],
+      [ "size", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#a2879689d9c2c2ec8b7c97663e9f9c3d3", null ],
+      [ "range", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#aa027cddbb858ffa915ea2eb628e889da", null ],
+      [ "offset", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#a9a799a42a2509ef53bd8f33936ccb65d", null ]
     ] ],
     [ "axis", "structflecsi_1_1topo_1_1narray__impl_1_1axis.html", [
       [ "colors", "structflecsi_1_1topo_1_1narray__impl_1_1axis.html#aa725a57f77829780aae4fb1e5b24ab7c", null ],
@@ -64,10 +64,6 @@ var group__narray =
       [ "create_plan", "structflecsi_1_1topo_1_1narray__impl_1_1index__definition.html#a9489393c8b045b69e722e1587c6467ba", null ],
       [ "full_ghosts", "structflecsi_1_1topo_1_1narray__impl_1_1index__definition.html#af2ba8c10f9e7886bd7f4d823cbb4388a", null ]
     ] ],
-    [ "narray< Policy >", "structflecsi_1_1topo_1_1narray.html", [
-      [ "ragged_impl", "structflecsi_1_1topo_1_1narray_1_1ragged__impl.html", null ],
-      [ "make_copy_plan", "structflecsi_1_1topo_1_1narray.html#a8af70289cd45bdb068f9b8411d06db66", null ]
-    ] ],
     [ "narray_base", "structflecsi_1_1topo_1_1narray__base.html", [
       [ "coloring", "structflecsi_1_1topo_1_1narray__base_1_1coloring.html", [
         [ "idx_colorings", "structflecsi_1_1topo_1_1narray__base_1_1coloring.html#a91c5368faa0c9acc96ca52cc0d0ae35c", null ]
@@ -93,5 +89,10 @@ var group__narray =
       [ "meta_data", "structflecsi_1_1topo_1_1narray__specialization_1_1meta__data.html", null ],
       [ "axes", "structflecsi_1_1topo_1_1narray__specialization.html#a858eb4bbec2f5c53246aa0eb1fdca767", null ],
       [ "axis", "structflecsi_1_1topo_1_1narray__specialization.html#accc088009d44c521706aa98d6387ee21", null ]
-    ] ]
+    ] ],
+    [ "topology< Policy, narray_base >", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4.html", [
+      [ "ragged_impl", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1ragged__impl.html", null ],
+      [ "make_copy_plan", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4.html#a77b0cbab719e83b05954b328e0ae4316", null ]
+    ] ],
+    [ "narray", "group__narray.html#gab78cf0304f7dd67018c597fc3af0104f", null ]
 ];

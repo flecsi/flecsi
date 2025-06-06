@@ -4,7 +4,7 @@ var searchData=
   ['ragged_5faccessor_1',['ragged_accessor',['../structflecsi_1_1data_1_1ragged__accessor.html',1,'flecsi::data']]],
   ['ragged_5faccessor_3c_20t_2c_20p_2c_20privilege_5frepeat_3c_20privilege_5fdiscard_28p_29_20_3f_20wo_20_3arw_2c_20privilege_5fcount_28p_29_3e_20_3e_2',['ragged_accessor&lt; T, P, privilege_repeat&lt; privilege_discard(P) ? wo :rw, privilege_count(P)&gt; &gt;',['../structflecsi_1_1data_1_1ragged__accessor.html',1,'flecsi::data']]],
   ['ragged_5faccessor_3c_20t_2c_20p_2c_20privilege_5frepeat_3c_20ro_2c_20privilege_5fcount_28p_29_3e_20_3e_3',['ragged_accessor&lt; T, P, privilege_repeat&lt; ro, privilege_count(P)&gt; &gt;',['../structflecsi_1_1data_1_1ragged__accessor.html',1,'flecsi::data']]],
-  ['ragged_5fimpl_4',['ragged_impl',['../structflecsi_1_1topo_1_1narray_1_1ragged__impl.html',1,'flecsi::topo::narray']]],
+  ['ragged_5fimpl_4',['ragged_impl',['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1ragged__impl.html',1,'flecsi::topo::topology&lt; Policy, narray_base &gt;']]],
   ['reader_5',['reader',['../structflecsi_1_1data_1_1detail_1_1buffers__base_1_1buffer_1_1reader.html',1,'flecsi::data::detail::buffers_base::buffer']]],
   ['reduce_6',['reduce',['../structflecsi_1_1exec_1_1fold_1_1reduce.html',1,'flecsi::exec::fold']]],
   ['reduction_5faccessor_7',['reduction_accessor',['../structflecsi_1_1data_1_1reduction__accessor.html',1,'flecsi::data']]],

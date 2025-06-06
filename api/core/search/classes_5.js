@@ -30,6 +30,6 @@ var searchData=
   ['full_5frange_27',['full_range',['../structflecsi_1_1exec_1_1full__range.html',1,'flecsi::exec']]],
   ['future_28',['future',['../structflecsi_1_1future.html',1,'flecsi']]],
   ['future_3c_20bool_20_3e_29',['future&lt; bool &gt;',['../structflecsi_1_1future.html',1,'flecsi']]],
-  ['future_3c_20return_20_3e_30',['future&lt; Return &gt;',['../structfuture_3_01Return_01_4.html',1,'']]],
-  ['future_3c_20return_2c_20exec_3a_3alaunch_5ftype_5ft_3a_3aindex_20_3e_31',['future&lt; Return, exec::launch_type_t::index &gt;',['../structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html',1,'']]]
+  ['future_3c_20return_20_3e_30',['future&lt; Return &gt;',['../structflecsi_1_1future_3_01Return_01_4.html',1,'flecsi']]],
+  ['future_3c_20return_2c_20exec_3a_3alaunch_5ftype_5ft_3a_3aindex_20_3e_31',['future&lt; Return, exec::launch_type_t::index &gt;',['../structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html',1,'flecsi']]]
 ];

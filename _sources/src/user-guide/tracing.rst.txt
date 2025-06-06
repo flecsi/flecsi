@@ -25,14 +25,14 @@ Here is the iteration loop without tracing.
 
   do {
     for(std::size_t i{0}; i < sub; ++i) {
-      execute<task::red>(m, ud(m), fd(m));
-      execute<task::black>(m, ud(m), fd(m));
+      s.execute<task::red>(m, ud(m), fd(m));
+      s.execute<task::black>(m, ud(m), fd(m));
     }
     ita += sub;
 
-    execute<task::discrete_operator>(m, ud(m), Aud(m));
-    auto residual = reduce<task::diff, exec::fold::sum>(m, fd(m), Aud(m));
-    execute<task::print_residual>(residual, ita+sub);
+    s.execute<task::discrete_operator>(m, ud(m), Aud(m));
+    auto residual = s.reduce<task::diff, exec::fold::sum>(m, fd(m), Aud(m));
+    s.execute<task::print_residual>(residual, ita+sub);
 
   } while(ita < max_iterations.value());
 
@@ -41,7 +41,7 @@ Here is the iteration loop without tracing.
   FleCSI does not yet support futures in this way.
 
 .. note:: 
-  These loops contain ``flecsi::execute<>`` task launches. Any such loops in your code
+  These loops contain ``execute<>`` task launches. Any such loops in your code
   need to have tracing enabled either on the loop itself or on a containing loop.
 
 .. code-block:: c++
@@ -58,14 +58,14 @@ Here is the iteration loop without tracing.
   do {
     auto g = t.make_guard();    // turn tracing on for enclosing do loop
     for(std::size_t i{0}; i < sub; ++i) {
-      execute<task::red>(m, ud(m), fd(m));
-      execute<task::black>(m, ud(m), fd(m));
+      s.execute<task::red>(m, ud(m), fd(m));
+      s.execute<task::black>(m, ud(m), fd(m));
     }
     ita += sub;
 
-    execute<task::discrete_operator>(m, ud(m), Aud(m));
-    auto residual = reduce<task::diff, exec::fold::sum>(m, fd(m), Aud(m));
-    execute<task::print_residual>(residual, ita+sub);
+    s.execute<task::discrete_operator>(m, ud(m), Aud(m));
+    auto residual = s.reduce<task::diff, exec::fold::sum>(m, fd(m), Aud(m));
+    s.execute<task::print_residual>(residual, ita+sub);
 
   } while(ita < max_iterations.value());
 
@@ -79,4 +79,4 @@ Here is the iteration loop without tracing.
 When to Use Tracing
 +++++++++++++++++++++++++++++++++++++++++
 
-You should enable tracing anytime you have a set of tasks that will be ``flecsi::execute<>``'ed in the same sequence over and over again.
+You should enable tracing anytime you have a set of tasks that will be ``execute<>``'ed in the same sequence over and over again.

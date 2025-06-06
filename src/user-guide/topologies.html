@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Topologies &mdash; FleCSI 2.3.2 documentation</title>
+  <title>Topologies &mdash; FleCSI 2.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.2
+                Version: 2.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -120,9 +120,14 @@ top of the topology.  The relevant operations will depend strongly
 on the needs of the domain experts, but will often include queries
 about the physical layout of points within the simulation space.
 For example, a specialization of the <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> topology category for a two-dimensional mesh might define it in terms of vertices, edges, and elements but not faces.
-In fact, every topology type is such a specialization; we use the term “specialization” to emphasize the definition of the type rather than its use.</p>
+In fact, every topology type is associated with such a specialization; the term “specialization” emphasizes the definition rather than the resulting type to be used.</p>
 </dd>
 </dl>
+<figure class="align-default" id="id1">
+<img alt="../../_images/topologies.svg" src="../../_images/topologies.svg" /><figcaption>
+<p><span class="caption-number">Fig. 19 </span><span class="caption-text">Two specializations of the unstructured topology category with different number of index spaces and multiple topology instances.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
 </section>
 <section id="index-spaces">
 <h2>Index Spaces<a class="headerlink" href="#index-spaces" title="Permalink to this heading"></a></h2>
@@ -181,6 +186,20 @@ smoothed-particle hydrodynamics.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> topology comprises an arbitrary set of index spaces along with several kinds of graph adjacency information that support use as an unstructured mesh.
 The index spaces can be resized to support mesh refinement.</p></li>
 </ul>
+<figure class="align-center" id="id2">
+<a class="reference internal image-reference" href="../../_images/narray-coloring.svg"><img alt="../../_images/narray-coloring.svg" src="../../_images/narray-coloring.svg" width="50%" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 20 </span><span class="caption-text">An narray-based mesh topology instance with 4 colors.</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id3">
+<a class="reference internal image-reference" href="../../_images/narray-extended-index-spaces.svg"><img alt="../../_images/narray-extended-index-spaces.svg" src="../../_images/narray-extended-index-spaces.svg" width="80%" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 21 </span><span class="caption-text">Index spaces in an narray-based topology with ghost elements as seen by each
+color of a topology instance. It illustrates how owned and ghost elements are
+interleaved due to how they are stored in one-dimensional arrays.</span><a class="headerlink" href="#id3" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
 </section>
 <section id="colorings">
 <h2>Colorings<a class="headerlink" href="#colorings" title="Permalink to this heading"></a></h2>
@@ -188,28 +207,31 @@ The index spaces can be resized to support mesh refinement.</p></li>
 As a trivial example, the <code class="docutils literal notranslate"><span class="pre">global</span></code> and <code class="docutils literal notranslate"><span class="pre">index</span></code> topologies can use just an integer as a coloring:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
 
-<span class="kt">int</span><span class="w"> </span><span class="nf">top_level</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="n">topo</span><span class="o">::</span><span class="n">global</span><span class="o">::</span><span class="n">slot</span><span class="w"> </span><span class="n">pair</span><span class="p">;</span>
-<span class="w">  </span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">::</span><span class="n">slot</span><span class="w"> </span><span class="n">hydro_indices</span><span class="p">;</span>
-<span class="w">  </span><span class="n">pair</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
-<span class="w">  </span><span class="n">hydro_indices</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">simulation</span><span class="p">(</span><span class="n">scheduler</span><span class="w"> </span><span class="o">&amp;</span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">topo</span><span class="o">::</span><span class="n">global</span><span class="o">::</span><span class="n">topology</span><span class="w"> </span><span class="n">pair</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+<span class="w">  </span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">::</span><span class="n">topology</span><span class="w"> </span><span class="n">hydro_indices</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="p">);</span>
 <span class="w">  </span><span class="c1">// ...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>Note the different interpretations of the sizes: <code class="docutils literal notranslate"><span class="pre">pair</span></code> doesn’t have colors and holds 2 field values, while <code class="docutils literal notranslate"><span class="pre">hydro_indices</span></code> has 42 colors with one field value each.</p>
-<p>Note also that the lifetime of topology instances must be limited to the top-level action (achieved here by making the slots local variables in it).</p>
+<p>Note also that the lifetime of topology instances must be limited to the control model execution (achieved here by making them local variables).</p>
 <p>While the coloring type depends on the topology category and not the specialization, specializations for non-trivial topologies typically assist the application in constructing one.
 In simple cases, the result looks like</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">top_level</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">slot</span><span class="w"> </span><span class="n">mesh</span><span class="p">;</span>
-<span class="w">  </span><span class="n">mesh</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">mpi_coloring</span><span class="p">(</span><span class="s">&quot;test.txt&quot;</span><span class="p">));</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">simulation</span><span class="p">(</span><span class="n">scheduler</span><span class="w"> </span><span class="o">&amp;</span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">topology</span><span class="w"> </span><span class="n">mesh</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">canon</span><span class="o">::</span><span class="n">mpi_coloring</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test.txt&quot;</span><span class="p">));</span>
 <span class="w">  </span><span class="c1">// ...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>which asks the <code class="docutils literal notranslate"><span class="pre">canon</span></code> topology to interpret the <em>test.txt</em> file as a coloring for its topology category (perhaps <code class="docutils literal notranslate"><span class="pre">unstructured</span></code>).
+<p>which asks the <code class="docutils literal notranslate"><span class="pre">canon</span></code> specialization to interpret the <em>test.txt</em> file as a coloring for its topology category (perhaps <code class="docutils literal notranslate"><span class="pre">unstructured</span></code>).
 The name <code class="docutils literal notranslate"><span class="pre">mpi_coloring</span></code> serves as a reminder that this procedure is launched as an MPI task, as is often required for it to perform collective I/O or distribute data.</p>
+<figure class="align-center" id="id4">
+<a class="reference internal image-reference" href="../../_images/mpi-coloring.svg"><img alt="../../_images/mpi-coloring.svg" src="../../_images/mpi-coloring.svg" width="50%" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 22 </span><span class="caption-text">A mesh file loaded by 2 MPI ranks that divide it into 4 colors.</span><a class="headerlink" href="#id4" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
 </section>
 </section>
 

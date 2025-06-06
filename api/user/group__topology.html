@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -117,6 +117,9 @@ $(function(){initNavTree('group__topology.html',''); initResizable(true); });
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="groups" name="groups"></a>
 Topics</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__user.html">Simple data</a></td></tr>
+<tr class="memdesc:group__user"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple parallel data access. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__spec.html">Predefined specializations</a></td></tr>
 <tr class="memdesc:group__spec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specializations for topologies so simple that no others are needed. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -147,8 +150,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1specialization__base.html">specialization_base</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Utilities and defaults for specializations.  <a href="structflecsi_1_1topo_1_1specialization__base.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1user.html">user&lt; P &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The User topology is a bare-bones topology supporting a single index space.  <a href="structflecsi_1_1topo_1_1user.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1topology_3_01P_00_01user__base_01_4.html">topology&lt; P, user_base &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The User topology is a bare-bones topology supporting a single index space whose size can vary by color.  <a href="structflecsi_1_1topo_1_1topology_3_01P_00_01user__base_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1with__size.html">with_size</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size information for a partition.  <a href="structflecsi_1_1topo_1_1with__size.html#details">More...</a><br /></td></tr>
@@ -170,7 +173,7 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Generic topology categories and tools for specializing them. </p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;flecsi/topology.hh&quot;</span></div>
+<p>Contents are in <code>flecsi::topo</code> unless otherwise specified. </p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;flecsi/topology.hh&quot;</span></div>
 </div><!-- fragment --><p>This header provides the features in the following additional <b>deprecated</b> header:</p><ul>
 <li><a class="el" href="group__narray.html">flecsi/topo/narray/interface.hh</a></li>
 </ul>

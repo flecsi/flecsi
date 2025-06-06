@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -170,7 +170,7 @@ template&lt;auto CP&gt; </div>
   </table>
   </dd>
 </dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000006">Deprecated</a></b></dt><dd>Use <code><a class="el" href="structflecsi_1_1run_1_1control__base.html#a3fd9130fc3c1cd7fad09a46d587ff208" title="A control point for application use.">control_base::point</a></code>. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000018">Deprecated</a></b></dt><dd>Use <code><a class="el" href="structflecsi_1_1run_1_1control__base.html#a3fd9130fc3c1cd7fad09a46d587ff208" title="A control point for application use.">control_base::point</a></code>. </dd></dl>
 
 </div>
 </div>
@@ -196,7 +196,7 @@ template&lt;bool(*)() P, typename... CP&gt; </div>
   </table>
   </dd>
 </dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000007">Deprecated</a></b></dt><dd>Use <code><a class="el" href="structflecsi_1_1run_1_1control__base.html#a9b102a76468f6aadf593bae78aeb2ea5" title="A control-flow cycle.">control_base::cycle</a></code>. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000019">Deprecated</a></b></dt><dd>Use <code><a class="el" href="structflecsi_1_1run_1_1control__base.html#a9b102a76468f6aadf593bae78aeb2ea5" title="A control-flow cycle.">control_base::cycle</a></code>. </dd></dl>
 
 </div>
 </div>
@@ -213,7 +213,7 @@ template&lt;bool(*)() P, typename... CP&gt; </div>
 </div><div class="memdoc">
 
 <p>A trivial control model that calls a single function. </p>
-<p>Its control policy object can be constructed from any callable with the signature <code>int()</code>. </p>
+<p>Its control policy object can be constructed from any callable with the signature <code>int(<a class="el" href="structflecsi_1_1scheduler.html" title="Launches tasks according to their execution-space (template) parameters.">flecsi::scheduler</a>&amp;)</code> or (<b>deprecated</b>) <code>int()</code>. </p>
 
 </div>
 </div>

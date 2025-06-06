@@ -6,7 +6,8 @@ var topics =
     [ "I/O", "group__io.html", "group__io" ],
     [ "Runtime Model", "group__runtime.html", "group__runtime" ],
     [ "Topologies", "group__topology.html", "group__topology" ],
+    [ "GPU utilities", "group__GPU__utils.html", "group__GPU__utils" ],
     [ "Utilities", "group__utils.html", "group__utils" ],
     [ "Configuration", "group__config.html", "group__config" ],
-    [ "GPU utilities", "group__GPU__utils.html", null ]
+    [ "Hpx-execution", "group__hpx-execution.html", null ]
 ];

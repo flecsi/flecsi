@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -115,10 +115,19 @@ $(function(){initNavTree('structflecsi_1_1runtime.html',''); initResizable(true)
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a02e2d8e867611f7774db12ba2074acc3" id="r_a02e2d8e867611f7774db12ba2074acc3"><td class="memTemplParams" colspan="2">template&lt;class C , class... AA&gt; </td></tr>
+<tr class="memitem:a02e2d8e867611f7774db12ba2074acc3"><td class="memTemplItemLeft" align="right" valign="top">int&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a02e2d8e867611f7774db12ba2074acc3">control</a> (AA &amp;&amp;... aa)</td></tr>
+<tr class="memdesc:a02e2d8e867611f7774db12ba2074acc3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute a control model.  <br /></td></tr>
+<tr class="separator:a02e2d8e867611f7774db12ba2074acc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af88a88cc452c79eac72758160935c192" id="r_af88a88cc452c79eac72758160935c192"><td class="memTemplParams" colspan="2">template&lt;class C , class... AA&gt; </td></tr>
 <tr class="memitem:af88a88cc452c79eac72758160935c192"><td class="memTemplItemLeft" align="right" valign="top">int&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#af88a88cc452c79eac72758160935c192">control</a> (AA &amp;&amp;... aa) const</td></tr>
-<tr class="memdesc:af88a88cc452c79eac72758160935c192"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute a control model.  <br /></td></tr>
 <tr class="separator:af88a88cc452c79eac72758160935c192"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2ac5459d279091d4924fca5b7b3dd72" id="r_ad2ac5459d279091d4924fca5b7b3dd72"><td class="memItemLeft" align="right" valign="top">Color&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad2ac5459d279091d4924fca5b7b3dd72">process</a> () const</td></tr>
+<tr class="memdesc:ad2ac5459d279091d4924fca5b7b3dd72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the rank of this process.  <br /></td></tr>
+<tr class="separator:ad2ac5459d279091d4924fca5b7b3dd72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a953330354e9ef80d1d618e6ca2bca431" id="r_a953330354e9ef80d1d618e6ca2bca431"><td class="memItemLeft" align="right" valign="top">Color&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a953330354e9ef80d1d618e6ca2bca431">processes</a> () const</td></tr>
+<tr class="memdesc:a953330354e9ef80d1d618e6ca2bca431"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of processes.  <br /></td></tr>
+<tr class="separator:a953330354e9ef80d1d618e6ca2bca431"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a93ad7beb146367754d1dac633fe724f6" id="r_a93ad7beb146367754d1dac633fe724f6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a93ad7beb146367754d1dac633fe724f6">runtime</a> (const <a class="el" href="structflecsi_1_1run_1_1config.html">run::config</a> &amp;c={})</td></tr>
 <tr class="memdesc:a93ad7beb146367754d1dac633fe724f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct from a configuration.  <br /></td></tr>
 <tr class="separator:a93ad7beb146367754d1dac633fe724f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -128,7 +137,8 @@ Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>FleCSI runtime state. </p>
-<p>Only one can exist at a time. </p>
+<p>Only one can exist at a time.</p>
+<p>Appears directly in <code>flecsi</code>. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a93ad7beb146367754d1dac633fe724f6" name="a93ad7beb146367754d1dac633fe724f6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a93ad7beb146367754d1dac633fe724f6">&#9670;&#160;</a></span>runtime() <span class="overload">[1/2]</span></h2>
@@ -186,8 +196,80 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="ad2ac5459d279091d4924fca5b7b3dd72" name="ad2ac5459d279091d4924fca5b7b3dd72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad2ac5459d279091d4924fca5b7b3dd72">&#9670;&#160;</a></span>process()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Color process </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Return the rank of this process. </p>
+
+</div>
+</div>
+<a id="a953330354e9ef80d1d618e6ca2bca431" name="a953330354e9ef80d1d618e6ca2bca431"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a953330354e9ef80d1d618e6ca2bca431">&#9670;&#160;</a></span>processes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Color processes </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Return the number of processes. </p>
+
+</div>
+</div>
+<a id="a02e2d8e867611f7774db12ba2074acc3" name="a02e2d8e867611f7774db12ba2074acc3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02e2d8e867611f7774db12ba2074acc3">&#9670;&#160;</a></span>control() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class C , class... AA&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">int control </td>
+          <td>(</td>
+          <td class="paramtype">AA &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>aa</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Execute a control model. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">C</td><td>control model </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">aa</td><td>arguments for <a class="el" href="structflecsi_1_1run_1_1control.html#a6d27a505d4a6aa1ac19551eb0317903c"><code>C::invoke</code></a> </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>resulting exit code </dd></dl>
+
+</div>
+</div>
 <a id="af88a88cc452c79eac72758160935c192" name="af88a88cc452c79eac72758160935c192"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af88a88cc452c79eac72758160935c192">&#9670;&#160;</a></span>control()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#af88a88cc452c79eac72758160935c192">&#9670;&#160;</a></span>control() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -202,21 +284,7 @@ template&lt;class C , class... AA&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Execute a control model. </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">C</td><td>control model </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">aa</td><td>arguments for <a class="el" href="structflecsi_1_1run_1_1control.html#a176b8b6313cb7060b6ecea7e690a2b45"><code>C::invoke</code></a> </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>resulting exit code </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000036">Deprecated</a></b></dt><dd>Use a non-<code>const</code> <code>runtime</code>. </dd></dl>
 
 </div>
 </div>

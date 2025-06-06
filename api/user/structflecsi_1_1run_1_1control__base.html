@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -106,6 +106,7 @@ $(function(){initNavTree('structflecsi_1_1run_1_1control__base.html',''); initRe
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-types">Public Types</a> &#124;
+<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="structflecsi_1_1run_1_1control__base-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">control_base Struct Reference<div class="ingroups"><a class="el" href="group__runtime.html">Runtime Model</a> &raquo; <a class="el" href="group__control.html">Control Model</a></div></div></div>
 </div><!--header-->
@@ -138,6 +139,12 @@ Public Types</h2></td></tr>
 <tr class="memitem:a3fd9130fc3c1cd7fad09a46d587ff208"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a3fd9130fc3c1cd7fad09a46d587ff208">point</a></td></tr>
 <tr class="memdesc:a3fd9130fc3c1cd7fad09a46d587ff208"><td class="mdescLeft">&#160;</td><td class="mdescRight">A control point for application use.  <br /></td></tr>
 <tr class="separator:a3fd9130fc3c1cd7fad09a46d587ff208"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:a8f2417e0022965e23f2cc0e5de44eab2" id="r_a8f2417e0022965e23f2cc0e5de44eab2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structflecsi_1_1scheduler.html">flecsi::scheduler</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8f2417e0022965e23f2cc0e5de44eab2">scheduler</a> () const</td></tr>
+<tr class="memdesc:a8f2417e0022965e23f2cc0e5de44eab2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the basic scheduler for launching tasks.  <br /></td></tr>
+<tr class="separator:a8f2417e0022965e23f2cc0e5de44eab2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Base class for providing default implementations for optional interfaces. </p>
@@ -236,6 +243,27 @@ template&lt;class... TT&gt; </div>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a8f2417e0022965e23f2cc0e5de44eab2" name="a8f2417e0022965e23f2cc0e5de44eab2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f2417e0022965e23f2cc0e5de44eab2">&#9670;&#160;</a></span>scheduler()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structflecsi_1_1scheduler.html">flecsi::scheduler</a> &amp; <a class="el" href="structflecsi_1_1scheduler.html">scheduler</a> </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the basic scheduler for launching tasks. </p>
+<p>The control model must have been executed by <code><a class="el" href="structflecsi_1_1runtime.html#a02e2d8e867611f7774db12ba2074acc3" title="Execute a control model.">runtime::control</a></code>. </p>
 
 </div>
 </div>

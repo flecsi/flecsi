@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.12.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>FleCSI Core API: ragged_accessor&lt; class, Privileges, Privileges &gt; Struct Template Reference</title>
+<title>FleCSI Core API: ragged_accessor&lt; T, P, OP &gt; Struct Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -106,7 +106,7 @@ $(function(){initNavTree('structflecsi_1_1data_1_1ragged__accessor.html',''); in
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="structflecsi_1_1data_1_1ragged__accessor-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">ragged_accessor&lt; class, Privileges, Privileges &gt; Struct Template Reference<div class="ingroups"><a class="el" href="group__data.html">Data Model</a></div></div></div>
+  <div class="headertitle"><div class="title">ragged_accessor&lt; T, P, OP &gt; Struct Template Reference<div class="ingroups"><a class="el" href="group__data.html">Data Model</a></div></div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -129,8 +129,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a24459a6989651251cb5a3de7619e140b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;class, Privileges, Privileges&gt;<br />
-struct flecsi::data::ragged_accessor&lt; class, Privileges, Privileges &gt;</div><p>Accessor for ragged fields. </p>
+<div class="textblock"><div class="compoundTemplParams">template&lt;class T, Privileges P, Privileges OP&gt;<br />
+struct flecsi::data::ragged_accessor&lt; T, P, OP &gt;</div><p>Accessor for ragged fields. </p>
 <p>This class is supported for GPU execution. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">P</td><td>if write-only, rows do not change size but their elements are reinitialized  </td></tr>
@@ -146,7 +146,7 @@ struct flecsi::data::ragged_accessor&lt; class, Privileges, Privileges &gt;</div
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class , Privileges , Privileges &gt; </div>
+template&lt;class T , Privileges P, Privileges OP&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="structflecsi_1_1util_1_1span.html">row</a> operator[] </td>
@@ -168,7 +168,7 @@ template&lt;class , Privileges , Privileges &gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class , Privileges , Privileges &gt; </div>
+template&lt;class T , Privileges P, Privileges OP&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -197,7 +197,7 @@ template&lt;class , Privileges , Privileges &gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class , Privileges , Privileges &gt; </div>
+template&lt;class T , Privileges P, Privileges OP&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -226,7 +226,7 @@ template&lt;class , Privileges , Privileges &gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class , Privileges , Privileges &gt; </div>
+template&lt;class T , Privileges P, Privileges OP&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="structflecsi_1_1util_1_1span.html">util::span</a>&lt; element_type &gt; span </td>

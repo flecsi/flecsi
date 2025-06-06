@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CMake Configuration Options &mdash; FleCSI 2.3.2 documentation</title>
+  <title>CMake Configuration Options &mdash; FleCSI 2.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.2
+                Version: 2.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -52,18 +52,20 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../build.html">Build &amp; Install</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">CMake Configuration Options</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#flog-flecsi-logging-utility-options">Flog (FleCSI logging utility) options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#parallelization-options">Parallelization options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#documentation-options">Documentation options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#miscellaneous-options">Miscellaneous options</a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="../build.html#build-requirements">Build requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../build.html#getting-the-code">Getting The Code</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../build.html#spack">Spack</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../build.html#flecsi-developers">FleCSI Developers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../build.html#configuration-build">Configuration &amp; Build</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../build.html#configuration-build">Configuration &amp; Build</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">CMake Configuration Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#flog-flecsi-logging-utility-options">Flog (FleCSI logging utility) options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parallelization-options">Parallelization options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#documentation-options">Documentation options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#miscellaneous-options">Miscellaneous options</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../build.html#building-the-unit-tests">Building the Unit Tests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../build.html#building-the-documentation-developers">Building the Documentation (Developers)</a></li>
 </ul>
@@ -103,7 +105,8 @@
   <section id="cmake-configuration-options">
 <h1>CMake Configuration Options<a class="headerlink" href="#cmake-configuration-options" title="Permalink to this heading"></a></h1>
 <p>The following set of options are available to control how FleCSI is
-built.</p>
+built.
+Several of them are <a class="reference external" href="../../api/user/group__config.html">made available</a>  as C++ macros for client code.</p>
 <section id="flog-flecsi-logging-utility-options">
 <h2>Flog (FleCSI logging utility) options<a class="headerlink" href="#flog-flecsi-logging-utility-options" title="Permalink to this heading"></a></h2>
 <ul>
@@ -191,17 +194,14 @@ generate a runtime error and will invoke <code class="docutils literal notransla
 <section id="parallelization-options">
 <h2>Parallelization options<a class="headerlink" href="#parallelization-options" title="Permalink to this heading"></a></h2>
 <ul class="simple">
-<li><p><strong>ENABLE_KOKKOS [default: OFF]</strong> <br />
-If enabled, support the use of <a class="reference external" href="https://kokkos.org/">Kokkos</a> for
-thread-level parallelism and GPU support.</p></li>
+<li><p><strong>ENABLE_KOKKOS</strong> <br />
+This <strong>deprecated</strong> option is ignored for compatibility.</p></li>
 <li><p><strong>ENABLE_MPI_CXX_BINDINGS</strong> <br />
 This <strong>deprecated</strong> option is ignored.</p></li>
 <li><p><strong>ENABLE_OPENMP [default: OFF]</strong> <br />
-Enable <a class="reference external" href="https://www.openmp.org/">OpenMP</a> pragmas for thread-level
-parallelism.  The appropriate flags will be passed to the C++
-compiler to enable language support for OpenMP.</p></li>
+This <strong>deprecated</strong> option is ignored for compatibility.</p></li>
 <li><p><strong>FLECSI_BACKEND [default: legion]</strong> <br />
-Specify the backend to use. Currently, <em>legion</em> and <em>mpi</em> are
+Specify the backend to use. Currently, <em>legion</em>, <em>hpx</em>, and <em>mpi</em> are
 the only valid options.</p></li>
 </ul>
 </section>

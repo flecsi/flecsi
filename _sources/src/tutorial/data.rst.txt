@@ -28,7 +28,7 @@ is natural to use the ``data::single`` layout.
   :start-at: template<typename T>
   :end-at: const single<double>::definition<global> gfield;
 
-To create a topology instance, declare a *topology slot* and then use ``allocate`` with an argument appropriate to the topology called a *coloring*.
+To create a topology instance, declare a variable of type ``topology`` initialized with a scheduler and an argument appropriate to the topology called a *coloring*.
 In general, a coloring describes the structure of a topology and its distribution among colors.
 The global topology is a special case that does not actually use colors; its "coloring" is simply a count of values for each field.
 Writing to a global field requires a single task launch.
@@ -61,7 +61,7 @@ this example we allocate a ``pressure`` field on the ``cells`` index space of th
 
 One can access the field inside of the FleCSI task by passing
 topology and field accessors with `access permissions` (wo/rw/ro).  
-The ``canonical`` topology is a very simple specialization of the ``unstructured`` core topology.
+The ``canonical`` topology is a very simple specialization of the ``unstructured`` topology category.
 It illustrates the use of the ``mpi_coloring`` type, which applies a specialization-defined rule for specifying a coloring.
 Here, a file is the source of the mesh (for purposes of illustration).
 The resulting coloring is used to initialize two meshes ``canonical`` and ``cp``, and the ``copy`` task operates on both of them at once using a low-level accessor.

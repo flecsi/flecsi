@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -118,9 +118,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a5ccbdeb5350ba8528eab7e4cc49fc68b" id="r_a5ccbdeb5350ba8528eab7e4cc49fc68b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5ccbdeb5350ba8528eab7e4cc49fc68b">operator()</a> ()</td></tr>
 <tr class="memdesc:a5ccbdeb5350ba8528eab7e4cc49fc68b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sort values of an index space based on a field in this index space.  <br /></td></tr>
 <tr class="separator:a5ccbdeb5350ba8528eab7e4cc49fc68b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae5015b106a0504cbf5c10e80143b843d" id="r_ae5015b106a0504cbf5c10e80143b843d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae5015b106a0504cbf5c10e80143b843d">sort</a> (FieldRef fr, std::vector&lt; field_id_t &gt; ignored_fields={}, const double eps=0.005)</td></tr>
-<tr class="memdesc:ae5015b106a0504cbf5c10e80143b843d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The sort uses a copy plan on the index space of the provided field <code>fr</code>.  <br /></td></tr>
-<tr class="separator:ae5015b106a0504cbf5c10e80143b843d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7bb4bbc3a53d3ea79fb1fcfc1f5fbd8b" id="r_a7bb4bbc3a53d3ea79fb1fcfc1f5fbd8b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7bb4bbc3a53d3ea79fb1fcfc1f5fbd8b">sort</a> (<a class="el" href="structflecsi_1_1scheduler.html">scheduler</a> &amp;s, FieldRef fr, std::vector&lt; field_id_t &gt; ignored_fields={}, const double eps=0.005)</td></tr>
+<tr class="memdesc:a7bb4bbc3a53d3ea79fb1fcfc1f5fbd8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The sort uses a copy plan on the index space of the provided field <code>fr</code>.  <br /></td></tr>
+<tr class="separator:a7bb4bbc3a53d3ea79fb1fcfc1f5fbd8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;typename FieldRef&gt;<br />
@@ -132,8 +132,8 @@ struct flecsi::util::sort&lt; FieldRef &gt;</div><p>Sort object implementing a d
   </dd>
 </dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ae5015b106a0504cbf5c10e80143b843d" name="ae5015b106a0504cbf5c10e80143b843d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae5015b106a0504cbf5c10e80143b843d">&#9670;&#160;</a></span>sort()</h2>
+<a id="a7bb4bbc3a53d3ea79fb1fcfc1f5fbd8b" name="a7bb4bbc3a53d3ea79fb1fcfc1f5fbd8b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7bb4bbc3a53d3ea79fb1fcfc1f5fbd8b">&#9670;&#160;</a></span>sort()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -143,6 +143,11 @@ template&lt;typename FieldRef &gt; </div>
         <tr>
           <td class="memname"><a class="el" href="structflecsi_1_1util_1_1sort.html">sort</a> </td>
           <td>(</td>
+          <td class="paramtype"><a class="el" href="structflecsi_1_1scheduler.html">scheduler</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>s</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">FieldRef</td>          <td class="paramname"><span class="paramname"><em>fr</em></span>, </td>
         </tr>
         <tr>

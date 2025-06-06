@@ -98,30 +98,29 @@ Data structures
 +++++++++++++++
 
 FleCSI does not provide ready-to-use, distributed data-structure types.
-Rather, it provides "proto data-structure types" called *core topologies*.
+Rather, it provides "proto data-structure types" called *topology categories*.
 These require additional compile-time information, such as the number
 of dimensions of a multidimensional array, and additional run-time
 information, such as how to distribute their data, to form a concrete
 data structure.  Applications are expected to define *specializations*
 to provide all of this information.
 
-FLAXPY is based on the ``user`` core topology, so named because it is
-arguably the simplest core topology that behaves as a user would expect.
+FLAXPY is based on the ``user`` category, so named because it is the simplest available to users.
 It is essentially a 1-D vector of user-defined *fields* with
 no support for ghost cells.
-All core topologies specify a ``coloring`` type, which represents
+Each category specifies a ``coloring`` type, which represents
 additional run-time data the topology needs
 to produce a concrete data structure.
 A specialization must define a ``color`` member function that
 accepts whatever parameters make sense for that specialization
 and returns a ``coloring``.
-The ``user`` core topology defines its ``coloring`` type as
+The ``user`` category defines its ``coloring`` type as
 a ``std::vector<std::size_t>`` that represents
 the number of vector indices to assign to each *color*.
 (A color is a unit of data upon which a point task operates.)
 ``user`` does not require that the specialization provide
 any compile-time information,
-but most other core topologies do.
+but most other categories do.
 
 FleCSI provides the ``equal_map`` utility for dividing indices as equally as possible among colors.
 The following helper function, still within the ``flaxpy`` namespace,
@@ -143,8 +142,8 @@ is trivial.  FLAXPY names its specialization (still within the
    :end-at: };
 
 Note that the specialization is responsible for choosing the number of
-colors.  ``dist_vector``'s ``color`` method queries FleCSI for the
-number of processes and uses that value for the color count.
+colors.
+``dist_vector::color`` accepts that number from its client, but it could also be determined by, say, an input file.
 
 At this point we have what is effectively a distributed 1-D vector
 data type that is templated over the element type.  The next step is
@@ -170,8 +169,8 @@ Specializations typically require run-time information to produce a
 usable object.  This information may not be available until a number
 of libraries (FleCSI, Legion, MPI, and the like) have initialized and
 perhaps synchronized across a distributed system.
-To allow the lifetime of these objects to be controlled properly, FleCSI imposes a particular means of instantiating a specialization based on what it calls *slots*.
-The (topology) *slot* that will be used within FLAXPY's `Actions`_ are defined within the control policy (discussed next).
+To conveniently defer construction of these objects, FleCSI supplies a ``ptr`` type.
+The topology pointer that will be used within FLAXPY's `Actions`_ is defined within the control policy (discussed next).
 
 Control flow
 ++++++++++++
@@ -233,7 +232,7 @@ FLAXPY indicates with the following code that
 ``initialize`` runs first,
 then ``mul_add``,
 and lastly ``finalize``.
-It also defines a topology slot to hold the field data:
+It also defines a topology pointer to hold the field data:
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
@@ -267,9 +266,9 @@ The variables declared by the preceding code (``init``, ``ma``, and
 ``fin``) are never used.  They exist only for the side effects induced
 by instantiating a ``flaxpy::control::action``.
 
-The ``initialize_action`` action uses the slot and ``color`` function
+The ``initialize_action`` action uses the pointer and ``color`` function
 defined above in `Data structures`_
-to allocate memory for the ``dist_vector`` specialization.
+to allocate memory for the ``dist_vector`` specialization; it queries FleCSI for the number of processes and uses that value for the color count.
 Once this memory is allocated,
 the action launches an ``initialize_vectors_task`` task,
 granting each constituent point task access to a subset of *X* and *Y*
@@ -404,9 +403,6 @@ this:
 
 Try
 
-* passing ``--help`` to ``flaxpy`` to view the supported command-line
-  options,
-
 * passing ``--length=2000000`` to ``flaxpy`` to run DAXPY on a vector
   that is twice as long as the default,
 
@@ -414,7 +410,7 @@ Try
   across multiple nodes in a cluster, or
 
 * [**advanced**] modifying ``flaxpy.cc`` to construct a specialization
-  of ``narray`` (a multidimensional-array core topology) instead of a
+  of ``narray`` (a multidimensional-array category) instead of a
   specialization of ``user``.  See the source code to the
   :doc:`Poisson example <poisson>`, in particular
   ``tutorial/standalone/poisson/include/specialization/mesh.hh``, for

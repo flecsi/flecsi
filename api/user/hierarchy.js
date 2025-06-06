@@ -1,8 +1,8 @@
 var hierarchy =
 [
-    [ "access< Priv >", "structflecsi_1_1topo_1_1narray_1_1access.html", null ],
-    [ "access< Priv >", "structflecsi_1_1topo_1_1ntree_1_1access.html", null ],
-    [ "access< Privileges >", "structflecsi_1_1topo_1_1unstructured_1_1access.html", null ],
+    [ "access< Privileges >", "structflecsi_1_1topo_1_1topology_1_1access.html", null ],
+    [ "access< Priv >", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html", null ],
+    [ "access< Priv >", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html", null ],
     [ "accessor< L, T, Priv >", "structflecsi_1_1data_1_1accessor.html", null ],
     [ "accessor< dense, DATA_TYPE, PRIVILEGES >", "structflecsi_1_1data_1_1accessor.html", null ],
     [ "accessor< dense, std::size_t, OP >", "structflecsi_1_1data_1_1accessor.html", null ],
@@ -46,7 +46,6 @@ var hierarchy =
     [ "definition< Topo, Space >", "structflecsi_1_1field_1_1definition.html", null ],
     [ "definition< claims >", "structflecsi_1_1field_1_1definition.html", null ],
     [ "definition< flecsi::topo::resize >", "structflecsi_1_1field_1_1definition.html", null ],
-    [ "definition< meta< P > >", "structflecsi_1_1field_1_1definition.html", null ],
     [ "definition< meta< Policy > >", "structflecsi_1_1field_1_1definition.html", null ],
     [ "dependencies_config", "structflecsi_1_1run_1_1dependencies__config.html", null ],
     [ "dependencies_guard", "structflecsi_1_1run_1_1dependencies__guard.html", null ],
@@ -54,6 +53,16 @@ var hierarchy =
     [ "dimensioned_array< double, DIM >", "classflecsi_1_1util_1_1dimensioned__array.html", null ],
     [ "entity_data", "structflecsi_1_1topo_1_1ntree__specialization_1_1entity__data.html", null ],
     [ "exception", "structflecsi_1_1run_1_1control__base_1_1exception.html", null ],
+    [ "executor_base< D >", "structflecsi_1_1exec_1_1executor__base.html", null ],
+    [ "executor_base< agent< S > >", "structflecsi_1_1exec_1_1executor__base.html", [
+      [ "agent< S >", "structflecsi_1_1exec_1_1agent.html", null ]
+    ] ],
+    [ "executor_base< blocks< S, T, B > >", "structflecsi_1_1exec_1_1executor__base.html", [
+      [ "blocks< S, T, B >", "structflecsi_1_1exec_1_1blocks.html", null ]
+    ] ],
+    [ "executor_base< executor< S, T, B > >", "structflecsi_1_1exec_1_1executor__base.html", [
+      [ "executor< S, T, B >", "structflecsi_1_1exec_1_1executor.html", null ]
+    ] ],
     [ "field< T, L >", "structflecsi_1_1field.html", null ],
     [ "field< Color >", "structflecsi_1_1field.html", null ],
     [ "field< color_id >", "structflecsi_1_1field.html", null ],
@@ -86,8 +95,8 @@ var hierarchy =
     [ "full_range", "structflecsi_1_1exec_1_1full__range.html", null ],
     [ "future< Return, Launch >", "structflecsi_1_1future.html", null ],
     [ "future< bool >", "structflecsi_1_1future.html", null ],
-    [ "future< Return >", "structfuture_3_01Return_01_4.html", null ],
-    [ "future< Return, exec::launch_type_t::index >", "structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html", null ],
+    [ "future< Return >", "structflecsi_1_1future_3_01Return_01_4.html", null ],
+    [ "future< Return, exec::launch_type_t::index >", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html", null ],
     [ "getopt", "structflecsi_1_1getopt.html", null ],
     [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html", null ],
     [ "guard", "structflecsi_1_1flog_1_1guard.html", null ],
@@ -121,12 +130,12 @@ var hierarchy =
     [ "mutator< ragged, T, P >", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html", null ],
     [ "mutator< sparse, T, P >", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html", null ],
     [ "narray_base", "structflecsi_1_1topo_1_1narray__base.html", [
-      [ "narray< Policy >", "structflecsi_1_1topo_1_1narray.html", null ]
+      [ "topology< Policy, narray_base >", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4.html", null ]
     ] ],
     [ "node_data", "structflecsi_1_1topo_1_1ntree__specialization_1_1node__data.html", null ],
     [ "node_policy", "structflecsi_1_1run_1_1control__policy_1_1node__policy.html", null ],
     [ "ntree_base", "structflecsi_1_1topo_1_1ntree__base.html", [
-      [ "ntree< Policy >", "structflecsi_1_1topo_1_1ntree.html", null ]
+      [ "topology< Policy, ntree_base >", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html", null ]
     ] ],
     [ "particle_accessor< T, P, M >", "structflecsi_1_1data_1_1particle__accessor.html", null ],
     [ "particle_accessor< T, P, false >", "structflecsi_1_1data_1_1particle__accessor.html", null ],
@@ -147,6 +156,19 @@ var hierarchy =
     [ "row", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4_1_1row.html", null ],
     [ "row", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4_1_1row.html", null ],
     [ "runtime", "structflecsi_1_1runtime.html", null ],
+    [ "scheduler", "structflecsi_1_1scheduler.html", null ],
+    [ "space_base", "structflecsi_1_1exec_1_1space__base.html", [
+      [ "space< cpu >", "structflecsi_1_1exec_1_1space.html", [
+        [ "cpu", "structflecsi_1_1exec_1_1cpu.html", null ]
+      ] ],
+      [ "space< gpu >", "structflecsi_1_1exec_1_1space.html", [
+        [ "gpu", "structflecsi_1_1exec_1_1gpu.html", null ]
+      ] ],
+      [ "space< omp >", "structflecsi_1_1exec_1_1space.html", [
+        [ "omp", "structflecsi_1_1exec_1_1omp.html", null ]
+      ] ],
+      [ "space< S >", "structflecsi_1_1exec_1_1space.html", null ]
+    ] ],
     [ "span< T >", "structflecsi_1_1util_1_1span.html", null ],
     [ "span< element_type >", "structflecsi_1_1util_1_1span.html", null ],
     [ "span< pair_t >", "structflecsi_1_1util_1_1span.html", null ],
@@ -160,7 +182,6 @@ var hierarchy =
         [ "index", "structflecsi_1_1topo_1_1index.html", null ]
       ] ],
       [ "specialization< user, meta< P > >", "structflecsi_1_1topo_1_1specialization.html", null ],
-      [ "specialization< user, meta< Policy > >", "structflecsi_1_1topo_1_1specialization.html", null ],
       [ "specialization< narray, narray_specialization >", "structflecsi_1_1topo_1_1specialization.html", [
         [ "narray_specialization", "structflecsi_1_1topo_1_1narray__specialization.html", null ]
       ] ],
@@ -172,6 +193,7 @@ var hierarchy =
       [ "specialization< column, resize >", "structflecsi_1_1topo_1_1specialization.html", [
         [ "resize", "structflecsi_1_1topo_1_1resize.html", null ]
       ] ],
+      [ "specialization< user, meta< Policy > >", "structflecsi_1_1topo_1_1specialization.html", null ],
       [ "specialization< user, ctopo >", "structflecsi_1_1topo_1_1specialization.html", null ],
       [ "specialization< unstructured, unstructured_specialization >", "structflecsi_1_1topo_1_1specialization.html", [
         [ "unstructured_specialization", "structflecsi_1_1topo_1_1unstructured__specialization.html", null ]
@@ -187,15 +209,16 @@ var hierarchy =
     [ "tag", "structflecsi_1_1flog_1_1tag.html", null ],
     [ "task_local< T >", "structflecsi_1_1task__local.html", null ],
     [ "task_local< test_output_t >", "structflecsi_1_1task__local.html", null ],
+    [ "tasks", "structflecsi_1_1exec_1_1space__base_1_1tasks.html", null ],
+    [ "topology< Topo >", "structflecsi_1_1topology.html", null ],
+    [ "topology< P, user_base >", "structflecsi_1_1topo_1_1topology_3_01P_00_01user__base_01_4.html", null ],
     [ "topology_accessor< class, Privileges >", "structflecsi_1_1data_1_1topology__accessor.html", null ],
     [ "topology_slot< Topo >", "structflecsi_1_1data_1_1topology__slot.html", null ],
     [ "trace", "structflecsi_1_1exec_1_1trace.html", null ],
     [ "traits< T, E >", "structflecsi_1_1util_1_1serial_1_1traits.html", null ],
     [ "unstructured_base", "structflecsi_1_1topo_1_1unstructured__base.html", [
-      [ "unstructured< P >", "structflecsi_1_1topo_1_1unstructured.html", null ],
-      [ "unstructured< Policy >", "structflecsi_1_1topo_1_1unstructured.html", null ]
+      [ "topology< Policy, unstructured_base >", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01unstructured__base_01_4.html", null ]
     ] ],
-    [ "user< P >", "structflecsi_1_1topo_1_1user.html", null ],
     [ "value< T >", "structflecsi_1_1util_1_1serial_1_1value.html", null ],
     [ "with_size", "structflecsi_1_1topo_1_1with__size.html", [
       [ "repartition", "structflecsi_1_1topo_1_1repartition.html", null ]

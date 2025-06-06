@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -122,11 +122,11 @@ Topics</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__legion-data.html">Legion Data</a></td></tr>
 <tr class="memdesc:group__legion-data"><td class="mdescLeft">&#160;</td><td class="mdescRight">Owning wrappers for Legion objects. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__local-data.html">Backend Data</a></td></tr>
+<tr class="memdesc:group__local-data"><td class="mdescLeft">&#160;</td><td class="mdescRight">Direct data storage. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__launch.html">Launch maps</a></td></tr>
 <tr class="memdesc:group__launch"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selecting topology colors to send to tasks. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__mpi-data.html">MPI Data</a></td></tr>
-<tr class="memdesc:group__mpi-data"><td class="mdescLeft">&#160;</td><td class="mdescRight">Direct data storage. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__topology-data.html">Topology implementation</a></td></tr>
 <tr class="memdesc:group__topology-data"><td class="mdescLeft">&#160;</td><td class="mdescRight">These types are movable but may not be copyable. <br /></td></tr>
@@ -148,6 +148,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4.html">accessor&lt; sparse, T, P &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Accessor for sparse fields.  <a href="structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1bind__tag.html">bind_tag</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Task parameters of types that inherit from <a class="el" href="structflecsi_1_1data_1_1bind__tag.html" title="Task parameters of types that inherit from bind_tag must be specially initialized by the backend afte...">bind_tag</a> must be specially initialized by the backend after the task has been launched.  <a href="structflecsi_1_1data_1_1bind__tag.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1coloring__slot.html">coloring_slot&lt; class &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html"><code>mpi_coloring</code></a> object, constructed on request.  <a href="structflecsi_1_1data_1_1coloring__slot.html#details">More...</a><br /></td></tr>
@@ -179,14 +182,20 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html">mutator&lt; sparse, T, P &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mutator for sparse fields.  <a href="structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1particle__accessor.html">particle_accessor&lt; class, Privileges, bool &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1particle__accessor.html">particle_accessor&lt; T, P, M &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Accessor for particle fields.  <a href="structflecsi_1_1data_1_1particle__accessor.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1ragged__accessor.html">ragged_accessor&lt; class, Privileges, Privileges &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1ragged__accessor.html">ragged_accessor&lt; T, P, OP &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Accessor for ragged fields.  <a href="structflecsi_1_1data_1_1ragged__accessor.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1reduction__accessor.html">reduction_accessor&lt; R, T &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Accessor for computing reductions.  <a href="structflecsi_1_1data_1_1reduction__accessor.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1send__tag.html">send_tag</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Classes that inherit from <a class="el" href="structflecsi_1_1data_1_1send__tag.html" title="Classes that inherit from send_tag can decompose themselves into simpler parameters via a send member...">send_tag</a> can decompose themselves into simpler parameters via a send member function template.  <a href="structflecsi_1_1data_1_1send__tag.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topology.html">topology&lt; Topo &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A topology instance.  <a href="structflecsi_1_1topology.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1topology__accessor.html">topology_accessor&lt; class, Privileges &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Topology accessor type.  <a href="structflecsi_1_1data_1_1topology__accessor.html#details">More...</a><br /></td></tr>
@@ -216,17 +225,17 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:ga43d9cf57236e19c5fc3bc74b429c835a"><td class="mdescLeft">&#160;</td><td class="mdescRight">A type of logical data structure.  <a href="#ga43d9cf57236e19c5fc3bc74b429c835a">More...</a><br /></td></tr>
 <tr class="separator:ga43d9cf57236e19c5fc3bc74b429c835a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga15b90fedf9416d69fcbe4488930e0d32" id="r_ga15b90fedf9416d69fcbe4488930e0d32"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga15b90fedf9416d69fcbe4488930e0d32">partition_privilege_t</a> : Privileges { <a class="el" href="#gga15b90fedf9416d69fcbe4488930e0d32a1da1f012b8343b3921ffd893e9f2c944">na</a>
-, <a class="el" href="#gga15b90fedf9416d69fcbe4488930e0d32a32f3a4a7644dad86bdda30a920a5a30b">ro</a>
-, <a class="el" href="#gga15b90fedf9416d69fcbe4488930e0d32a3abbdc0617e1c5015b1b8eda55ce42c1">wo</a>
-, <a class="el" href="#gga15b90fedf9416d69fcbe4488930e0d32a1c509be8df0d6f901d0853a8e2501c44">rw</a>
+<tr class="memitem:gab353df4d05111feae11afb61d2b9cda1" id="r_gab353df4d05111feae11afb61d2b9cda1"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gab353df4d05111feae11afb61d2b9cda1">privilege</a> : Privileges { <a class="el" href="#ggab353df4d05111feae11afb61d2b9cda1a1da1f012b8343b3921ffd893e9f2c944">na</a>
+, <a class="el" href="#ggab353df4d05111feae11afb61d2b9cda1a32f3a4a7644dad86bdda30a920a5a30b">ro</a>
+, <a class="el" href="#ggab353df4d05111feae11afb61d2b9cda1a3abbdc0617e1c5015b1b8eda55ce42c1">wo</a>
+, <a class="el" href="#ggab353df4d05111feae11afb61d2b9cda1a1c509be8df0d6f901d0853a8e2501c44">rw</a>
  }</td></tr>
-<tr class="memdesc:ga15b90fedf9416d69fcbe4488930e0d32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Access privileges for data passed to FleCSI tasks.  <a href="#ga15b90fedf9416d69fcbe4488930e0d32">More...</a><br /></td></tr>
-<tr class="separator:ga15b90fedf9416d69fcbe4488930e0d32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memdesc:gab353df4d05111feae11afb61d2b9cda1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Access privileges for data passed to FleCSI tasks.  <a href="#gab353df4d05111feae11afb61d2b9cda1">More...</a><br /></td></tr>
+<tr class="separator:gab353df4d05111feae11afb61d2b9cda1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gae6e7ca78eddb44172ebe9dd66e022868" id="r_gae6e7ca78eddb44172ebe9dd66e022868"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="#ga15b90fedf9416d69fcbe4488930e0d32">privilege</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gae6e7ca78eddb44172ebe9dd66e022868">get_privilege</a> (PrivilegeCount i, Privileges pack)</td></tr>
+<tr class="memitem:gae6e7ca78eddb44172ebe9dd66e022868" id="r_gae6e7ca78eddb44172ebe9dd66e022868"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="#gab353df4d05111feae11afb61d2b9cda1">privilege</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gae6e7ca78eddb44172ebe9dd66e022868">get_privilege</a> (PrivilegeCount i, Privileges pack)</td></tr>
 <tr class="memdesc:gae6e7ca78eddb44172ebe9dd66e022868"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a privilege out of a pack for the specified id.  <br /></td></tr>
 <tr class="separator:gae6e7ca78eddb44172ebe9dd66e022868"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac116a2823423c4ff8fc8dcd14e224ff5" id="r_gac116a2823423c4ff8fc8dcd14e224ff5"><td class="memItemLeft" align="right" valign="top">constexpr PrivilegeCount&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gac116a2823423c4ff8fc8dcd14e224ff5">privilege_count</a> (Privileges PACK)</td></tr>
@@ -251,7 +260,7 @@ Variables</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Defining topology instances and fields. </p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;flecsi/data.hh&quot;</span></div>
+<p>Contents are in <code>flecsi::data</code> unless otherwise specified. </p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;flecsi/data.hh&quot;</span></div>
 </div><!-- fragment --><p>The inclusion of <a class="el" href="group__topology.html">flecsi/topology.hh</a> by this header is <b>deprecated</b>. </p>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a id="ga509e66584d5291a179659190313a9114" name="ga509e66584d5291a179659190313a9114"></a>
@@ -310,29 +319,30 @@ template&lt;const auto &amp; F, Privileges P&gt; </div>
 
 </div>
 </div>
-<a id="ga15b90fedf9416d69fcbe4488930e0d32" name="ga15b90fedf9416d69fcbe4488930e0d32"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga15b90fedf9416d69fcbe4488930e0d32">&#9670;&#160;</a></span>partition_privilege_t</h2>
+<a id="gab353df4d05111feae11afb61d2b9cda1" name="gab353df4d05111feae11afb61d2b9cda1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab353df4d05111feae11afb61d2b9cda1">&#9670;&#160;</a></span>privilege</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="#ga15b90fedf9416d69fcbe4488930e0d32">partition_privilege_t</a> : Privileges</td>
+          <td class="memname">enum <a class="el" href="#gab353df4d05111feae11afb61d2b9cda1">privilege</a> : Privileges</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Access privileges for data passed to FleCSI tasks. </p>
 <p>Each field must be initialized with <code>wo</code> privileges (perhaps combined with <code>na</code>). Any use of such privileges produces default-initialized values.</p>
-<p>Ghost data is updated only when read access to it is requested. Writes to shared data are never propagated to ghost data for which the same task has write access, as it is assumed to have updated them. </p>
+<p>Ghost data is updated only when read access to it is requested. Writes to shared data are never propagated to ghost data for which the same task has write access, as it is assumed to have updated them.</p>
+<p>Appears directly in <code>flecsi</code>. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga15b90fedf9416d69fcbe4488930e0d32a1da1f012b8343b3921ffd893e9f2c944" name="gga15b90fedf9416d69fcbe4488930e0d32a1da1f012b8343b3921ffd893e9f2c944"></a>na&#160;</td><td class="fielddoc"><p>no access: defer consistency update </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ggab353df4d05111feae11afb61d2b9cda1a1da1f012b8343b3921ffd893e9f2c944" name="ggab353df4d05111feae11afb61d2b9cda1a1da1f012b8343b3921ffd893e9f2c944"></a>na&#160;</td><td class="fielddoc"><p>no access: defer consistency update </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga15b90fedf9416d69fcbe4488930e0d32a32f3a4a7644dad86bdda30a920a5a30b" name="gga15b90fedf9416d69fcbe4488930e0d32a32f3a4a7644dad86bdda30a920a5a30b"></a>ro&#160;</td><td class="fielddoc"><p>read-only </p>
+<tr><td class="fieldname"><a id="ggab353df4d05111feae11afb61d2b9cda1a32f3a4a7644dad86bdda30a920a5a30b" name="ggab353df4d05111feae11afb61d2b9cda1a32f3a4a7644dad86bdda30a920a5a30b"></a>ro&#160;</td><td class="fielddoc"><p>read-only </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga15b90fedf9416d69fcbe4488930e0d32a3abbdc0617e1c5015b1b8eda55ce42c1" name="gga15b90fedf9416d69fcbe4488930e0d32a3abbdc0617e1c5015b1b8eda55ce42c1"></a>wo&#160;</td><td class="fielddoc"><p>write-only: consistency updates discarded </p>
+<tr><td class="fieldname"><a id="ggab353df4d05111feae11afb61d2b9cda1a3abbdc0617e1c5015b1b8eda55ce42c1" name="ggab353df4d05111feae11afb61d2b9cda1a3abbdc0617e1c5015b1b8eda55ce42c1"></a>wo&#160;</td><td class="fielddoc"><p>write-only: consistency updates discarded </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga15b90fedf9416d69fcbe4488930e0d32a1c509be8df0d6f901d0853a8e2501c44" name="gga15b90fedf9416d69fcbe4488930e0d32a1c509be8df0d6f901d0853a8e2501c44"></a>rw&#160;</td><td class="fielddoc"><p>read-write </p>
+<tr><td class="fieldname"><a id="ggab353df4d05111feae11afb61d2b9cda1a1c509be8df0d6f901d0853a8e2501c44" name="ggab353df4d05111feae11afb61d2b9cda1a1c509be8df0d6f901d0853a8e2501c44"></a>rw&#160;</td><td class="fielddoc"><p>read-write </p>
 </td></tr>
 </table>
 
@@ -365,10 +375,11 @@ template&lt;const auto &amp; F, Privileges P&gt; </div>
 <p>Return the number of privileges stored in a privilege pack. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">PACK</td><td>a <code>privilege_pack</code> value </td></tr>
+    <tr><td class="paramname">PACK</td><td>a <code>privilege_pack</code> value</td></tr>
   </table>
   </dd>
 </dl>
+<p>Appears directly in <code>flecsi</code>. </p>
 
 </div>
 </div>
@@ -382,7 +393,7 @@ template&lt;const auto &amp; F, Privileges P&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="#ga15b90fedf9416d69fcbe4488930e0d32">privilege</a> get_privilege </td>
+          <td class="memname"><a class="el" href="#gab353df4d05111feae11afb61d2b9cda1">privilege</a> get_privilege </td>
           <td>(</td>
           <td class="paramtype">PrivilegeCount</td>          <td class="paramname"><span class="paramname"><em>i</em></span>, </td>
         </tr>
@@ -403,10 +414,11 @@ template&lt;const auto &amp; F, Privileges P&gt; </div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">i</td><td>privilege index </td></tr>
-    <tr><td class="paramname">pack</td><td>a <code>privilege_pack</code> value </td></tr>
+    <tr><td class="paramname">pack</td><td>a <code>privilege_pack</code> value</td></tr>
   </table>
   </dd>
 </dl>
+<p>Appears directly in <code>flecsi</code>. </p>
 
 </div>
 </div>
@@ -424,7 +436,7 @@ template&lt;const auto &amp; F, Privileges P&gt; </div>
 </div><div class="memdoc">
 
 <p>Default global topology instance with size 1. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000001">Deprecated</a></b></dt><dd>Create instances as with any other topology. </dd></dl>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000001">Deprecated</a></b></dt><dd>Create instances as with any other topology. </dd></dl>
 
 </div>
 </div>
@@ -441,8 +453,8 @@ template&lt;const auto &amp; F, Privileges P&gt; </div>
 </div><div class="memdoc">
 
 <p>Topology instance with one color per process. </p>
-<dl class="section warning"><dt>Warning</dt><dd>The values are not bound to processes except with MPI tasks. </dd></dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000002">Deprecated</a></b></dt><dd>Create instances as with any other topology. </dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>The values are not bound to processes except with MPI tasks.</dd></dl>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000002">Deprecated</a></b></dt><dd>Create instances as with any other topology. </dd></dl>
 
 </div>
 </div>
@@ -462,6 +474,7 @@ template&lt;const auto &amp; F, Privileges P&gt; </div>
 </div><div class="memdoc">
 
 <p>Unique counter for field ids. </p>
+<p>Appears directly in <code>flecsi</code>. </p>
 
 </div>
 </div>
@@ -490,10 +503,11 @@ template&lt;privilege... PP&gt; </div>
 <p>Utility to allow general privilege components that will match the old style of specifying permissions, e.g., &lt;EX, SH, GH&gt; (The old approach was only valid for mesh type topologies, and didn't make sense for all topology types). </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">PP</td><td>privileges </td></tr>
+    <tr><td class="paramname">PP</td><td>privileges</td></tr>
   </table>
   </dd>
 </dl>
+<p>Appears directly in <code>flecsi</code>. </p>
 
 </div>
 </div>

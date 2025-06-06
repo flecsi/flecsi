@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -128,11 +128,12 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ga888156213fe841362ad9168aa15176af" id="r_ga888156213fe841362ad9168aa15176af"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga888156213fe841362ad9168aa15176af">mapper_registration</a> (Legion::Machine machine, Legion::HighLevelRuntime *rt, const std::set&lt; Legion::Processor &gt; &amp;local_procs)</td></tr>
-<tr class="memdesc:ga888156213fe841362ad9168aa15176af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Replace default mappers with <code><a class="el" href="classflecsi_1_1run_1_1mpi__mapper__t.html" title="FleCSI&#39;s mapper, named for its support for rank-matching for MPI tasks.">mpi_mapper_t</a></code> instances.  <br /></td></tr>
+<tr class="memdesc:ga888156213fe841362ad9168aa15176af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Replace default mappers with <code><a class="el" href="classflecsi_1_1run_1_1mpi__mapper__t.html" title="FleCSI&#39;s mapper, named for its support for rank-matching for MPI tasks.">mpi_mapper_t</a></code> instances. Appears directly in <code>flecsi::run</code>.  <br /></td></tr>
 <tr class="separator:ga888156213fe841362ad9168aa15176af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Mapper tags</h2></td></tr>
-<tr><td class="ititle" colspan="2"><p>Flags used to request custom mapper features. </p>
+<tr><td class="ititle" colspan="2"><p>Flags used to request custom mapper features.</p>
+<p>Appears directly in <code>flecsi::run::mapper</code>. </p>
 </td></tr>
 <tr class="memitem:ga700b3d72d33eaae12282c4b2a8ddf4d1" id="r_ga700b3d72d33eaae12282c4b2a8ddf4d1"><td class="memItemLeft" align="right" valign="top">constexpr Legion::MappingTagID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga700b3d72d33eaae12282c4b2a8ddf4d1">force_rank_match</a></td></tr>
 <tr class="memdesc:ga700b3d72d33eaae12282c4b2a8ddf4d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Put colors on corresponding MPI ranks.  <br /></td></tr>
@@ -146,6 +147,7 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>State for and control of the Legion runtime. </p>
+<p>Contents are in <code>flecsi::run::leg</code> unless otherwise specified. </p>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ga888156213fe841362ad9168aa15176af" name="ga888156213fe841362ad9168aa15176af"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga888156213fe841362ad9168aa15176af">&#9670;&#160;</a></span>mapper_registration()</h2>
@@ -171,7 +173,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Replace default mappers with <code><a class="el" href="classflecsi_1_1run_1_1mpi__mapper__t.html" title="FleCSI&#39;s mapper, named for its support for rank-matching for MPI tasks.">mpi_mapper_t</a></code> instances. </p>
+<p>Replace default mappers with <code><a class="el" href="classflecsi_1_1run_1_1mpi__mapper__t.html" title="FleCSI&#39;s mapper, named for its support for rank-matching for MPI tasks.">mpi_mapper_t</a></code> instances. Appears directly in <code>flecsi::run</code>. </p>
 
 </div>
 </div>

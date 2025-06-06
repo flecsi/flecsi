@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -138,10 +138,6 @@ Functions</h2></td></tr>
 <tr class="memitem:ga335773178802159b025bdf46ca9c65ef"><td class="memTemplItemLeft" align="right" valign="top">T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ga335773178802159b025bdf46ca9c65ef">get</a> (const std::byte *&amp;p)</td></tr>
 <tr class="memdesc:ga335773178802159b025bdf46ca9c65ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reconstruct an object, advancing past its serialized form.  <br /></td></tr>
 <tr class="separator:ga335773178802159b025bdf46ca9c65ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2c1f55d51962401fef3d7d1973d2ffc6" id="r_ga2c1f55d51962401fef3d7d1973d2ffc6"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
-<tr class="memitem:ga2c1f55d51962401fef3d7d1973d2ffc6"><td class="memTemplItemLeft" align="right" valign="top">T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ga2c1f55d51962401fef3d7d1973d2ffc6">get1</a> (const std::byte *p)</td></tr>
-<tr class="memdesc:ga2c1f55d51962401fef3d7d1973d2ffc6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a single object.  <br /></td></tr>
-<tr class="separator:ga2c1f55d51962401fef3d7d1973d2ffc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gabfa357f69b02932978db4be0abb90dae" id="r_gabfa357f69b02932978db4be0abb90dae"><td class="memTemplParams" colspan="2">template&lt;class... TT&gt; </td></tr>
 <tr class="memitem:gabfa357f69b02932978db4be0abb90dae"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#gabfa357f69b02932978db4be0abb90dae">get_tuple</a> (const std::byte *p, const std::byte *e=nullptr)</td></tr>
 <tr class="memdesc:gabfa357f69b02932978db4be0abb90dae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a tuple of objects.  <br /></td></tr>
@@ -170,8 +166,9 @@ Functions</h2></td></tr>
 <li>any type that supports the Legion return-value serialization interface</li>
 <li><code>std::string</code> </li>
 <li>any type with an appropriate specialization of <code>traits</code> or <code>convert</code> </li>
-<li>any <code>std::pair</code>, <code>std::tuple</code>, <code>std::array</code>, <code>std::vector</code>, <code>std::set</code>, <code>std::map</code>, <code>std::unordered_map</code> of a supported type </li>
+<li>any <code>std::pair</code>, <code>std::tuple</code>, <code>std::array</code>, <code>std::vector</code>, <code>std::set</code>, <code>std::map</code>, <code>std::unordered_map</code> of a supported type</li>
 </ul>
+<p>Contents are in <code>flecsi::util::serial</code> unless otherwise specified. </p>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ga20eefed72b07745b243e4ea4eedef3d8" name="ga20eefed72b07745b243e4ea4eedef3d8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga20eefed72b07745b243e4ea4eedef3d8">&#9670;&#160;</a></span>put()</h2>
@@ -274,33 +271,6 @@ template&lt;class F &gt; </div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">f</td><td>a function that accepts an argument for <code>put</code> </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="ga2c1f55d51962401fef3d7d1973d2ffc6" name="ga2c1f55d51962401fef3d7d1973d2ffc6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga2c1f55d51962401fef3d7d1973d2ffc6">&#9670;&#160;</a></span>get1()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class T &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">T get1 </td>
-          <td>(</td>
-          <td class="paramtype">const std::byte *</td>          <td class="paramname"><span class="paramname"><em>p</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Get a single object. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">p</td><td>may be an rvalue </td></tr>
   </table>
   </dd>
 </dl>

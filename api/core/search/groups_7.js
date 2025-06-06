@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['kdtree_0',['KDTree',['../group__kdtree.html',1,'']]],
-  ['kernels_1',['Kernels',['../group__kernel.html',1,'']]]
+  ['hpx_20execution_0',['Hpx-execution',['../group__hpx-execution.html',1,'']]],
+  ['hpx_20runtime_1',['HPX Runtime',['../group__hpx-runtime.html',1,'']]]
 ];

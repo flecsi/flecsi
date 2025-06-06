@@ -1,8 +1,5 @@
 var searchData=
 [
-  ['unstructured_0',['unstructured',['../structflecsi_1_1topo_1_1unstructured.html',1,'flecsi::topo']]],
-  ['unstructured_3c_20p_20_3e_1',['unstructured&lt; P &gt;',['../structflecsi_1_1topo_1_1unstructured.html',1,'flecsi::topo']]],
-  ['unstructured_5fbase_2',['unstructured_base',['../structflecsi_1_1topo_1_1unstructured__base.html',1,'flecsi::topo']]],
-  ['unstructured_5fspecialization_3',['unstructured_specialization',['../structflecsi_1_1topo_1_1unstructured__specialization.html',1,'flecsi::topo']]],
-  ['user_4',['user',['../structflecsi_1_1topo_1_1user.html',1,'flecsi::topo']]]
+  ['unstructured_5fbase_0',['unstructured_base',['../structflecsi_1_1topo_1_1unstructured__base.html',1,'flecsi::topo']]],
+  ['unstructured_5fspecialization_1',['unstructured_specialization',['../structflecsi_1_1topo_1_1unstructured__specialization.html',1,'flecsi::topo']]]
 ];

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Execution Model &mdash; FleCSI 2.3.2 documentation</title>
+  <title>Execution Model &mdash; FleCSI 2.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.2
+                Version: 2.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -58,16 +58,14 @@
 <li class="toctree-l2 current"><a class="reference internal" href="../tutorial.html#tutorial-examples">Tutorial Examples</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="runtime.html">Runtime Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="control.html">Control Model</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Execution Model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#tasks">Tasks</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Execution Model</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#example-1-single-tasks">Example 1: Single Tasks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#example-2-index-tasks">Example 2: Index Tasks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#example-3-mpi-tasks">Example 3: MPI Tasks</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="data.html">Data Model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="parallel.html">Distributed and shared memory parallelism</a></li>
-<li class="toctree-l3"><a class="reference internal" href="parallel.html#shared-memory">Shared memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parallel.html">Shared-memory parallelism</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ntree.html">N-Tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
 <li class="toctree-l3"><a class="reference internal" href="poisson.html">Poisson</a></li>
@@ -127,41 +125,35 @@ example of using <em>forall</em> kernels in the <em>parallel</em> section of the
 tutorial.</p>
 </dd>
 </dl>
-</section>
+<p>Tasks are launched by <em>schedulers</em>.</p>
 <hr class="docutils" />
-<section id="tasks">
-<h1>Tasks<a class="headerlink" href="#tasks" title="Permalink to this heading"></a></h1>
 <section id="example-1-single-tasks">
 <h2>Example 1: Single Tasks<a class="headerlink" href="#example-1-single-tasks" title="Permalink to this heading"></a></h2>
-<p>A <cite>single</cite> task launches on a single process, i.e., only one instance of
-the task is executed.
+<p>A <cite>single</cite> task launch calls a given function just once (across all processes).
 This is in contrast to an <cite>index</cite> launch, which executes a task as a
-data-parallel operation, potentially across many processes.
-FleCSI uses information about the arguments passed to a task to decide
-how to launch the task: If no parameter is passed that defines a <cite>launch
-domain</cite>, e.g., an explicit <em>launch domain</em>, a <cite>topology</cite> instance, or a
-<cite>future map</cite>, FleCSI will launch the task as <cite>single</cite>.</p>
+data-parallel operation, potentially across many processes.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">trivial</span></code> task is an example of a <code class="docutils literal notranslate"><span class="pre">single</span></code> task.
 Consider the following from <code class="docutils literal notranslate"><span class="pre">tutorial/3-execution/1-single-task.cc</span></code>:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Trivial task (no arguments, no return).</span>
 
 <span class="kt">void</span>
-<span class="nf">trivial</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">trivial</span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hello World&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Execution of the task is trivial:</p>
+<p>Since they are not invoked directly, tasks cannot throw exceptions and must be declared <code class="docutils literal notranslate"><span class="pre">noexcept</span></code>.
+Execution of the task is a trivial use of the <code class="docutils literal notranslate"><span class="pre">scheduler</span></code> provided to the action:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// Execute a trivial task.</span>
 
-<span class="w">  </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">trivial</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">trivial</span><span class="o">&gt;</span><span class="p">();</span>
 </pre></div>
 </div>
 <p>A single task can return a value:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with return value.</span>
 
 <span class="kt">int</span>
-<span class="nf">with_return</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">with_return</span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">value</span><span class="p">{</span><span class="mi">100</span><span class="p">};</span>
 </pre></div>
 </div>
@@ -169,7 +161,7 @@ Consider the following from <code class="docutils literal notranslate"><span cla
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// A future is a mechanism to access the result of an asynchronous</span>
 <span class="w">    </span><span class="c1">// operation.</span>
 
-<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">future</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">with_return</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">future</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">with_return</span><span class="o">&gt;</span><span class="p">();</span>
 
 <span class="w">    </span><span class="c1">// The &#39;wait()&#39; method waits for the result to become available.</span>
 
@@ -183,20 +175,16 @@ Consider the following from <code class="docutils literal notranslate"><span cla
 <span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// scope</span>
 </pre></div>
 </div>
-<p>FleCSI tasks can take any valid C++ type as an argument <cite>by-value</cite>,
+<p>Tasks can take many non-trivial C++ types as parameters,
 e.g., a <code class="docutils literal notranslate"><span class="pre">std::vector</span></code>:</p>
 <div class="admonition caution">
 <p class="admonition-title">Caution</p>
-<p>FleCSI tasks can take any valid C++ type by value. However, because
-task data must be relocatable, you cannot pass pointer arguments or
-arguments that contain pointers.  Modifications made to by-value
-data are local to the task and will not be reflected at the call
-site.</p>
+<p>Because they run asynchronously and not necessarily the same number of times as their callers, normal tasks cannot accept pointers or references to non-const types.</p>
 </div>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with by-value argument.</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with non-trivial parameter.</span>
 
 <span class="kt">int</span>
-<span class="nf">with_by_value_argument</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">nontrivial_parameter</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="n">ss</span><span class="p">;</span>
 <span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">retval</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
 <span class="w">  </span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Parameter values: &quot;</span><span class="p">;</span>
@@ -204,22 +192,15 @@ site.</p>
 <span class="w">    </span><span class="n">retval</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
 <span class="w">    </span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; &quot;</span><span class="p">;</span>
 <span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// for</span>
-<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">ss</span><span class="p">.</span><span class="n">str</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">retval</span><span class="p">;</span>
-<span class="p">}</span><span class="w"> </span><span class="c1">// with_by_value_argument</span>
 </pre></div>
 </div>
 <p>Execution of such a task is what you would expect:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// Execute a task that takes an argument by-value. FleCSI tasks can take any</span>
-<span class="w">  </span><span class="c1">// valid C++ type by value. However, because task data must be relocatable,</span>
-<span class="w">  </span><span class="c1">// you cannot pass pointer arguments, or arguments that contain pointers.</span>
-<span class="w">  </span><span class="c1">// Modifications made to by-value data are local to the task and will not be</span>
-<span class="w">  </span><span class="c1">// reflected at the call site.</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// Execute a task with a non-trivial argument.</span>
+<span class="w">  </span><span class="c1">// Pointers/references must be to const.</span>
 
 <span class="w">  </span><span class="p">{</span>
 <span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="mi">13</span><span class="p">,</span><span class="w"> </span><span class="mi">21</span><span class="p">,</span><span class="w"> </span><span class="mi">34</span><span class="p">};</span>
-<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">future</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">with_by_value_argument</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">future</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">nontrivial_parameter</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
 <span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Sum is &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 <span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// scope</span>
 </pre></div>
@@ -227,7 +208,7 @@ site.</p>
 <p>FleCSI tasks can also be templated:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">Type</span><span class="o">&gt;</span>
 <span class="n">Type</span>
-<span class="n">templated_task</span><span class="p">(</span><span class="n">Type</span><span class="w"> </span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="n">templated_task</span><span class="p">(</span><span class="n">Type</span><span class="w"> </span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">Type</span><span class="w"> </span><span class="n">retval</span><span class="p">{</span><span class="n">t</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">Type</span><span class="p">(</span><span class="mi">10</span><span class="p">)};</span>
 <span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Returning value &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">retval</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; with type &quot;</span>
 <span class="w">             </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="k">typeid</span><span class="p">(</span><span class="n">t</span><span class="p">).</span><span class="n">name</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
@@ -240,7 +221,7 @@ site.</p>
 
 <span class="w">  </span><span class="p">{</span>
 <span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">value</span><span class="p">{</span><span class="mf">32.0</span><span class="p">};</span>
-<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">future</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">templated_task</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">future</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">templated_task</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
 <span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Got templated value &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 <span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// scope</span>
 </pre></div>
@@ -248,26 +229,27 @@ site.</p>
 </section>
 <section id="example-2-index-tasks">
 <h2>Example 2: Index Tasks<a class="headerlink" href="#example-2-index-tasks" title="Permalink to this heading"></a></h2>
-<p>Index task is a task that is executed by several processes. It is often
-used to operate on different parts of the input data (like partitioned
-mesh) asynchronously.</p>
-<p>In this example we explicitly ask to execute <code class="docutils literal notranslate"><span class="pre">task</span></code> on 4 processes via
-the <code class="docutils literal notranslate"><span class="pre">launch_domain</span></code> argument.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with no arguments.</span>
+<p>An index task launch calls a given function a number of times asynchronously, typically distributed over multiple processes; each is called a <em>point task</em>.
+The usual purpose is operating on different parts of a distributed data structure (different <em>colors</em> of a <em>topology</em>) in parallel.</p>
+<p>In this example we explicitly ask to call <code class="docutils literal notranslate"><span class="pre">task</span></code> 4 times via
+the <code class="docutils literal notranslate"><span class="pre">launch_domain</span></code> argument; the task must declare a parameter for it, but it need not be named or used.
+To receive information about the task launch, a task can declare an <em>execution space</em> parameter; the task launch provides the dummy value <code class="docutils literal notranslate"><span class="pre">exec::on</span></code> to initialize it.
+An execution space parameter also controls where the task runs; <code class="docutils literal notranslate"><span class="pre">exec::cpu</span></code> is the default, but others will be used later.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with special arguments.</span>
 
 <span class="kt">void</span>
-<span class="nf">task</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">launch_domain</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hello World from color &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">color</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; of &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">colors</span><span class="p">()</span>
-<span class="w">             </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="nf">task</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">cpu</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">launch_domain</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hello World from point task &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">launch</span><span class="p">().</span><span class="n">index</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; of &quot;</span>
+<span class="w">             </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">launch</span><span class="p">().</span><span class="n">size</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="c1">// Advance control point.</span>
 
 <span class="kt">void</span>
-<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">exec</span><span class="o">::</span><span class="n">launch_domain</span><span class="w"> </span><span class="n">ld</span><span class="p">{</span><span class="mi">4</span><span class="p">};</span>
 
-<span class="w">  </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ld</span><span class="p">);</span>
+<span class="w">  </span><span class="n">p</span><span class="p">.</span><span class="n">scheduler</span><span class="p">().</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">&gt;</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">on</span><span class="p">,</span><span class="w"> </span><span class="n">ld</span><span class="p">);</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// advance()</span>
 </pre></div>
 </div>
@@ -277,7 +259,7 @@ the <code class="docutils literal notranslate"><span class="pre">launch_domain</
 points an index task should have. If no <code class="docutils literal notranslate"><span class="pre">launch_domain</span></code> is passed to the
 <code class="docutils literal notranslate"><span class="pre">execute</span></code> method, the default will be used.
 If the task uses a field or topology accessor, the default is the number of colors of the topology used.
-Otherwise, the default is to launch a single task.</p>
+If no argument indicates a number, the default is to launch a single task.</p>
 </section>
 </section>
 <section id="example-3-mpi-tasks">
@@ -286,20 +268,20 @@ Otherwise, the default is to launch a single task.</p>
 MPI ranks and index points mapped to corresponding MPI ranks. Executing
 MPI task adds synchronization between Legion and MPI and, therefore,
 should only be used when one needs to call MPI library.
-To execute an MPI task, the second template argument to the <code class="docutils literal notranslate"><span class="pre">execute</span></code>
-method should be set to <code class="docutils literal notranslate"><span class="pre">mpi</span></code>.</p>
+To execute an MPI task, <code class="docutils literal notranslate"><span class="pre">flecsi::execute</span></code> must be used, with its second template argument set to <code class="docutils literal notranslate"><span class="pre">mpi</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">launch</span></code> information provided is equivalent to <code class="docutils literal notranslate"><span class="pre">process</span></code> and <code class="docutils literal notranslate"><span class="pre">processes</span></code>.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with no arguments.</span>
 
 <span class="kt">void</span>
-<span class="nf">task</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hello World from process: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">process</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="nf">task</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">cpu</span><span class="w"> </span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hello World from process: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">launch</span><span class="p">().</span><span class="n">index</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="c1">// Advance control point.</span>
 
 <span class="kt">void</span>
 <span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="p">,</span><span class="w"> </span><span class="n">mpi</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">  </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="p">,</span><span class="w"> </span><span class="n">mpi</span><span class="o">&gt;</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">on</span><span class="p">);</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// advance()</span>
 </pre></div>
 </div>

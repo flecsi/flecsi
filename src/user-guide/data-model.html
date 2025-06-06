@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data Model &mdash; FleCSI 2.3.2 documentation</title>
+  <title>Data Model &mdash; FleCSI 2.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.2
+                Version: 2.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -68,6 +68,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#accessors">Accessors</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#mutators">Mutators</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#multi-color-accessors">Multi-color accessors</a></li>
 </ul>
 </li>
 </ul>
@@ -163,6 +164,12 @@ you may want to create additional colors so that some processors can handle mult
 as a hydrodynamics solver and an energy source.  In that situation you
 could use fewer colors than processes so that some processes can perform calculations for the hydrodynamics while others perform calculations for the energy source.</p></li>
 </ul>
+<figure class="align-center" id="id4">
+<a class="reference internal image-reference" href="../../_images/coloring.svg"><img alt="../../_images/coloring.svg" src="../../_images/coloring.svg" width="30%" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 15 </span><span class="caption-text">An unstructured mesh topology instance with 4 colors.</span><a class="headerlink" href="#id4" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
 <section id="ghost-elements">
 <span id="id1"></span><h3>Ghost Elements<a class="headerlink" href="#ghost-elements" title="Permalink to this heading"></a></h3>
 <p>Field values can be communicated between colors via ghost elements.</p>
@@ -180,6 +187,13 @@ to be ghost elements are known as <em>exclusive elements</em>.</p></li>
 <p>The read/write permissions of <a class="reference internal" href="#field-accessors"><span class="std std-ref">accessors</span></a>
 may distinguish between these three varieties of index points in order
 to expose additional opportunities for parallelization.</p>
+<figure class="align-center" id="id5">
+<a class="reference internal image-reference" href="../../_images/extended-index-spaces.svg"><img alt="../../_images/extended-index-spaces.svg" src="../../_images/extended-index-spaces.svg" width="80%" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 16 </span><span class="caption-text">Index spaces with ghost elements as seen by each color of a
+topology instance.</span><a class="headerlink" href="#id5" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
 </section>
 </section>
 <section id="fields">
@@ -188,15 +202,15 @@ to expose additional opportunities for parallelization.</p>
 Only tasks can access the actual data.</p>
 <section id="registration">
 <h3>Registration<a class="headerlink" href="#registration" title="Permalink to this heading"></a></h3>
-<p>Index spaces are organized into <a class="reference internal" href="topologies.html"><span class="doc">topologies</span></a>; variables are defined on an index space by registering fields on its topology type.
-Supposing we have a topology type <code class="docutils literal notranslate"><span class="pre">topo_t</span></code>, we can write</p>
+<p>Index spaces are organized into <a class="reference internal" href="topologies.html"><span class="doc">topologies</span></a>; variables are defined on an index space by registering fields on its topology.
+The tag type used for the registration (and other purposes to be discussed) is a <em>specialization</em>.
+Supposing we have a specialization <code class="docutils literal notranslate"><span class="pre">topo_t</span></code>, we can write</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo_t</span><span class="p">,</span><span class="w"> </span><span class="n">topo_t</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="w"> </span><span class="n">mass_field</span><span class="p">;</span>
 <span class="k">const</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo_t</span><span class="p">,</span><span class="w"> </span><span class="n">topo_t</span><span class="o">::</span><span class="n">faces</span><span class="o">&gt;</span><span class="w"> </span><span class="n">massflux_field</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">mass_field</span></code> variable declaration states that the <code class="docutils literal notranslate"><span class="pre">topo_t</span></code> topology has a mass in each
-cell.  The <code class="docutils literal notranslate"><span class="pre">massflux_field</span></code> variable declaration states that the
-<code class="docutils literal notranslate"><span class="pre">topo_t</span></code> topology has a mass flux on each face.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">mass_field</span></code> variable declaration states that the <code class="docutils literal notranslate"><span class="pre">topo_t</span></code> specialization has a mass in each cell.
+The <code class="docutils literal notranslate"><span class="pre">massflux_field</span></code> variable declaration states that <code class="docutils literal notranslate"><span class="pre">topo_t</span></code> has a mass flux on each face.</p>
 <p>If you have multiple fields on the same index space, you can declare
 them in a way that’s analogous to a struct of arrays or in a way that’s
 analogous to an array of structs.  In a hydrodynamics code, the
@@ -282,11 +296,23 @@ color; the index points are simply arbitrary ids for the particles.</p></li>
 </ul>
 <p>The field registration examples above use the <code class="docutils literal notranslate"><span class="pre">dense</span></code> layout by default.
 Other layouts are chosen with syntax like <code class="docutils literal notranslate"><span class="pre">flecsi::field&lt;double,</span> <span class="pre">flecsi::data::ragged&gt;</span></code>.</p>
+<figure class="align-default" id="id6">
+<a class="reference internal image-reference" href="../../_images/fields.svg"><img alt="../../_images/fields.svg" src="../../_images/fields.svg" width="100%" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 17 </span><span class="caption-text">Illustration of the single, dense and ragged layout for various index spaces and data types.</span><a class="headerlink" href="#id6" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id7">
+<a class="reference internal image-reference" href="../../_images/sparse-and-particle.svg"><img alt="../../_images/sparse-and-particle.svg" src="../../_images/sparse-and-particle.svg" width="80%" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 18 </span><span class="caption-text">Fields in sparse and particle layouts.</span><a class="headerlink" href="#id7" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
 </section>
 <section id="references">
 <h3>References<a class="headerlink" href="#references" title="Permalink to this heading"></a></h3>
-<p>Fields are registered on topology <em>types</em>, so every instance of that topology type has the field.
-It is therefore as if a member were added to a C++ struct: one might imagine defining <code class="docutils literal notranslate"><span class="pre">mass_field</span></code> on the topology <code class="docutils literal notranslate"><span class="pre">topo_t</span></code>, creating an instance of <code class="docutils literal notranslate"><span class="pre">topo_t</span></code> called <code class="docutils literal notranslate"><span class="pre">grid</span></code>, and writing <code class="docutils literal notranslate"><span class="pre">grid.mass_field</span></code>.
+<p>Fields are registered on specializations as a whole; every instance of the associated topology type has the field.
+It is therefore as if a member were added to a C++ struct: one might imagine defining <code class="docutils literal notranslate"><span class="pre">mass_field</span></code> on the specialization <code class="docutils literal notranslate"><span class="pre">topo_t</span></code>, creating an instance from it called <code class="docutils literal notranslate"><span class="pre">grid</span></code>, and writing <code class="docutils literal notranslate"><span class="pre">grid.mass_field</span></code>.
 However, the language does not actually allow extending a type.
 Instead, the
 field objects themselves become tools to extract the field data, so you
@@ -318,6 +344,14 @@ with read-only access to the same field can run in parallel.</p>
 In this case multiple privileges are specified to describe access to exclusive, shared, and/or ghost elements.
 If no privilege grants write permission (<em>e.g.</em>, with <code class="docutils literal notranslate"><span class="pre">flecsi::field&lt;double&gt;::accessor&lt;flecsi::ro,</span> <span class="pre">flecsi::ro,</span> <span class="pre">flecsi::na&gt;</span></code>), the accessor will produce the <code class="docutils literal notranslate"><span class="pre">const</span></code>-qualified version of the field type.
 However, it is impossible to so restrict some but not all index points (for, say, <code class="docutils literal notranslate"><span class="pre">flecsi::field&lt;double&gt;::accessor&lt;flecsi::rw,</span> <span class="pre">flecsi::ro,</span> <span class="pre">flecsi::ro&gt;</span></code>); if the client modifies elements for which it has no write permission, the behavior is undefined.</p>
+<p>A ghost copy occurs between any two tasks that operate on the same field where</p>
+<ol class="arabic simple">
+<li><p>the first has write access to the shared elements,</p></li>
+<li><p>the second has read access to the ghost elements, and</p></li>
+<li><p>neither the first nor any intervening task has write access to the ghost elements.</p></li>
+</ol>
+<p>That is, ghosts are considered out of date only if the shared values have been written <em>more</em> recently; this allows ghosts to be initialized to a constant or to be transformed by a local function without communication.
+Two writes to the shared elements of a field may produce only one ghost copy if no ghost reads occur after the first but not after the second.</p>
 <p>The first access to each field must be write-only, except that the ghosts may be no-access to indicate that the initial values need to be copied to other colors as usual.</p>
 </section>
 <section id="mutators">
@@ -345,6 +379,17 @@ First, the automatic memory allocation is incompatible with <a class="reference 
 Ghost copies for these layouts are implemented using mutators, so they are excluded from traces as well.
 Moreover, they use further temporary allocations during a task that are incompatible with GPU execution, so they cannot be used in a <code class="docutils literal notranslate"><span class="pre">toc</span></code> task.</p>
 </section>
+</section>
+<section id="multi-color-accessors">
+<h3>Multi-color accessors<a class="headerlink" href="#multi-color-accessors" title="Permalink to this heading"></a></h3>
+<p>In addition to ghost elements, the Legion backend provides <em>launch maps</em> as another mechanism for accessing another color’s data in a point task.
+They explicitly nominate one or more colors to be processed by each point task, so they can permute colors as well as duplicating them (for read-only access) or omitting them.
+Accessors, mutators, or topology accessors (discussed later) can be wrapped in a <code class="docutils literal notranslate"><span class="pre">data::multi</span></code> task parameter; the launch map takes the place of the underlying topology in the task argument (<em>e.g.</em>, in forming a field reference).
+A task can accept multiple multi-color accessors as well as ordinary accessors (relative to which any permutation is meaningful).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Other backends support only trivial launch maps that nominate the usual color for a point task or none at all.</p>
+</div>
 </section>
 </section>
 </section>

@@ -1,29 +1,25 @@
 var group__ntree =
 [
-    [ "access< Priv >", "structflecsi_1_1topo_1_1ntree_1_1access.html", [
-      [ "hmap_t", "structflecsi_1_1topo_1_1ntree_1_1access.html#a58a30eac83a5aa4181a2b18a0d1cfd19", null ],
-      [ "entities", "structflecsi_1_1topo_1_1ntree_1_1access.html#ab3d19ec88791bf0adaf9ec81524b4350", null ],
-      [ "entities", "structflecsi_1_1topo_1_1ntree_1_1access.html#aa182334fed79abc5c84b9371ac7f7787", null ],
-      [ "neighbors", "structflecsi_1_1topo_1_1ntree_1_1access.html#a99b5851d6e18bb07e96c01f9b7bdab84", null ],
-      [ "nodes", "structflecsi_1_1topo_1_1ntree_1_1access.html#a10a23d1b9598a64f5465812ce3856e53", null ],
-      [ "nodes", "structflecsi_1_1topo_1_1ntree_1_1access.html#a84bf9534c4eb8f3a1ac62ad71e68913b", null ],
-      [ "bfs", "structflecsi_1_1topo_1_1ntree_1_1access.html#af1ab29f9420eea7b832cd3046378b212", null ],
-      [ "dfs", "structflecsi_1_1topo_1_1ntree_1_1access.html#a0aaa6cff1641de5bfe94ace9e92d544c", null ],
-      [ "graphviz_draw", "structflecsi_1_1topo_1_1ntree_1_1access.html#a7db77d0ad68e0e5f350f0d9de931e4be", null ],
-      [ "e_keys", "structflecsi_1_1topo_1_1ntree_1_1access.html#aa5103b840f06fb9fe932fc1450cd8110", null ],
-      [ "e_colors", "structflecsi_1_1topo_1_1ntree_1_1access.html#ae8fdf1de71084094623578df010d0d57", null ],
-      [ "e_ids", "structflecsi_1_1topo_1_1ntree_1_1access.html#ab09f76894104e80c29173a4998bf801d", null ],
-      [ "n_keys", "structflecsi_1_1topo_1_1ntree_1_1access.html#a1207ee2a331ab47a3591ef498e7f9c6e", null ],
-      [ "n_i", "structflecsi_1_1topo_1_1ntree_1_1access.html#ae93065a3367ee8f3f939b4dec6de0270", null ]
+    [ "access< Priv >", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html", [
+      [ "hmap_t", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#aeb9f2d08cf79b3c9b59662274fb7edd8", null ],
+      [ "entities", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#ab3d19ec88791bf0adaf9ec81524b4350", null ],
+      [ "entities", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#aa182334fed79abc5c84b9371ac7f7787", null ],
+      [ "neighbors", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a99b5851d6e18bb07e96c01f9b7bdab84", null ],
+      [ "nodes", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a10a23d1b9598a64f5465812ce3856e53", null ],
+      [ "nodes", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a84bf9534c4eb8f3a1ac62ad71e68913b", null ],
+      [ "bfs", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#af1ab29f9420eea7b832cd3046378b212", null ],
+      [ "dfs", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a0aaa6cff1641de5bfe94ace9e92d544c", null ],
+      [ "graphviz_draw", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a7db77d0ad68e0e5f350f0d9de931e4be", null ],
+      [ "e_keys", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a7a4e4882c9660aeaf4f2ad69f8ce63be", null ],
+      [ "e_colors", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#aadfca9c90d41ed63a248745789e7576e", null ],
+      [ "e_ids", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a8b2ce56ad2a72a432d84d4e4d6513bac", null ],
+      [ "n_keys", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#ab9c2a2aebc0f5afe4baae844cabe3c53", null ],
+      [ "n_i", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a7e2c9675c4ec7f30a437c01e64fe9784", null ]
     ] ],
     [ "hcell_base_t< DIM, T, KEY >", "classflecsi_1_1topo_1_1hcell__base__t.html", [
       [ "type_displ", "classflecsi_1_1topo_1_1hcell__base__t.html#a5cff55597fc0f6317e53d11bce01796e", null ],
       [ "type_mask", "classflecsi_1_1topo_1_1hcell__base__t.html#a8e55c6786201ed27005a1662bb6b64eb", null ],
       [ "type_locality", "classflecsi_1_1topo_1_1hcell__base__t.html#a676f98d46145410589fe6462ed4627cc", null ]
-    ] ],
-    [ "ntree< Policy >", "structflecsi_1_1topo_1_1ntree.html", [
-      [ "hcell_t", "structflecsi_1_1topo_1_1ntree.html#ab3de30138a9d1267aea10ef4bd2dc00f", null ],
-      [ "hmap_t", "structflecsi_1_1topo_1_1ntree.html#a58a30eac83a5aa4181a2b18a0d1cfd19", null ]
     ] ],
     [ "ntree_base", "structflecsi_1_1topo_1_1ntree__base.html", [
       [ "coloring", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html", [
@@ -55,5 +51,13 @@ var group__ntree =
       [ "node_data", "structflecsi_1_1topo_1_1ntree__specialization_1_1node__data.html", null ],
       [ "key_t", "structflecsi_1_1topo_1_1ntree__specialization.html#a195b10e7578de1597993a116bd7e7514", null ],
       [ "index_spaces", "structflecsi_1_1topo_1_1ntree__specialization.html#a6b41a6fdc93117917845bee056376d77", null ]
-    ] ]
+    ] ],
+    [ "topology< Policy, ntree_base >", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html", [
+      [ "hcell_t", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html#ab3de30138a9d1267aea10ef4bd2dc00f", null ],
+      [ "hmap_t", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html#aeb9f2d08cf79b3c9b59662274fb7edd8", null ],
+      [ "make_tree", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html#a30f19a2df235002b8cac3b7328ec7e48", null ],
+      [ "share_ghosts", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html#a2e4dbf625aa5775f5a5f0a1a881e1a54", null ],
+      [ "reset", "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html#ad86342168447766250ca22d86819a5a7", null ]
+    ] ],
+    [ "ntree", "group__ntree.html#ga2a6c94fe51b2f4de770b5f4265579243", null ]
 ];

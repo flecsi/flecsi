@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -104,7 +104,8 @@ $(function(){initNavTree('group__narray.html',''); initResizable(true); });
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a>  </div>
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#typedef-members">Typedefs</a>  </div>
   <div class="headertitle"><div class="title">Multi-dimensional Array<div class="ingroups"><a class="el" href="group__topology.html">Topologies</a></div></div></div>
 </div><!--header-->
 <div class="contents">
@@ -114,8 +115,8 @@ $(function(){initNavTree('group__narray.html',''); initResizable(true); });
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1narray_1_1access.html">narray&lt; Policy &gt;::access&lt; Priv &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Topology interface base.  <a href="structflecsi_1_1topo_1_1narray_1_1access.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html">topology&lt; Policy, narray_base &gt;::access&lt; Priv &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Topology interface base.  <a href="structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1narray__impl_1_1axis.html">axis</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Information about the layout of an entire axis.  <a href="structflecsi_1_1topo_1_1narray__impl_1_1axis.html#details">More...</a><br /></td></tr>
@@ -135,19 +136,45 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1narray__impl_1_1index__definition.html">index_definition</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This type is part of the coloring, and encapsulates the coloring information for a single index space (such as how many colors per axis the mesh needs to be partitioned into, if boundaries are periodic, etc), that is used by the coloring algorithm to create mesh partitions.  <a href="structflecsi_1_1topo_1_1narray__impl_1_1index__definition.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1narray.html">narray&lt; Policy &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Narray Topology.  <a href="structflecsi_1_1topo_1_1narray.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1narray__base.html">narray_base</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specialization-independent definitions.  <a href="structflecsi_1_1topo_1_1narray__base.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1narray__specialization.html">narray_specialization</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Example specialization which is not really implemented.  <a href="structflecsi_1_1topo_1_1narray__specialization.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4.html">topology&lt; Policy, narray_base &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Narray Topology.  <a href="structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:gab78cf0304f7dd67018c597fc3af0104f" id="r_gab78cf0304f7dd67018c597fc3af0104f"><td class="memTemplParams" colspan="2">template&lt;class P &gt; </td></tr>
+<tr class="memitem:gab78cf0304f7dd67018c597fc3af0104f"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#gab78cf0304f7dd67018c597fc3af0104f">narray</a></td></tr>
+<tr class="memdesc:gab78cf0304f7dd67018c597fc3af0104f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Topology category.  <br /></td></tr>
+<tr class="separator:gab78cf0304f7dd67018c597fc3af0104f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Configurable multi-dimensional array topology. </p>
 <p>Can be used for structured meshes. </p>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a id="gab78cf0304f7dd67018c597fc3af0104f" name="gab78cf0304f7dd67018c597fc3af0104f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab78cf0304f7dd67018c597fc3af0104f">&#9670;&#160;</a></span>narray</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class P &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#gab78cf0304f7dd67018c597fc3af0104f">narray</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Topology category. </p>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

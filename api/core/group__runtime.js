@@ -1,10 +1,12 @@
 var group__runtime =
 [
     [ "Control Model", "group__control.html", "group__control" ],
+    [ "HPX Runtime", "group__hpx-runtime.html", "group__hpx-runtime" ],
     [ "Legion Runtime", "group__legion-runtime.html", "group__legion-runtime" ],
     [ "MPI Runtime", "group__mpi-runtime.html", "group__mpi-runtime" ],
     [ "config", "structflecsi_1_1run_1_1config.html", [
-      [ "legion", "structflecsi_1_1run_1_1config.html#a3beac08dcb1270eba964f7d145de7ebd", null ]
+      [ "legion", "structflecsi_1_1run_1_1config.html#a3beac08dcb1270eba964f7d145de7ebd", null ],
+      [ "hpx", "structflecsi_1_1run_1_1config.html#a6db00d2bcd78efaf278f2bb5453423a2", null ]
     ] ],
     [ "config_base", "structflecsi_1_1run_1_1config__base.html", [
       [ "flog", "structflecsi_1_1run_1_1config__base.html#af00342e65426a9ddd6cbe1859f2ecf29", null ]
@@ -44,6 +46,9 @@ var group__runtime =
     [ "runtime", "structflecsi_1_1runtime.html", [
       [ "runtime", "structflecsi_1_1runtime.html#a93ad7beb146367754d1dac633fe724f6", null ],
       [ "runtime", "structflecsi_1_1runtime.html#a73500dbf28a999bc49dcd2ade53b3bc0", null ],
+      [ "process", "structflecsi_1_1runtime.html#ad2ac5459d279091d4924fca5b7b3dd72", null ],
+      [ "processes", "structflecsi_1_1runtime.html#a953330354e9ef80d1d618e6ca2bca431", null ],
+      [ "control", "structflecsi_1_1runtime.html#a02e2d8e867611f7774db12ba2074acc3", null ],
       [ "control", "structflecsi_1_1runtime.html#af88a88cc452c79eac72758160935c192", null ]
     ] ],
     [ "argv", "group__runtime.html#ga160d399aada333714d01c9d351f93cb7", null ],

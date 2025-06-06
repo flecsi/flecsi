@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -104,6 +104,7 @@ $(function(){initNavTree('structflecsi_1_1util_1_1detail_1_1mdbase.html',''); in
 
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="structflecsi_1_1util_1_1detail_1_1mdbase-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">mdbase&lt; T, D &gt; Struct Template Reference</div></div>
@@ -113,6 +114,15 @@ $(function(){initNavTree('structflecsi_1_1util_1_1detail_1_1mdbase.html',''); in
 <p>A multi-dimensional view of an array.  
  <a href="#details">More...</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:ab09edc4b568d547d04da66f947f5595a" id="r_ab09edc4b568d547d04da66f947f5595a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab09edc4b568d547d04da66f947f5595a">element_type</a></td></tr>
+<tr class="memdesc:ab09edc4b568d547d04da66f947f5595a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The element type.  <br /></td></tr>
+<tr class="separator:ab09edc4b568d547d04da66f947f5595a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31c872a1c5784bf8eb67039d36047f6c" id="r_a31c872a1c5784bf8eb67039d36047f6c"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a31c872a1c5784bf8eb67039d36047f6c">value_type</a></td></tr>
+<tr class="memdesc:a31c872a1c5784bf8eb67039d36047f6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The unqualified value type.  <br /></td></tr>
+<tr class="separator:a31c872a1c5784bf8eb67039d36047f6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a741d954f2ed9a59ff5fb2a8356bd2f3f" id="r_a741d954f2ed9a59ff5fb2a8356bd2f3f"><td class="memItemLeft" align="right" valign="top">constexpr size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a741d954f2ed9a59ff5fb2a8356bd2f3f">length</a> (<a class="el" href="group__utils.html#ga0d633ccab8440bedc968dc221a91849f">Dimension</a> i) const noexcept</td></tr>
@@ -127,7 +137,44 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><div class="compoundTemplParams">template&lt;class T, <a class="el" href="group__utils.html#ga0d633ccab8440bedc968dc221a91849f">Dimension</a> D&gt;<br />
 struct flecsi::util::detail::mdbase&lt; T, D &gt;</div><p>A multi-dimensional view of an array. </p>
 <p>This class is supported for GPU execution. </p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
+<a id="ab09edc4b568d547d04da66f947f5595a" name="ab09edc4b568d547d04da66f947f5595a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab09edc4b568d547d04da66f947f5595a">&#9670;&#160;</a></span>element_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class T , <a class="el" href="group__utils.html#ga0d633ccab8440bedc968dc221a91849f">Dimension</a> D&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#ab09edc4b568d547d04da66f947f5595a">element_type</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The element type. </p>
+
+</div>
+</div>
+<a id="a31c872a1c5784bf8eb67039d36047f6c" name="a31c872a1c5784bf8eb67039d36047f6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a31c872a1c5784bf8eb67039d36047f6c">&#9670;&#160;</a></span>value_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class T , <a class="el" href="group__utils.html#ga0d633ccab8440bedc968dc221a91849f">Dimension</a> D&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#a31c872a1c5784bf8eb67039d36047f6c">value_type</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The unqualified value type. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a8ea307f2c46ad12a08fa466ee3105740" name="a8ea307f2c46ad12a08fa466ee3105740"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8ea307f2c46ad12a08fa466ee3105740">&#9670;&#160;</a></span>mdbase()</h2>
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Programming Model &mdash; FleCSI 2.3.2 documentation</title>
+  <title>Programming Model &mdash; FleCSI 2.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.2
+                Version: 2.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -107,10 +107,8 @@ Some backends do not take advantage of every optimization opportunity afforded t
 <section id="data">
 <h2>Data<a class="headerlink" href="#data" title="Permalink to this heading"></a></h2>
 <p>Between any two tasks, field data may be relocated to another memory space.
-Any pointer (or reference) that is or points to (any subobject of) a field element is thereby invalidated.</p>
-<p>A task need not execute in the same memory space as its caller, so task arguments must be serialized and cannot contain external pointers or references.</p>
-<p>Data that is neither stored a field nor suitable for serialization (perhaps because it is large) must therefore typically be stored in global variables.
-A field might contain an index to select a value from such a data structure instead of a pointer.</p>
+Any pointer (or reference) that is or points to (any subobject of) a field element is thereby invalidated.
+A field might instead contain an index to select a value from a data structure pointed to by a task parameter.</p>
 <p>Even a <code class="docutils literal notranslate"><span class="pre">toc</span></code> task executes on the host, but its accessors are references to field data stored on the device.
 Those accessors are copied into the kernels launched by the task (with <code class="docutils literal notranslate"><span class="pre">forall</span></code> or similar), which run on the device and can thus use them.
 Certain topology information useful for launching the kernels is copied to the host automatically.</p>
@@ -118,9 +116,8 @@ Certain topology information useful for launching the kernels is copied to the h
 <section id="parallelism">
 <h2>Parallelism<a class="headerlink" href="#parallelism" title="Permalink to this heading"></a></h2>
 <p>Whether or not the MPI backend is in use, a FleCSI application is an MPI program, perhaps running many times in parallel (although there is no requirement in general that that number be the same as the number of colors in any particular topology).
-The top-level action runs once on each process and must perform the same sequence of collective calls into FleCSI with the same arguments.
-(In certain cases, it is the identity rather than the value of the arguments that matters; for example, a mesh coloring might be distributed (rather than replicated) over multiple processes, but that distributed object is the same object for the purpose of initializing a topology.)</p>
-<p>In the common case where the top-level action invokes the actions associated with a control model, they are executed serially.
+The control model actions run serially on each process and must perform the same sequence of collective calls into FleCSI with the same arguments.
+(In certain cases, it is the identity rather than the value of the arguments that matters; for example, a mesh coloring might be distributed (rather than replicated) over multiple processes, but that distributed object is the same object for the purpose of initializing a topology.)
 Tasks, however, are asynchronous: <code class="docutils literal notranslate"><span class="pre">flecsi::execute</span></code> may return before they complete and point tasks from multiple task launches may run out of order or in parallel.</p>
 <p>The threads necessary to implement this impose the ordinary responsibility of thread safety among tasks as well as between them and the actions.
 Because the threads may be pooled, they provide only the <a class="reference external" href="https://en.cppreference.com/w/cpp/language/memory_model#Parallel_forward_progress">parallel forward progress guarantee</a> (invalidating certain collective operations).
@@ -134,7 +131,7 @@ Furthermore, thread-local storage (whose utility is already limited by the pooli
 <ol class="arabic simple">
 <li><p>Because they always run one point task in each process, with access to the color corresponding to its MPI rank, no data relocation is needed between two MPI tasks.
 Therefore, fields used <em>only</em> by MPI tasks may use non-trivial data types (although resizing the field can still invalidate pointers).</p></li>
-<li><p>Because they additionally run synchronously, their parameters may be of any type, including writable references.</p></li>
+<li><p>Because they additionally run synchronously, their parameters may be references or pointers to non-const objects.</p></li>
 <li><p>Because additionally no other point tasks are executed concurrently with them, they can access global data without race conditions.</p></li>
 <li><p>The resulting concurrent forward progress guarantee makes it valid for them to perform MPI communication (including via <code class="docutils literal notranslate"><span class="pre">MPI_COMM_WORLD</span></code>).
 (Their field data is stored on the host and thus may be accessed directly by MPI.)</p></li>

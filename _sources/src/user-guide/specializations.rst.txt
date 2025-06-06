@@ -1,6 +1,6 @@
 Specializations
 ***************
-A *specialization* is an adaptation of a core FleCSI topology to
+A *specialization* is a customization of a topology category to
 create an interface that is suitable for developers of a family of 
 domain-specific applications.
 For example, in the Poisson tutorial a specialization of ``narray`` is provided to define a

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Overview &mdash; FleCSI 2.3.2 documentation</title>
+  <title>Overview &mdash; FleCSI 2.4.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.2
+                Version: 2.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -92,45 +92,9 @@
              
   <section id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h1>
-<p>The structure of applications built on top of the FleCSI programming
-system assumes three basic types of users. Each of the user types has
-their own set of responsibilities that are designed to separate
-concerns and to make sure that development tasks are intuitive and
-achievable by the associated user type.</p>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p>A single individual may play the role of more than one user type.</p>
-</div>
-<p>The user types are:</p>
-<ul class="simple">
-<li><p><strong>Core Developer</strong> <br />
-These are users who design, implement, and maintain the core FleCSI
-library. Generally, these users are expert C++ developers who have a
-well-developed understanding of the the low-level design of the FleCSI
-software architecture. These users are generally computer scientists
-with expertise in generic programming techniques, data structure
-design, and optimization.</p></li>
-<li><p><strong>Specialization Developer</strong> <br />
-These are users who adapt the core FleCSI data structures and runtime
-interfaces to create domain-specific interfaces for application
-developers.  These users are required to understand the components of
-the FleCSI interface that can be statically specialized and must have
-a solid understanding of the runtime interface. Additionally,
-specialization developers are assumed to understand the requirements
-of the application area for which they are designing an interface.
-These users are generally computational scientists with expertise in
-one or more numerical methods areas.</p></li>
-<li><p><strong>Application Developer</strong> <br />
-These users are methods developers or physicists who use a particular
-FleCSI specialization layer to develop and maintain application codes.
-These are the FleCSI end-users, who have expertise in designing and
-implementing numerical methods to solve complicated, multiphysics
-simulation problems.</p></li>
-</ul>
-<p>The source code implementing a FleCSI project will reflect this user
-structure: the project will link to the core FleCSI library; the project will use one or more specializations (also usually from libraries); and the application
-developers will use the core and specialization interfaces to write
-their applications.</p>
+<p>FleCSI separates the concerns of simulation application development and efficient hardware utilization in part by supporting the construction of <em>specializations</em> of its generic topology data structures that provide domain-specific interfaces based on the relevant numerical methods.
+Most sections of the documentation contain material intended for the developers of such specializations; application developers do not in general need to understand such details but do need to consult the documentation for the specialization(s) they use.
+Only a few interfaces have the reverse position of being useful only to application developers (mainly because they concern program initialization); they are not specially marked.</p>
 <section id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading"></a></h2>
 <p>The FleCSI documentation is structured as follows:</p>
@@ -154,29 +118,10 @@ It describes how FleCSI is implemented and provides guidance on modifying, manag
 </section>
 <section id="namespaces">
 <h2>Namespaces<a class="headerlink" href="#namespaces" title="Permalink to this heading"></a></h2>
-<p>FleCSI uses C++ namespaces to identify interfaces that are intended for
-different user types:</p>
-<ul class="simple">
-<li><p><strong>flecsi</strong> <br />
-The types and functions defined in the <em>flecsi</em> namespace are intended
-for all user types but are primarily targeted to application
-developers.</p></li>
-</ul>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Application developers should <strong>never</strong> use types or methods that are
-not defined in the top-level <em>flecsi</em> namespace.</p>
-</div>
-<ul class="simple">
-<li><p><strong>flecsi::X</strong> <br />
-The types and functions defined in <em>flecsi::X</em> namespaces, where <em>X</em>
-is nested within <em>flecsi</em>, e.g., <em>flecsi::topology</em>, should only be
-used by specialization and core developers.</p></li>
-<li><p><strong>flecsi::X::Y</strong> <br />
-The types and functions defined in <em>flecsi::X::Y</em> namespaces are
-intended for internal FleCSI development only! <strong>Use of any of these
-types or functions outside of the core library is undefined!!!</strong>.</p></li>
-</ul>
+<p>FleCSI interfaces generally appear in namespaces that follow the header that provides them: <code class="docutils literal notranslate"><span class="pre">flecsi::data</span></code> for <code class="docutils literal notranslate"><span class="pre">flecsi/data.hh</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi::util</span></code> for <code class="docutils literal notranslate"><span class="pre">flecsi::utilities.hh</span></code>, and so forth.
+The API Reference specifies the (abbreviated) name in each section as well as any member namespaces (<em>e.g.</em>, <code class="docutils literal notranslate"><span class="pre">flecsi::exec::fold</span></code>) used to group closely related components.
+However, a few fundamental facilities instead appear in the <code class="docutils literal notranslate"><span class="pre">flecsi</span></code> namespace itself to indicate their foundational status and make their frequent usage more convenient: <code class="docutils literal notranslate"><span class="pre">flecsi::field</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi::execute</span></code>, and <code class="docutils literal notranslate"><span class="pre">flecsi::runtime</span></code>, for instance.
+The API Reference also indicates such special cases.</p>
 </section>
 </section>
 

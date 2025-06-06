@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -201,7 +201,7 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Environmental information and tools for organizing applications. </p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;flecsi/runtime.hh&quot;</span></div>
+<p>Contents are in <code>flecsi::run</code> unless otherwise specified. </p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;flecsi/runtime.hh&quot;</span></div>
 </div><!-- fragment --><p>This header provides the features in the following additional <b>deprecated</b> header:</p><ul>
 <li><a class="el" href="group__control.html">flecsi/run/control.hh</a> </li>
 </ul>
@@ -237,7 +237,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Exit status returned by initialization code. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000005">Deprecated</a></b></dt><dd>Used only with <code>initialize</code>. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000017">Deprecated</a></b></dt><dd>Used only with <code>initialize</code>. </dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="#ga2e15d1f9869e95425bd95ef204016473" title="Perform FleCSI Runtime Model initialization (which see).">flecsi::initialize</a> </dd>
 <dd>
 <a class="el" href="structflecsi_1_1run_1_1control.html#a53025e44f6a3f4a489778a172625163f" title="Process control model command-line options.">flecsi::run::control::check_status</a> </dd></dl>
@@ -325,7 +325,7 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>An integer indicating the initialization status. This may be interpreted as a <em><a class="el" href="#ga8fdb6ba924648a7f04f8191b6f6a206b" title="Exit status returned by initialization code.">flecsi::run::status</a></em> enumeration, e.g., a value of 1 is equivalent to <a class="el" href="#gga8fdb6ba924648a7f04f8191b6f6a206ba2c0630fbb387d1254eea137af32d810a" title="successful initialization">flecsi::run::status::help</a>. Control model options take effect via <code>control::check_status</code>.</dd></dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000012">Deprecated</a></b></dt><dd>Construct a <code>runtime</code> object; to parse command-line arguments, also use <a class="el" href="structflecsi_1_1getopt.html"><code>getopt</code></a>. </dd></dl>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000025">Deprecated</a></b></dt><dd>Construct a <code>runtime</code> object; to parse command-line arguments, also use <a class="el" href="structflecsi_1_1getopt.html"><code>getopt</code></a>. </dd></dl>
 
 </div>
 </div>
@@ -361,7 +361,7 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>An integer indicating the finalization status. This will be either 0 for successful completion or an error code from <a class="el" href="#ga8fdb6ba924648a7f04f8191b6f6a206b" title="Exit status returned by initialization code.">flecsi::run::status</a>.</dd></dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000013">Deprecated</a></b></dt><dd>Use <code><a class="el" href="structflecsi_1_1runtime.html#af88a88cc452c79eac72758160935c192" title="Execute a control model.">runtime::control</a></code>. </dd></dl>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000026">Deprecated</a></b></dt><dd>Use <code><a class="el" href="structflecsi_1_1runtime.html#a02e2d8e867611f7774db12ba2074acc3" title="Execute a control model.">runtime::control</a></code>. </dd></dl>
 
 </div>
 </div>
@@ -382,7 +382,7 @@ Functions</h2></td></tr>
 
 <p>Perform FleCSI runtime finalization. </p>
 <p>If FleCSI was initialized with the <em>dependent</em> flag set to true, FleCSI will also finalize any runtimes on which it depends.</p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000014">Deprecated</a></b></dt><dd>Destroy a <code>runtime</code> object. </dd></dl>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000027">Deprecated</a></b></dt><dd>Destroy a <code>runtime</code> object. </dd></dl>
 
 </div>
 </div>
@@ -403,7 +403,7 @@ Functions</h2></td></tr>
 
 <p>Return the program name. </p>
 <p>Available only with <code>initialize</code>.</p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000015">Deprecated</a></b></dt><dd>Check <code>argv</code> directly. </dd></dl>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000028">Deprecated</a></b></dt><dd>Check <code>argv</code> directly. </dd></dl>
 
 </div>
 </div>
@@ -427,11 +427,11 @@ template&lt;typename ValueType &gt; </div>
 <p>Convert an option value into its underlying type. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">ValueType</td><td>The option underlying value type. </td></tr>
+    <tr><td class="paramname">ValueType</td><td>The option underlying value type.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000016">Deprecated</a></b></dt><dd>Accept the value directly in the validation function. </dd></dl>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000029">Deprecated</a></b></dt><dd>Accept the value directly in the validation function. </dd></dl>
 
 </div>
 </div>
@@ -451,6 +451,7 @@ template&lt;typename ValueType &gt; </div>
 </div><div class="memdoc">
 
 <p>Return the current process id. </p>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000030">Deprecated</a></b></dt><dd>Use <code><a class="el" href="structflecsi_1_1runtime.html#ad2ac5459d279091d4924fca5b7b3dd72" title="Return the rank of this process.">runtime::process</a></code>. </dd></dl>
 
 </div>
 </div>
@@ -470,6 +471,7 @@ template&lt;typename ValueType &gt; </div>
 </div><div class="memdoc">
 
 <p>Return the number of processes. </p>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000031">Deprecated</a></b></dt><dd>Use <code><a class="el" href="structflecsi_1_1runtime.html#a953330354e9ef80d1d618e6ca2bca431" title="Return the number of processes.">runtime::processes</a></code>. </dd></dl>
 
 </div>
 </div>
@@ -489,7 +491,7 @@ template&lt;typename ValueType &gt; </div>
 </div><div class="memdoc">
 
 <p>Return the number of threads per process. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000017">Deprecated</a></b></dt><dd>This information is unreliable and not useful for scheduling. </dd></dl>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000032">Deprecated</a></b></dt><dd>This information is unreliable and not useful for scheduling. </dd></dl>
 
 </div>
 </div>
@@ -509,7 +511,8 @@ template&lt;typename ValueType &gt; </div>
 </div><div class="memdoc">
 
 <p>Return the number of execution instances with which the runtime was invoked. </p>
-<p>In this context a <em>thread</em> is defined as an instance of execution, and does not imply any other properties. This interface can be used to determine the full subscription of the execution instances of the running process that invoked the FleCSI runtime. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000018">Deprecated</a></b></dt><dd>This information is unreliable and not useful for scheduling. </dd></dl>
+<p>In this context a <em>thread</em> is defined as an instance of execution, and does not imply any other properties. This interface can be used to determine the full subscription of the execution instances of the running process that invoked the FleCSI runtime.</p>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000033">Deprecated</a></b></dt><dd>This information is unreliable and not useful for scheduling. </dd></dl>
 
 </div>
 </div>
@@ -529,7 +532,8 @@ template&lt;typename ValueType &gt; </div>
 </div><div class="memdoc">
 
 <p>Return the color of the current execution instance. </p>
-<p>This function is only valid if invoked from within a non MPI task. For MPI task, use <code><a class="el" href="#ga61ba6a8929e7e4d441487240ea166057" title="Return the current process id.">process</a></code>, which in that case equals to the color used from any topology. </p>
+<p>This function is only valid if invoked from within a non MPI task. For MPI task, use <code><a class="el" href="#ga61ba6a8929e7e4d441487240ea166057" title="Return the current process id.">process</a></code>, which in that case equals to the color used from any topology.</p>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000034">Deprecated</a></b></dt><dd>Use <code>space_base</code>. </dd></dl>
 
 </div>
 </div>
@@ -549,7 +553,8 @@ template&lt;typename ValueType &gt; </div>
 </div><div class="memdoc">
 
 <p>Return the number of colors of the current task invocation. </p>
-<p>This function is only valid if invoked from within a non MPI task. For MPI task, use <code><a class="el" href="#ga37ced112a4c46810db72eea960466b73" title="Return the number of processes.">processes</a></code> which in that case equals to the number of colors used from any topology. </p>
+<p>This function is only valid if invoked from within a non MPI task. For MPI task, use <code><a class="el" href="#ga37ced112a4c46810db72eea960466b73" title="Return the number of processes.">processes</a></code> which in that case equals to the number of colors used from any topology.</p>
+<p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000035">Deprecated</a></b></dt><dd>Use <code>space_base</code>. </dd></dl>
 
 </div>
 </div>
@@ -569,7 +574,8 @@ template&lt;typename ValueType &gt; </div>
 </div><div class="memdoc">
 
 <p>Return the mapping of shortened FleCSI task signatures to their full function signatures. </p>
-<p>Shortened names may be used by FleCSI to register tasks in some backends and provide more user-friendly names for debugging purposes. This map is empty if no such shortening took place. </p>
+<p>Shortened names may be used by FleCSI to register tasks in some backends and provide more user-friendly names for debugging purposes. This map is empty if no such shortening took place.</p>
+<p>Appears directly in <code>flecsi</code>. </p>
 
 </div>
 </div>

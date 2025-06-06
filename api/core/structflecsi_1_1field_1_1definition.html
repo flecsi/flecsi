@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -115,12 +115,18 @@ $(function(){initNavTree('structflecsi_1_1field_1_1definition.html',''); initRes
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:ad6c5e53e0fc5b733a798035e2ba3e894" id="r_ad6c5e53e0fc5b733a798035e2ba3e894"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structflecsi_1_1data_1_1multi__reference.html">data::multi_reference</a>&lt; T, L, Topo, Space &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad6c5e53e0fc5b733a798035e2ba3e894">operator()</a> (<a class="el" href="structflecsi_1_1data_1_1launch_1_1mapping.html">data::launch::mapping</a>&lt; Topo &gt; &amp;&amp;m) const</td></tr>
+<tr class="memdesc:ad6c5e53e0fc5b733a798035e2ba3e894"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.  <br /></td></tr>
+<tr class="separator:ad6c5e53e0fc5b733a798035e2ba3e894"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba7406971fe79e94bd24cb2bd8e26261" id="r_aba7406971fe79e94bd24cb2bd8e26261"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structflecsi_1_1data_1_1multi__reference.html">data::multi_reference</a>&lt; T, L, Topo, Space &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aba7406971fe79e94bd24cb2bd8e26261">operator()</a> (<a class="el" href="structflecsi_1_1data_1_1launch_1_1mapping.html">data::launch::mapping</a>&lt; Topo &gt; &amp;m) const</td></tr>
 <tr class="memdesc:aba7406971fe79e94bd24cb2bd8e26261"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a reference to a mapped field instance.  <br /></td></tr>
 <tr class="separator:aba7406971fe79e94bd24cb2bd8e26261"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91d7a8e7352165d51614a48f0ae2571c" id="r_a91d7a8e7352165d51614a48f0ae2571c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a91d7a8e7352165d51614a48f0ae2571c">operator()</a> (<a class="el" href="structflecsi_1_1data_1_1topology__slot.html">data::topology_slot</a>&lt; Topo &gt; &amp;t) const</td></tr>
 <tr class="memdesc:a91d7a8e7352165d51614a48f0ae2571c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a reference to a field instance.  <br /></td></tr>
 <tr class="separator:a91d7a8e7352165d51614a48f0ae2571c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9995fdd6b5e7703a7cd34239a90926bb" id="r_a9995fdd6b5e7703a7cd34239a90926bb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structflecsi_1_1data_1_1field__reference.html">Reference</a>&lt; Topo, Space &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9995fdd6b5e7703a7cd34239a90926bb">operator()</a> (typename Topo::topology &amp;t) const</td></tr>
+<tr class="memdesc:a9995fdd6b5e7703a7cd34239a90926bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a reference to a field instance.  <br /></td></tr>
+<tr class="separator:a9995fdd6b5e7703a7cd34239a90926bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;class T, <a class="el" href="group__data.html#ga43d9cf57236e19c5fc3bc74b429c835a">data::layout</a> L = data::dense&gt;<br />
@@ -130,14 +136,14 @@ struct flecsi::field&lt; T, L &gt;::definition&lt; Topo, Space &gt;</div><p>A fi
 <dl class="section warning"><dt>Warning</dt><dd>Field definitions are typically declared <code>const</code>. If placed in a header make sure to declare them as <code>inline const</code> to avoid breaking ODR.</dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">Topo</td><td>(specialized) topology type </td></tr>
+    <tr><td class="paramname">Topo</td><td>specialization </td></tr>
     <tr><td class="paramname">Space</td><td>index space </td></tr>
   </table>
   </dd>
 </dl>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a91d7a8e7352165d51614a48f0ae2571c" name="a91d7a8e7352165d51614a48f0ae2571c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a91d7a8e7352165d51614a48f0ae2571c">&#9670;&#160;</a></span>operator()() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a91d7a8e7352165d51614a48f0ae2571c">&#9670;&#160;</a></span>operator()() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -162,11 +168,41 @@ template&lt;class Topo , typename Topo::index_space Space = Topo::default_space(
   </table>
   </dd>
 </dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000004">Deprecated</a></b></dt><dd>Pass the instance directly (perhaps with <code>t.get()</code>). </dd></dl>
+
+</div>
+</div>
+<a id="a9995fdd6b5e7703a7cd34239a90926bb" name="a9995fdd6b5e7703a7cd34239a90926bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9995fdd6b5e7703a7cd34239a90926bb">&#9670;&#160;</a></span>operator()() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class T , <a class="el" href="group__data.html#ga43d9cf57236e19c5fc3bc74b429c835a">data::layout</a> L = data::dense&gt; </div>
+<div class="memtemplate">
+template&lt;class Topo , typename Topo::index_space Space = Topo::default_space()&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structflecsi_1_1data_1_1field__reference.html">Reference</a>&lt; Topo, Space &gt; operator() </td>
+          <td>(</td>
+          <td class="paramtype">typename Topo::topology &amp;</td>          <td class="paramname"><span class="paramname"><em>t</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Return a reference to a field instance. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">t</td><td>topology instance </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
 <a id="aba7406971fe79e94bd24cb2bd8e26261" name="aba7406971fe79e94bd24cb2bd8e26261"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aba7406971fe79e94bd24cb2bd8e26261">&#9670;&#160;</a></span>operator()() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aba7406971fe79e94bd24cb2bd8e26261">&#9670;&#160;</a></span>operator()() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -185,6 +221,29 @@ template&lt;class Topo , typename Topo::index_space Space = Topo::default_space(
 </div><div class="memdoc">
 
 <p>Return a reference to a mapped field instance. </p>
+
+</div>
+</div>
+<a id="ad6c5e53e0fc5b733a798035e2ba3e894" name="ad6c5e53e0fc5b733a798035e2ba3e894"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad6c5e53e0fc5b733a798035e2ba3e894">&#9670;&#160;</a></span>operator()() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class T , <a class="el" href="group__data.html#ga43d9cf57236e19c5fc3bc74b429c835a">data::layout</a> L = data::dense&gt; </div>
+<div class="memtemplate">
+template&lt;class Topo , typename Topo::index_space Space = Topo::default_space()&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structflecsi_1_1data_1_1multi__reference.html">data::multi_reference</a>&lt; T, L, Topo, Space &gt; operator() </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structflecsi_1_1data_1_1launch_1_1mapping.html">data::launch::mapping</a>&lt; Topo &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>m</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </p>
 
 </div>
 </div>

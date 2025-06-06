@@ -6,5 +6,6 @@ var searchData=
   ['connectivities_3',['connectivities',['../structflecsi_1_1topo_1_1unstructured__specialization.html#a96245ea9c51a632fbf3166877251cb7b',1,'flecsi::topo::unstructured_specialization']]],
   ['control_5fpoint_4',['control_point',['../group__control.html#gaba956285b578c3aaae8ecdce24227856',1,'flecsi::run']]],
   ['control_5fpoints_5',['control_points',['../structflecsi_1_1run_1_1control__policy.html#ac4dcf7b5c382a89124e702d5ef7cfe7b',1,'flecsi::run::control_policy']]],
-  ['cycle_6',['cycle',['../structflecsi_1_1run_1_1control__base.html#a9b102a76468f6aadf593bae78aeb2ea5',1,'flecsi::run::control_base::cycle'],['../group__control.html#ga9b102a76468f6aadf593bae78aeb2ea5',1,'flecsi::run::cycle']]]
+  ['core_6',['core',['../group__topology.html#ga74dbd07ec4478bc703753e0aa1c92568',1,'flecsi::topo']]],
+  ['cycle_7',['cycle',['../structflecsi_1_1run_1_1control__base.html#a9b102a76468f6aadf593bae78aeb2ea5',1,'flecsi::run::control_base::cycle'],['../group__control.html#ga9b102a76468f6aadf593bae78aeb2ea5',1,'flecsi::run::cycle']]]
 ];

@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['testing_0',['Unit Testing',['../group__unit.html',1,'']]],
-  ['topologies_1',['Topologies',['../group__topology.html',1,'']]],
-  ['topology_20implementation_2',['Topology implementation',['../group__topology-data.html',1,'']]],
-  ['tree_3',['N-dimensional Tree',['../group__ntree.html',1,'']]]
+  ['ranges_0',['Ranges',['../group__ranges.html',1,'']]],
+  ['reduction_20operations_1',['Reduction Operations',['../group__fold.html',1,'']]],
+  ['runtime_2',['Runtime',['../group__hpx-runtime.html',1,'HPX Runtime'],['../group__legion-runtime.html',1,'Legion Runtime'],['../group__mpi-runtime.html',1,'MPI Runtime']]],
+  ['runtime_20model_3',['Runtime Model',['../group__runtime.html',1,'']]]
 ];

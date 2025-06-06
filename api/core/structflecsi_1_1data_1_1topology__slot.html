@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -115,40 +115,55 @@ $(function(){initNavTree('structflecsi_1_1data_1_1topology__slot.html',''); init
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:acd71bcf530336967c2da3c047cd4025d" id="r_acd71bcf530336967c2da3c047cd4025d"><td class="memTemplParams" colspan="2">template&lt;typename... AA&gt; </td></tr>
-<tr class="memitem:acd71bcf530336967c2da3c047cd4025d"><td class="memTemplItemLeft" align="right" valign="top">core &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#acd71bcf530336967c2da3c047cd4025d">allocate</a> (coloring const &amp;coloring_reference, AA &amp;&amp;... aa)</td></tr>
-<tr class="memdesc:acd71bcf530336967c2da3c047cd4025d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create the topology.  <br /></td></tr>
-<tr class="separator:acd71bcf530336967c2da3c047cd4025d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae92278bc8d9234906b2a6056243a6fb0" id="r_ae92278bc8d9234906b2a6056243a6fb0"><td class="memTemplParams" colspan="2">template&lt;typename... AA&gt; </td></tr>
+<tr class="memitem:ae92278bc8d9234906b2a6056243a6fb0"><td class="memTemplItemLeft" align="right" valign="top">topology &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ae92278bc8d9234906b2a6056243a6fb0">allocate</a> (const coloring &amp;c, AA &amp;&amp;... aa)</td></tr>
+<tr class="separator:ae92278bc8d9234906b2a6056243a6fb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a882e8ba4b0ba3f1c967dfb38ab2cd742" id="r_a882e8ba4b0ba3f1c967dfb38ab2cd742"><td class="memTemplParams" colspan="2">template&lt;typename... AA&gt; </td></tr>
+<tr class="memitem:a882e8ba4b0ba3f1c967dfb38ab2cd742"><td class="memTemplItemLeft" align="right" valign="top">topology &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a882e8ba4b0ba3f1c967dfb38ab2cd742">allocate</a> (<a class="el" href="structflecsi_1_1scheduler.html">scheduler</a> &amp;s, const coloring &amp;c, AA &amp;&amp;... aa)</td></tr>
+<tr class="memdesc:a882e8ba4b0ba3f1c967dfb38ab2cd742"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create the topology.  <br /></td></tr>
+<tr class="separator:a882e8ba4b0ba3f1c967dfb38ab2cd742"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27c97040e58856c6f97f83aa06537a66" id="r_a27c97040e58856c6f97f83aa06537a66"><td class="memItemLeft" align="right" valign="top">Color&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a27c97040e58856c6f97f83aa06537a66">colors</a> () const</td></tr>
 <tr class="memdesc:a27c97040e58856c6f97f83aa06537a66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of colors for the topology, which must exist.  <br /></td></tr>
 <tr class="separator:a27c97040e58856c6f97f83aa06537a66"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d68be4fd20ffdd7f7a9b51579eacc2f" id="r_a2d68be4fd20ffdd7f7a9b51579eacc2f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2d68be4fd20ffdd7f7a9b51579eacc2f">deallocate</a> ()</td></tr>
 <tr class="memdesc:a2d68be4fd20ffdd7f7a9b51579eacc2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroy the topology.  <br /></td></tr>
 <tr class="separator:a2d68be4fd20ffdd7f7a9b51579eacc2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af866f83c94d53c5c6736c98b1f9dba8b" id="r_af866f83c94d53c5c6736c98b1f9dba8b"><td class="memItemLeft" align="right" valign="top">topology &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af866f83c94d53c5c6736c98b1f9dba8b">get</a> ()</td></tr>
+<tr class="memdesc:af866f83c94d53c5c6736c98b1f9dba8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the topology instance, which must exist.  <br /></td></tr>
+<tr class="separator:af866f83c94d53c5c6736c98b1f9dba8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6253b8ca318d37d78bac78ea6c93f1ef" id="r_a6253b8ca318d37d78bac78ea6c93f1ef"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6253b8ca318d37d78bac78ea6c93f1ef">is_allocated</a> () const</td></tr>
 <tr class="memdesc:a6253b8ca318d37d78bac78ea6c93f1ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return whether or not this slot is allocated.  <br /></td></tr>
 <tr class="separator:a6253b8ca318d37d78bac78ea6c93f1ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4dec327a6eaf7f57bbe1dda2373b06c" id="r_af4dec327a6eaf7f57bbe1dda2373b06c"><td class="memItemLeft" align="right" valign="top">topology *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af4dec327a6eaf7f57bbe1dda2373b06c">operator-&gt;</a> ()</td></tr>
+<tr class="memdesc:af4dec327a6eaf7f57bbe1dda2373b06c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Access a member of the topology instance, which must exist.  <br /></td></tr>
+<tr class="separator:af4dec327a6eaf7f57bbe1dda2373b06c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;class Topo&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename Topo&gt;<br />
 struct flecsi::data::topology_slot&lt; Topo &gt;</div><p>A movable slot that holds a topology, constructed upon request. </p>
 <p>Declare a task parameter as a <code><a class="el" href="structflecsi_1_1data_1_1topology__accessor.html" title="Topology accessor type.">topology_accessor</a></code> to use the topology. </p><dl class="section note"><dt>Note</dt><dd>A <code>specialization</code> provides aliases for both these types. </dd></dl>
-<dl class="section warning"><dt>Warning</dt><dd>No topologies may exist outside the top-level action. If a <code><a class="el" href="structflecsi_1_1data_1_1topology__slot.html" title="A movable slot that holds a topology, constructed upon request.">topology_slot</a></code> outlives that function, use <code><a class="el" href="#a2d68be4fd20ffdd7f7a9b51579eacc2f" title="Destroy the topology.">deallocate</a></code> before it returns. </dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>If a <code><a class="el" href="structflecsi_1_1data_1_1topology__slot.html" title="A movable slot that holds a topology, constructed upon request.">topology_slot</a></code> outlives <code>start</code> or <code>control</code>, use <code><a class="el" href="#a2d68be4fd20ffdd7f7a9b51579eacc2f" title="Destroy the topology.">deallocate</a></code> before it returns. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000008">Deprecated</a></b></dt><dd>Use <code>Topo::topology</code> or <code>Topo::ptr</code>. </dd></dl>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="acd71bcf530336967c2da3c047cd4025d" name="acd71bcf530336967c2da3c047cd4025d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd71bcf530336967c2da3c047cd4025d">&#9670;&#160;</a></span>allocate()</h2>
+<a id="a882e8ba4b0ba3f1c967dfb38ab2cd742" name="a882e8ba4b0ba3f1c967dfb38ab2cd742"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a882e8ba4b0ba3f1c967dfb38ab2cd742">&#9670;&#160;</a></span>allocate() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class Topo &gt; </div>
+template&lt;typename Topo &gt; </div>
 <div class="memtemplate">
 template&lt;typename... AA&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">core &amp; allocate </td>
+          <td class="memname">topology &amp; allocate </td>
           <td>(</td>
-          <td class="paramtype">coloring const &amp;</td>          <td class="paramname"><span class="paramname"><em>coloring_reference</em></span>, </td>
+          <td class="paramtype"><a class="el" href="structflecsi_1_1scheduler.html">scheduler</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>s</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const coloring &amp;</td>          <td class="paramname"><span class="paramname"><em>c</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -161,11 +176,37 @@ template&lt;typename... AA&gt; </div>
 <p>Create the topology. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">coloring_reference</td><td>coloring (perhaps from an <a class="el" href="structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html"><code>mpi_coloring</code></a>) </td></tr>
+    <tr><td class="paramname">c</td><td>coloring </td></tr>
     <tr><td class="paramname">aa</td><td>further specialization-specific parameters </td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="ae92278bc8d9234906b2a6056243a6fb0" name="ae92278bc8d9234906b2a6056243a6fb0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae92278bc8d9234906b2a6056243a6fb0">&#9670;&#160;</a></span>allocate() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Topo &gt; </div>
+<div class="memtemplate">
+template&lt;typename... AA&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">topology &amp; allocate </td>
+          <td>(</td>
+          <td class="paramtype">const coloring &amp;</td>          <td class="paramname"><span class="paramname"><em>c</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">AA &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>aa</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000009">Deprecated</a></b></dt><dd>Pass a <code>scheduler</code>. </dd></dl>
 
 </div>
 </div>
@@ -175,7 +216,7 @@ template&lt;typename... AA&gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class Topo &gt; </div>
+template&lt;typename Topo &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">void deallocate </td>
@@ -196,7 +237,7 @@ template&lt;class Topo &gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class Topo &gt; </div>
+template&lt;typename Topo &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">bool is_allocated </td>
@@ -211,13 +252,55 @@ template&lt;class Topo &gt; </div>
 
 </div>
 </div>
+<a id="af866f83c94d53c5c6736c98b1f9dba8b" name="af866f83c94d53c5c6736c98b1f9dba8b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af866f83c94d53c5c6736c98b1f9dba8b">&#9670;&#160;</a></span>get()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Topo &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">topology &amp; get </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the topology instance, which must exist. </p>
+
+</div>
+</div>
+<a id="af4dec327a6eaf7f57bbe1dda2373b06c" name="af4dec327a6eaf7f57bbe1dda2373b06c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af4dec327a6eaf7f57bbe1dda2373b06c">&#9670;&#160;</a></span>operator-&gt;()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Topo &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">topology * operator-&gt; </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Access a member of the topology instance, which must exist. </p>
+
+</div>
+</div>
 <a id="a27c97040e58856c6f97f83aa06537a66" name="a27c97040e58856c6f97f83aa06537a66"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a27c97040e58856c6f97f83aa06537a66">&#9670;&#160;</a></span>colors()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class Topo &gt; </div>
+template&lt;typename Topo &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">Color colors </td>

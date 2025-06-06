@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -106,6 +106,7 @@ $(function(){initNavTree('group__topology.html',''); initResizable(true); });
   <div class="summary">
 <a href="#groups">Topics</a> &#124;
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">Topologies</div></div>
@@ -117,6 +118,9 @@ $(function(){initNavTree('group__topology.html',''); initResizable(true); });
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="groups" name="groups"></a>
 Topics</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__user.html">Simple data</a></td></tr>
+<tr class="memdesc:group__user"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple parallel data access. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__spec.html">Predefined specializations</a></td></tr>
 <tr class="memdesc:group__spec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specializations for topologies so simple that no others are needed. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -144,14 +148,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1borrow__base.html">borrow_base</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specialization-independent definitions.  <a href="structflecsi_1_1topo_1_1borrow__base.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1borrow__category.html">borrow_category&lt; P &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A selection from an underlying topology.  <a href="structflecsi_1_1topo_1_1borrow__category.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1borrow__extra.html">borrow_extra&lt; T &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Topology-specific extension to support multi-color topology accessors.  <a href="structflecsi_1_1topo_1_1borrow__extra.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1core.html">core&lt; P &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An example core topology that is not really implemented.  <a href="structflecsi_1_1topo_1_1core.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1core__base.html">core_base</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An example topology base that is not really implemented.  <a href="structflecsi_1_1topo_1_1core__base.html#details">More...</a><br /></td></tr>
@@ -171,12 +169,25 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1specialization__base.html">specialization_base</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Utilities and defaults for specializations.  <a href="structflecsi_1_1topo_1_1specialization__base.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1user.html">user&lt; P &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The User topology is a bare-bones topology supporting a single index space.  <a href="structflecsi_1_1topo_1_1user.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1topology_3_01P_00_01borrow__base_01_4.html">topology&lt; P, borrow_base &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A selection from an underlying topology.  <a href="structflecsi_1_1topo_1_1topology_3_01P_00_01borrow__base_01_4.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1topology_3_01P_00_01core__base_01_4.html">topology&lt; P, core_base &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An example core topology that is not really implemented.  <a href="structflecsi_1_1topo_1_1topology_3_01P_00_01core__base_01_4.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1topology_3_01P_00_01user__base_01_4.html">topology&lt; P, user_base &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The User topology is a bare-bones topology supporting a single index space whose size can vary by color.  <a href="structflecsi_1_1topo_1_1topology_3_01P_00_01user__base_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1topo_1_1with__size.html">with_size</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size information for a partition.  <a href="structflecsi_1_1topo_1_1with__size.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ga74dbd07ec4478bc703753e0aa1c92568" id="r_ga74dbd07ec4478bc703753e0aa1c92568"><td class="memTemplParams" colspan="2">template&lt;class P &gt; </td></tr>
+<tr class="memitem:ga74dbd07ec4478bc703753e0aa1c92568"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ga74dbd07ec4478bc703753e0aa1c92568">core</a></td></tr>
+<tr class="memdesc:ga74dbd07ec4478bc703753e0aa1c92568"><td class="mdescLeft">&#160;</td><td class="mdescRight">Each category must provide an alias template for <code>specialization</code>.  <br /></td></tr>
+<tr class="separator:ga74dbd07ec4478bc703753e0aa1c92568"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -194,12 +205,31 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Generic topology categories and tools for specializing them. </p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;flecsi/topology.hh&quot;</span></div>
+<p>Contents are in <code>flecsi::topo</code> unless otherwise specified. </p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;flecsi/topology.hh&quot;</span></div>
 </div><!-- fragment --><p>This header provides the features in the following additional <b>deprecated</b> header:</p><ul>
 <li><a class="el" href="group__narray.html">flecsi/topo/narray/interface.hh</a></li>
 </ul>
 <dl class="section note"><dt>Note</dt><dd>In a <code>toc</code> task, certain metadata provided by topology accessors is <em>host-accessible</em>, which means that if the topology accessor is read-only it can be accessed within or outside of a kernel in the task. (The metadata might be used with another accessor that is not read-only.)</dd></dl>
 <dl class="section warning"><dt>Warning</dt><dd>The material in this section and its subsections other than <a class="el" href="group__spec.html">Predefined specializations</a> is of interest only to developers of topology specializations. Application developers should consult the documentation for the specializations they are using, which may refer back to this document (occasionally even to small, specific parts of this section). </dd></dl>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a id="ga74dbd07ec4478bc703753e0aa1c92568" name="ga74dbd07ec4478bc703753e0aa1c92568"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga74dbd07ec4478bc703753e0aa1c92568">&#9670;&#160;</a></span>core</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class P &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#ga74dbd07ec4478bc703753e0aa1c92568">core</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Each category must provide an alias template for <code>specialization</code>. </p>
+
+</div>
+</div>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
 <a id="ga79b99ac85778b417db5d53fc1220fb88" name="ga79b99ac85778b417db5d53fc1220fb88"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga79b99ac85778b417db5d53fc1220fb88">&#9670;&#160;</a></span>single_space</h2>

@@ -34,7 +34,18 @@ var group__utils =
       [ "operator[]", "classflecsi_1_1util_1_1dimensioned__array.html#a7dd9a4085b5fc2818647382be9ea8fbf", null ],
       [ "operator[]", "classflecsi_1_1util_1_1dimensioned__array.html#a3945dff2bcd5f6a8b36215acf49f9e4c", null ],
       [ "operator=", "classflecsi_1_1util_1_1dimensioned__array.html#a9861baf12fe61938059a9f2f011c1351", null ],
-      [ "operator/", "classflecsi_1_1util_1_1dimensioned__array.html#aa259b3674ba8f608a46133a19e971600", null ]
+      [ "operator/", "classflecsi_1_1util_1_1dimensioned__array.html#aa259b3674ba8f608a46133a19e971600", null ],
+      [ "operator+=", "classflecsi_1_1util_1_1dimensioned__array.html#a873650436fa2b7a49504230860b15474", null ],
+      [ "operator+=", "classflecsi_1_1util_1_1dimensioned__array.html#ae4e7f49664345a5fc2aab20960375673", null ],
+      [ "operator-=", "classflecsi_1_1util_1_1dimensioned__array.html#a6f722d3a4662aca45875522b65902032", null ],
+      [ "operator-=", "classflecsi_1_1util_1_1dimensioned__array.html#ae82845e292738096cbd0634b6bc38738", null ],
+      [ "operator*=", "classflecsi_1_1util_1_1dimensioned__array.html#a63801cbb7a1791cc478339f3f7cf8bcb", null ],
+      [ "operator*=", "classflecsi_1_1util_1_1dimensioned__array.html#a55889d87fd9ff4cf82702160e600667e", null ],
+      [ "operator/=", "classflecsi_1_1util_1_1dimensioned__array.html#a984f9d4079bccfbccac480c6755d4ded", null ],
+      [ "operator/=", "classflecsi_1_1util_1_1dimensioned__array.html#ae63efe8e0dede041ed4a1f221482779e", null ],
+      [ "operator+", "classflecsi_1_1util_1_1dimensioned__array.html#a83b0a989d5408b53b44a66c723c67741", null ],
+      [ "operator-", "classflecsi_1_1util_1_1dimensioned__array.html#ad31623982ffa086af59566b9c7208cf3", null ],
+      [ "operator<<", "classflecsi_1_1util_1_1dimensioned__array.html#ac7878ee4092ec9f8006c686ced4426d6", null ]
     ] ],
     [ "equal_map", "structflecsi_1_1util_1_1equal__map.html", [
       [ "equal_map", "structflecsi_1_1util_1_1equal__map.html#add8bcd0817886efd73c9bba9ba9daf5a", null ]
@@ -49,14 +60,13 @@ var group__utils =
       [ "operator()", "structflecsi_1_1util_1_1map__base.html#abcd0d9ce27afabf03e16e5ca2f6f5faf", null ],
       [ "bin", "structflecsi_1_1util_1_1map__base.html#a0d139d2799041ec4bbb64fa9dbc3764d", null ]
     ] ],
-    [ "move_optional< T >", "structflecsi_1_1util_1_1move__optional.html", null ],
     [ "offsets", "structflecsi_1_1util_1_1offsets.html", [
       [ "offsets", "structflecsi_1_1util_1_1offsets.html#a7e8a760141ec667bc700fc383f4d33d5", null ],
       [ "offsets", "structflecsi_1_1util_1_1offsets.html#a15be5031183a4cd579f159d9d0a6d071", null ],
       [ "offsets", "structflecsi_1_1util_1_1offsets.html#a74638244961ad502bbd42a0a4a69ba3b", null ]
     ] ],
     [ "sort< FieldRef >", "structflecsi_1_1util_1_1sort.html", [
-      [ "sort", "structflecsi_1_1util_1_1sort.html#ae5015b106a0504cbf5c10e80143b843d", null ],
+      [ "sort", "structflecsi_1_1util_1_1sort.html#a7bb4bbc3a53d3ea79fb1fcfc1f5fbd8b", null ],
       [ "operator()", "structflecsi_1_1util_1_1sort.html#a5ccbdeb5350ba8528eab7e4cc49fc68b", null ]
     ] ],
     [ "Symbol< S >", "structflecsi_1_1util_1_1Symbol.html", null ],
@@ -77,9 +87,6 @@ var group__utils =
     [ "type", "group__utils.html#gafd7075477aed7a29852ef299b5b5231a", null ],
     [ "type", "group__utils.html#ga3edd83421e592b32d56e73675843f09b", null ],
     [ "symbol", "group__utils.html#ga9edd03a1f1bb741f349a7ae7c77615d2", null ],
-    [ "operator+", "group__utils.html#ga83b0a989d5408b53b44a66c723c67741", null ],
-    [ "operator-", "group__utils.html#gad31623982ffa086af59566b9c7208cf3", null ],
-    [ "operator<<", "group__utils.html#gac7878ee4092ec9f8006c686ced4426d6", null ],
     [ "reorder", "group__utils.html#gacc2dbba6504f66bd8814581374a95e02", null ],
     [ "reorder_destructive", "group__utils.html#ga99224fc017b020065039157f96a74faa", null ],
     [ "intersects", "group__utils.html#gaa4ad82ea19e88b79aaa9b3475aa726f4", null ],

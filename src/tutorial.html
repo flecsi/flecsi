@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial &mdash; FleCSI 2.3.2 documentation</title>
+  <title>Tutorial &mdash; FleCSI 2.4.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.2
+                Version: 2.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -59,10 +59,8 @@
 <li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html">Runtime Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/control.html">Control Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/execution.html">Execution Model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tutorial/execution.html#tasks">Tasks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/data.html">Data Model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tutorial/parallel.html">Distributed and shared memory parallelism</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tutorial/parallel.html#shared-memory">Shared memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/parallel.html">Shared-memory parallelism</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/ntree.html">N-Tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/flaxpy.html">DAXPY</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/poisson.html">Poisson</a></li>
@@ -175,7 +173,6 @@ more advanced FleCSI concepts.</p>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/control.html">Control Model</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="tutorial/control.html#control-flow-graphs-directed-acyclic-graphs">Control-Flow Graphs &amp; Directed Acyclic Graphs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial/control.html#flecsibility">FleCSIbility</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial/control.html#examples">Examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial/control.html#example-1-simple">Example 1: Simple</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/control.html#defining-control-points">Defining Control Points</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/control.html#using-the-control-interface">Using the Control Interface</a></li>
@@ -186,8 +183,7 @@ more advanced FleCSI concepts.</p>
 <li class="toctree-l2"><a class="reference internal" href="tutorial/control.html#example-4-control-state">Example 4: Control State</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/execution.html">Execution Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/execution.html#tasks">Tasks</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/execution.html">Execution Model</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="tutorial/execution.html#example-1-single-tasks">Example 1: Single Tasks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial/execution.html#example-2-index-tasks">Example 2: Index Tasks</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/execution.html#launch-domains">Launch Domains</a></li>
@@ -203,10 +199,9 @@ more advanced FleCSI concepts.</p>
 <li class="toctree-l2"><a class="reference internal" href="tutorial/data.html#example-4-ragged-data">Example 4: Ragged data</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/parallel.html">Distributed and shared memory parallelism</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/parallel.html#shared-memory">Shared memory</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorial/parallel.html#example-1-forall-macro-parallel-for-interface">Example 1: forall macro / parallel_for interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial/parallel.html#example-2-reduceall-macro-parallel-reduce-interface">Example 2: reduceall macro / parallel_reduce interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/parallel.html">Shared-memory parallelism</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/parallel.html#example-1-forall">Example 1: forall</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/parallel.html#example-2-reduceall">Example 2: reduceall</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/ntree.html">N-Tree</a><ul>
@@ -222,6 +217,7 @@ more advanced FleCSI concepts.</p>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/ntree.html#tree-generation-and-reset">Tree generation and reset</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/ntree.html#solver">Solver</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/flaxpy.html">DAXPY</a><ul>

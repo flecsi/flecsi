@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -134,12 +134,16 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memdesc:a53025e44f6a3f4a489778a172625163f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process control model command-line options.  <br /></td></tr>
 <tr class="separator:a53025e44f6a3f4a489778a172625163f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a195c0c193a64b9e5f7737d1059f6d0fb" id="r_a195c0c193a64b9e5f7737d1059f6d0fb"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a195c0c193a64b9e5f7737d1059f6d0fb">execute</a> ()</td></tr>
-<tr class="memdesc:a195c0c193a64b9e5f7737d1059f6d0fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform the same operation as <code><a class="el" href="#a176b8b6313cb7060b6ecea7e690a2b45" title="Execute the control model.">invoke</a></code> with no arguments.  <br /></td></tr>
+<tr class="memdesc:a195c0c193a64b9e5f7737d1059f6d0fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform the same operation as <code><a class="el" href="#a6d27a505d4a6aa1ac19551eb0317903c" title="Execute the control model.">invoke</a></code> with no arguments.  <br /></td></tr>
 <tr class="separator:a195c0c193a64b9e5f7737d1059f6d0fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a176b8b6313cb7060b6ecea7e690a2b45" id="r_a176b8b6313cb7060b6ecea7e690a2b45"><td class="memTemplParams" colspan="2">template&lt;class... AA&gt; </td></tr>
 <tr class="memitem:a176b8b6313cb7060b6ecea7e690a2b45"><td class="memTemplItemLeft" align="right" valign="top">static int&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a176b8b6313cb7060b6ecea7e690a2b45">invoke</a> (AA &amp;&amp;... aa)</td></tr>
-<tr class="memdesc:a176b8b6313cb7060b6ecea7e690a2b45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute the control model.  <br /></td></tr>
+<tr class="memdesc:a176b8b6313cb7060b6ecea7e690a2b45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute without a scheduler.  <br /></td></tr>
 <tr class="separator:a176b8b6313cb7060b6ecea7e690a2b45"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d27a505d4a6aa1ac19551eb0317903c" id="r_a6d27a505d4a6aa1ac19551eb0317903c"><td class="memTemplParams" colspan="2">template&lt;class... AA&gt; </td></tr>
+<tr class="memitem:a6d27a505d4a6aa1ac19551eb0317903c"><td class="memTemplItemLeft" align="right" valign="top">static int&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a6d27a505d4a6aa1ac19551eb0317903c">invoke</a> (<a class="el" href="structflecsi_1_1scheduler.html">scheduler</a> &amp;s, AA &amp;&amp;... aa)</td></tr>
+<tr class="memdesc:a6d27a505d4a6aa1ac19551eb0317903c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute the control model.  <br /></td></tr>
+<tr class="separator:a6d27a505d4a6aa1ac19551eb0317903c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a420051539bc6f54b809f9cfa54f778d5" id="r_a420051539bc6f54b809f9cfa54f778d5"><td class="memItemLeft" align="right" valign="top">static P &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a420051539bc6f54b809f9cfa54f778d5">state</a> ()</td></tr>
 <tr class="memdesc:a420051539bc6f54b809f9cfa54f778d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the control policy object.  <br /></td></tr>
 <tr class="separator:a420051539bc6f54b809f9cfa54f778d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -216,12 +220,54 @@ template&lt;typename P &gt; </div>
 </div><div class="memdoc">
 
 <p>Return the control policy object. </p>
-<p>It is default-initialized when the control model is first used (typically to register an action) and destroyed at the end of the program. This function cannot be used if <code>P</code> inherits from <code><a class="el" href="structflecsi_1_1run_1_1control__base.html" title="Base class for providing default implementations for optional interfaces.">control_base</a></code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000008">Deprecated</a></b></dt><dd>derive <code>P</code> from <code><a class="el" href="structflecsi_1_1run_1_1control__base.html" title="Base class for providing default implementations for optional interfaces.">control_base</a></code> and use the parameter passed to each action </dd></dl>
+<p>It is default-initialized when the control model is first used (typically to register an action) and destroyed at the end of the program. This function cannot be used if <code>P</code> inherits from <code><a class="el" href="structflecsi_1_1run_1_1control__base.html" title="Base class for providing default implementations for optional interfaces.">control_base</a></code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000020">Deprecated</a></b></dt><dd>derive <code>P</code> from <code><a class="el" href="structflecsi_1_1run_1_1control__base.html" title="Base class for providing default implementations for optional interfaces.">control_base</a></code> and use the parameter passed to each action </dd></dl>
+
+</div>
+</div>
+<a id="a6d27a505d4a6aa1ac19551eb0317903c" name="a6d27a505d4a6aa1ac19551eb0317903c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d27a505d4a6aa1ac19551eb0317903c">&#9670;&#160;</a></span>invoke() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename P &gt; </div>
+<div class="memtemplate">
+template&lt;class... AA&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int invoke </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structflecsi_1_1scheduler.html">scheduler</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>s</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">AA &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>aa</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">nodiscard</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Execute the control model. </p>
+<p>This method does a topological sort of the actions under each of the control points to determine a non-unique, but valid ordering, and executes the actions. An object of type <code>P</code> is initialized from <em>aa</em> and passed to each action; it is destroyed before this function returns. <code><a class="el" href="structflecsi_1_1run_1_1control__base_1_1exception.html" title="Exception class for control points.">control_base::exception</a></code> can be thrown for early termination. The control policy must inherit from <code><a class="el" href="structflecsi_1_1run_1_1control__base.html" title="Base class for providing default implementations for optional interfaces.">control_base</a></code> and must not define a <code>node_policy</code>, or the code will fail to compile. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>ultimately provided by <code><a class="el" href="structflecsi_1_1runtime.html#a02e2d8e867611f7774db12ba2074acc3" title="Execute a control model.">runtime::control</a></code> </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>code from a thrown <code><a class="el" href="structflecsi_1_1run_1_1control__base_1_1exception.html" title="Exception class for control points.">control_base::exception</a></code> or 0 </dd></dl>
 
 </div>
 </div>
 <a id="a176b8b6313cb7060b6ecea7e690a2b45" name="a176b8b6313cb7060b6ecea7e690a2b45"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a176b8b6313cb7060b6ecea7e690a2b45">&#9670;&#160;</a></span>invoke()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a176b8b6313cb7060b6ecea7e690a2b45">&#9670;&#160;</a></span>invoke() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -247,8 +293,8 @@ template&lt;class... AA&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Execute the control model. </p>
-<p>This method does a topological sort of the actions under each of the control points to determine a non-unique, but valid ordering, and executes the actions. An object of type <code>P</code> is initialized from <em>aa</em> and passed to each action; it is destroyed before this function returns. <code><a class="el" href="structflecsi_1_1run_1_1control__base_1_1exception.html" title="Exception class for control points.">control_base::exception</a></code> can be thrown for early termination. The control policy must inherit from <code><a class="el" href="structflecsi_1_1run_1_1control__base.html" title="Base class for providing default implementations for optional interfaces.">control_base</a></code> and must not define a <code>node_policy</code>, or the code will fail to compile. </p><dl class="section return"><dt>Returns</dt><dd>code from a thrown <code><a class="el" href="structflecsi_1_1run_1_1control__base_1_1exception.html" title="Exception class for control points.">control_base::exception</a></code> or 0 </dd></dl>
+<p>Execute without a scheduler. </p>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000021">Deprecated</a></b></dt><dd>Use the overload that accepts a <code>scheduler</code> or use <code><a class="el" href="structflecsi_1_1runtime.html#a02e2d8e867611f7774db12ba2074acc3" title="Execute a control model.">runtime::control</a></code>. </dd></dl>
 
 </div>
 </div>
@@ -277,9 +323,9 @@ template&lt;typename P &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Perform the same operation as <code><a class="el" href="#a176b8b6313cb7060b6ecea7e690a2b45" title="Execute the control model.">invoke</a></code> with no arguments. </p>
-<p><code>P</code> need not inherit from <code><a class="el" href="structflecsi_1_1run_1_1control__base.html" title="Base class for providing default implementations for optional interfaces.">control_base</a></code>, if it does not, no object of it is created and actions are called with no arguments. <code>P</code> may define <code>node_policy</code>. </p><dl class="section return"><dt>Returns</dt><dd><code><a class="el" href="#a176b8b6313cb7060b6ecea7e690a2b45" title="Execute the control model.">invoke()</a></code> if <code>P</code> inherits from <code><a class="el" href="structflecsi_1_1run_1_1control__base.html" title="Base class for providing default implementations for optional interfaces.">control_base</a></code>, otherwise the bitwise or of return values of executed actions </dd></dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000009">Deprecated</a></b></dt><dd>Call <code><a class="el" href="#a176b8b6313cb7060b6ecea7e690a2b45" title="Execute the control model.">invoke</a></code> directly or use <code><a class="el" href="structflecsi_1_1runtime.html#af88a88cc452c79eac72758160935c192" title="Execute a control model.">runtime::control</a></code>. </dd></dl>
+<p>Perform the same operation as <code><a class="el" href="#a6d27a505d4a6aa1ac19551eb0317903c" title="Execute the control model.">invoke</a></code> with no arguments. </p>
+<p><code>P</code> need not inherit from <code><a class="el" href="structflecsi_1_1run_1_1control__base.html" title="Base class for providing default implementations for optional interfaces.">control_base</a></code>, if it does not, no object of it is created and actions are called with no arguments. <code>P</code> may define <code>node_policy</code>. </p><dl class="section return"><dt>Returns</dt><dd><code><a class="el" href="#a6d27a505d4a6aa1ac19551eb0317903c" title="Execute the control model.">invoke()</a></code> if <code>P</code> inherits from <code><a class="el" href="structflecsi_1_1run_1_1control__base.html" title="Base class for providing default implementations for optional interfaces.">control_base</a></code>, otherwise the bitwise or of return values of executed actions </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000022">Deprecated</a></b></dt><dd>Call <code><a class="el" href="#a6d27a505d4a6aa1ac19551eb0317903c" title="Execute the control model.">invoke</a></code> directly or use <code><a class="el" href="structflecsi_1_1runtime.html#a02e2d8e867611f7774db12ba2074acc3" title="Execute a control model.">runtime::control</a></code>. </dd></dl>
 
 </div>
 </div>
@@ -316,7 +362,7 @@ template&lt;typename P &gt; </div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>status of control model output if requested, else <em>s</em> </dd></dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000010">Deprecated</a></b></dt><dd>Call <code><a class="el" href="#a42fd2f11df048a6656ab48728b1ef703" title="Write a Dot graph of control points and actions.">write_graph</a></code> or <code><a class="el" href="#ad252dbdd935113c4a056c2977def4496" title="Write a Dot graph of the sorted sequence of actions.">write_actions</a></code> as needed. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000023">Deprecated</a></b></dt><dd>Call <code><a class="el" href="#a42fd2f11df048a6656ab48728b1ef703" title="Write a Dot graph of control points and actions.">write_graph</a></code> or <code><a class="el" href="#ad252dbdd935113c4a056c2977def4496" title="Write a Dot graph of the sorted sequence of actions.">write_actions</a></code> as needed. </dd></dl>
 <dl class="section see"><dt>See also</dt><dd><code><a class="el" href="group__runtime.html#ga8fdb6ba924648a7f04f8191b6f6a206b" title="Exit status returned by initialization code.">status</a></code> </dd></dl>
 
 </div>

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Runtime Model &mdash; FleCSI 2.3.2 documentation</title>
+  <title>Runtime Model &mdash; FleCSI 2.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.2
+                Version: 2.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -65,10 +65,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="control.html">Control Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="execution.html#tasks">Tasks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="data.html">Data Model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="parallel.html">Distributed and shared memory parallelism</a></li>
-<li class="toctree-l3"><a class="reference internal" href="parallel.html#shared-memory">Shared memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parallel.html">Shared-memory parallelism</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ntree.html">N-Tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
 <li class="toctree-l3"><a class="reference internal" href="poisson.html">Poisson</a></li>
@@ -118,7 +116,7 @@ options that are available.</p>
 <p>To use FleCSI, a <code class="docutils literal notranslate"><span class="pre">runtime</span></code> object must be configured and a <em>control policy</em> must be specified that describes the computation to be performed.
 In the simplest case, both parts can be accomplished in one line; later examples will illustrate more advanced options.</p>
 <p>FleCSI executes the control policy after setting up the task execution backend.
-A simple control policy is supplied that calls a single function (object) given to it with no arguments and uses its return value as an <code class="docutils literal notranslate"><span class="pre">int</span></code> exit status.</p>
+A simple control policy is supplied that calls a single function (object) given to it with a <em>scheduler</em> (used later for launching tasks) and uses its return value as an <code class="docutils literal notranslate"><span class="pre">int</span></code> exit status.</p>
 <p>This example demonstrates a minimal use of FleCSI that just executes an
 action to print out <em>Hello World</em>. Code for this example can be found in
 <em>tutorial/1-runtime/1-minimal.cc</em>.</p>
@@ -126,20 +124,19 @@ action to print out <em>Hello World</em>. Code for this example can be found in
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/runtime.hh&gt;</span>
 
 <span class="cm">/*</span>
-<span class="cm">  The top-level action can be any C/C++ function that takes no arguments and</span>
+<span class="cm">  The control function can be any C/C++ function that takes a scheduler and</span>
 <span class="cm">  returns an int.</span>
 
 <span class="cm">  In this simple example, we only print a message to indicate that the</span>
-<span class="cm">  top-level action was actually executed by FleCSI. However, in a real</span>
-<span class="cm">  application, the top-level action would execute FleCSI tasks and other</span>
-<span class="cm">  functions to implement the simulation.</span>
+<span class="cm">  function was actually executed by FleCSI.  In a real application, it would</span>
+<span class="cm">  execute FleCSI tasks to implement the simulation.</span>
 <span class="cm"> */</span>
 
 <span class="kt">int</span>
-<span class="nf">top_level_action</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">simulation</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">scheduler</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hello World&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span><span class="w"> </span><span class="c1">// top_level_action</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// simulation</span>
 
 <span class="cm">/*</span>
 <span class="cm">  The main function must create a FleCSI \c runtime object.  Otherwise, the</span>
@@ -150,12 +147,9 @@ action to print out <em>Hello World</em>. Code for this example can be found in
 <span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">dependencies_guard</span><span class="w"> </span><span class="n">dg</span><span class="p">;</span>
 <span class="w">  </span><span class="cm">/*</span>
-<span class="cm">    flecsi::run::call means to call the single function given as an argument to</span>
-<span class="cm">    run.main.  (Multiple functions will be covered in later examples.)</span>
-<span class="cm">    It will be skipped if, say, --help was passed as an argument; FleCSI&#39;s</span>
-<span class="cm">    command-line support is documented in the next example.</span>
+<span class="cm">    flecsi::run::call means to call the single function given as an argument.</span>
 <span class="cm">   */</span>
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">runtime</span><span class="p">().</span><span class="n">control</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">runtime</span><span class="p">().</span><span class="n">control</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">simulation</span><span class="p">);</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
 </div>
@@ -501,7 +495,7 @@ is required) and can be accessed using the <em>value()</em> method:</p>
 <span class="c1">// User-defined program options are available after getopt has been invoked.</span>
 
 <span class="kt">int</span>
-<span class="nf">top_level_action</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">simulation</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">scheduler</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">price</span><span class="p">{</span><span class="mf">0.0</span><span class="p">};</span>
 
 <span class="w">  </span><span class="c1">// Add cost for trim level. This option does not have to be checked with</span>
@@ -547,7 +541,7 @@ is required) and can be accessed using the <em>value()</em> method:</p>
 <span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Price: $&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">price</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span><span class="w"> </span><span class="c1">// top_level_action</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// simulation</span>
 
 <span class="kt">int</span>
 <span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -560,7 +554,7 @@ is required) and can be accessed using the <em>value()</em> method:</p>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">dependencies_guard</span><span class="w"> </span><span class="n">dg</span><span class="p">;</span>
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">runtime</span><span class="p">().</span><span class="n">control</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">runtime</span><span class="p">().</span><span class="n">control</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">simulation</span><span class="p">);</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
 </div>
@@ -605,7 +599,7 @@ Consider the main function for this example:</p>
 <span class="w">  </span><span class="c1">// when the runtime is created.</span>
 <span class="w">  </span><span class="n">run</span><span class="o">::</span><span class="n">config</span><span class="w"> </span><span class="n">cfg</span><span class="p">;</span>
 <span class="w">  </span><span class="n">cfg</span><span class="p">.</span><span class="n">flog</span><span class="p">.</span><span class="n">tags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">tag</span><span class="p">};</span>
-<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">runtime</span><span class="w"> </span><span class="n">run</span><span class="p">(</span><span class="n">cfg</span><span class="p">);</span>
+<span class="w">  </span><span class="n">runtime</span><span class="w"> </span><span class="n">run</span><span class="p">(</span><span class="n">cfg</span><span class="p">);</span>
 
 <span class="w">  </span><span class="c1">// In order to see or capture any output from FLOG, the user must add at least</span>
 <span class="w">  </span><span class="c1">// one output stream. The function flog::add_output_stream provides an</span>
@@ -621,7 +615,7 @@ Consider the main function for this example:</p>
 <span class="w">  </span><span class="n">log_file</span><span class="p">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;output.txt&quot;</span><span class="p">);</span>
 <span class="w">  </span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;log file&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">log_file</span><span class="p">);</span>
 
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">run</span><span class="p">.</span><span class="n">control</span><span class="o">&lt;</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">run</span><span class="p">.</span><span class="n">control</span><span class="o">&lt;</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">simulation</span><span class="p">);</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
 </div>
@@ -898,17 +892,17 @@ Consider the main function for this example:</p>
 <span class="w">  </span><span class="n">annotation</span><span class="o">::</span><span class="n">rguard</span><span class="o">&lt;</span><span class="n">main_region</span><span class="o">&gt;</span><span class="w"> </span><span class="n">main_guard</span><span class="p">;</span>
 
 <span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">run</span><span class="o">::</span><span class="n">dependencies_guard</span><span class="w"> </span><span class="n">dg</span><span class="p">;</span>
-<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">runtime</span><span class="w"> </span><span class="n">run</span><span class="p">;</span>
+<span class="w">  </span><span class="n">runtime</span><span class="w"> </span><span class="n">run</span><span class="p">;</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">annotation</span><span class="o">::</span><span class="n">guard</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="p">,</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">low</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">            </span><span class="s">&quot;top-level-task&quot;</span><span class="p">),</span>
-<span class="w">    </span><span class="n">run</span><span class="p">.</span><span class="n">control</span><span class="o">&lt;</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">));</span>
+<span class="w">            </span><span class="s">&quot;control&quot;</span><span class="p">),</span>
+<span class="w">    </span><span class="n">run</span><span class="p">.</span><span class="n">control</span><span class="o">&lt;</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">simulation</span><span class="p">));</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
 </div>
-<p>A scope guard is used to annotate the top level task:</p>
+<p>A scope guard is used to annotate the <code class="docutils literal notranslate"><span class="pre">control</span></code> call:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">annotation</span><span class="o">::</span><span class="n">guard</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="p">,</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">low</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">            </span><span class="s">&quot;top-level-task&quot;</span><span class="p">),</span>
-<span class="w">    </span><span class="n">run</span><span class="p">.</span><span class="n">control</span><span class="o">&lt;</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">));</span>
+<span class="w">            </span><span class="s">&quot;control&quot;</span><span class="p">),</span>
+<span class="w">    </span><span class="n">run</span><span class="p">.</span><span class="n">control</span><span class="o">&lt;</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">simulation</span><span class="p">));</span>
 </pre></div>
 </div>
 <p>For this region, the FleCSI execution context <code class="docutils literal notranslate"><span class="pre">annotation::execution</span></code> is

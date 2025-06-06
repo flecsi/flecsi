@@ -14,9 +14,9 @@ var searchData=
   ['convert_11',['convert',['../structflecsi_1_1util_1_1serial_1_1convert.html',1,'flecsi::util::serial']]],
   ['copy_5fengine_12',['copy_engine',['../structflecsi_1_1data_1_1copy__engine.html',1,'flecsi::data']]],
   ['copy_5fplan_13',['copy_plan',['../structflecsi_1_1data_1_1copy__plan.html',1,'flecsi::data']]],
-  ['core_14',['core',['../structflecsi_1_1topo_1_1core.html',1,'flecsi::topo']]],
-  ['core_5fbase_15',['core_base',['../structflecsi_1_1topo_1_1core__base.html',1,'flecsi::topo']]],
-  ['counter_16',['counter',['../structflecsi_1_1util_1_1counter.html',1,'flecsi::util']]],
+  ['core_5fbase_14',['core_base',['../structflecsi_1_1topo_1_1core__base.html',1,'flecsi::topo']]],
+  ['counter_15',['counter',['../structflecsi_1_1util_1_1counter.html',1,'flecsi::util']]],
+  ['cpu_16',['cpu',['../structflecsi_1_1exec_1_1cpu.html',1,'flecsi::exec']]],
   ['crs_17',['crs',['../structflecsi_1_1util_1_1crs.html',1,'flecsi::util']]],
   ['cycle_18',['cycle',['../structflecsi_1_1run__impl_1_1cycle.html',1,'flecsi::run_impl']]]
 ];

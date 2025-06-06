@@ -8,8 +8,8 @@ var group__kernel =
       [ "beg", "structflecsi_1_1exec_1_1sub__range.html#a7a1d480cfb4b623d3434184769cff8a8", null ],
       [ "end", "structflecsi_1_1exec_1_1sub__range.html#a2a95f43ba1f8d800f90ef18f2816d718", null ]
     ] ],
-    [ "forall", "group__kernel.html#gacc815362045ebe3e3b6e64d01fb982c7", null ],
-    [ "reduceall", "group__kernel.html#ga943c167b2bebf9bab4c9ae7896e3fae3", null ],
+    [ "forall", "group__kernel.html#ga43115ae58c2e0eed28a49f203c2814da", null ],
+    [ "reduceall", "group__kernel.html#ga460b12536f66e2289a119fe3fffbd9cb", null ],
     [ "mdiota_view", "group__kernel.html#ga79deec12cea01d954b674b6959e372f1", null ],
     [ "parallel_for", "group__kernel.html#gadcb1280986f7e3ce32f56866e883de38", null ],
     [ "parallel_reduce", "group__kernel.html#gaca59feefdea8ba70944196b24a3b8d25", null ]

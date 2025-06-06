@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -115,9 +115,9 @@ $(function(){initNavTree('structflecsi_1_1exec_1_1task__prologue.html',''); init
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a748d9ef35eccf5ca9c1e8bed05f5f237" id="r_a748d9ef35eccf5ca9c1e8bed05f5f237"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a748d9ef35eccf5ca9c1e8bed05f5f237">task_prologue</a> ()</td></tr>
-<tr class="memdesc:a748d9ef35eccf5ca9c1e8bed05f5f237"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructible.  <br /></td></tr>
-<tr class="separator:a748d9ef35eccf5ca9c1e8bed05f5f237"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55f6f418081ec894921fe98a3f7df82d" id="r_a55f6f418081ec894921fe98a3f7df82d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a55f6f418081ec894921fe98a3f7df82d">task_prologue</a> (<a class="el" href="structflecsi_1_1scheduler.html">scheduler</a> &amp;)</td></tr>
+<tr class="memdesc:a55f6f418081ec894921fe98a3f7df82d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructible as is <code>prolog_base</code>.  <br /></td></tr>
+<tr class="separator:a55f6f418081ec894921fe98a3f7df82d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acdf1fd0f60010b2525b106c5223a1d50" id="r_acdf1fd0f60010b2525b106c5223a1d50"><td class="memTemplParams" colspan="2">template&lt;typename T , Privileges P, class Topo , typename Topo::index_space S&gt; </td></tr>
 <tr class="memitem:acdf1fd0f60010b2525b106c5223a1d50"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#acdf1fd0f60010b2525b106c5223a1d50">visit</a> (<a class="el" href="structflecsi_1_1data_1_1accessor.html">data::accessor</a>&lt; <a class="el" href="group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa58ee402b69bb1b9fe5f437ab6e82e7d5">data::raw</a>, T, P &gt; &amp;, const <a class="el" href="structflecsi_1_1data_1_1field__reference.html">data::field_reference</a>&lt; T, <a class="el" href="group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa58ee402b69bb1b9fe5f437ab6e82e7d5">data::raw</a>, Topo, S &gt; &amp;)</td></tr>
 <tr class="memdesc:acdf1fd0f60010b2525b106c5223a1d50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send a raw field reference to a raw accessor.  <br /></td></tr>
@@ -137,8 +137,8 @@ struct flecsi::exec::task_prologue&lt; Proc &gt;</div><p>Handling for low-level 
   </dd>
 </dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a748d9ef35eccf5ca9c1e8bed05f5f237" name="a748d9ef35eccf5ca9c1e8bed05f5f237"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a748d9ef35eccf5ca9c1e8bed05f5f237">&#9670;&#160;</a></span>task_prologue()</h2>
+<a id="a55f6f418081ec894921fe98a3f7df82d" name="a55f6f418081ec894921fe98a3f7df82d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a55f6f418081ec894921fe98a3f7df82d">&#9670;&#160;</a></span>task_prologue()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -151,18 +151,18 @@ template&lt;<a class="el" href="group__execution.html#ga20dd9285653d4bb30a046aae
         <tr>
           <td class="memname"><a class="el" href="structflecsi_1_1exec_1_1task__prologue.html">task_prologue</a> </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structflecsi_1_1scheduler.html">scheduler</a> &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+<span class="mlabels"><span class="mlabel">explicit</span><span class="mlabel">protected</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Default constructible. </p>
+<p>Constructible as is <code>prolog_base</code>. </p>
 
 </div>
 </div>

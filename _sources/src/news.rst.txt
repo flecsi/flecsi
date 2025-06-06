@@ -10,10 +10,151 @@ Release Notes
    and Fixed.
 
    Each such section discusses some subsequence of Build, Runtime, Data,
-   Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
-   Utilities, and Logging.
+   Execution, Topologies, Legion backend, MPI backend, HPX backend, On-node
+   parallelism, Utilities, and Logging.
 
    The bullets in each such discussion are in descending order of importance.
+
+Changes in v2.4.0 (June 5 2025)
++++++++++++++++++++++++++++++++
+
+Possible incompatibilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+* Build
+
+  * Kokkos is now a required build dependency.
+  * OpenMP support depends on Kokkos configuration.
+
+* Data
+
+  * The automatic resizing for ragged fields no longer occurs after a manual update of the sizes.
+    (This was changed without a release note in 2.3.2.)
+
+Deprecated
+^^^^^^^^^^
+* Build
+
+  * ``ENABLE_KOKKOS`` |mdash| is ignored.
+  * ``ENABLE_OPENMP`` |mdash| is ignored.
+
+* Runtime
+
+  * ``runtime::control`` on a ``const`` object |mdash| use a non-``const`` object
+  * existing ``control::invoke`` |mdash| provide a ``scheduler``
+  * initializing ``run::call`` with a nullary function |mdash| accept a ``scheduler``
+  * ``process`` and ``processes`` |mdash| use ``runtime`` versions
+  * ``color`` and ``colors`` |mdash| use the ``space_base`` members
+
+* Data
+
+  * ``topology_slot`` |mdash| use ``topology`` or (for movability) ``ptr``
+  * ``partition_privilege_t`` |mdash| use ``privilege``
+
+* Execution
+
+  * ``future<R, index>::get`` |mdash| pass to a task or use ``all``
+  * ``make_partial`` |mdash| use a lambda or ``std::bind``, which can now be task arguments
+  * ``default_accelerator`` |mdash| use ``accelerator``
+  * ``idempotent`` task attribute |mdash| has never had any effect
+
+* Topologies
+
+  * ``unstructured_base::coloring::index_space::entities`` |mdash| omit from initialization
+
+* On-node parallelism
+
+  * ``parallel_for``, ``parallel_reduce`` |mdash| use ``accelerator``
+  * ``forall``, ``reduceall`` without an execution space |mdash| use ``accelerator``
+
+* Utilities
+
+  * nullary unit-test functions |mdash| accept a ``scheduler``
+  * ``util::annotation::context::ann`` |mdash| use ``guard`` or ``rguard``
+
+
+New features
+^^^^^^^^^^^^
+* Build
+
+  * ``FLECSI_BACKEND`` identifies the backend in use.
+  * ``FLECSI_ENABLE_FLOG`` is defined as a macro if appropriate.
+  * ``FLECSI_CALIPER_DETAIL`` reports the level of annotation detail.
+  * ``flecsi_enable_mpi`` no longer requires a second argument (to request the unavailable C++ bindings).
+
+* Runtime
+
+  * ``control::invoke`` accepts a ``scheduler`` (typically provided by ``runtime::control``).
+  * ``control_base::scheduler`` provides access to the ``scheduler`` with which actions can launch tasks.
+  * ``run::call`` supports functions that accept a ``scheduler``.
+  * ``control::write_graph`` and ``control::write_actions`` write Dot graphs of a control model.
+    (This was added without a release note in 2.3.0.)
+
+* Data
+
+  * ``topology`` is the type of topology instances; unlike ``topology_slot``, it is immovable.
+
+    * ``specialization::topology`` is a convenience alias for it.
+    * ``specialization::ptr`` is the appropriate ``std::unique_ptr`` type to hold a topology instance; like the deprecated ``topology_slot``, it is movable and can defer initialization.
+    * ``scheduler::allocate`` fills in a ``ptr`` and calls ``specialization::initialize`` (which is not otherwise automatic) with the ``scheduler`` and new topology instance.
+    * ``get`` and ``operator->`` in ``topology_slot`` access the ``topology``.
+
+  * Mutators support tracing.
+  * ``privilege`` is the new name of ``partition_privilege_t``.
+  * Launch map rvalues can be used to create field references.
+
+* Execution
+
+  * Task parameters can be of a broader set of types; in particular, they need not be serializable.
+  * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
+  * ``exec::cpu``, ``exec::gpu``, and ``exec::omp`` are task parameter types that provide task-launch information and access to a Kokkos execution ``space``.
+    ``exec::accelerator`` is the one of these preferred for parallel kernels.
+    ``exec::on`` is a token argument to pass for them.
+
+    * Kokkos executors can have a number of ``threads`` specified to optimize GPU execution.
+
+  * A ``scheduler`` launches tasks without attributes by reference to execution-space (template) parameters.
+  * Index futures provide ``all`` to get all results.
+
+* Topologies
+
+  * ``narray`` specializations need not define ``dimension``.
+  * ``unstructured_base::peer_entities`` is a new type alias for convenience.
+  * ``unstructured_base::coloring::index_space`` can be initialized without ``entities``, which is unused.
+  * ``user`` is a simple topology category without ghosts.
+    (This was added without a release note in 2.2.0.)
+
+* HPX backend
+
+  * FleCSI now supports HPX as a runtime backend.
+    However, GPU tasks are not supported with current versions of HPX.
+
+* On-node parallelism
+
+  * ``forall`` and ``reduceall`` may be used without a name.
+
+* Utilities
+
+  * ``mdspan`` and ``mdcolex`` provide ``element_type`` and ``value_type`` type aliases.
+  * ``UNIT`` can be used in GPU kernels, with restrictions.
+  * Unit-test functions may accept a ``scheduler``.
+
+Fixed
+^^^^^
+* Data
+
+  * ``field<bool, data::ragged>::mutator`` works.
+  * The ``particle`` layout works on the ``global`` topology.
+
+* Legion backend
+
+  * ``std::vector<bool>`` can be used as a task parameter.
+  * Unit tests work without Kokkos but with OpenMP.
+
+* Utilities
+
+  * MPI collective helpers make use of MPI-4 large count support when available.
+    Overflows due to MPI-3 restrictions are trapped.
+  * ``mpi::all_gatherv`` works with ``bool``.
 
 Changes in v2.3.2 (March 11 2025)
 +++++++++++++++++++++++++++++++++
@@ -69,6 +210,7 @@ Fixed
 * Data
 
   * Write-only multi-color ``particle`` accessors/mutators support non-trivial destructors.
+  * Data synchronization now utilizes the correct memory space and logic for openmp.
 
 * Legion backend
 

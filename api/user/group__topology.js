@@ -1,5 +1,6 @@
 var group__topology =
 [
+    [ "Simple data", "group__user.html", "group__user" ],
     [ "Predefined specializations", "group__spec.html", "group__spec" ],
     [ "Multi-dimensional Array", "group__narray.html", "group__narray" ],
     [ "N-dimensional Tree", "group__ntree.html", "group__ntree" ],
@@ -16,10 +17,13 @@ var group__topology =
     ] ],
     [ "specialization< C, D >", "structflecsi_1_1topo_1_1specialization.html", [
       [ "mpi_coloring", "structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html", [
+        [ "mpi_coloring", "structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html#a9484c90f9373c9dd9b0747603c4ee099", null ],
         [ "mpi_coloring", "structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html#a6a6436828d9e2c6b80708d33f9e101c6", null ],
         [ "operator coloring &", "structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html#a980a8f4c1246738436f2d1d7e2aba57c", null ],
         [ "operator const coloring &", "structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html#aaa076aa7711b9432f09af053c1e37c2f", null ]
       ] ],
+      [ "topology", "structflecsi_1_1topo_1_1specialization.html#a15d58b8a0c932e9b47fbb77a7638093f", null ],
+      [ "ptr", "structflecsi_1_1topo_1_1specialization.html#a7992a804f32fdf159badc53fab892591", null ],
       [ "base", "structflecsi_1_1topo_1_1specialization.html#a7bd05202ab07f41b4efc2aed0f6929f4", null ],
       [ "coloring", "structflecsi_1_1topo_1_1specialization.html#a2b7d04a7c79675c87feb181a897a1aa0", null ],
       [ "slot", "structflecsi_1_1topo_1_1specialization.html#a3976b3c51547fda5c27879ead8964b57", null ],
@@ -36,7 +40,7 @@ var group__topology =
       [ "interface", "structflecsi_1_1topo_1_1specialization__base.html#a15e7fdb1f340880a0aa43452c00e2c2b", null ],
       [ "specialization_base", "structflecsi_1_1topo_1_1specialization__base.html#a848c5847b75fe733e2b150fe9183b92e", null ]
     ] ],
-    [ "user< P >", "structflecsi_1_1topo_1_1user.html", null ],
+    [ "topology< P, user_base >", "structflecsi_1_1topo_1_1topology_3_01P_00_01user__base_01_4.html", null ],
     [ "with_size", "structflecsi_1_1topo_1_1with__size.html", [
       [ "sizes", "structflecsi_1_1topo_1_1with__size.html#a1c2baa260eff1ba74daef8cd60c44426", null ],
       [ "growth", "structflecsi_1_1topo_1_1with__size.html#abf9d880a385828408600bcc8847c1a65", null ]

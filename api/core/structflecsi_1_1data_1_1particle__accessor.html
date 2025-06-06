@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.12.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>FleCSI Core API: particle_accessor&lt; class, Privileges, bool &gt; Struct Template Reference</title>
+<title>FleCSI Core API: particle_accessor&lt; T, P, M &gt; Struct Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -106,7 +106,7 @@ $(function(){initNavTree('structflecsi_1_1data_1_1particle__accessor.html',''); 
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="structflecsi_1_1data_1_1particle__accessor-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">particle_accessor&lt; class, Privileges, bool &gt; Struct Template Reference<div class="ingroups"><a class="el" href="group__data.html">Data Model</a></div></div></div>
+  <div class="headertitle"><div class="title">particle_accessor&lt; T, P, M &gt; Struct Template Reference<div class="ingroups"><a class="el" href="group__data.html">Data Model</a></div></div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -129,8 +129,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a60304b65bf89363bcc3165d3cde67f86"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;class, Privileges, bool&gt;<br />
-struct flecsi::data::particle_accessor&lt; class, Privileges, bool &gt;</div><p>Accessor for particle fields. </p>
+<div class="textblock"><div class="compoundTemplParams">template&lt;class T, Privileges P, bool M&gt;<br />
+struct flecsi::data::particle_accessor&lt; T, P, M &gt;</div><p>Accessor for particle fields. </p>
 <p>This class is supported for GPU execution. Provides bidirectional iterators over the existing particles. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">P</td><td>if write-only, particles are not created or destroyed but they are reinitialized </td></tr>
@@ -144,7 +144,7 @@ struct flecsi::data::particle_accessor&lt; class, Privileges, bool &gt;</div><p>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class , Privileges , bool &gt; </div>
+template&lt;class T , Privileges P, bool M&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">size_type size </td>
@@ -165,7 +165,7 @@ template&lt;class , Privileges , bool &gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class , Privileges , bool &gt; </div>
+template&lt;class T , Privileges P, bool M&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">size_type capacity </td>
@@ -186,7 +186,7 @@ template&lt;class , Privileges , bool &gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class , Privileges , bool &gt; </div>
+template&lt;class T , Privileges P, bool M&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -215,7 +215,7 @@ template&lt;class , Privileges , bool &gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class , Privileges , bool &gt; </div>
+template&lt;class T , Privileges P, bool M&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">iterator get_iterator_from_pointer </td>

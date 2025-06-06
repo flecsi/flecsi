@@ -57,6 +57,12 @@ Moreover, with the Legion backend their number is not required to match the numb
   as a hydrodynamics solver and an energy source.  In that situation you
   could use fewer colors than processes so that some processes can perform calculations for the hydrodynamics while others perform calculations for the energy source.
 
+.. figure:: images/coloring.svg
+   :width: 30%
+   :align: center
+
+   An unstructured mesh topology instance with 4 colors.
+
 .. _ghost-elements:
 
 Ghost Elements
@@ -80,6 +86,13 @@ The read/write permissions of :ref:`accessors <field-accessors>`
 may distinguish between these three varieties of index points in order
 to expose additional opportunities for parallelization.
 
+.. figure:: images/extended-index-spaces.svg
+   :width: 80%
+   :align: center
+
+   Index spaces with ghost elements as seen by each color of a
+   topology instance.
+
 Fields
 ========================================================================
 
@@ -89,17 +102,17 @@ Only tasks can access the actual data.
 Registration
 ------------------------------------------------------------------------
 
-Index spaces are organized into :doc:`topologies <topologies>`; variables are defined on an index space by registering fields on its topology type.
-Supposing we have a topology type ``topo_t``, we can write
+Index spaces are organized into :doc:`topologies <topologies>`; variables are defined on an index space by registering fields on its topology.
+The tag type used for the registration (and other purposes to be discussed) is a *specialization*.
+Supposing we have a specialization ``topo_t``, we can write
 
 .. code-block:: cpp
 
   const flecsi::field<double>::definition<topo_t, topo_t::cells> mass_field;
   const flecsi::field<double>::definition<topo_t, topo_t::faces> massflux_field;
 
-The ``mass_field`` variable declaration states that the ``topo_t`` topology has a mass in each
-cell.  The ``massflux_field`` variable declaration states that the
-``topo_t`` topology has a mass flux on each face.
+The ``mass_field`` variable declaration states that the ``topo_t`` specialization has a mass in each cell.
+The ``massflux_field`` variable declaration states that ``topo_t`` has a mass flux on each face.
 
 If you have multiple fields on the same index space, you can declare
 them in a way that's analogous to a struct of arrays or in a way that's
@@ -204,10 +217,23 @@ Each field has one of several pre-defined layouts, which specifies how field ele
 The field registration examples above use the ``dense`` layout by default.
 Other layouts are chosen with syntax like ``flecsi::field<double, flecsi::data::ragged>``.
 
+
+.. figure:: images/fields.svg
+   :width: 100%
+
+   Illustration of the single, dense and ragged layout for various index spaces and data types.
+
+.. figure:: images/sparse-and-particle.svg
+   :align: center
+   :width: 80%
+   
+   Fields in sparse and particle layouts.
+   
+   
 References
 ----------
-Fields are registered on topology *types*, so every instance of that topology type has the field.
-It is therefore as if a member were added to a C++ struct: one might imagine defining ``mass_field`` on the topology ``topo_t``, creating an instance of ``topo_t`` called ``grid``, and writing ``grid.mass_field``.
+Fields are registered on specializations as a whole; every instance of the associated topology type has the field.
+It is therefore as if a member were added to a C++ struct: one might imagine defining ``mass_field`` on the specialization ``topo_t``, creating an instance from it called ``grid``, and writing ``grid.mass_field``.
 However, the language does not actually allow extending a type.
 Instead, the
 field objects themselves become tools to extract the field data, so you
@@ -248,6 +274,17 @@ In this case multiple privileges are specified to describe access to exclusive, 
 If no privilege grants write permission (*e.g.*, with ``flecsi::field<double>::accessor<flecsi::ro, flecsi::ro, flecsi::na>``), the accessor will produce the ``const``-qualified version of the field type.
 However, it is impossible to so restrict some but not all index points (for, say, ``flecsi::field<double>::accessor<flecsi::rw, flecsi::ro, flecsi::ro>``); if the client modifies elements for which it has no write permission, the behavior is undefined.
 
+A ghost copy occurs between any two tasks that operate on the same field where
+
+1. the first has write access to the shared elements,
+
+2. the second has read access to the ghost elements, and
+
+3. neither the first nor any intervening task has write access to the ghost elements.
+
+That is, ghosts are considered out of date only if the shared values have been written *more* recently; this allows ghosts to be initialized to a constant or to be transformed by a local function without communication.
+Two writes to the shared elements of a field may produce only one ghost copy if no ghost reads occur after the first but not after the second.
+
 The first access to each field must be write-only, except that the ghosts may be no-access to indicate that the initial values need to be copied to other colors as usual.
 
 Mutators
@@ -278,3 +315,14 @@ The current implementation of memory management for these layouts imposes severa
 First, the automatic memory allocation is incompatible with :doc:`tracing`, so ``ragged`` and ``sparse`` mutators cannot be used in a task launched during a trace.
 Ghost copies for these layouts are implemented using mutators, so they are excluded from traces as well.
 Moreover, they use further temporary allocations during a task that are incompatible with GPU execution, so they cannot be used in a ``toc`` task.
+
+Multi-color accessors
+---------------------
+In addition to ghost elements, the Legion backend provides *launch maps* as another mechanism for accessing another color's data in a point task.
+They explicitly nominate one or more colors to be processed by each point task, so they can permute colors as well as duplicating them (for read-only access) or omitting them.
+Accessors, mutators, or topology accessors (discussed later) can be wrapped in a ``data::multi`` task parameter; the launch map takes the place of the underlying topology in the task argument (*e.g.*, in forming a field reference).
+A task can accept multiple multi-color accessors as well as ordinary accessors (relative to which any permutation is meaningful).
+
+.. note::
+
+  Other backends support only trivial launch maps that nominate the usual color for a point task or none at all.
