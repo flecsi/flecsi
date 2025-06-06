@@ -21,10 +21,10 @@ with_return() noexcept {
   return value;
 }
 
-// Task with by-value argument.
+// Task with non-trivial parameter.
 
 int
-with_by_value_argument(std::vector<size_t> v) noexcept {
+nontrivial_parameter(const std::vector<size_t> & v) noexcept {
   std::stringstream ss;
   int retval{0};
   ss << "Parameter values: ";
@@ -35,7 +35,7 @@ with_by_value_argument(std::vector<size_t> v) noexcept {
   flog(info) << ss.str() << std::endl;
 
   return retval;
-} // with_by_value_argument
+} // nontrivial_parameter
 
 // Templated task.
 
@@ -75,15 +75,12 @@ advance(control_policy & p) {
     flog(info) << "Got value " << future.get() << std::endl;
   } // scope
 
-  // Execute a task that takes an argument by-value. FleCSI tasks can take any
-  // valid C++ type by value. However, because task data must be relocatable,
-  // you cannot pass pointer arguments, or arguments that contain pointers.
-  // Modifications made to by-value data are local to the task and will not be
-  // reflected at the call site.
+  // Execute a task with a non-trivial argument.
+  // Pointers/references must be to const.
 
   {
     std::vector<size_t> v = {0, 1, 1, 2, 3, 5, 8, 13, 21, 34};
-    auto future = s.execute<with_by_value_argument>(v);
+    auto future = s.execute<nontrivial_parameter>(v);
     flog(info) << "Sum is " << future.get() << std::endl;
   } // scope
 

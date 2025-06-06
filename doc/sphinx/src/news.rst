@@ -15,8 +15,8 @@ Release Notes
 
    The bullets in each such discussion are in descending order of importance.
 
-Changes in v2.4.0
-+++++++++++++++++
+Changes in v2.4.0 (June 5 2025)
++++++++++++++++++++++++++++++++
 
 Possible incompatibilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -24,6 +24,11 @@ Possible incompatibilities
 
   * Kokkos is now a required build dependency.
   * OpenMP support depends on Kokkos configuration.
+
+* Data
+
+  * The automatic resizing for ragged fields no longer occurs after a manual update of the sizes.
+    (This was changed without a release note in 2.3.2.)
 
 Deprecated
 ^^^^^^^^^^
@@ -64,6 +69,8 @@ Deprecated
 * Utilities
 
   * nullary unit-test functions |mdash| accept a ``scheduler``
+  * ``util::annotation::context::ann`` |mdash| use ``guard`` or ``rguard``
+
 
 New features
 ^^^^^^^^^^^^
@@ -79,6 +86,8 @@ New features
   * ``control::invoke`` accepts a ``scheduler`` (typically provided by ``runtime::control``).
   * ``control_base::scheduler`` provides access to the ``scheduler`` with which actions can launch tasks.
   * ``run::call`` supports functions that accept a ``scheduler``.
+  * ``control::write_graph`` and ``control::write_actions`` write Dot graphs of a control model.
+    (This was added without a release note in 2.3.0.)
 
 * Data
 
@@ -86,7 +95,7 @@ New features
 
     * ``specialization::topology`` is a convenience alias for it.
     * ``specialization::ptr`` is the appropriate ``std::unique_ptr`` type to hold a topology instance; like the deprecated ``topology_slot``, it is movable and can defer initialization.
-    * ``scheduler::allocate`` fills in a ``ptr`` and calls ``specialization::initialize`` (which is not otherwise auomatic) with the ``scheduler`` and new topology instance.
+    * ``scheduler::allocate`` fills in a ``ptr`` and calls ``specialization::initialize`` (which is not otherwise automatic) with the ``scheduler`` and new topology instance.
     * ``get`` and ``operator->`` in ``topology_slot`` access the ``topology``.
 
   * Mutators support tracing.
@@ -98,7 +107,7 @@ New features
   * Task parameters can be of a broader set of types; in particular, they need not be serializable.
   * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
   * ``exec::cpu``, ``exec::gpu``, and ``exec::omp`` are task parameter types that provide task-launch information and access to a Kokkos execution ``space``.
-    ``accelerator`` is the one of these preferred for parallel kernels.
+    ``exec::accelerator`` is the one of these preferred for parallel kernels.
     ``exec::on`` is a token argument to pass for them.
 
     * Kokkos executors can have a number of ``threads`` specified to optimize GPU execution.
@@ -111,6 +120,8 @@ New features
   * ``narray`` specializations need not define ``dimension``.
   * ``unstructured_base::peer_entities`` is a new type alias for convenience.
   * ``unstructured_base::coloring::index_space`` can be initialized without ``entities``, which is unused.
+  * ``user`` is a simple topology category without ghosts.
+    (This was added without a release note in 2.2.0.)
 
 * HPX backend
 
@@ -126,22 +137,6 @@ New features
   * ``mdspan`` and ``mdcolex`` provide ``element_type`` and ``value_type`` type aliases.
   * ``UNIT`` can be used in GPU kernels, with restrictions.
   * Unit-test functions may accept a ``scheduler``.
-
-Changes in v2.3.3
-+++++++++++++++++
-Possible incompatibilities
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-* Data
-
-  * The automatic resizing for ragged fields no longer occurs after a manual update of the sizes.
-    (This was changed without a release note in 2.3.2.)
-
-
-Deprecated
-^^^^^^^^^^
-* Utilities
-
-  * ``util::annotation::context::ann`` |mdash| use ``guard`` or ``rguard``
 
 Fixed
 ^^^^^
