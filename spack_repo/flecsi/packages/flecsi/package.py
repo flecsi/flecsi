@@ -1,8 +1,8 @@
 from spack.package import *
-from spack.pkg.builtin.flecsi import Flecsi
+from spack_repo.builtin.packages.flecsi.package import Flecsi
 import pathlib
 
-with open(pathlib.Path(__file__).parent / "../../../.version") as f:
+with open(pathlib.Path(__file__).parent / "../../../../.version") as f:
   dot_version = f.read().strip()
 
 flecsi_selector = {"preferred": True}
@@ -21,9 +21,6 @@ class Flecsi(Flecsi):
     version(flecsi_version, **flecsi_selector)
 
     conflicts('^hpx networking=tcp', when='backend=hpx')
-
-    # remove once spack/spack has been updated and new upstream uses it
-    requires("+kokkos")
 
     depends_on("texlive", when="+doc")
     depends_on("pdf2svg", when="+doc")
