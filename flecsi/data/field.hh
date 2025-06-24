@@ -265,7 +265,7 @@ struct multi_reference : convert_tag {
 
   // i indexes into the depth of the map rather than being a color directly.
   field_reference<T, L, typename Map::Borrow, S> data(Color i) const {
-    return {f, map()[i]};
+    return {f, map().data(i)};
   }
 
 private:

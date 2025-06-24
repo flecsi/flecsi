@@ -108,9 +108,6 @@ struct mapping : convert_tag {
   Color depth() const { // never 0
     return rnd.size();
   }
-  auto & operator[](Color i) {
-    return rnd[i].b;
-  }
   auto claims(Color i) {
     return topo::claims::field(rnd[i].clm);
   }
