@@ -313,11 +313,8 @@ private:
 
 template<class P>
 struct borrow_extra<unstructured<P>> : borrow_sizes<P> {
-  borrow_extra(scheduler & s,
-    unstructured<P> & u,
-    const data::borrow & b,
-    bool f)
-    : borrow_extra(s, u, b, f, typename P::entity_lists()) {}
+  borrow_extra(unstructured<P> & u, const data::borrow & b, bool f)
+    : borrow_extra(u, b, f, typename P::entity_lists()) {}
 
 private:
   friend unstructured<P>; // for access::send
@@ -327,14 +324,13 @@ private:
     special_;
 
   template<typename P::index_space... VV, class... TT>
-  borrow_extra(scheduler & s,
-    unstructured<P> & u,
+  borrow_extra(unstructured<P> & u,
     const data::borrow & b,
     bool f,
     util::types<util::key_type<VV, TT>...> /* deduce pack */)
-    : borrow_extra::borrow_sizes(s, u, b, f),
+    : borrow_extra::borrow_sizes(u, b, f),
       special_(u.special_.template get<VV>().map([&](auto & t) {
-        return borrow_base::wrap<std::decay_t<decltype(t)>>(s, t, b, f);
+        return borrow_base::wrap<std::decay_t<decltype(t)>>(t, b, f);
       })...) {}
 };
 
