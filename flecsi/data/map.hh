@@ -8,6 +8,7 @@
 #include "flecsi/util/color_map.hh"
 
 #include <deque>
+#include <stdexcept>
 
 namespace flecsi {
 namespace data::launch {
@@ -61,9 +62,13 @@ gather(Color u, Color n) {
   return {n, {v.begin(), v.end()}};
 }
 
-struct claims { // to know the colors for each multi<> component
-  claims(scheduler & s, const borrow::Claims & c) : clm(s, c.size()) {
-    s.execute<fill>(exec::on, topo::claims::field(clm), c);
+struct colors { // for multi::components
+  auto operator*() {
+    return topo::claims::field(clm);
+  }
+
+  colors(scheduler & s, const borrow::Claims & c) : clm(s, c.size()) {
+    s.execute<fill>(exec::on, **this, c);
   }
 
   topo::claims::topology clm;
@@ -75,16 +80,19 @@ private:
     a = c[s.launch().index];
   }
 };
+struct claims : colors {
+  claims(scheduler & s, borrow::Claims c) : colors(s, c), proj(std::move(c)) {}
+  claims(claims &&) = delete; // address stability
+  borrow proj;
+};
+struct map {
+  using ptr = std::shared_ptr<map>;
 
-/// A prepared assignment of colors.
-/// Declare `multi<Topo::accessor<...>>` task parameter to use the topology.
-/// \tparam P underlying topology
-/// \see field::definition
-template<class P>
-struct mapping : convert_tag {
-  using Borrow = topo::borrow<P>;
-
-  mapping(scheduler & s, typename P::topology & t, const Claims & clm) {
+  map(scheduler & s, const Claims & clm) : bound() {
+    for(auto & v : clm)
+      for(Color x : v)
+        if(x >= bound)
+          bound = x + 1;
     // Transpose clm for the data::borrow objects.
     // There is at least one round to hold metadata.
     bool more = true;
@@ -98,18 +106,39 @@ struct mapping : convert_tag {
         if(i + 1 < n)
           more = true;
       }
-      rnd.emplace_back(s, t, std::move(c), rnd.empty());
+      rounds.emplace_back(s, std::move(c));
     }
   }
 
+  std::deque<launch::claims> rounds;
+  Color bound;
+};
+
+/// A prepared assignment of colors.
+/// Declare `multi<Topo::accessor<...>>` task parameter to use the topology.
+/// \tparam P underlying topology
+/// \see field::definition
+template<class P>
+struct mapping : convert_tag {
+  using Borrow = topo::borrow<P>;
+
+  mapping(scheduler & s, typename P::topology & t, const Claims & clm)
+    : mapping(t, std::make_shared<launch::map>(s, clm)) {}
+  mapping(typename P::topology & t, launch::map::ptr p) : plan(std::move(p)) {
+    if(t.colors() < plan->bound)
+      throw std::out_of_range("claims beyond topology colors");
+    for(auto & c : plan->rounds)
+      topo.emplace_back(t, c.proj, topo.empty());
+  }
+
   Color colors() const {
-    return rnd.front().b.colors();
+    return topo.front().colors();
   }
   Color depth() const { // never 0
-    return rnd.size();
+    return topo.size();
   }
   auto claims(Color i) {
-    return topo::claims::field(rnd[i].clm);
+    return *plan->rounds[i];
   }
 
   template<class T, layout L, typename P::index_space S>
@@ -123,24 +152,24 @@ struct mapping : convert_tag {
     return *this;
   }
   auto & data(Color i) {
-    return rnd[i].b;
+    return topo[i];
+  }
+
+  template<class Q>
+  auto rebind(topology<Q> & t) {
+    return mapping<Q>(t, plan);
+  }
+  template<class T, layout L, class Topo, typename Topo::index_space S>
+  auto rebind(const field_reference<T, L, Topo, S> & f) {
+    // The lambda keeps the new mapping alive in the caller.
+    return
+      [m = rebind(f.topology()), f]() mutable { return multi_reference(f, m); };
   }
 
 private:
-  // Owns a set of claims for potentially several (nested) borrow topologies.
-  struct round : claims {
-    round(scheduler & s, typename P::topology & t, borrow::Claims c, bool first)
-      : claims(s, c), proj(std::move(c)), b(s, {&t, &proj, first}) {}
-    round(round &&) = delete; // address stability
-
-  private:
-    borrow proj;
-
-  public:
-    typename Borrow::topology b;
-  };
-
-  std::deque<round> rnd;
+  launch::map::ptr plan; // never structurally mutated
+  // Nested borrow topologies reuse our claims objects.
+  std::vector<typename Borrow::topology> topo;
 };
 template<class T>
 mapping(T &, const Claims &) -> mapping<topo::policy_t<T>>;

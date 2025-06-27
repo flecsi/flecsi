@@ -50,23 +50,6 @@ struct repartition : with_size, data::prefixes, with_cleanup, virtual_base {
     return *this;
   }
 
-protected:
-  template<Privileges Priv>
-  struct access {
-    template<class F>
-    void send(F && f) {
-      size_.topology_send(
-        f, [](auto & a) -> auto & { return a.get_sizes(); });
-    }
-
-    auto & size() const {
-      return size_;
-    }
-
-  private:
-    data::scalar_access<topo::resize::field, Priv> size_;
-  };
-
 private:
   auto & get_sizes() {
     return sz;
@@ -123,8 +106,6 @@ private:
 template<class P>
 struct topology<P, ragged_partition_base> : ragged_partition_base {
   using ragged_partition_base::ragged_partition_base;
-
-  using repartition::access;
 };
 template<class P>
 using ragged_partition_category = topology<P, ragged_partition_base>;
@@ -257,8 +238,6 @@ struct topology<P, array_base> : array_base, repartitioned {
     : repartitioned(make_repartitioned<P>(c.size(), s, [c](std::size_t i) {
         return c[i];
       })) {}
-
-  using repartition::access;
 };
 
 template<class P>

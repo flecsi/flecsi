@@ -32,8 +32,8 @@ using unstructured = topology<P, unstructured_base>;
 /// Topology type.
 /// \tparam Policy the specialization, following unstructured_specialization
 template<typename Policy>
-struct topology<Policy, unstructured_base>
-  : unstructured_base, with_ragged<Policy>, with_meta<Policy> {
+struct topology<Policy, unstructured_base> : unstructured_base,
+                                             with_ragged<Policy> {
 
   /*--------------------------------------------------------------------------*
     Public types.
@@ -136,7 +136,6 @@ private:
   topology(scheduler & s, unstructured_base::coloring const & c,
     util::constants<VV...>, util::constants<CI...> /* deduce pack */)
     : with_ragged<Policy>(s, c.colors),
-      with_meta<Policy>(s, c.colors),
       ctopo_(s, c.color_peers),
       part_{
         {
@@ -196,26 +195,19 @@ private:
     destination_intervals intervals;
     source_pointers pointers;
 
-    // set the sizes of the cgraph accessor.
+    auto clm = data::launch::make(s, ctopo_);
+
     auto const & cg = cgraph_.template get<S>();
-    auto & cgp = ctopo_.ragged.template get<elements>()[cg.fid];
-
-    // creating a launch map for the underlying ragged partition
-    auto cgplm = data::launch::make(s, cgp);
-    execute<cgraph_size, mpi>(c.idx_spaces[index<S>].colors, cgplm);
-
-    // the actual resize of the underlying fields
+    auto & cgp = cg(ctopo_).get_elements();
+    execute<cgraph_size, mpi>(
+      c.idx_spaces[index<S>].colors, clm.rebind(cgp.sizes())());
     cgp.resize();
 
-    // set up cgraph_shared_
     auto const & sh = cgraph_shared_.template get<S>();
-    auto & shp = ctopo_.ragged.template get<elements>()[sh.fid];
-    auto shplm = data::launch::make(s, shp);
-    execute<cgraph_shared_size, mpi>(c.idx_spaces[index<S>].colors, shplm);
+    auto & shp = sh(ctopo_).get_elements();
+    execute<cgraph_shared_size, mpi>(
+      c.idx_spaces[index<S>].colors, clm.rebind(shp.sizes())());
     shp.resize();
-
-    // compute the launch maps for the fields
-    auto clm = data::launch::make(s, ctopo_);
 
     execute<idx_itvls, mpi>(
       c.idx_spaces[index<S>].colors, intervals, pointers, cg(clm), sh(clm));
@@ -255,15 +247,14 @@ private:
   void allocate_connectivities(scheduler & s,
     const unstructured_base::coloring & c,
     util::key_tuple<util::key_type<VV, TT>...> const & /* deduce pack */) {
-    auto lm = data::launch::make(s, this->meta);
+    auto lm = data::launch::make(s, *this); // *this only for color count
     (
       [&](TT const & row) { // invoked for each from-entity
         const std::vector<index_color> & ic = c.idx_spaces[index<VV>].colors;
         for_each(
           [&](auto v) { // invoked for each to-entity
-            execute<cnx_size, mpi>(ic, index<v.value>, temp_size(lm));
             auto & p = row.template get<v.value>()(*this).get_elements();
-            s.execute<copy_sizes>(temp_size(this->meta), p.sizes());
+            execute<cnx_size, mpi>(ic, index<v.value>, lm.rebind(p.sizes())());
             p.resize();
           },
           typename TT::keys());
@@ -299,10 +290,6 @@ private:
     typename field<util::id, data::ragged>::template definition<ctopo>,
     index_spaces>
     cgraph_, cgraph_shared_;
-
-  // static inline const resize::Field::definition<ctopo> temp_cgsize;
-
-  static inline const resize::Field::definition<meta<Policy>> temp_size;
 
   util::key_array<repartitioned, index_spaces> part_;
   lists<Policy> special_;

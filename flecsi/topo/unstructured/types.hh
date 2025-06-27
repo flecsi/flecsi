@@ -322,24 +322,19 @@ struct unstructured_base : base {
     }
   }
 
-  static void copy_sizes(resize::Field::accessor<ro> src,
-    resize::Field::accessor<wo> dest) noexcept {
-    dest = src.get();
-  }
-
   // resize ragged fields storing communication graph for ghosts
   static void cgraph_size(std::vector<index_color> const & vic,
-    data::multi<ragged_partition::accessor<wo>> aa) {
+    data::multi<resize::Field::accessor<wo>> aa) {
     auto it = vic.begin();
     for(auto & a : aa.accessors()) {
-      a.size() = it->ghosts().size();
+      a = it->ghosts().size();
       ++it;
     }
   } // cgraph_size
 
   // resize ragged fields storing communication graph for shared
   static void cgraph_shared_size(std::vector<index_color> const & vic,
-    data::multi<ragged_partition::accessor<wo>> aa) {
+    data::multi<resize::Field::accessor<wo>> aa) {
     auto it = vic.begin();
 
     for(auto & a : aa.accessors()) {
@@ -347,7 +342,7 @@ struct unstructured_base : base {
       for(auto & p : it++->peers) {
         count += p.second.shared.size();
       }
-      a.size() = count;
+      a = count;
     }
 
   } // cgraph_shared_size
