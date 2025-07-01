@@ -67,7 +67,8 @@ struct copy_engine : copy_base {
     // information is later used by MPI_Send().
     {
       std::size_t r = 0;
-      for(auto & v : all_to_all(remote_shared_entities)) {
+      for(auto & v :
+        std::forward<AllToAll>(all_to_all)(remote_shared_entities)) {
         if(!v.empty()) {
           shared_entities[r].resize(v.size());
           std::uninitialized_copy(
