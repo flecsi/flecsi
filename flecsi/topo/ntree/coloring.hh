@@ -135,7 +135,7 @@ protected:
     a[0] = data::intervals::make({1, 3});
   }
   static void set_ptrs(
-    field<data::copy_engine::Point>::accessor<wo, na> a) noexcept {
+    field<data::copy_engine::Point>::accessor<wo, wo> a) noexcept {
     const auto & c = run::context::instance();
     const auto i = c.color(), n = c.colors();
     assert(a.span().size() == 3);
@@ -149,7 +149,7 @@ protected:
     a[0] = data::intervals::make({c, 2 * c - 1});
   }
   static void set_ptrs_share_ghosts_comms(
-    field<data::copy_engine::Point>::accessor<wo, na> a) noexcept {
+    field<data::copy_engine::Point>::accessor<wo, wo> a) noexcept {
     const auto & c = run::context::instance();
     assert(a.span().size() == 2 * c.colors() - 1);
     for(Color i = 0; i < c.colors() - 1; ++i)
