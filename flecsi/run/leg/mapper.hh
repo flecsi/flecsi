@@ -416,60 +416,42 @@ public:
             ctx, copy, copy_dst_req, idx, output_dst);
       }
     }
+
+    using instances = std::vector<Legion::Mapping::PhysicalInstance>;
+    const auto indirect = [&](
+                            const std::vector<Legion::RegionRequirement> & req,
+                            const std::vector<instances> & in,
+                            instances & out,
+                            auto src) {
+      for(unsigned idx = 0; idx < req.size(); idx++) {
+        auto & in1 = in[idx];
+        auto & out1 = out[idx];
+        // Try to reuse existing instances
+        bool can_reuse_instance = false;
+        if(!in1.empty()) {
+          out1 = in1[0];
+          can_reuse_instance = runtime->acquire_instance(ctx, out1);
+        }
+        // We could not find a valid existing instance --> create a new one
+        if(!can_reuse_instance && !req[idx].is_restricted()) {
+          std::vector<Legion::Mapping::PhysicalInstance> tmp;
+          default_create_copy_instance<src>(ctx, copy, req[idx], idx, tmp);
+          assert(tmp.size() == 1);
+          out1 = tmp.front();
+        }
+      }
+    };
+
     // Gather copy
-    if(!copy.src_indirect_requirements.empty()) {
-      for(unsigned idx = 0; idx < copy.src_indirect_requirements.size();
-          idx++) {
-        auto & input_src_indirect = input.src_indirect_instances[idx];
-        auto & output_src_indirect = output.src_indirect_instances[idx];
-        // Try to reuse existing instances
-        bool can_reuse_instance = false;
-        if(!input_src_indirect.empty()) {
-          output_src_indirect = input_src_indirect[0];
-          can_reuse_instance =
-            runtime->acquire_instance(ctx, output_src_indirect);
-        }
-        // We could not find a valid existing instance --> create a new one
-        if(!can_reuse_instance &&
-           !copy.src_indirect_requirements[idx].is_restricted()) {
-          std::vector<Legion::Mapping::PhysicalInstance> temp_instances;
-          default_create_copy_instance<false /*is src*/>(ctx,
-            copy,
-            copy.src_indirect_requirements[idx],
-            idx,
-            temp_instances);
-          assert(!temp_instances.empty());
-          output_src_indirect = temp_instances[0];
-        }
-      }
-    }
+    indirect(copy.src_indirect_requirements,
+      input.src_indirect_instances,
+      output.src_indirect_instances,
+      std::true_type());
     // Scatter copy (for generality; FleCSI does not use scatter operations):
-    if(!copy.dst_indirect_requirements.empty()) {
-      for(unsigned idx = 0; idx < copy.dst_indirect_requirements.size();
-          idx++) {
-        auto & input_dst_indirect = input.dst_indirect_instances[idx];
-        auto & output_dst_indirect = output.dst_indirect_instances[idx];
-        // Try to reuse existing instances
-        bool can_reuse_instance = false;
-        if(!input_dst_indirect.empty()) {
-          output_dst_indirect = input_dst_indirect[0];
-          can_reuse_instance =
-            runtime->acquire_instance(ctx, output_dst_indirect);
-        }
-        // We could not find a valid existing instance --> create a new one
-        if(!can_reuse_instance &&
-           !copy.dst_indirect_requirements[idx].is_restricted()) {
-          std::vector<Legion::Mapping::PhysicalInstance> temp_instances;
-          default_create_copy_instance<false /*is src*/>(ctx,
-            copy,
-            copy.dst_indirect_requirements[idx],
-            idx,
-            temp_instances);
-          assert(!temp_instances.empty());
-          output_dst_indirect = temp_instances[0];
-        }
-      }
-    }
+    indirect(copy.dst_indirect_requirements,
+      input.dst_indirect_instances,
+      output.dst_indirect_instances,
+      std::false_type());
 
     output.compute_preimages = true;
   } // map_copy
