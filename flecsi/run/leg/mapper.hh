@@ -157,7 +157,7 @@ public:
       "ERROR:: pasing not existing REGION to the mapper");
 
     Legion::Mapping::PhysicalInstance result = get_instance(ctx,
-      task,
+      name(task),
       target_mem,
       layout_constraints,
       {task.regions[indx].region,
@@ -184,7 +184,7 @@ public:
       return;
 
     output.chosen_instances[indx].push_back(
-      get_instance(ctx, task, target_mem, layout_constraints, {r}));
+      get_instance(ctx, name(task), target_mem, layout_constraints, {r}));
   } // create_instance
 
   /// Implement \c prefer_gpu and \c prefer_omp tags and reuse or create
@@ -266,13 +266,6 @@ public:
             ctx, task, output, target_mem, indx, valid_missing_fields);
           continue;
         }
-        // Filling out the "layout_constraints"
-        Legion::LayoutConstraintSet layout_constraints;
-        // No specialization
-        layout_constraints.add_constraint(Legion::SpecializedConstraint());
-        layout_constraints.add_constraint(soa_constraint);
-        layout_constraints.add_constraint(
-          Legion::MemoryConstraint(target_mem.kind()));
 
 #if 0 // this block is only used for compacted instances
         if(task.regions[indx].tag == mapper::exclusive_lr) {
@@ -288,10 +281,9 @@ public:
           continue;
         }
 #endif
-        layout_constraints.add_constraint(
-          Legion::FieldConstraint(missing_fields[indx], true));
-        create_instance(
-          ctx, task, output, target_mem, layout_constraints, indx);
+        for(const auto & missing_field : missing_fields[indx])
+          create_instance(
+            ctx, task, output, target_mem, constraints(missing_field), indx);
       } // end for
 
     } // end if
@@ -387,8 +379,8 @@ public:
          (idx < copy.src_indirect_requirements.size()) ||
          (idx < copy.dst_indirect_requirements.size())) {
         if(!copy_src_req.is_restricted())
-          default_create_copy_instance<true /*is src*/>(
-            ctx, copy, copy_src_req, idx, output_src);
+          create_copy_instance<true /*is src*/>(
+            ctx, copy, copy_src_req, output_src);
         // else: do nothing (if restricted we can not create a new instance)
       }
       // Do a virtual mapping instead of creating new instances
@@ -412,8 +404,8 @@ public:
         // Try to reuse existing instances
         output_dst = input.dst_instances[idx];
         if(!copy_dst_req.is_restricted())
-          default_create_copy_instance<false /*is src*/>(
-            ctx, copy, copy_dst_req, idx, output_dst);
+          create_copy_instance<false /*is src*/>(
+            ctx, copy, copy_dst_req, output_dst);
       }
     }
 
@@ -435,7 +427,7 @@ public:
         // We could not find a valid existing instance --> create a new one
         if(!can_reuse_instance && !req[idx].is_restricted()) {
           std::vector<Legion::Mapping::PhysicalInstance> tmp;
-          default_create_copy_instance<src>(ctx, copy, req[idx], idx, tmp);
+          create_copy_instance<src>(ctx, copy, req[idx], tmp);
           assert(tmp.size() == 1);
           out1 = tmp.front();
         }
@@ -457,6 +449,54 @@ public:
   } // map_copy
 
 private:
+  static std::string name(const Legion::Task & t) {
+    std::ostringstream s;
+    s << "task " << std::quoted(t.get_task_name());
+    return s.str();
+  }
+
+  static Legion::LayoutConstraintSet constraints(Legion::FieldID f_id) {
+    using namespace Legion;
+    LayoutConstraintSet ret;
+    ret.add_constraint(SpecializedConstraint());
+    ret.add_constraint(soa_constraint);
+    ret.add_constraint(
+      FieldConstraint(std::vector<FieldID>{f_id}, false, false));
+    return ret;
+  }
+
+  /*
+   * create_copy_instance : similar to
+   * DefaultMapper::default_create_copy_instance except that
+   * it creates one physical instance per field
+   */
+  template<bool S>
+  void create_copy_instance(Legion::Mapping::MapperContext ctx,
+    const Legion::Copy & copy,
+    const Legion::RegionRequirement & req,
+    std::vector<Legion::Mapping::PhysicalInstance> & instances) {
+    using namespace Legion;
+    using namespace Legion::Mapping;
+
+    // See if we have all the fields covered
+    std::set<FieldID> missing_fields = req.privilege_fields;
+    for(auto & phys_instance : instances) {
+      phys_instance.remove_space_fields(missing_fields);
+      if(missing_fields.empty())
+        return;
+    }
+    // If we still have missing fields, we need to create new instances
+    Memory target_memory = default_policy_select_target_memory(
+      ctx, copy.parent_task->current_proc, req);
+
+    for(const auto & missing_field : missing_fields)
+      instances.emplace_back(get_instance(ctx,
+        S ? "copy source" : "copy destination",
+        target_memory,
+        constraints(missing_field),
+        {req.region}));
+  } // create_copy_instance
+
   /*
     Distribute the index points of a domain across the processors provided in
     `local_procs` in a round robin way
@@ -525,7 +565,7 @@ private:
 
   Legion::Mapping::PhysicalInstance get_instance(
     const Legion::Mapping::MapperContext ctx,
-    const Legion::Task & task,
+    const std::string & op,
     const Legion::Memory & target_mem,
     const Legion::LayoutConstraintSet & layout_constraints,
     const std::vector<Legion::LogicalRegion> & regions) const {
@@ -543,8 +583,8 @@ private:
                     &instance_size);
     if(!res)
       flog_fatal("FleCSI mapper failed to allocate instance of size "
-                 << instance_size << " in memory " << target_mem << " for task "
-                 << std::quoted(task.get_task_name()));
+                 << instance_size << " in memory " << target_mem << " for "
+                 << op);
     return result;
   }
 
