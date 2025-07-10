@@ -120,6 +120,8 @@ if(ENABLE_LIBRARY)
   #----------------------------------------------------------------------------#
   option(BUILD_SHARED_LIBS "Build shared libs" ON)
   mark_as_advanced(BUILD_SHARED_LIBS)
+  option(ENABLE_DEVELOPER_WARNINGS "Build with warnings" OFF)
+  mark_as_advanced(ENABLE_DEVELOPER_WARNINGS)
 
   enable_language(CXX)
   enable_language(C)
@@ -239,6 +241,13 @@ if(ENABLE_LIBRARY)
 
   if (NOT CALIPER_DETAIL STREQUAL "none")
     flecsi_enable_caliper(FleCSI)
+  endif()
+
+  if(ENABLE_DEVELOPER_WARNINGS)
+    target_compile_options(FleCSI PUBLIC -Wall -Wundef -W -Werror -Wvla -Wextra-semi $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>)
+    if(Kokkos_ENABLE_CUDA)
+      target_compile_options(FleCSI PUBLIC -Wno-unknown-cuda-version)
+    endif()
   endif()
 
   #----------------------------------------------------------------------------#
