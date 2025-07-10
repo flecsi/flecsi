@@ -88,7 +88,7 @@ struct topology<P, core_base> : core_base {
 
   /// Find the partition for an index space.
   /// \return a \c repartition if appropriate
-  /// \note As a special case, the global topology does not define this.
+  /// \note As a special case, the global topology returns \c region again.
   template<typename P::index_space>
   data::partition & get_partition();
 

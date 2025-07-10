@@ -19,6 +19,10 @@ namespace flecsi::exec {
 /// \addtogroup legion-execution
 /// \{
 
+namespace leg {
+using Indices = std::vector<std::vector<Legion::RegionRequirement>::size_type>;
+}
+
 /*!
   The bind_accessors type is called to walk the user task arguments inside of
   an executing legion task to properly complete the users accessors, i.e., by
@@ -33,9 +37,13 @@ struct bind_accessors {
   bind_accessors(Legion::Runtime * legion_runtime,
     Legion::Context & legion_context,
     std::vector<Legion::PhysicalRegion> const & regions,
+    const leg::Indices & which,
     std::vector<Legion::Future> const & futures)
     : legion_runtime_(legion_runtime), legion_context_(legion_context),
-      regions_(regions), futures_(futures) {}
+      regions_(regions), which(which), futures_(futures) {}
+  ~bind_accessors() {
+    flog_assert(region == which.size(), "not enough parameters");
+  }
 
 protected:
   void visit(processor_space_t<Proc> & s) {
@@ -48,7 +56,7 @@ protected:
 
   template<typename D, Privileges P>
   void visit(data::accessor<data::raw, D, P> & accessor) {
-    auto & reg = regions_[region++];
+    auto & reg = next();
     // For incomplete launch maps:
     if(!reg.get_logical_region().exists())
       return;
@@ -63,7 +71,7 @@ protected:
 
   template<class R, typename D>
   void visit(data::reduction_accessor<R, D> & reduce) {
-    auto & reg = regions_[region++];
+    auto & reg = next();
     const Legion::ReductionAccessor<exec::fold::wrap<R, D>,
       false,
       data::leg::region_dimensions,
@@ -74,6 +82,11 @@ protected:
   }
 
 private:
+  const Legion::PhysicalRegion & next() {
+    flog_assert(region < which.size(), "too many parameters");
+    return regions_[which[region++]];
+  }
+
   template<typename A, typename LA>
   void bind(const Legion::PhysicalRegion & reg, A & acc, const LA & aa) const {
     const auto dom = legion_runtime_->get_index_space_domain(
@@ -99,6 +112,7 @@ private:
   Legion::Context & legion_context_;
   size_t region = 0;
   const std::vector<Legion::PhysicalRegion> & regions_;
+  const leg::Indices & which;
   size_t future_id = 0;
   const std::vector<Legion::Future> & futures_;
 
