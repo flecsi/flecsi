@@ -36,7 +36,7 @@ struct connect<P, util::types<VT...>> {
 };
 
 // Lists do not need to register fields on varied index spaces, so they can
-// use a single type T here (which can be an accessor_member).
+// use a single type T here.
 template<class, class>
 struct lists;
 template<class T, class... VT>
@@ -63,30 +63,9 @@ struct key_access<util::key_tuple<VT...>, Priv> {
 template<class P>
 using connect_t = typename detail::connect<P, typename P::connectivities>::type;
 
-namespace detail {
-// A parallel sparse matrix of accessors.
-template<class C, Privileges Priv>
-struct connect_access : key_access<C, Priv>::type {
-  // Prior to C++20, accessor_member can't refer to the subobjects of a
-  // connect_t, so the accessors must be initialized externally.
-  template<class... VT>
-  connect_access(const util::key_tuple<VT...> & c)
-    : connect_access::key_tuple(
-        make_from<std::decay_t<decltype(this->template get<VT::value>())>>(
-          c.template get<VT::value>())...) {}
-
-private:
-  // The .get<>s here and above just access the elements in order, of course.
-  template<class T, class U, auto... VV>
-  static T make_from(const util::key_array<U, util::constants<VV...>> & m) {
-    return {{typename T::value_type(m.template get<VV>().fid)...}};
-  }
-};
-} // namespace detail
-
 // Accessors for the connectivity requested by a topology.
 template<class P, Privileges Priv>
-using connect_access = detail::connect_access<connect_t<P>, Priv>;
+using connect_access = typename detail::key_access<connect_t<P>, Priv>::type;
 
 template<class T, class P>
 using lists_t = typename detail::lists<T, typename P::entity_lists>::type;

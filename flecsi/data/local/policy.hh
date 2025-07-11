@@ -204,7 +204,8 @@ protected:
   ref p; // to preserve an address on move
 };
 
-using storages = std::vector<std::variant<region::ref, partition::ref>>;
+using storages =
+  std::vector<std::pair<std::variant<region::ref, partition::ref>, field_id_t>>;
 
 // forward declaration only
 struct copy_engine;

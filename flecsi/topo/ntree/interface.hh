@@ -1195,39 +1195,36 @@ public:
 template<class Policy>
 template<Privileges Priv>
 struct topology<Policy, ntree_base>::access {
-  template<const auto & F>
-  using accessor = data::accessor_member<F, Priv>;
-  /// Entities keys
-  accessor<topology::e_keys> e_keys;
+  template<class T>
+  using accessor = typename field<T>::template accessor1<Priv>;
+  accessor<key_t> e_keys, ///< Entities keys
+    n_keys; ///< Nodes keys
   /// Entities Color
-  accessor<topology::e_colors> e_colors;
+  accessor<Color> e_colors;
   /// Entities Id (for key collisions)
-  accessor<topology::e_ids> e_ids;
-  /// Nodes keys
-  accessor<topology::n_keys> n_keys;
+  accessor<util::id> e_ids;
   // Entities interaction fields
-  accessor<topology::e_i> e_i;
+  accessor<entity_data> e_i;
   /// Nodes interaction fields
-  accessor<topology::n_i> n_i;
+  accessor<node_data> n_i;
 
 private:
-  accessor<topology::data_field> data_field;
-  accessor<topology::hcells> hcells;
-  data::scalar_access<meta_field, privilege_pack<ro>> mf;
+  accessor<ntree_data> data_field;
+  accessor<hmap_pair_t> hcells;
+  data::scalar_access<meta_type, ro> mf;
 
 public:
   template<class F>
   void send(F && f) {
-    e_keys.topology_send(f);
-    n_keys.topology_send(f);
-    e_colors.topology_send(f);
-    e_ids.topology_send(f);
-    data_field.topology_send(f);
-    hcells.topology_send(f);
-    e_i.topology_send(f);
-    n_i.topology_send(f);
-    mf.topology_send(
-      std::forward<F>(f), [](auto & n) -> auto & { return n.meta; });
+    f(e_keys, topology::e_keys);
+    f(n_keys, topology::n_keys);
+    f(e_colors, topology::e_colors);
+    f(e_ids, topology::e_ids);
+    f(data_field, topology::data_field);
+    f(hcells, topology::hcells);
+    f(e_i, topology::e_i);
+    f(n_i, topology::n_i);
+    std::forward<F>(f)(mf, [](auto & n) { return meta_field(n.meta); });
   }
 
   /// Hashing table type

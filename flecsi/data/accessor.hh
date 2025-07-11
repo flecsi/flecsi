@@ -154,8 +154,6 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : send_tag {
   using base_type = accessor<dense, DATA_TYPE, PRIVILEGES>;
   using element_type = typename base_type::element_type;
 
-  explicit accessor(field_id_t f) : base(f) {}
-
   /// Get the value.
   FLECSI_INLINE_TARGET element_type & get() const {
     return base(0);
@@ -216,17 +214,11 @@ struct reduction_accessor : bind_tag {
   using element_type = T;
   using size_type = typename util::span<element_type>::size_type;
 
-  explicit reduction_accessor(field_id_t f) : f(f) {}
-
   /// Prepare to update en element.
   /// \return a callable that merges its \p T argument into the field element
   FLECSI_INLINE_TARGET
   auto operator[](size_type index) const {
     return [&v = s[index]](const T & r) { v = R::combine(v, r); };
-  }
-
-  field_id_t field() const {
-    return f;
   }
 
   void bind(util::span<element_type> x) { // for bind_accessors
@@ -239,7 +231,6 @@ struct reduction_accessor : bind_tag {
   }
 
 private:
-  field_id_t f;
   util::span<element_type> s;
 };
 
@@ -249,12 +240,6 @@ template<typename DATA_TYPE, Privileges PRIVILEGES>
 struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
   using value_type = DATA_TYPE;
   using element_type = detail::element_t<DATA_TYPE, PRIVILEGES>;
-
-  explicit accessor(field_id_t f) : f(f) {}
-
-  field_id_t field() const {
-    return f;
-  }
 
   /// Get the allocated memory.
   /// \return \c util::span
@@ -267,7 +252,6 @@ struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
   }
 
 private:
-  field_id_t f;
   util::span<element_type> s;
 }; // struct accessor
 
@@ -277,10 +261,7 @@ private:
 template<class T, Privileges P>
 struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
   using base_type = accessor<raw, T, P>;
-  using base_type::base_type;
-  using size_type = typename decltype(base_type(0).span())::size_type;
-
-  accessor(const base_type & b) : base_type(b) {}
+  using size_type = typename decltype(base_type().span())::size_type;
 
   /// Index with bounds checking (except with \c NDEBUG).
   FLECSI_INLINE_TARGET typename accessor::element_type & operator()(
@@ -335,9 +316,6 @@ struct ragged_accessor
   using Offset = typename Offsets::value_type;
   using size_type = typename Offsets::size_type;
   using row = util::span<element_type>;
-
-  using base_type::base_type;
-  ragged_accessor(const base_type & b) : base_type(b) {}
 
   /// Get the row at an index point.
   /// \return \c util::span
@@ -413,14 +391,12 @@ struct ragged_accessor
   }
 
 private:
-  Offsets off{this->field()};
+  Offsets off;
 };
 
 template<class T, Privileges P>
 struct accessor<ragged, T, P>
-  : ragged_accessor<T, P, privilege_repeat<ro, privilege_count(P)>> {
-  using accessor::ragged_accessor::ragged_accessor;
-};
+  : ragged_accessor<T, P, privilege_repeat<ro, privilege_count(P)>> {};
 
 /// Mutator for ragged fields.
 /// Sizes are \ref topo::repartition::resize "applied" before launching the
@@ -745,8 +721,7 @@ public:
 
   }; // struct row
 
-  mutator(const base_type & b, const topo::resize::policy & p)
-    : acc(b), grow(p) {}
+  explicit mutator(const topo::resize::policy & p) : grow(p) {}
 
   /// Get the row at an index point.
   row operator[](size_type i) const {
@@ -900,7 +875,7 @@ private:
   }
 
   base_type acc;
-  topo::resize::accessor<wo> sz;
+  topo::resize::Field::accessor<wo> sz;
   topo::resize::policy grow;
   TaskBuffer * over = nullptr;
 }; // struct mutator<ragged, T, P>
@@ -946,9 +921,6 @@ public:
   private:
     base_row s;
   };
-
-  using base_type::base_type;
-  accessor(const base_type & b) : base_type(b) {}
 
   /// Get the row at an index point.
   FLECSI_INLINE_TARGET row operator[](typename accessor::size_type i) const {
@@ -1207,7 +1179,7 @@ template<class T, Privileges P, bool M>
 struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   static_assert(privilege_count(P) == 1, "particles cannot be ghosts");
   using base_type = detail::particle_raw<T, P, M>;
-  using size_type = typename decltype(base_type(0).span())::size_type;
+  using size_type = typename decltype(base_type().span())::size_type;
   using Particle = typename base_type::value_type;
   // Override base class aliases:
   using value_type = T;
@@ -1281,9 +1253,6 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
     size_type i;
   };
 
-  using base_type::base_type;
-  particle_accessor(const base_type & b) : base_type(b) {}
-
   // This interface is a subset of that proposed for std::hive.
 
   /// Get the number of extant particles.
@@ -1348,8 +1317,6 @@ protected:
 
 template<class T, Privileges P>
 struct accessor<particle, T, P> : particle_accessor<T, P, false> {
-  using accessor::particle_accessor::particle_accessor;
-
   template<class F>
   void send(F && f) {
     accessor::particle_accessor::send(std::forward<F>(f));
@@ -1373,7 +1340,6 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
 
   // We don't support automatic resizing since we don't control the region.
   // TODO: Support manual resizing (by updating the skipfield appropriately)
-  using base_type::base_type;
 
   // Since, by design, the skipfield data structure requires no lookaside
   // tables, accessor could provide it instead of having this class at all.
@@ -1516,16 +1482,14 @@ struct scalar_value : bind_tag {
   }
 };
 
-template<auto & F>
-struct scalar_access : bind_tag {
+template<class T>
+struct scalar_access : send_tag {
+  using value_type = T;
 
-  typedef
-    typename std::remove_reference_t<decltype(F)>::Field::value_type value_type;
-
-  template<class Func, class S>
-  void topology_send(Func && f, S && s) {
-    accessor_member<F, privilege_pack<ro>> acc;
-    acc.topology_send(f, std::forward<S>(s));
+  template<class Func>
+  void send(Func && f) {
+    typename field<T, single>::template accessor<ro> acc;
+    f(acc, util::identity());
     if(auto * const d = acc.data()) {
       scalar_value<value_type> dummy{{}, d, &scalar_};
       std::forward<Func>(f)(dummy, [](auto &) { return nullptr; });
@@ -1551,10 +1515,10 @@ private:
 /// read-only even if fields are stored on a device.  Use `*sa` or `sa->` to
 /// access it.
 /// \tparam P produces an ordinary accessor if writable
-template<const auto & F, Privileges P>
-using scalar_access = std::conditional_t<privilege_merge(P) == ro,
-  detail::scalar_access<F>,
-  accessor_member<F, P>>;
+template<class T, privilege P>
+using scalar_access = std::conditional_t<P == ro,
+  detail::scalar_access<T>,
+  typename field<T, single>::template accessor<P>>;
 
 /// \endcond
 
@@ -1594,7 +1558,7 @@ struct multi : detail::multi_buffer<A>, send_tag {
     auto & v = *vp;
     Color i = 0;
     for(auto & [c, a] : v) {
-      f(c.get_base(), [&](auto & r) {
+      f(c, [&](auto & r) {
         flog_assert(r.map().depth() == Color(v.size()),
           "launch map has depth " << r.map().depth() << ", not " << v.size());
         return r.map().claims(i);
@@ -1612,7 +1576,7 @@ struct multi : detail::multi_buffer<A>, send_tag {
 
 private:
   struct round {
-    accessor_member<topo::claims::field, privilege_pack<ro>> row;
+    topo::claims::Field::accessor<ro> row;
     A a;
   };
   template<class V>
@@ -1631,15 +1595,17 @@ namespace exec::detail {
 template<data::layout L, class T, Privileges P>
 struct task_param<data::accessor<L, T, P>> {
   template<class Topo, typename Topo::index_space S>
-  static auto replace(const data::field_reference<T, L, Topo, S> & r) {
-    return data::accessor<L, T, P>(r.fid());
+  static data::accessor<L, T, P> replace(
+    const data::field_reference<T, L, Topo, S> &) {
+    return {};
   }
 };
 template<data::layout L, class T, Privileges P>
 struct task_param<data::mutator<L, T, P>> {
   template<class Topo, typename Topo::index_space S>
-  static auto replace(const data::field_reference<T, L, Topo, S> & r) {
-    return data::mutator<L, T, P>(r.fid());
+  static data::mutator<L, T, P> replace(
+    const data::field_reference<T, L, Topo, S> &) {
+    return {};
   }
 };
 template<class T, Privileges P>
@@ -1648,9 +1614,8 @@ struct task_param<data::mutator<data::ragged, T, P>> {
   template<class Topo, typename Topo::index_space S>
   static type replace(
     const data::field_reference<T, data::ragged, Topo, S> & r) {
-    return {exec::replace_argument<typename type::base_type::base_type>(
-              r.template cast<data::raw>()),
-      r.get_elements().template get_partition<topo::elements>().growth};
+    return type(
+      r.get_elements().template get_partition<topo::elements>().growth);
   }
 };
 template<class T, Privileges P>
@@ -1667,9 +1632,9 @@ struct task_param<data::mutator<data::sparse, T, P>> {
 template<class R, typename T>
 struct task_param<data::reduction_accessor<R, T>> {
   template<class Topo, typename Topo::index_space S>
-  static auto replace(
-    const data::field_reference<T, data::dense, Topo, S> & r) {
-    return data::reduction_accessor<R, T>(r.fid());
+  static data::reduction_accessor<R, T> replace(
+    const data::field_reference<T, data::dense, Topo, S> &) {
+    return {};
   }
 };
 template<class A>

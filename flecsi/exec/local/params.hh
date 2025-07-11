@@ -41,16 +41,17 @@ protected:
       add_copy<P>(ref);
 
     d().template raw<P>(s[f]);
-    storage.push_back(get_selected(t) ? s.share() : nullptr);
+    storage.emplace_back(get_selected(t) ? s.share() : nullptr, f);
   } // visit generic topology
 
   template<class R, typename T, class Topo, typename Topo::index_space Space>
   void visit(data::reduction_accessor<R, T> &,
     const data::field_reference<T, data::dense, Topo, Space> & ref) {
     static_assert(std::is_same_v<typename Topo::base, topo::global_base>);
+    const field_id_t f = ref.fid();
     auto & t = ref.topology();
-    storage.push_back(t.share());
-    d().reduce(t[ref.fid()]);
+    storage.emplace_back(t.share(), f);
+    d().reduce(t[f]);
   }
 
   // epilog
@@ -93,12 +94,13 @@ private:
   void accessor(A & a) {
     flog_assert(
       index < storage.size(), "more accessors than regions/partitions");
+    auto & [s, f] = storage[index++];
     std::visit(
-      [&a](auto && s) {
+      [&, f = f](auto && s) { // init-capture needed until C++20
         if(s) // for borrow
-          a.bind(s->template get_storage<T, P, Proc>(a.field()));
+          a.bind(s->template get_storage<T, P, Proc>(f));
       },
-      storage[index++]);
+      s);
   }
 
 protected:

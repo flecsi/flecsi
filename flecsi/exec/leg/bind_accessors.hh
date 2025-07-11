@@ -20,7 +20,8 @@ namespace flecsi::exec {
 /// \{
 
 namespace leg {
-using Indices = std::vector<std::vector<Legion::RegionRequirement>::size_type>;
+using Indices = std::vector<
+  std::pair<std::vector<Legion::RegionRequirement>::size_type, field_id_t>>;
 }
 
 /*!
@@ -56,7 +57,7 @@ protected:
 
   template<typename D, Privileges P>
   void visit(data::accessor<data::raw, D, P> & accessor) {
-    auto & reg = next();
+    auto [reg, f] = next();
     // For incomplete launch maps:
     if(!reg.get_logical_region().exists())
       return;
@@ -65,26 +66,27 @@ protected:
       data::leg::region_dimensions,
       Legion::coord_t,
       Realm::AffineAccessor<D, data::leg::region_dimensions, Legion::coord_t>>
-      ac(reg, accessor.field());
+      ac(reg, f);
     bind(reg, accessor, ac);
   }
 
   template<class R, typename D>
   void visit(data::reduction_accessor<R, D> & reduce) {
-    auto & reg = next();
+    auto [reg, f] = next();
     const Legion::ReductionAccessor<exec::fold::wrap<R, D>,
       false,
       data::leg::region_dimensions,
       Legion::coord_t,
       Realm::AffineAccessor<D, data::leg::region_dimensions, Legion::coord_t>>
-      ac(reg, reduce.field(), exec::fold::wrap<R, D>::REDOP_ID);
+      ac(reg, f, exec::fold::wrap<R, D>::REDOP_ID);
     bind(reg, reduce, ac);
   }
 
 private:
-  const Legion::PhysicalRegion & next() {
+  std::pair<const Legion::PhysicalRegion &, field_id_t> next() {
     flog_assert(region < which.size(), "too many parameters");
-    return regions_[which[region++]];
+    const auto & [w, f] = which[region++];
+    return {regions_[w], f};
   }
 
   template<typename A, typename LA>

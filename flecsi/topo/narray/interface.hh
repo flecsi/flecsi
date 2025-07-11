@@ -571,19 +571,17 @@ struct topology<Policy, narray_base>::access {
   void send(F && f) {
     std::size_t i{0};
     for(auto & a : size_)
-      a.topology_send(
-        f, [&i](auto & n) -> auto & { return n.get_sizes(i++); });
-    const auto meta = [](auto & n) -> auto & {
-      return n.meta;
-    };
-    meta_.topology_send(f, meta);
+      f(a, [&i](auto & n) { return topo::resize::field(n.get_sizes(i++)); });
+    std::forward<F>(f)(meta_, [](auto & n) { return meta_field(n.meta); });
   }
 
 private:
-  util::key_array<data::scalar_access<topo::resize::field, Priv>, index_spaces>
+  util::key_array<
+    data::scalar_access<topo::resize::Field::value_type, privilege_merge(Priv)>,
+    index_spaces>
     size_;
 
-  data::scalar_access<meta_field, Priv> meta_;
+  data::scalar_access<topology::policy_meta, privilege_merge(Priv)> meta_;
 
   template<index_space S, class C>
   auto check_extents(const C & c) const {

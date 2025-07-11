@@ -26,8 +26,6 @@ struct resize : specialization<column, resize> {
   /// that is assignable from and convertible to an integer
   using Field = data::prefixes_base::Field;
   static const Field::definition<resize> field;
-  template<privilege P>
-  using accessor = data::accessor_member<field, privilege_pack<P>>;
 
   /// A heuristic for automatically resizing a partition.
   /// Each new size is derived from the current size and amount of it used.
