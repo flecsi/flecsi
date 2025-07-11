@@ -145,21 +145,19 @@ struct copy_engine : local::copy_engine {
         auto n_elements = entity.second.size();
 
         std::visit(
-          overloaded{
-            [&](const backend_storage::host_view & dst_view) {
-              auto dst_indices_view = entity.second.data();
+          overloaded{[&](const backend_storage::host_view & dst_view) {
+                       auto dst_indices_view = entity.second.data();
 
-              auto subview = Kokkos::subview(dst_view,
-                std::pair<std::size_t, std::size_t>(0, destination->max_end));
-              std::byte * dst = subview.data();
-              const std::byte * src = recv_buffer->data();
+                       std::byte * dst = dst_view.data();
+                       const std::byte * src = recv_buffer->data();
 
-              for(std::size_t i = 0; i < dst_indices_view.extent(0); i++) {
-                std::memcpy(dst + dst_indices_view[i] * type_size,
-                  src + i * type_size,
-                  type_size);
-              }
-            },
+                       for(std::size_t i = 0; i < dst_indices_view.extent(0);
+                           i++) {
+                         std::memcpy(dst + dst_indices_view[i] * type_size,
+                           src + i * type_size,
+                           type_size);
+                       }
+                     },
             [&](const backend_storage::device_view & dst) {
               if(!scatter_buffer_device_view)
                 scatter_buffer_device_view.emplace(
@@ -175,14 +173,11 @@ struct copy_engine : local::copy_engine {
               auto dst_indices_view =
                 entity.second.template data<exec::processor::toc>();
 
-              auto subview = Kokkos::subview(dst,
-                std::pair<std::size_t, std::size_t>(0, destination->max_end));
-
               // copy ghost values from scatter buffer on device to field
               // storage in parallel, for each element
               Kokkos::parallel_for(
                 n_elements, KOKKOS_LAMBDA(const auto & i) {
-                  memcpy(subview.data() + dst_indices_view[i] * type_size,
+                  memcpy(dst.data() + dst_indices_view[i] * type_size,
                     scatter_buffer_device_view->data() + i * type_size,
                     type_size);
                 });
