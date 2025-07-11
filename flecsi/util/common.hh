@@ -10,12 +10,10 @@
 #include <atomic>
 #include <cassert>
 #include <cerrno>
-#include <cstdint>
+#include <cstdint> // for ID types
 #include <cstdio>
 #include <ios>
-#include <limits>
 #include <map>
-#include <optional>
 #include <type_traits>
 #include <utility>
 #include <vector>

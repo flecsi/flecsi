@@ -5,7 +5,8 @@
 #define FLECSI_EXEC_TASK_ATTRIBUTES_HH
 
 #include "flecsi/config.hh"
-#include "flecsi/util/bitutils.hh"
+
+#include <cstddef> // size_t
 
 namespace flecsi {
 /// \addtogroup execution
