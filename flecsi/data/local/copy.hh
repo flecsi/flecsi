@@ -26,17 +26,17 @@ struct copy_engine : copy_base {
     const data::intervals & intervals,
     field_id_t fid,
     AllToAll && all_to_all)
-    : source(&src->get_region()), destination(intervals.share()) {
+    : source(&src->get_region()), destination(intervals.r) {
     // Make sure the task that is writing to the field has finished running
     (*destination)[fid].synchronize();
     // The input comprises the color and index of shared elements stored at
     // each ghost element; reverse those pointers to know what to send where.
 
-    auto remote_sources = destination->get_storage<Point, ro>(fid);
+    const auto remote_sources = intervals.get_storage<Point, ro>(fid);
 
     // Calculate the memory needed up front for the ghost_entities
     std::map<Color, std::size_t> mem_size;
-    for(const auto & [begin, end] : destination->ghost_ranges) {
+    for(const auto & [begin, end] : intervals.ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         const auto & shared = remote_sources[ghost_idx];
         mem_size[shared.first]++;
@@ -49,7 +49,7 @@ struct copy_engine : copy_base {
     // Essentially a GroupByKey of remote_sources, keys are the remote source
     // ranks and values are vectors of remote source indices.
     std::map<Color, std::vector<index_type>> remote_shared_entities;
-    for(const auto & [begin, end] : destination->ghost_ranges) {
+    for(const auto & [begin, end] : intervals.ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         const auto & shared = remote_sources[ghost_idx];
         remote_shared_entities[shared.first].emplace_back(shared.second);
@@ -85,8 +85,7 @@ struct copy_engine : copy_base {
   // (remote rank, { local indices })
   using SendPoints = std::map<Color, local::detail::storage<index_type>>;
 
-  region_impl * source; // kept alive by subsequent tasks
-  intervals::ref destination;
+  region_impl *source, *destination;
   SendPoints ghost_entities; // (src rank,  { local ghost indices})
   SendPoints shared_entities; // (dest rank, { local shared indices})
   std::size_t max_shared_indices_size = 0;

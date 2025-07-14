@@ -132,8 +132,7 @@ struct copy_engine : local::copy_base {
 
           // Since we are doing ghost copy via HPX, we always want the host side
           // version.
-          std::byte * const dst =
-            (*p->destination->r)[data_fid].data<rw>().data();
+          std::byte * const dst = (*p->destination)[data_fid].data<rw>().data();
           auto type_size = p->source->get_field_info(data_fid)->type_size;
 
           using namespace ::hpx::collectives;

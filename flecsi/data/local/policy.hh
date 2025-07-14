@@ -283,10 +283,16 @@ private:
   bool sel;
 };
 
-struct intervals_impl {
+struct intervals {
   using Value = subrow; // [begin, end)
+  static Value make(subrow r, std::size_t = 0) {
+    return r;
+  }
 
-  intervals_impl(region_base & r, const partition & p, field_id_t fid)
+  intervals(region_base & r,
+    const partition & p,
+    field_id_t fid,
+    completeness = incomplete)
     : r(&*r) {
     // Make sure the task that is writing to the field has finished running
     p[fid].synchronize();
@@ -305,39 +311,11 @@ struct intervals_impl {
     return r->get_storage<T, Priv>(fid, max_end);
   }
 
-  decltype(auto) operator[](field_id_t fid) const {
-    return (*r)[fid];
-  }
-
   local::region_impl * r;
 
   // Locally cached metadata on ranges of ghost index.
   std::vector<Value> ghost_ranges;
   std::size_t max_end = 0; // size of prefix containing all ranges
-};
-
-struct intervals {
-  using Value = intervals_impl::Value;
-  static Value make(subrow r, std::size_t = 0) {
-    return r;
-  }
-
-  using ref = std::shared_ptr<const intervals_impl>;
-
-  intervals(region_base & r,
-    const partition & p,
-    field_id_t fid,
-    completeness = incomplete)
-    : ii(std::make_shared<const intervals_impl>(r, p, fid)) {}
-  intervals(intervals &&) = default;
-  intervals & operator=(intervals &&) & = default;
-
-  ref share() const {
-    return ii;
-  }
-
-private:
-  ref ii; // for asynchronous use
 };
 
 } // namespace data
