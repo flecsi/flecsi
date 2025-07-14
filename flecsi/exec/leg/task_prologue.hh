@@ -87,7 +87,7 @@ private:
       topo_req.try_emplace({&s, b, m}, region_reqs_.size());
     if(add)
       std::forward<A>(a)();
-    auto & r = region_reqs_[which.emplace_back(it->second)];
+    auto & r = region_reqs_[which.emplace_back(it->second, f).first];
     if(!r.privilege_fields.count(f))
       r.add_field(f);
     if(rsz)
@@ -181,7 +181,7 @@ private:
              Legion::PrivilegeMode>,
     req>
     topo_req;
-  std::vector<req> which;
+  std::vector<std::pair<req, field_id_t>> which;
   std::vector<Legion::Future> futures_;
   std::vector<Legion::FutureMap> future_maps_;
 };

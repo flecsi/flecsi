@@ -4,7 +4,6 @@
 #ifndef FLECSI_UTIL_BITUTILS_HH
 #define FLECSI_UTIL_BITUTILS_HH
 
-#include <cstddef>
 #include <limits>
 #include <type_traits>
 

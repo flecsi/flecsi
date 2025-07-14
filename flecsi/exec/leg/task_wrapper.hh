@@ -8,13 +8,11 @@
 
 #include "flecsi/exec/bind_parameters.hh"
 #include "flecsi/exec/buffers.hh"
-#include "flecsi/exec/leg/future.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/common.hh"
 #include "flecsi/util/function_traits.hh"
-#include "flecsi/util/serialize.hh"
 #include <flecsi/flog.hh>
 
 #include <legion.h>

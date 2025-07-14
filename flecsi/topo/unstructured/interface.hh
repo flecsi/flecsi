@@ -334,8 +334,7 @@ struct topology<Policy, topo::unstructured_base>::access {
   void send(F && f) {
     std::size_t i = 0;
     for(auto & a : size_)
-      a.topology_send(
-        f, [&i](auto & u) -> auto & { return u.get_sizes(i++); });
+      f(a, [&i](auto & u) { return topo::resize::field(u.get_sizes(i++)); });
 
     connect_send(f, connect_, topology::connect_);
     lists_send(
@@ -345,7 +344,6 @@ struct topology<Policy, topo::unstructured_base>::access {
 
 protected:
   using entity_list = typename Policy::entity_list;
-  access() : connect_(topology::connect_) {}
 
   /*!
     Return an index space as a range.
@@ -395,14 +393,13 @@ private:
     Private data members.
    *--------------------------------------------------------------------------*/
 
-  template<const auto & Field>
-  using accessor =
-    data::accessor_member<Field, privilege_pack<privilege_merge(Privileges)>>;
-  util::key_array<data::scalar_access<topo::resize::field, Privileges>,
+  util::key_array<data::scalar_access<topo::resize::Field::value_type,
+                    privilege_merge(Privileges)>,
     index_spaces>
     size_;
   connect_access<Policy, Privileges> connect_;
-  lists_t<accessor<special_field>, Policy> special_;
+  lists_t<field<util::id>::accessor<privilege_merge(Privileges)>, Policy>
+    special_;
 
 }; // struct unstructured<Policy>::access
 

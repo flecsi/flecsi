@@ -16,7 +16,7 @@ ragged_mutator_driver(scheduler &) {
     mutator_t::TaskBuffer buffers;
     auto m = [&memory, &endpoints, &size, &buffers]() {
       // Declare the mutator
-      field<std::size_t, ragged>::mutator<rw> m(mutator_t::base_type(0), {});
+      field<std::size_t, ragged>::mutator<rw> m({});
       // Bind the backing storage for data elements
       m.get_base().get_base().bind(util::span(memory));
       // Bind the backing storage for the endpoints
