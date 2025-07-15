@@ -34,6 +34,11 @@ not locked into particular layouts or data structure representations.
 Documentation for FleCSI is at
 [flecsi.org](http://www.flecsi.org/).
 
+# Contributing
+
+To contribute, first review our [authorship and legal terms](https://github.com/flecsi/flecsi/blob/develop/CONTRIBUTING.md), then submit a [pull request](https://github.com/flecsi/flecsi/pulls).
+For bug reports or support requests, please open a new [issue](https://github.com/flecsi/flecsi/issues).
+
 # Release
 
 This software has been approved for open source release and has
