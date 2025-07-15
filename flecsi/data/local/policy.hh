@@ -68,11 +68,6 @@ struct region_impl {
       nelems);
   }
 
-  template<privilege Priv>
-  auto current_data(field_id_t fid) {
-    return storages.at(fid).template current_data<Priv>();
-  }
-
   backend_storage & operator[](field_id_t fid) {
     return storages.at(fid);
   }

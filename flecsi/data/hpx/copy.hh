@@ -117,13 +117,17 @@ struct copy_engine : local::copy_base {
             run::context::instance().world0);
         })) {}
 
-  void operator()(const std::vector<field_id_t> & ff) const {
+  template<exec::processor>
+  void copy(const copy_request::vec & ff) const {
     auto & ctx = run::context::instance();
-    for(field_id_t data_fid : ff)
+    for(auto & [data_fid, _] : ff)
       init_delayed_ghost_copy((*p->source)[data_fid],
         (*p->destination)[data_fid],
         // Don't use context asynchronously:
-        [p = p, data_fid, comm = ctx.p2p_comm(), p2p = ctx.p2p_tag()]() {
+        [p = p,
+          data_fid = data_fid,
+          comm = ctx.p2p_comm(),
+          p2p = ctx.p2p_tag()]() {
           // manage task_local variables for this task
           run::task_local_base::guard tlg;
 

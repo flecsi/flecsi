@@ -15,7 +15,6 @@
 #include <numeric>
 #include <unordered_map>
 #include <utility>
-#include <variant>
 
 namespace flecsi {
 namespace data {
@@ -52,15 +51,10 @@ struct storage {
   using device_access =
     std::conditional_t<privilege_write(Priv), device_view, device_const_view>;
 
-  template<privilege Priv>
-  std::variant<host_access<Priv>, device_access<Priv>> current_data() {
-    if(current == toc)
-      return device_access<Priv>(toc_buffer);
-    else {
-      if(privilege_write(Priv))
-        current = loc;
-      return host_access<Priv>(loc_buffer);
-    }
+  template<exec::processor P>
+  void prefer(bool hard = false) {
+    if(hard || current == both)
+      data<rw, P>();
   }
 
   template<privilege Priv = ro, exec::processor Proc = exec::processor::loc>
@@ -95,6 +89,11 @@ struct storage {
   template<exec::processor Proc = exec::processor::loc>
   auto data() const {
     return const_cast<storage<T> *>(this)->data<ro, Proc>();
+  }
+
+  auto data2() { // for coherent updates
+    return std::pair(current == toc ? nullptr : loc_buffer.data(),
+      current == loc ? nullptr : toc_buffer.data());
   }
 
   void resize(std::size_t size) {
