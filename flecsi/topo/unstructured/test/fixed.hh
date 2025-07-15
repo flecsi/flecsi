@@ -32,15 +32,16 @@ struct fixed_mesh
   template<auto>
   static constexpr flecsi::PrivilegeCount privilege_count = 3;
 
-  static const inline flecsi::field<std::size_t>::definition<fixed_mesh, cells>
+  static const inline flecsi::field<flecsi::util::gid>::definition<fixed_mesh,
+    cells>
     cid;
-  static const inline flecsi::field<std::size_t>::definition<fixed_mesh,
+  static const inline flecsi::field<flecsi::util::gid>::definition<fixed_mesh,
     vertices>
     vid;
 
   struct init {
-    std::vector<std::vector<std::size_t>> cid;
-    std::vector<std::vector<std::size_t>> vid;
+    std::vector<std::vector<flecsi::util::gid>> cid;
+    std::vector<std::vector<flecsi::util::gid>> vid;
     std::vector<flecsi::util::crs> c2v_connectivity;
   };
 
@@ -120,8 +121,8 @@ struct fixed_mesh
       flecsi::util::gid>::accessor<flecsi::wo, flecsi::wo, flecsi::na>> mcid,
     flecsi::data::multi<flecsi::field<
       flecsi::util::gid>::accessor<flecsi::wo, flecsi::wo, flecsi::na>> mvid,
-    const std::vector<std::vector<std::size_t>> & cid,
-    const std::vector<std::vector<std::size_t>> & vid) {
+    const std::vector<std::vector<flecsi::util::gid>> & cid,
+    const std::vector<std::vector<flecsi::util::gid>> & vid) {
     const auto ma = m.accessors();
     auto acid = mcid.accessors();
     auto avid = mvid.accessors();
