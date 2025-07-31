@@ -1,0 +1,181 @@
+\documentclass[tikz,border=5mm]{standalone}
+\usepackage{tikz}
+\usepackage[utf8]{inputenc}
+\usepackage[oldenum, olditem]{paralist}
+
+\usetikzlibrary{
+  backgrounds,
+  arrows,
+  fit,
+  positioning,
+  calc,
+  matrix,
+  decorations.pathreplacing,
+  arrows.meta,
+  shapes.geometric
+}
+
+\pgfdeclarelayer{foreground}
+\pgfdeclarelayer{backbackground}
+\pgfsetlayers{backbackground,background,main,foreground}
+
+% Use the same font as the rest of the paper.
+\renewcommand\familydefault{\sfdefault}
+
+\begin{document}
+
+\def\PicFillColorMain{blue!10}
+\def\PicFillColorControl{blue!20}
+\def\PicFillColorAction{blue!30}
+\def\PicFillColorTask{blue!40}
+\def\PicFillColorPT{blue!50}
+\def\PicFillColorKernel{blue!60}
+\def\PicFillColorArrow{black}
+
+\tikzset{
+  main/.style = {rectangle, draw,minimum width=2cm,fill=\PicFillColorMain},
+  control/.style = {ellipse, draw, fill=\PicFillColorControl, minimum width=1.5cm, minimum height=1.2cm},
+  action/.style = {ellipse, draw, fill=\PicFillColorAction, minimum width=1cm, minimum height=1cm},
+  arrow/.style = {->, line width=1pt, draw=\PicFillColorArrow},
+  task/.style = {rectangle, draw, fill=\PicFillColorTask, text=white, inner sep=2mm},
+  pointtask/.style = {rectangle, draw, fill=\PicFillColorPT, minimum width=0.5cm, minimum height=0.5cm, text=white},
+  kernel/.style = {regular polygon, regular polygon sides=3, draw, fill=\PicFillColorKernel, text=white, font=\tiny, inner sep=1pt},
+  thread/.style = {-o, line width=.5pt}
+}
+
+\begin{tikzpicture}
+
+\node [main] (m1) {Main};
+\node[control, below=10mm of m1] (c1) {CP};
+
+\draw[arrow] (m1.south) -- (c1);
+\node[control, right =8mm of c1] (c2) {CP};
+\draw[arrow] (c1.east) to (c2.west);
+\node[control, right= 8mm of c2] (c3) {CP};
+\draw[arrow] (c2.east) to (c3.west);
+\node[control, right= 8mm of c3] (c4) {CP};
+\draw[arrow] (c3.east) to (c4.west);
+
+\draw[arrow, dotted, bend right=70] (c3.north) to
+      node[midway, above, fill=none, inner sep=2pt] {Cycle}
+      (c2.north);
+
+\node[action, below=3mm of c1] (a1) {A};
+\draw[arrow] (c1.south) to (a1.north);
+
+\node[action, below left = 6mm and  1mm of c2] (a2) {A};
+\node[action, below right= 6mm and  1mm of c2] (a3) {A};
+\node[action, below right= 5mm and  3mm of a2] (a4) {A};
+
+
+\draw[arrow] (c2) -- (a2);
+\draw[arrow] (c2) -- (a3);
+
+\draw[arrow] (a2) -- (a4);
+\draw[arrow] (a3) -- (a4);
+
+\node[action, below=3mm of c3] (a5) {A};
+\node[action, below=2mm of a5] (a6) {A};
+
+\draw[arrow] (c3) -- (a5);
+\draw[arrow] (a5) -- (a6);
+
+\node[action, below=3mm of c4] (a7) {A};
+\draw[arrow] (c4) -- (a7);
+
+\node[pointtask, below left=12mm and 15mm of a4] (pt1) {PT};
+\node[pointtask, right=1mm of pt1] (pt2) {PT};
+\node[pointtask, right=1mm of pt2] (pt3) {PT};
+\node[pointtask, right=1mm of pt3] (pt4) {PT};
+
+\begin{pgfonlayer}{backbackground}
+\node[task,label={[label distance=0mm,xshift=-5mm]above left:Task}, fit=(pt1)(pt2)(pt3)(pt4)] (t1) {};
+\end{pgfonlayer}
+
+\node[pointtask, right=1.5cm of pt4] (pt5) {PT};
+\node[pointtask, right=1mm of pt5] (pt6) {PT};
+\node[pointtask, right=1mm of pt6] (pt7) {PT};
+\node[pointtask, right=1mm of pt7] (pt8) {PT};
+
+\begin{pgfonlayer}{backbackground}
+\node[task,label={[label distance=0mm,xshift=5mm]above right:Task}, fit=(pt5)(pt6)(pt7)(pt8)] (t2) {};
+\end{pgfonlayer}
+
+\draw[arrow] (a4) -- (t1.north);
+\draw[arrow] (a4) -- (t2.north west);
+
+\def\KernelSpacing{0.65}
+\def\GroupSpacing{0.45}
+\def\LeftOffset{0.6}
+
+% Kernels for pt1-pt4 (two each: k1 to k8)
+\foreach \i [evaluate=\i as \groupX using (\i-1)*\GroupSpacing] in {1,...,4}{
+  \foreach \j [evaluate=\j as \localshift using (\j-1)*\KernelSpacing] in {1,2}{
+    \pgfmathtruncatemacro{\knumber}{2*(\i-1)+\j}
+    \pgfmathsetmacro{\xshift}{\groupX+\localshift - (\KernelSpacing/2) - \LeftOffset}
+    \node[kernel] (k\knumber) at ([xshift=\xshift cm,yshift=-1cm]pt\i.south) {K};
+    \draw[arrow] (pt\i.south) -- (k\knumber.north);
+  }
+}
+
+% Kernels for pt5-pt8 (one each: k9 to k12)
+\foreach \i in {5,...,8}{
+  \pgfmathtruncatemacro{\knumber}{\i+4}
+  \node[kernel] (k\knumber) at ([yshift=-1cm]pt\i.south) {K};
+  \draw[arrow] (pt\i.south) -- (k\knumber.north);
+}
+
+\foreach \i in {1,...,12} {
+  \draw [thread] ([xshift=-2mm]k\i.south) -- ++(0,-5mm);
+  \draw [thread] (k\i.south) -- ++(0,-5mm);
+  \draw [thread] ([xshift=2mm]k\i.south) -- ++(0,-5mm);
+}
+
+\def\BracketX{8.5}
+
+\draw[decorate,align=left,
+      decoration={brace, amplitude=8pt},
+      line width=1pt]
+      (\BracketX, -1) --
+      (\BracketX, -5)
+      node[midway, right=12pt]
+      {\begin{minipage}[t]{8pc}
+         {\large Control model\par}
+         \begin{compactitem}
+           \item main
+           \item control points
+           \item actions
+         \end{compactitem}
+       \end{minipage}};
+
+\draw[decorate,align=left,
+      decoration={brace, amplitude=8pt},
+      line width=1pt]
+      (\BracketX, -5.2) --
+      (\BracketX, -7.8)
+      node[midway, right=12pt]
+      {\begin{minipage}[t]{8pc}
+         {\large Execution model\par}
+         \begin{compactitem}
+           \item tasks
+           \item point tasks
+           \item kernels
+         \end{compactitem}
+       \end{minipage}};
+
+\draw[decorate,align=left,
+      decoration={brace, amplitude=8pt},
+      line width=1pt]
+      (\BracketX, -8) --
+      (\BracketX, -8.4)
+      node[midway, right=12pt]
+      {\begin{minipage}[t]{10pc}
+         {\large Hardware\par}
+         \begin{compactitem}
+           \item CPU, GPU, OpenMP
+         \end{compactitem}
+       \end{minipage}};
+
+\end{tikzpicture}
+
+\end{document}

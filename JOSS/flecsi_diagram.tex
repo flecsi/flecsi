@@ -1,0 +1,51 @@
+\documentclass[tikz,border=5mm]{standalone}
+
+\usepackage{tikz}
+\usepackage[utf8]{inputenc}
+
+\usetikzlibrary{positioning}
+
+% Use the same font as the rest of the paper.
+\renewcommand\familydefault{\sfdefault}
+
+\begin{document}
+
+\begin{tikzpicture}[font=\Large]
+
+\definecolor{SoftOrange}{HTML}{E5B575}   % warm sand
+\definecolor{SoftPurple}{HTML}{B79BC4}   % pale lavender
+\definecolor{SoftGreen} {HTML}{8DCB90}   % muted mint
+\definecolor{SoftBlue} {HTML}{A5D8FF}   % pastel sky blue
+\definecolor{SoftTeal} {HTML}{75BEC9}   % muted aqua-teal
+\definecolor{SoftPink} {HTML}{FFBBD1}   % gentle pink
+
+\node [rectangle, draw, minimum width=11.98cm, minimum height=2cm, fill=blue!10] (arch) {Heterogeneous hardware};
+\node [rectangle, draw, fill=blue!30, minimum width=29mm, minimum height=1cm, above=6mm of arch.north west, anchor=west, font=\small]
+(CUDA) {CUDA, OMP, \dots};
+\node [rectangle, fill=SoftTeal, draw, minimum width=29mm, minimum height=1cm, above=1mm of CUDA] (kokkos) {Kokkos};
+\node [rectangle, fill=SoftPurple, draw, minimum width=29mm, minimum height=21mm, right=16mm of CUDA.south east, anchor=south] (legion) {Legion};
+\node [rectangle, fill=SoftOrange, draw, minimum width=29mm, minimum height=1.9cm, right=1mm of legion.south east, anchor=south west] (HPX) {HPX};
+\node [rectangle, fill=SoftGreen, draw, minimum width=29mm, minimum height=1.6cm, right=1mm of HPX.south east, anchor=south west ] (mpi) {MPI};
+\node [rectangle, minimum width=12cm, minimum height=2cm, above=11mm of kokkos.north west, anchor=west] (flecsi) {};
+\draw[fill=blue!40]
+(-6cm, 3.35cm) --
+(-6cm, 4.6cm) --
+(0cm,4.6cm) --
+(0cm,6.3cm) --
+node[midway, below=5.5mm] {FleCSI}
+(5.98cm,6.3cm) --
+(5.98cm, 3.35cm) --
+cycle;
+
+\node [rectangle, fill=SoftPurple, draw, minimum width=29mm, minimum height=0.5cm, above=1mm of legion] (legionbackend) {};
+\node [rectangle, fill=SoftTeal, draw, minimum width=29mm, minimum height=0.488cm, above=1mm of kokkos] (kokkosbackend) {};
+\node [rectangle, fill=SoftOrange, draw, minimum width=29mm, minimum height=0.7cm, above=1mm of HPX] (HPXbackend) {};
+\node [rectangle, fill=SoftGreen, draw, minimum width=29mm, minimum height=1cm, above=1mm of mpi] (mpibackend) {};
+
+\node [rectangle, fill=SoftBlue, draw, minimum width=59mm, minimum height=1.6cm, above=-6.5mm of flecsi.north west, anchor=south west] (specialization) {Specialization};
+
+\node [rectangle, fill=blue!60, draw, minimum width=11.98cm, minimum height=2cm, above=1mm of specialization.north west, anchor=south west] (application) {Application};
+
+\end{tikzpicture}
+
+\end{document}
