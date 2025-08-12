@@ -93,6 +93,8 @@ to expose additional opportunities for parallelization.
    Index spaces with ghost elements as seen by each color of a
    topology instance.
 
+.. _fields:
+
 Fields
 ========================================================================
 
@@ -226,10 +228,10 @@ Other layouts are chosen with syntax like ``flecsi::field<double, flecsi::data::
 .. figure:: images/sparse-and-particle.svg
    :align: center
    :width: 80%
-   
+
    Fields in sparse and particle layouts.
-   
-   
+
+
 References
 ----------
 Fields are registered on specializations as a whole; every instance of the associated topology type has the field.
@@ -312,9 +314,11 @@ Field references for ``ragged`` or ``sparse`` fields provide a ``get_elements`` 
 The object returned can be used to allocate memory manually (with ``resize``) or automatically based on a heuristic (with ``growth``).
 
 The current implementation of memory management for these layouts imposes several limitations.
-First, the automatic memory allocation is incompatible with :doc:`tracing`, so ``ragged`` and ``sparse`` mutators cannot be used in a task launched during a trace.
+First, the automatic memory allocation is incompatible with :ref:`tracing`, so ``ragged`` and ``sparse`` mutators cannot be used in a task launched during a trace.
 Ghost copies for these layouts are implemented using mutators, so they are excluded from traces as well.
 Moreover, they use further temporary allocations during a task that are incompatible with GPU execution, so they cannot be used in a ``toc`` task.
+
+.. _multi-accessors:
 
 Multi-color accessors
 ---------------------
