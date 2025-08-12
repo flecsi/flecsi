@@ -24,3 +24,6 @@ class Flecsi(Flecsi):
 
     # remove once spack/spack has been updated and new upstream uses it
     requires("+kokkos")
+
+    depends_on("texlive", when="+doc")
+    depends_on("pdf2svg", when="+doc")

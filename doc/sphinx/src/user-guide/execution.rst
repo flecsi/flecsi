@@ -31,7 +31,7 @@ The function for a task then executes, typically several times concurrently.
 Each of these executions is referred to as a *point task*; their number does not necessarily match the number of processes, and they can run on any process.
 This allows FleCSI to support flexible and scalable task-parallel execution.
 
-.. figure:: tikz/flecsi_execution_model.png
+.. figure:: tikz/flecsi_execution_model.svg
 
    The different levels of abstraction in FleCSI.
 

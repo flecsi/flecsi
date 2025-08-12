@@ -94,6 +94,10 @@ spack env activate flecsi-mpich
 # and make it visible to Spack
 module load gcc/${GCC_VERSION}
 
+# Load texlive for the TikZ pictures of the doc
+module load texlive
+module load pdf2svg
+
 # ignore configuration in ~/.spack to avoid conflicts
 export SPACK_DISABLE_LOCAL_CONFIG=true
 
