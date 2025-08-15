@@ -69,26 +69,17 @@ struct copy_engine : copy_base {
       std::size_t r = 0;
       for(auto & v :
         std::forward<AllToAll>(all_to_all)(remote_shared_entities)) {
-        if(!v.empty()) {
-          shared_entities[r].resize(v.size());
-          std::uninitialized_copy(
-            v.begin(), v.end(), shared_entities[r].data<rw>().data());
+        const auto n = v.size();
+        if(n) {
+          if(n > max_shared_indices_size)
+            max_shared_indices_size = n;
+          auto & s = shared_entities[r];
+          s.resize(n);
+          std::uninitialized_copy(v.begin(), v.end(), s.data<rw>().data());
         }
         ++r;
       }
     }
-
-    // We need to figure out the max local source index in order to give correct
-    // nelems when calling region::get_storage().
-    for(const auto & [rank, indices] : shared_entities) {
-      auto indices_view = indices.data();
-      max_local_source_idx = std::max(max_local_source_idx,
-        *std::max_element(
-          indices_view.data(), indices_view.data() + indices_view.size()));
-      max_shared_indices_size =
-        std::max(max_shared_indices_size, indices_view.size());
-    }
-    max_local_source_idx += 1;
   }
 
   // (remote rank, { local indices })
@@ -98,7 +89,7 @@ struct copy_engine : copy_base {
   intervals::ref destination;
   SendPoints ghost_entities; // (src rank,  { local ghost indices})
   SendPoints shared_entities; // (dest rank, { local shared indices})
-  std::size_t max_local_source_idx = 0, max_shared_indices_size = 0;
+  std::size_t max_shared_indices_size = 0;
 };
 
 } // namespace local

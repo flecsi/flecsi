@@ -132,10 +132,8 @@ struct copy_engine : local::copy_base {
 
           // Since we are doing ghost copy via HPX, we always want the host side
           // version.
-          auto source_storage = p->source->get_storage<std::byte>(
-            data_fid, p->max_local_source_idx);
-          auto destination_storage =
-            p->destination->get_storage<std::byte, rw>(data_fid);
+          std::byte * const dst =
+            (*p->destination->r)[data_fid].data<rw>().data();
           auto type_size = p->source->get_field_info(data_fid)->type_size;
 
           using namespace ::hpx::collectives;
@@ -150,18 +148,18 @@ struct copy_engine : local::copy_base {
                 .then(::hpx::launch::sync, [&, &src = entry.second](auto && f) {
                   auto && data = f.get();
                   for(std::size_t i = 0, n = src.size(); i < n; ++i)
-                    std::memcpy(
-                      destination_storage.data() + src.data()[i] * type_size,
+                    std::memcpy(dst + src.data()[i] * type_size,
                       data.data() + i * type_size,
                       type_size);
                 }));
           }
 
+          const std::byte * const src = (*p->source)[data_fid].data().data();
           for(auto const & [dst_rank, shared_indices] : p->shared_entities) {
             data_type send_buffer(shared_indices.size() * type_size);
             for(std::size_t i = 0, n = shared_indices.size(); i < n; ++i)
               std::memcpy(send_buffer.data() + i * type_size,
-                source_storage.data() + shared_indices.data()[i] * type_size,
+                src + shared_indices.data()[i] * type_size,
                 type_size);
             ops.push_back(set(comm,
               that_site_arg(dst_rank),

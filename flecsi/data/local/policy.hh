@@ -57,6 +57,11 @@ struct region_impl {
     std::size_t nbytes = nelems * sizeof(T);
     if(nbytes > v.size())
       v.resize(nbytes);
+    else
+      flog_assert(v.size() % sizeof(T) == 0,
+        "Field access with wrong type. Requesting "
+          << util::type<T>() << ", storage size = " << v.size()
+          << ", nelems = " << nelems);
 
     return return_type(reinterpret_cast<typename return_type::pointer>(
                          v.data<Priv, Proc>().data()),
