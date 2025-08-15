@@ -58,13 +58,9 @@ struct region_impl {
     if(nbytes > v.size())
       v.resize(nbytes);
 
-    auto data_view = v.data<Priv, Proc>();
-
-    flog_assert(nbytes <= data_view.size(),
-      "Requested region size larger than allocation");
-
-    return return_type{
-      reinterpret_cast<privilege_const<T, Priv> *>(data_view.data()), nelems};
+    return return_type(reinterpret_cast<typename return_type::pointer>(
+                         v.data<Priv, Proc>().data()),
+      nelems);
   }
 
   template<privilege Priv>
