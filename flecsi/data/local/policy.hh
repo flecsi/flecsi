@@ -55,8 +55,11 @@ struct region_impl {
 
     auto & v = storages.at(fid);
     std::size_t nbytes = nelems * sizeof(T);
-    if(nbytes > v.size())
+    if(nbytes > v.size()) {
+      if(Priv == ro)
+        flog_fatal("reading uninitialized field");
       v.resize(nbytes);
+    }
     else
       flog_assert(v.size() % sizeof(T) == 0,
         "Field access with wrong type. Requesting "
