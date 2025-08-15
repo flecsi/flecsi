@@ -91,6 +91,7 @@ struct storage {
       return transfer(toc_buffer, loc_buffer, loc);
   }
 
+  // NB: logically const, but can still transfer to Proc.
   template<exec::processor Proc = exec::processor::loc>
   auto data() const {
     return const_cast<storage<T> *>(this)->data<ro, Proc>();
