@@ -26,13 +26,14 @@ struct copy_engine : copy_base {
     const data::intervals & intervals,
     field_id_t fid,
     AllToAll && all_to_all)
-    : source(&src->get_region()), destination(intervals.r) {
+    : source(&src.base()), destination(intervals.r) {
+    const field f = intervals[fid];
     // Make sure the task that is writing to the field has finished running
-    (*destination)[fid].synchronize();
+    f.storage().synchronize();
     // The input comprises the color and index of shared elements stored at
     // each ghost element; reverse those pointers to know what to send where.
 
-    const auto remote_sources = intervals.get_storage<Point, ro>(fid);
+    const auto remote_sources = f.as<Point>();
 
     // Calculate the memory needed up front for the ghost_entities
     std::map<Color, std::size_t> mem_size;

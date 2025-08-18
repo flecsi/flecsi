@@ -57,9 +57,9 @@ struct copy_engine : local::copy_engine {
         }
 
         if(write && P != exec::processor::toc)
-          (*destination)[data_fid].prefer<P>(true);
+          (*destination)[data_fid].storage().prefer<P>(true);
         // NB: source and destination typically alias.
-        const auto [cpu, gpu] = (*source)[data_fid].data2();
+        const auto [cpu, gpu] = (*source)[data_fid].storage().data2();
 
         std::optional<Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>>
           gather_buffer_device_view;
@@ -127,7 +127,7 @@ struct copy_engine : local::copy_engine {
     // into the field's storage (on device).
     auto recv_buffer = recv_buffers.begin();
     for(auto & [data_fid, write] : ff) {
-      auto & d = (*destination)[data_fid];
+      auto & d = (*destination)[data_fid].storage();
       if(write)
         d.prefer<P>(); // has effect only for toc
 

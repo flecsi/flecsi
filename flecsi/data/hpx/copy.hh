@@ -120,12 +120,16 @@ struct copy_engine : local::copy_base {
   template<exec::processor>
   void copy(const copy_request::vec & ff) const {
     auto & ctx = run::context::instance();
-    for(auto & [data_fid, _] : ff)
-      init_delayed_ghost_copy((*p->source)[data_fid],
-        (*p->destination)[data_fid],
+    for(auto & [data_fid, _] : ff) {
+      auto &src_storage = (*p->source)[data_fid].storage(),
+           &dst_storage = (*p->destination)[data_fid].storage();
+      init_delayed_ghost_copy(src_storage,
+        dst_storage,
         // Don't use context asynchronously:
         [p = p,
-          data_fid = data_fid,
+          &src_storage,
+          &dst_storage,
+          type_size = p->source->get_field_info(data_fid)->type_size,
           comm = ctx.p2p_comm(),
           p2p = ctx.p2p_tag()]() {
           // manage task_local variables for this task
@@ -136,8 +140,7 @@ struct copy_engine : local::copy_base {
 
           // Since we are doing ghost copy via HPX, we always want the host side
           // version.
-          std::byte * const dst = (*p->destination)[data_fid].data<rw>().data();
-          auto type_size = p->source->get_field_info(data_fid)->type_size;
+          std::byte * const dst = dst_storage.data<rw>().data();
 
           using namespace ::hpx::collectives;
           using data_type = std::vector<std::byte>;
@@ -157,7 +160,7 @@ struct copy_engine : local::copy_base {
                 }));
           }
 
-          const std::byte * const src = (*p->source)[data_fid].data().data();
+          const std::byte * const src = src_storage.data().data();
           for(auto const & [dst_rank, shared_indices] : p->shared_entities) {
             data_type send_buffer(shared_indices.size() * type_size);
             for(std::size_t i = 0, n = shared_indices.size(); i < n; ++i)
@@ -172,6 +175,7 @@ struct copy_engine : local::copy_base {
 
           ::hpx::wait_all(std::move(ops)); // rethrows exceptions, if needed
         });
+    }
   }
 
 private:

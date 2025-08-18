@@ -32,26 +32,29 @@ protected:
     const field_id_t f = ref.fid();
     auto & t = ref.topology();
     auto & s = t.template get_partition<Space>();
+    auto fld = s[f];
 
     if constexpr(std::is_same_v<typename Topo::base, topo::global_base>) {
       if(s.template ghost<privilege_pack<get_privilege(0, P), ro>>(f))
-        d().template broadcast<T>(t, f);
+        d().template broadcast<T>(fld);
     }
     else
       add_copy<P>(ref);
 
-    d().template raw<P>(s[f]);
-    storage.emplace_back(get_selected(t) ? s.share() : nullptr, f);
+    d().template raw<P>(fld.storage());
+    if(get_selected(t))
+      storage.push_back(std::move(fld));
+    else
+      storage.emplace_back();
   } // visit generic topology
 
   template<class R, typename T, class Topo, typename Topo::index_space Space>
   void visit(data::reduction_accessor<R, T> &,
     const data::field_reference<T, data::dense, Topo, Space> & ref) {
     static_assert(std::is_same_v<typename Topo::base, topo::global_base>);
-    const field_id_t f = ref.fid();
-    auto & t = ref.topology();
-    storage.emplace_back(t.share(), f);
-    d().reduce(t[f]);
+    auto f = ref.topology()[ref.fid()];
+    d().reduce(f.storage());
+    storage.push_back(std::move(f));
   }
 
   // epilog
@@ -94,13 +97,8 @@ private:
   void accessor(A & a) {
     flog_assert(
       index < storage.size(), "more accessors than regions/partitions");
-    auto & [s, f] = storage[index++];
-    std::visit(
-      [&, f = f](auto && s) { // init-capture needed until C++20
-        if(s) // for borrow
-          a.bind(s->template get_storage<T, P, Proc>(f));
-      },
-      s);
+    if(const auto & f = storage[index++]) // for borrow
+      a.bind(f.as<T, P, Proc>());
   }
 
 protected:

@@ -116,13 +116,38 @@ private:
 
 } // namespace detail
 
+struct storage : detail::storage<> {
+  template<class T, // sometimes erased to be std::byte
+    privilege Priv = ro,
+    exec::processor Proc = exec::processor::loc>
+  auto as(std::size_t nelems) {
+    using return_type = flecsi::util::span<privilege_const<T, Priv>>;
+
+    std::size_t nbytes = nelems * sizeof(T);
+    if(nbytes > size()) {
+      if(Priv == ro)
+        flog_fatal("reading uninitialized field");
+      resize(nbytes);
+    }
+    else
+      flog_assert(size() % sizeof(T) == 0,
+        "Field access with wrong type. Requesting "
+          << util::type<T>() << ", storage size = " << size()
+          << ", nelems = " << nelems);
+
+    return return_type(reinterpret_cast<typename return_type::pointer>(
+                         data<Priv, Proc>().data()),
+      nelems);
+  }
+};
+
 /// \}
 } // namespace local
 
 #ifdef DOXYGEN // implemented per-backend
 /// Backend specific data storage.
 /// \ingroup local-data
-struct backend_storage : local::detail::storage {
+struct backend_storage : local::storage {
   /// Synchronize with all pending operations on this storage.
   ///
   /// \note This is implemented in the MPI and HPX backends. For the
