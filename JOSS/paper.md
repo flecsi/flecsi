@@ -121,7 +121,7 @@ authors:
     surname: Waters
     affiliation: 1
     orcid: 0000-0002-6517-4445
-  - given-names: Scot
+  - given-names: Scot A.
     surname: Halverson
     affiliation: 3
   - given-names: Onur
@@ -143,7 +143,7 @@ authors:
     surname: Keim
     affiliation: 8
     orcid: 0009-0006-8688-3642
-  - given-names: Christopher
+  - given-names: Christopher M.
     surname: Malone
     affiliation: 1
   - given-names: Alex
