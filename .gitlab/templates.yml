@@ -44,7 +44,7 @@
     - spack config add concretizer:unify:when_possible
     - spack config add concretizer:reuse:false
     - spack config add packages:all:compiler:["gcc@${GCC_VERSION}"]
-    - spack add cmake py-sphinx py-sphinx-rtd-theme graphviz +poppler doxygen
+    - spack add cmake py-sphinx py-sphinx-rtd-theme graphviz +poppler doxygen texlive pdf2svg
     - spack install -j $(nproc)
     - section end python_env_init
 
@@ -253,6 +253,8 @@
     - *darwin_clang_format_init
     - *print_diff_format_info
     - section start docs "Build Documentation"
+    - module load texlive
+    - module load pdf2svg
     - cmake -DENABLE_LIBRARY=OFF -DENABLE_DOCUMENTATION=ON -DENABLE_FORMAT=ON -DCLANG_FORMAT_VERSION=${FORMAT_VERSION} -B ${CI_PROJECT_DIR}/state/build -S .
     - cd ${CI_PROJECT_DIR}/state/build
     - fail=0
