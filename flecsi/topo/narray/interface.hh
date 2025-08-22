@@ -290,7 +290,10 @@ private:
                 auto & total = partitions.emplace_back(1);
                 Dimension d = 0;
                 for(const auto i : ci)
-                  total *= idef.make_axis(d++, i)().extent();
+                  if(util::ckd_mul(
+                       &total, total, idef.make_axis(d++, i)().extent()))
+                    flog_fatal("overflow: total number of index points exceed "
+                               "std::size_t limits");
               }
               concatenate(partitions, c.colors(), MPI_COMM_WORLD);
               return partitions;
