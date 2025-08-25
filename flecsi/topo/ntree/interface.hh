@@ -235,7 +235,7 @@ private:
   static std::array<std::size_t, 2> make_tree_local_task(
     typename field<key_t>::template accessor<rw, na> e_keys,
     typename field<key_t>::template accessor<rw, na> n_keys,
-    typename field<ntree_data>::template accessor<ro, na> data_field,
+    typename field<ntree_data>::template accessor<ro, ro> data_field,
     typename field<hmap_pair_t>::template accessor<rw, na> hcells,
     typename field<meta_type, data::single>::template accessor<rw>
       mf) noexcept {
@@ -584,7 +584,7 @@ private:
   }
 
   static void copy_sizes_task(topo::resize::Field::accessor<wo> a,
-    field<util::id>::accessor<ro, na> b) noexcept {
+    field<util::id>::accessor<ro, ro> b) noexcept {
     a = std::accumulate(b.span().begin(),
       b.span().begin() + run::context::instance().colors(),
       0);
@@ -708,8 +708,6 @@ public:
     s.execute<recolor_task>(*this);
     s.execute<exchange_boundaries_task>(
       e_keys(*this), meta_field(this->meta), data_field(*this));
-
-    cp_data_tree.issue_copy({data_field.fid});
 
     // Create the local tree
     // Return the list of nodes to share (top of the tree)
@@ -1012,7 +1010,6 @@ public:
 
     s.execute<find_local_task<false>>(
       *this, share_ghosts_cid_comm_field(*this));
-    cp_share_ghosts_comms.issue_copy({share_ghosts_comms_field.fid});
 
     s.execute<reset_ghosts>(meta_field(this->meta), hcells(*this));
 
@@ -1048,7 +1045,6 @@ public:
     // Now fill info
     s.execute<find_distant_task<false>>(
       *this, share_ghosts_buffer_comm_field(*this));
-    cp_share_ghosts_comms.issue_copy({share_ghosts_comms_field.fid});
 
     // Resize
     {
@@ -1172,6 +1168,8 @@ public:
       return &*cp_top_tree_nodes;
     else if constexpr(Space == tree_data)
       return &cp_data_tree;
+    else if constexpr(Space == share_ghosts_comms)
+      return &cp_share_ghosts_comms;
     return nullptr;
   }
 
