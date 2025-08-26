@@ -7,6 +7,15 @@
 #define FLECSI_DATA_COPY_HH
 
 #include "flecsi/data/topology.hh"
+#include "flecsi/exec/task_attributes.hh" // processor
+
+namespace flecsi::data {
+struct copy_request {
+  field_id_t f;
+  bool write;
+  using vec = std::vector<copy_request>;
+};
+} // namespace flecsi::data
 
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include "flecsi/data/leg/copy.hh"
@@ -68,7 +77,9 @@ struct copy_engine {
   copy_engine(const prefixes & src, const intervals & dest, field_id_t id);
 
   /// Copy fields from \a src to \a dest.
-  void operator()(const std::vector<field_id_t> &) const;
+  /// \tparam P for the necessitating task
+  template<exec::processor P>
+  void copy(const copy_request::vec &) const;
 };
 #endif
 

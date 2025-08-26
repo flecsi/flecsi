@@ -23,7 +23,33 @@ namespace flecsi {
 namespace data {
 
 namespace local {
-struct region_impl {
+// NB: These own the region_impl objects that contain the storage.
+using storage_ptr = std::shared_ptr<backend_storage>;
+
+struct field {
+  field() = default;
+  field(storage_ptr s, std::size_t n) : s(std::move(s)), n(n) {}
+
+  explicit operator bool() const {
+    return !!s;
+  }
+
+  backend_storage & storage() const {
+    return *s;
+  }
+  template<class T,
+    privilege Priv = ro,
+    exec::processor Proc = exec::processor::loc>
+  auto as() const {
+    return s->as<T, Priv, Proc>(n);
+  }
+
+private:
+  storage_ptr s;
+  std::size_t n;
+};
+
+struct region_impl : std::enable_shared_from_this<region_impl> {
   // s.first is never used (anything used must match the count of ranks).
   // s.second is sometimes the placeholder logical_size.
   region_impl(size2 s, const fields & fs) : s(std::move(s)), fs(fs) {
@@ -36,44 +62,11 @@ struct region_impl {
     return s;
   }
 
-  // Specifies the correct const-qualified span object given access privilege
-  template<class T, privilege Priv>
-  using span_access = flecsi::util::span<privilege_const<T, Priv>>;
-
-  template<class T,
-    privilege Priv = ro,
-    exec::processor Proc = exec::processor::loc>
-  auto get_storage(field_id_t fid) {
-    return get_storage<T, Priv, Proc>(fid, s.second);
+  field prefix(field_id_t f, std::size_t n) {
+    return field({weak_from_this().lock(), &storages.at(f)}, n);
   }
-
-  template<class T, // sometimes erased to be std::byte
-    privilege Priv = ro,
-    exec::processor Proc = exec::processor::loc>
-  auto get_storage(field_id_t fid, std::size_t nelems) {
-    using return_type = span_access<T, Priv>;
-
-    auto & v = storages.at(fid);
-    std::size_t nbytes = nelems * sizeof(T);
-    if(nbytes > v.size())
-      v.resize(nbytes);
-
-    auto data_view = v.data<Priv, Proc>();
-
-    flog_assert(nbytes <= data_view.size(),
-      "Requested region size larger than allocation");
-
-    return return_type{
-      reinterpret_cast<privilege_const<T, Priv> *>(data_view.data()), nelems};
-  }
-
-  template<privilege Priv>
-  auto current_data(field_id_t fid) {
-    return storages.at(fid).template current_data<Priv>();
-  }
-
-  backend_storage & operator[](field_id_t fid) {
-    return storages.at(fid);
+  field operator[](field_id_t f) {
+    return prefix(f, s.second);
   }
 
   auto get_field_info(field_id_t fid) const {
@@ -126,37 +119,27 @@ private:
   ref p; // to preserve an address on move
 };
 
-struct partition_impl {
+struct partition {
+  partition(region & r) : r(&*r) {}
+  partition(partition &&) = default;
+  partition & operator=(partition &&) & = default;
 
   Color colors() const {
     return r->size().first;
   }
 
-  decltype(auto) operator[](field_id_t fid) const {
-    return (*r)[fid];
-  }
-
-  template<typename T,
-    privilege Priv = ro,
-    exec::processor Proc = exec::processor::loc>
-  auto get_storage(field_id_t fid) const {
-    return r->get_storage<T, Priv, Proc>(fid, nelems);
+  field operator[](field_id_t f) const {
+    return r->prefix(f, nelems);
   }
 
   template<privilege Priv>
   auto get_raw_storage(field_id_t fid, std::size_t item_size) const {
-    return r->get_storage<std::byte, Priv>(fid, nelems * item_size);
+    return r->prefix(fid, nelems * item_size).as<std::byte, Priv>();
   }
 
-  region_impl & get_region() {
+  region_impl & base() const {
     return *r;
   }
-
-private:
-  region::ref r;
-
-public:
-  partition_impl(region & r) : r(r.share()) {}
 
   void resize(std::size_t n) {
     if(n > r->size().second)
@@ -165,47 +148,12 @@ public:
   }
 
 private:
+  region_impl * r;
   // number of elements in this partition on this particular rank.
   size_t nelems = 0;
 };
 
-// partition makes sure the embedded partition_impl stays stable even if the
-// partition itself is moved
-struct partition {
-  using ref = std::shared_ptr<partition_impl>;
-
-  partition(partition &&) = default;
-  partition & operator=(partition &&) & = default;
-
-  Color colors() const {
-    // number of rows, essentially the number of MPI ranks.
-    return p->colors();
-  }
-
-  decltype(auto) operator[](field_id_t fid) const {
-    return (*p)[fid];
-  }
-
-  ref share() {
-    return p;
-  }
-
-  partition_impl & operator*() {
-    return *p;
-  }
-
-  partition_impl * operator->() const {
-    return p.get();
-  }
-
-protected:
-  partition(region & r) : p(std::make_shared<partition_impl>(r)) {}
-
-  ref p; // to preserve an address on move
-};
-
-using storages =
-  std::vector<std::pair<std::variant<region::ref, partition::ref>, field_id_t>>;
+using storages = std::vector<field>;
 
 // forward declaration only
 struct copy_engine;
@@ -230,7 +178,7 @@ struct partition : local::partition { // instead of "using partition ="
 namespace local {
 struct rows : data::partition {
   explicit rows(region & r) : partition(r) {
-    (*this)->resize(r.size().second);
+    resize(r.size().second);
   }
 };
 
@@ -242,13 +190,13 @@ struct prefixes : data::partition, prefixes_base {
 
   template<class F>
   void update(F f) {
-    auto & part = f.get_partition();
+    const field fld = f.get_partition()[f.fid()];
     // Make sure storage is actually available
-    part[f.fid()].synchronize();
-    const auto s = part->template get_storage<size_request>(f.fid());
+    fld.storage().synchronize();
+    const auto s = fld.as<size_request>();
     flog_assert(
       s.size() == 1, "underlying partition must have size 1, not " << s.size());
-    (*this)->resize(s[0]);
+    resize(s[0]);
   }
 };
 } // namespace local
@@ -282,15 +230,22 @@ private:
   bool sel;
 };
 
-struct intervals_impl {
+struct intervals {
   using Value = subrow; // [begin, end)
+  static Value make(subrow r, std::size_t = 0) {
+    return r;
+  }
 
-  intervals_impl(region_base & r, const partition & p, field_id_t fid)
+  intervals(region_base & r,
+    const partition & p,
+    field_id_t fid,
+    completeness = incomplete)
     : r(&*r) {
+    const local::field f = p[fid];
     // Make sure the task that is writing to the field has finished running
-    p[fid].synchronize();
+    f.storage().synchronize();
     // Eagerly read field data, which might legitimately change later.
-    ghost_ranges = to_vector(p->get_storage<Value>(fid));
+    ghost_ranges = to_vector(f.as<Value>());
     if(auto iter = std::max_element(ghost_ranges.begin(),
          ghost_ranges.end(),
          [](Value x, Value y) { return x.second < y.second; });
@@ -299,13 +254,8 @@ struct intervals_impl {
     }
   }
 
-  template<typename T, privilege Priv>
-  auto get_storage(field_id_t fid) const {
-    return r->get_storage<T, Priv>(fid, max_end);
-  }
-
-  decltype(auto) operator[](field_id_t fid) const {
-    return (*r)[fid];
+  auto operator[](field_id_t f) const {
+    return r->prefix(f, max_end);
   }
 
   local::region_impl * r;
@@ -313,30 +263,6 @@ struct intervals_impl {
   // Locally cached metadata on ranges of ghost index.
   std::vector<Value> ghost_ranges;
   std::size_t max_end = 0; // size of prefix containing all ranges
-};
-
-struct intervals {
-  using Value = intervals_impl::Value;
-  static Value make(subrow r, std::size_t = 0) {
-    return r;
-  }
-
-  using ref = std::shared_ptr<const intervals_impl>;
-
-  intervals(region_base & r,
-    const partition & p,
-    field_id_t fid,
-    completeness = incomplete)
-    : ii(std::make_shared<const intervals_impl>(r, p, fid)) {}
-  intervals(intervals &&) = default;
-  intervals & operator=(intervals &&) & = default;
-
-  ref share() const {
-    return ii;
-  }
-
-private:
-  ref ii; // for asynchronous use
 };
 
 } // namespace data
