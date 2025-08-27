@@ -185,6 +185,17 @@ struct key_tuple : std::tuple<typename VT::type...> {
   }
 }; // struct key_tuple
 
+template<class>
+struct decay_tuple {};
+
+template<class... TT>
+struct decay_tuple<std::tuple<TT...>> {
+  using type = std::tuple<std::decay_t<TT>...>;
+};
+
+template<class T>
+using decay_tuple_t = typename decay_tuple<T>::type;
+
 /// \}
 } // namespace util
 } // namespace flecsi

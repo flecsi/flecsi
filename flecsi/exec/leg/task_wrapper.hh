@@ -11,6 +11,7 @@
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/common.hh"
+#include "flecsi/util/constant.hh"
 #include "flecsi/util/function_traits.hh"
 #include <flecsi/flog.hh>
 
@@ -131,13 +132,6 @@ struct parameters {
   Indices which;
 };
 
-template<class>
-struct decay_tuple {};
-template<class... TT>
-struct decay_tuple<std::tuple<TT...>> {
-  using type = std::tuple<std::decay_t<TT>...>;
-};
-
 template<class... PP>
 auto
 bind_tuple(const std::tuple<PP...> & tup) { // to deduce a pack
@@ -174,8 +168,8 @@ struct task_wrapper {
     auto & flecsi_context = run::context::instance();
     const auto params_idx = run::get1<std::size_t>(*task);
     const auto access = flecsi_context.params.at(params_idx);
-    const auto & any_args = access.get<parameters<
-      typename decay_tuple<typename Traits::arguments_type>::type>>();
+    const auto & any_args = access.get<
+      parameters<util::decay_tuple_t<typename Traits::arguments_type>>>();
 
     // There is a optimization opportunity here to move
     // the elements instead of copying the last time.
