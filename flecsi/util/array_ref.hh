@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <functional>
 #include <iterator>
+#include <limits>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -840,6 +841,24 @@ permutation_view(B b, R r) {
   return transform_view(std::move(r),
     [b = std::move(b)](const auto & i) -> decltype(auto) { return *(b + i); });
 }
+
+/// \cond core
+/// A simple implementation of ckd_mul from C++26
+/// \param result address to store the multiplication result
+/// \param a unsigned integer value
+/// \param b unsigned integer value
+/// \return false if *result was assigned a valid multiplication result, true
+/// otherwise.
+template<class R, class A, class B>
+bool
+ckd_mul(R * result, A a, B b) {
+  static_assert(
+    std::is_unsigned_v<R> && std::is_unsigned_v<A> && std::is_unsigned_v<B>,
+    "ckd_mul only well-defined for unsigned integers");
+  *result = a * b;
+  return a != 0 && b > std::numeric_limits<R>::max() / a;
+}
+/// \endcond
 
 /// \}
 } // namespace util

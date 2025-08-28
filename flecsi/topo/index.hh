@@ -13,7 +13,7 @@ namespace topo {
 /// \addtogroup topology
 /// \{
 
-inline constexpr auto zero = [](std::size_t) { return 0; };
+inline constexpr auto zero = [](std::size_t) { return 0u; };
 
 // Clang insists on virtual destructors even without delete:
 struct virtual_base {
@@ -57,7 +57,10 @@ private:
 
   template<class F>
   static void fill(resize::Field::accessor<wo> a, F f) noexcept {
-    a = std::move(f)(run::context::instance().color());
+    const auto extent = std::move(f)(run::context::instance().color());
+    if(extent > std::numeric_limits<util::id>::max())
+      flog_fatal("color too large for util::id type");
+    a = extent;
   }
 
   static bool resize_required(resize::Field::accessor<ro> sz) {
