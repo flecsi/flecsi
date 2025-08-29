@@ -86,15 +86,6 @@ make_parameters(AA &&... aa) {
   return make_parameters<M>(static_cast<P *>(nullptr), std::forward<AA>(aa)...);
 }
 
-template<typename R>
-struct reduction_helper {
-
-  template<typename T>
-  auto operator()(T const & lhs, T const & rhs) const {
-    return R::combine(lhs, rhs);
-  }
-};
-
 template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
