@@ -10,6 +10,7 @@
 
 .darwin_archive_spack_env:
   script: &darwin_archive_spack_env
+    - spack repo remove flecsi
     - if [ -n "$ARCHIVE_SPACK_ENV" ]; then header "Archiving Spack Environment" && cd $TMPDIR && mksquashfs spack ${CI_PROJECT_DIR}/state/spack.sqfs; fi
     # store architecture information for dependent jobs as variable in build.env
     - echo "JOB_ARCH_CONSTRAINT=cpu_family:$(spack arch -t | sed s/_avx512//)" > ${CI_PROJECT_DIR}/state/build.env
@@ -307,6 +308,7 @@
     - *darwin_env_spack_environment
     - export CMAKE_PREFIX_PATH=${CI_PROJECT_DIR}/state/install
     - spack env activate ${SPACK_ENVIRONMENT}
+    - spack repo add ${CI_PROJECT_DIR}/spack-repo
     - spack arch
     - *darwin_setup_hip
     - *print_build_standalone_info
