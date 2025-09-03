@@ -15,7 +15,6 @@
 #include <numeric>
 #include <unordered_map>
 #include <utility>
-#include <variant>
 
 namespace flecsi {
 namespace data {
@@ -52,15 +51,10 @@ struct storage {
   using device_access =
     std::conditional_t<privilege_write(Priv), device_view, device_const_view>;
 
-  template<privilege Priv>
-  std::variant<host_access<Priv>, device_access<Priv>> current_data() {
-    if(current == toc)
-      return device_access<Priv>(toc_buffer);
-    else {
-      if(privilege_write(Priv))
-        current = loc;
-      return host_access<Priv>(loc_buffer);
-    }
+  template<exec::processor P>
+  void prefer(bool hard = false) {
+    if(hard || current == both)
+      data<rw, P>();
   }
 
   template<privilege Priv = ro, exec::processor Proc = exec::processor::loc>
@@ -91,9 +85,15 @@ struct storage {
       return transfer(toc_buffer, loc_buffer, loc);
   }
 
+  // NB: logically const, but can still transfer to Proc.
   template<exec::processor Proc = exec::processor::loc>
   auto data() const {
     return const_cast<storage<T> *>(this)->data<ro, Proc>();
+  }
+
+  auto data2() { // for coherent updates
+    return std::pair(current == toc ? nullptr : loc_buffer.data(),
+      current == loc ? nullptr : toc_buffer.data());
   }
 
   void resize(std::size_t size) {
@@ -116,13 +116,38 @@ private:
 
 } // namespace detail
 
+struct storage : detail::storage<> {
+  template<class T, // sometimes erased to be std::byte
+    privilege Priv = ro,
+    exec::processor Proc = exec::processor::loc>
+  auto as(std::size_t nelems) {
+    using return_type = flecsi::util::span<privilege_const<T, Priv>>;
+
+    std::size_t nbytes = nelems * sizeof(T);
+    if(nbytes > size()) {
+      if(Priv == ro)
+        flog_fatal("reading uninitialized field");
+      resize(nbytes);
+    }
+    else
+      flog_assert(size() % sizeof(T) == 0,
+        "Field access with wrong type. Requesting "
+          << util::type<T>() << ", storage size = " << size()
+          << ", nelems = " << nelems);
+
+    return return_type(reinterpret_cast<typename return_type::pointer>(
+                         data<Priv, Proc>().data()),
+      nelems);
+  }
+};
+
 /// \}
 } // namespace local
 
 #ifdef DOXYGEN // implemented per-backend
 /// Backend specific data storage.
 /// \ingroup local-data
-struct backend_storage : local::detail::storage {
+struct backend_storage : local::storage {
   /// Synchronize with all pending operations on this storage.
   ///
   /// \note This is implemented in the MPI and HPX backends. For the

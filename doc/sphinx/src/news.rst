@@ -15,6 +15,15 @@ Release Notes
 
    The bullets in each such discussion are in descending order of importance.
 
+Changes in v2.4.1
++++++++++++++++++
+
+Fixed
+^^^^^
+* Topologies
+
+  * Writable ``unstructured`` topology accessors with more than one privilege work.
+
 Changes in v2.4.0 (June 5 2025)
 +++++++++++++++++++++++++++++++
 

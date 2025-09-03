@@ -15,11 +15,11 @@ template<processor Proc>
 struct task_prologue : local::prolog<task_prologue<Proc>> {
   using task_prologue::prolog::prolog;
 
-  template<class T, class Topo>
-  void broadcast(Topo & t, field_id_t f) {
+  template<class T>
+  void broadcast(const data::local::field & f) {
     const auto bcast = [&](auto root) {
       // This "ghost copy" is implemented only for the host:
-      auto host_storage = t->template get_storage<T, (root ? ro : wo)>(f);
+      const auto host_storage = f.as<T, (root ? ro : wo)>();
       util::mpi::test(MPI_Bcast(const_cast<T *>(host_storage.data()),
         host_storage.size(),
         flecsi::util::mpi::type<T>(),

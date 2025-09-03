@@ -117,13 +117,21 @@ struct copy_engine : local::copy_base {
             run::context::instance().world0);
         })) {}
 
-  void operator()(const std::vector<field_id_t> & ff) const {
+  template<exec::processor>
+  void copy(const copy_request::vec & ff) const {
     auto & ctx = run::context::instance();
-    for(field_id_t data_fid : ff)
-      init_delayed_ghost_copy((*p->source)[data_fid],
-        (*p->destination)[data_fid],
+    for(auto & [data_fid, _] : ff) {
+      auto &src_storage = (*p->source)[data_fid].storage(),
+           &dst_storage = (*p->destination)[data_fid].storage();
+      init_delayed_ghost_copy(src_storage,
+        dst_storage,
         // Don't use context asynchronously:
-        [p = p, data_fid, comm = ctx.p2p_comm(), p2p = ctx.p2p_tag()]() {
+        [p = p,
+          &src_storage,
+          &dst_storage,
+          type_size = p->source->get_field_info(data_fid)->type_size,
+          comm = ctx.p2p_comm(),
+          p2p = ctx.p2p_tag()]() {
           // manage task_local variables for this task
           run::task_local_base::guard tlg;
 
@@ -132,11 +140,7 @@ struct copy_engine : local::copy_base {
 
           // Since we are doing ghost copy via HPX, we always want the host side
           // version.
-          auto source_storage = p->source->get_storage<std::byte>(
-            data_fid, p->max_local_source_idx);
-          auto destination_storage =
-            p->destination->get_storage<std::byte, rw>(data_fid);
-          auto type_size = p->source->get_field_info(data_fid)->type_size;
+          std::byte * const dst = dst_storage.data<rw>().data();
 
           using namespace ::hpx::collectives;
           using data_type = std::vector<std::byte>;
@@ -150,18 +154,18 @@ struct copy_engine : local::copy_base {
                 .then(::hpx::launch::sync, [&, &src = entry.second](auto && f) {
                   auto && data = f.get();
                   for(std::size_t i = 0, n = src.size(); i < n; ++i)
-                    std::memcpy(
-                      destination_storage.data() + src.data()[i] * type_size,
+                    std::memcpy(dst + src.data()[i] * type_size,
                       data.data() + i * type_size,
                       type_size);
                 }));
           }
 
+          const std::byte * const src = src_storage.data().data();
           for(auto const & [dst_rank, shared_indices] : p->shared_entities) {
             data_type send_buffer(shared_indices.size() * type_size);
             for(std::size_t i = 0, n = shared_indices.size(); i < n; ++i)
               std::memcpy(send_buffer.data() + i * type_size,
-                source_storage.data() + shared_indices.data()[i] * type_size,
+                src + shared_indices.data()[i] * type_size,
                 type_size);
             ops.push_back(set(comm,
               that_site_arg(dst_rank),
@@ -171,6 +175,7 @@ struct copy_engine : local::copy_base {
 
           ::hpx::wait_all(std::move(ops)); // rethrows exceptions, if needed
         });
+    }
   }
 
 private:

@@ -270,7 +270,7 @@ private:
   fate f;
 };
 
-struct backend_storage : local::detail::storage<> {
+struct backend_storage : local::storage {
   // Synchronize with all pending writes to this storage.
   void synchronize() {
     write.wait();

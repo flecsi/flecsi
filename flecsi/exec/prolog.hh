@@ -25,18 +25,19 @@ protected:
   void add_copy(const R & r) {
     if(const data::copy_plan * const p =
          r.get_region().template ghost_copy<P>(*sched, r))
-      copies[p].push_back(r.fid());
+      copies[p].push_back({r.fid(), privilege_write(P)});
   }
+  template<processor P>
   inline void issue_copy() const {
     for(const auto & [p, ff] : copies)
-      p->issue_copy(ff);
+      p->issue_copy<P>(ff);
   }
 
   scheduler * sched;
   std::vector<std::function<void()>> epilog_wrappers;
 
 private:
-  std::map<const data::copy_plan *, std::vector<field_id_t>> copies;
+  std::map<const data::copy_plan *, data::copy_request::vec> copies;
 };
 } // namespace flecsi::exec
 
@@ -86,7 +87,7 @@ struct prolog : task_prologue<Proc> {
   prolog(P & p, AA &... aa) : task_prologue<Proc>(*scheduler::instance) {
     util::annotation::rguard<util::annotation::execute_task_prolog> ann;
     std::apply([&](auto &... pp) { (visit(pp, aa), ...); }, p);
-    this->issue_copy();
+    this->template issue_copy<Proc>();
   }
 
 private:

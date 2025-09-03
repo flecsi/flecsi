@@ -24,6 +24,11 @@ template<class P>
 struct topology<P, global_base> : global_base, data::region, with_cleanup {
   topology(scheduler &, const coloring & c)
     : region(data::make_region<P>({1, c.size})) {}
+
+  template<single_space>
+  data::region & get_partition() {
+    return *this;
+  }
 };
 template<class P>
 using global_category = topology<P, global_base>;

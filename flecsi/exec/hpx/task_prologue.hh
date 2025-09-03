@@ -30,18 +30,17 @@ namespace flecsi::exec {
 struct task_prologue_base : local::prolog<task_prologue_base> {
   using prolog::prolog;
 
-  template<class T, class Topo>
-  void broadcast(Topo & t, field_id_t f) {
+  template<class T>
+  void broadcast(const data::local::field & f) {
     // Perform the required "ghost copy" on the host and make the
     // task currently being created depend on the results of the ghost-copy
     // operation.
-    auto & field = t[f];
     data::init_delayed_ghost_copy(
-      field, field, [r = t.share(), f](run::communicator & comm) mutable {
+      f.storage(), f.storage(), [f](run::communicator & comm) {
         using data_type = ::hpx::serialization::serialize_buffer<T>;
         using namespace ::hpx::collectives;
         if(comm.comm().is_root()) {
-          auto host_storage = r->template get_storage<T>(f);
+          auto host_storage = f.as<T>();
           broadcast_to(comm.comm(),
             data_type(
               host_storage.data(), host_storage.size(), data_type::reference),
@@ -49,7 +48,7 @@ struct task_prologue_base : local::prolog<task_prologue_base> {
             .get();
         }
         else {
-          auto host_storage = r->template get_storage<T, wo>(f);
+          auto host_storage = f.as<T, wo>();
           auto && data =
             broadcast_from<data_type>(comm.comm(), comm.gen()).get();
           assert(data.size() == host_storage.size());

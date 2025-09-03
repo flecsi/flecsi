@@ -19,12 +19,29 @@ struct global_base;
 
 namespace exec {
 
+namespace detail {
+template<class T = void>
+struct pointer_key {
+  pointer_key(T * p) : p(p) {}
+  bool operator<(const pointer_key & k) const {
+    return std::less<>()(p, k.p);
+  }
+
+private:
+  T * p;
+};
+} // namespace detail
+
 struct task_prologue_impl : prolog_base {
   using prolog_base::prolog_base;
 
-  std::vector<Legion::RegionRequirement> const & region_requirements() const {
-    return region_reqs_;
+  std::vector<Legion::RegionRequirement> && region_requirements() && {
+    return std::move(region_reqs_);
   } // region_requirements
+
+  auto && region_indices() && {
+    return std::move(which);
+  }
 
   std::vector<Legion::Future> && futures() && {
     return std::move(futures_);
@@ -59,9 +76,25 @@ private:
     return nullptr;
   }
 
+  template<class A>
+  void field(field_id_t f,
+    bool rsz,
+    data::leg::storage & s,
+    const data::borrow * b,
+    Legion::PrivilegeMode m,
+    A && a) {
+    const auto [it, add] =
+      topo_req.try_emplace({&s, b, m}, region_reqs_.size());
+    if(add)
+      std::forward<A>(a)();
+    auto & r = region_reqs_[which.emplace_back(it->second, f).first];
+    if(!r.privilege_fields.count(f))
+      r.add_field(f);
+    if(rsz)
+      r.add_flags(LEGION_SUPPRESS_WARNINGS_FLAG);
+  }
+
 protected:
-  // This implementation can be generic because all topologies are expected to
-  // provide get_region (and, with one exception, get_partition).
   template<typename D,
     Privileges P,
     class Topo,
@@ -71,43 +104,48 @@ protected:
     const field_id_t f = r.fid();
     auto & t = r.topology();
     data::region & reg = t.template get_region<Space>();
+    auto & p = t.template get_partition<Space>();
+    const data::borrow * b = get_projection(t);
 
     add_copy<P>(r);
 
     const Legion::PrivilegeMode m = privilege_mode(P);
     const Legion::LogicalRegion lr = reg.logical_region;
-    if constexpr(std::is_same_v<typename Topo::base, topo::global_base>)
-      region_reqs_.emplace_back(lr, m, LEGION_EXCLUSIVE, lr);
-    else {
-      const data::borrow * b = get_projection(t);
-      data::borrow::attach(
-        region_reqs_
-          .emplace_back(t.template get_partition<Space>().logical_partition,
-            data::borrow::projection(b),
-            m,
-            LEGION_EXCLUSIVE,
-            lr)
-          .add_flags(reg.check_resize(f) ? LEGION_SUPPRESS_WARNINGS_FLAG
-                                         : Legion::RegionFlags()),
-        b);
-    }
-    region_reqs_.back().add_field(f);
+    field(f, reg.check_resize(f), p, b, m, [&] {
+      if constexpr(std::is_same_v<typename Topo::base, topo::global_base>)
+        region_reqs_.emplace_back(lr, m, LEGION_EXCLUSIVE, lr);
+      else {
+        data::borrow::attach(region_reqs_.emplace_back(p.logical_partition,
+                               data::borrow::projection(b),
+                               m,
+                               LEGION_EXCLUSIVE,
+                               lr),
+          b);
+      }
+    });
   } // visit
 
   template<class R, typename T, class Topo, typename Topo::index_space Space>
   void visit(data::reduction_accessor<R, T> &,
     const data::field_reference<T, data::dense, Topo, Space> & r) {
+    auto & t = r.topology();
     const Legion::LogicalRegion lr =
-      r.topology().template get_region<Space>().logical_region;
+      t.template get_region<Space>().logical_region;
     static_assert(std::is_same_v<typename Topo::base, topo::global_base>);
-    region_reqs_
-      .emplace_back(lr,
-        // Cast to Legion::ReductionOpID due to missing definition of REDOP_ID
-        // in legion_redop.h
-        Legion::ReductionOpID(fold::wrap<R, T>::REDOP_ID),
-        LEGION_EXCLUSIVE,
-        lr)
-      .add_field(r.fid());
+
+    field(r.fid(),
+      false,
+      t.template get_partition<Space>(),
+      nullptr,
+      LEGION_REDUCE,
+      [&] {
+        region_reqs_.emplace_back(lr,
+          // Cast to Legion::ReductionOpID due to missing definition of REDOP_ID
+          // in legion_redop.h
+          Legion::ReductionOpID(fold::wrap<R, T>::REDOP_ID),
+          LEGION_EXCLUSIVE,
+          lr);
+      });
   } // visit
 
   /*--------------------------------------------------------------------------*
@@ -137,6 +175,13 @@ protected:
 
 private:
   std::vector<Legion::RegionRequirement> region_reqs_;
+  using req = decltype(region_reqs_.size());
+  std::map<std::tuple<detail::pointer_key<data::leg::storage>,
+             detail::pointer_key<const data::borrow>,
+             Legion::PrivilegeMode>,
+    req>
+    topo_req;
+  std::vector<std::pair<req, field_id_t>> which;
   std::vector<Legion::Future> futures_;
   std::vector<Legion::FutureMap> future_maps_;
 };
