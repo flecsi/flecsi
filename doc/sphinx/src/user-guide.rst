@@ -5,8 +5,10 @@ User Guide
   :caption: User Guide:
 
   user-guide/programming
-  user-guide/data-model
+  user-guide/data
   user-guide/topologies
+  user-guide/execution
+  user-guide/kernels
   user-guide/specializations
   user-guide/utilities
   user-guide/performance

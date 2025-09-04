@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <limits>
 #include <map>
 #include <set>
 #include <vector>
@@ -387,7 +388,12 @@ struct axis_definition {
   }
 
   axis_color operator()(Color c, bool full) const {
-    const util::gid o = colormap(c);
+    const util::gid o = colormap(c), e = colormap(c + 1);
+    const util::gid logical = e - o + (c == colormap.size() - 1 && extra());
+
+    if(logical > std::numeric_limits<util::id>::max())
+      flog_fatal("overflow: logical indices exceed available util::id range");
+
     axis_color ret{{colormap.size(),
                      colormap.total() + extra(),
                      periodic ? 0 : bdepth, // bdepth meaningless when periodic
@@ -396,8 +402,7 @@ struct axis_definition {
                      auxiliary,
                      full},
       c,
-      static_cast<util::id>(colormap(c + 1) - o) +
-        (c == colormap.size() - 1 && extra()),
+      static_cast<util::id>(logical),
       o};
     ret().check_halo();
     return ret;
@@ -439,7 +444,8 @@ struct index_definition {
   Color colors() const {
     Color nc = 1;
     for(const auto & ax : axes) {
-      nc *= ax.colormap.size();
+      if(util::ckd_mul(&nc, nc, ax.colormap.size()))
+        flog_fatal("overflow: total number of colors exceed datatype limits");
     } // for
     return nc;
   }

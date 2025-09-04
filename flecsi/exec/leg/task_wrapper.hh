@@ -8,13 +8,11 @@
 
 #include "flecsi/exec/bind_parameters.hh"
 #include "flecsi/exec/buffers.hh"
-#include "flecsi/exec/leg/future.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/common.hh"
 #include "flecsi/util/function_traits.hh"
-#include "flecsi/util/serialize.hh"
 #include <flecsi/flog.hh>
 
 #include <legion.h>
@@ -123,6 +121,17 @@ detail::register_task() {
   } // if
 }
 
+template<class P>
+struct parameters {
+  parameters(P p) : params(std::move(p)) {}
+  template<class Q>
+  parameters(parameters<Q> && q)
+    : params(std::move(q.params)), which(std::move(q.which)) {}
+
+  P params;
+  Indices which;
+};
+
 template<class>
 struct decay_tuple {};
 template<class... TT>
@@ -151,9 +160,6 @@ struct task_wrapper {
 
   using Traits = util::function_t<F>;
   using RETURN = typename Traits::return_type;
-  // reduce_internal had to make actual objects to which our references bind:
-  using param_tuple =
-    typename decay_tuple<typename Traits::arguments_type>::type;
   static constexpr processor LegionProcessor = P;
 
   /*!
@@ -169,16 +175,18 @@ struct task_wrapper {
     auto & flecsi_context = run::context::instance();
     const auto params_idx = run::get1<std::size_t>(*task);
     const auto access = flecsi_context.params.at(params_idx);
-    const auto & any_args = access.get<param_tuple>();
+    const auto & any_args = access.get<parameters<
+      typename decay_tuple<typename Traits::arguments_type>::type>>();
 
     // There is a optimization opportunity here to move
     // the elements instead of copying the last time.
-    auto task_args = bind_tuple(any_args);
+    auto task_args = bind_tuple(any_args.params);
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
     const param_buffers buf(task_args, tname);
     (ann::rguard<ann::execute_task_bind>(tname),
-      bind_parameters<P>(task_args, runtime, context, regions, task->futures));
+      bind_parameters<P>(
+        task_args, runtime, context, regions, any_args.which, task->futures));
     return ann::rguard<ann::execute_task_user>(tname),
            run::task_local_base::guard(), apply(F, std::move(task_args));
   } // execute_user_task
@@ -189,7 +197,6 @@ template<auto & F>
 struct task_wrapper<F, processor::mpi> {
   using Traits = util::function_t<F>;
   using RETURN = typename Traits::return_type;
-  using param_tuple = typename Traits::arguments_type;
 
   static constexpr auto LegionProcessor = processor::loc;
 
@@ -200,24 +207,25 @@ struct task_wrapper<F, processor::mpi> {
 
     flog_assert(!task->arglen, "unexpected task arguments");
     auto & c = run::context::instance();
-    const auto p = static_cast<param_tuple *>(c.mpi_params);
+    auto & p =
+      *static_cast<parameters<typename Traits::arguments_type> *>(c.mpi_params);
 
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
-    const param_buffers buf(*p, tname);
+    const param_buffers buf(p.params, tname);
     (ann::rguard<ann::execute_task_bind>(tname)),
       bind_parameters<LegionProcessor>(
-        *p, runtime, context, regions, task->futures);
+        p.params, runtime, context, regions, p.which, task->futures);
 
     // Set the MPI function and make the runtime active.
     if constexpr(std::is_void_v<RETURN>) {
       (ann::rguard<ann::execute_task_user>(tname)),
-        c.mpi_call([&] { apply(F, std::move(*p)); });
+        c.mpi_call([&] { apply(F, std::move(p.params)); });
     }
     else {
       std::optional<RETURN> result;
       (ann::rguard<ann::execute_task_user>(tname)),
-        c.mpi_call([&] { result.emplace(std::apply(F, std::move(*p))); });
+        c.mpi_call([&] { result.emplace(std::apply(F, std::move(p.params))); });
       return std::move(*result);
     }
 

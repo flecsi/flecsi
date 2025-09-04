@@ -26,17 +26,18 @@ struct copy_engine : copy_base {
     const data::intervals & intervals,
     field_id_t fid,
     AllToAll && all_to_all)
-    : source(&src->get_region()), destination(intervals.share()) {
+    : source(&src.base()), destination(intervals.r) {
+    const field f = intervals[fid];
     // Make sure the task that is writing to the field has finished running
-    (*destination)[fid].synchronize();
+    f.storage().synchronize();
     // The input comprises the color and index of shared elements stored at
     // each ghost element; reverse those pointers to know what to send where.
 
-    auto remote_sources = destination->get_storage<Point, ro>(fid);
+    const auto remote_sources = f.as<Point>();
 
     // Calculate the memory needed up front for the ghost_entities
     std::map<Color, std::size_t> mem_size;
-    for(const auto & [begin, end] : destination->ghost_ranges) {
+    for(const auto & [begin, end] : intervals.ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         const auto & shared = remote_sources[ghost_idx];
         mem_size[shared.first]++;
@@ -49,7 +50,7 @@ struct copy_engine : copy_base {
     // Essentially a GroupByKey of remote_sources, keys are the remote source
     // ranks and values are vectors of remote source indices.
     std::map<Color, std::vector<index_type>> remote_shared_entities;
-    for(const auto & [begin, end] : destination->ghost_ranges) {
+    for(const auto & [begin, end] : intervals.ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         const auto & shared = remote_sources[ghost_idx];
         remote_shared_entities[shared.first].emplace_back(shared.second);
@@ -67,37 +68,28 @@ struct copy_engine : copy_base {
     // information is later used by MPI_Send().
     {
       std::size_t r = 0;
-      for(auto & v : all_to_all(remote_shared_entities)) {
-        if(!v.empty()) {
-          shared_entities[r].resize(v.size());
-          std::uninitialized_copy(
-            v.begin(), v.end(), shared_entities[r].data<rw>().data());
+      for(auto & v :
+        std::forward<AllToAll>(all_to_all)(remote_shared_entities)) {
+        const auto n = v.size();
+        if(n) {
+          if(n > max_shared_indices_size)
+            max_shared_indices_size = n;
+          auto & s = shared_entities[r];
+          s.resize(n);
+          std::uninitialized_copy(v.begin(), v.end(), s.data<rw>().data());
         }
         ++r;
       }
     }
-
-    // We need to figure out the max local source index in order to give correct
-    // nelems when calling region::get_storage().
-    for(const auto & [rank, indices] : shared_entities) {
-      auto indices_view = indices.data();
-      max_local_source_idx = std::max(max_local_source_idx,
-        *std::max_element(
-          indices_view.data(), indices_view.data() + indices_view.size()));
-      max_shared_indices_size =
-        std::max(max_shared_indices_size, indices_view.size());
-    }
-    max_local_source_idx += 1;
   }
 
   // (remote rank, { local indices })
   using SendPoints = std::map<Color, local::detail::storage<index_type>>;
 
-  region_impl * source; // kept alive by subsequent tasks
-  intervals::ref destination;
+  region_impl *source, *destination;
   SendPoints ghost_entities; // (src rank,  { local ghost indices})
   SendPoints shared_entities; // (dest rank, { local shared indices})
-  std::size_t max_local_source_idx = 0, max_shared_indices_size = 0;
+  std::size_t max_shared_indices_size = 0;
 };
 
 } // namespace local

@@ -3,6 +3,7 @@
 
 #include "flecsi/flog.hh"
 #include "flecsi/topo/unstructured/types.hh"
+#include "flecsi/util/common.hh"
 #include "flecsi/util/crs.hh"
 
 #include <fstream>
@@ -62,8 +63,8 @@ public:
   std::vector<std::size_t> vertex_partitions;
   std::vector<std::size_t> vertex_num_intervals;
 
-  std::vector<std::size_t> l2g_vertices;
-  std::vector<std::size_t> l2g_cells;
+  std::vector<flecsi::util::gid> l2g_vertices;
+  std::vector<flecsi::util::gid> l2g_cells;
   util::crs c2v;
   std::map<Color, topo::unstructured_impl::peer_entities> peer_vertices;
   std::map<Color, topo::unstructured_impl::peer_entities> peer_cells;
@@ -95,47 +96,48 @@ public:
     std::size_t ghost_vertices = read_kv(in, "ghost_vertices");
     std::size_t ghost_cells = read_kv(in, "ghost_cells");
 
-    l2g_vertices = read_values<std::size_t>(in, "vertices");
+    l2g_vertices = read_values<flecsi::util::gid>(in, "vertices");
     if(l2g_vertices.size() != nvertices)
       flog_fatal("parse error: wrong number of vertices");
 
     expect_string(in, "cells");
     std::string line;
     for(std::size_t c = 0; c < ncells; ++c) {
-      auto global_id = read<std::size_t>(in);
+      auto global_id = read<flecsi::util::gid>(in);
       l2g_cells.push_back(global_id);
       std::getline(in, line);
       std::istringstream iss(line);
-      c2v.add_row(std::vector<size_t>(
-        std::istream_iterator<size_t>(iss), std::istream_iterator<size_t>()));
+      c2v.add_row(std::vector<flecsi::util::gid>(
+        std::istream_iterator<flecsi::util::gid>(iss),
+        std::istream_iterator<flecsi::util::gid>()));
     }
 
     expect_string(in, "shared_vertices");
     for(std::size_t v = 0; v < shared_vertices; ++v) {
-      auto local_id = read<std::size_t>(in);
+      auto local_id = read<flecsi::util::id>(in);
       auto color = read<Color>(in);
       peer_vertices[color].shared.insert(local_id);
     }
 
     expect_string(in, "shared_cells");
     for(std::size_t c = 0; c < shared_cells; ++c) {
-      auto local_id = read<std::size_t>(in);
+      auto local_id = read<flecsi::util::id>(in);
       auto color = read<Color>(in);
       peer_cells[color].shared.insert(local_id);
     }
 
     expect_string(in, "ghost_vertices");
     for(std::size_t v = 0; v < ghost_vertices; ++v) {
-      auto local_id = read<std::size_t>(in);
-      auto remote_id = read<std::size_t>(in);
+      auto local_id = read<flecsi::util::id>(in);
+      auto remote_id = read<flecsi::util::id>(in);
       auto color = read<Color>(in);
       peer_vertices[color].ghost.insert({remote_id, local_id});
     }
 
     expect_string(in, "ghost_cells");
     for(std::size_t c = 0; c < ghost_cells; ++c) {
-      auto local_id = read<std::size_t>(in);
-      auto remote_id = read<std::size_t>(in);
+      auto local_id = read<flecsi::util::id>(in);
+      auto remote_id = read<flecsi::util::id>(in);
       auto color = read<Color>(in);
       peer_cells[color].ghost.emplace(remote_id, local_id);
     }

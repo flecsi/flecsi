@@ -32,8 +32,8 @@ using unstructured = topology<P, unstructured_base>;
 /// Topology type.
 /// \tparam Policy the specialization, following unstructured_specialization
 template<typename Policy>
-struct topology<Policy, unstructured_base>
-  : unstructured_base, with_ragged<Policy>, with_meta<Policy> {
+struct topology<Policy, unstructured_base> : unstructured_base,
+                                             with_ragged<Policy> {
 
   /*--------------------------------------------------------------------------*
     Public types.
@@ -136,7 +136,6 @@ private:
   topology(scheduler & s, unstructured_base::coloring const & c,
     util::constants<VV...>, util::constants<CI...> /* deduce pack */)
     : with_ragged<Policy>(s, c.colors),
-      with_meta<Policy>(s, c.colors),
       ctopo_(s, c.color_peers),
       part_{
         {
@@ -196,26 +195,19 @@ private:
     destination_intervals intervals;
     source_pointers pointers;
 
-    // set the sizes of the cgraph accessor.
+    auto clm = data::launch::make(s, ctopo_);
+
     auto const & cg = cgraph_.template get<S>();
-    auto & cgp = ctopo_.ragged.template get<elements>()[cg.fid];
-
-    // creating a launch map for the underlying ragged partition
-    auto cgplm = data::launch::make(s, cgp);
-    execute<cgraph_size, mpi>(c.idx_spaces[index<S>].colors, cgplm);
-
-    // the actual resize of the underlying fields
+    auto & cgp = cg(ctopo_).get_elements();
+    execute<cgraph_size, mpi>(
+      c.idx_spaces[index<S>].colors, clm.rebind(cgp.sizes())());
     cgp.resize();
 
-    // set up cgraph_shared_
     auto const & sh = cgraph_shared_.template get<S>();
-    auto & shp = ctopo_.ragged.template get<elements>()[sh.fid];
-    auto shplm = data::launch::make(s, shp);
-    execute<cgraph_shared_size, mpi>(c.idx_spaces[index<S>].colors, shplm);
+    auto & shp = sh(ctopo_).get_elements();
+    execute<cgraph_shared_size, mpi>(
+      c.idx_spaces[index<S>].colors, clm.rebind(shp.sizes())());
     shp.resize();
-
-    // compute the launch maps for the fields
-    auto clm = data::launch::make(s, ctopo_);
 
     execute<idx_itvls, mpi>(
       c.idx_spaces[index<S>].colors, intervals, pointers, cg(clm), sh(clm));
@@ -255,15 +247,14 @@ private:
   void allocate_connectivities(scheduler & s,
     const unstructured_base::coloring & c,
     util::key_tuple<util::key_type<VV, TT>...> const & /* deduce pack */) {
-    auto lm = data::launch::make(s, this->meta);
+    auto lm = data::launch::make(s, *this); // *this only for color count
     (
       [&](TT const & row) { // invoked for each from-entity
         const std::vector<index_color> & ic = c.idx_spaces[index<VV>].colors;
         for_each(
           [&](auto v) { // invoked for each to-entity
-            execute<cnx_size, mpi>(ic, index<v.value>, temp_size(lm));
             auto & p = row.template get<v.value>()(*this).get_elements();
-            s.execute<copy_sizes>(temp_size(this->meta), p.sizes());
+            execute<cnx_size, mpi>(ic, index<v.value>, lm.rebind(p.sizes())());
             p.resize();
           },
           typename TT::keys());
@@ -300,10 +291,6 @@ private:
     index_spaces>
     cgraph_, cgraph_shared_;
 
-  // static inline const resize::Field::definition<ctopo> temp_cgsize;
-
-  static inline const resize::Field::definition<meta<Policy>> temp_size;
-
   util::key_array<repartitioned, index_spaces> part_;
   lists<Policy> special_;
   // Initializing this depends on the above:
@@ -313,11 +300,8 @@ private:
 
 template<class P>
 struct borrow_extra<unstructured<P>> : borrow_sizes<P> {
-  borrow_extra(scheduler & s,
-    unstructured<P> & u,
-    const data::borrow & b,
-    bool f)
-    : borrow_extra(s, u, b, f, typename P::entity_lists()) {}
+  borrow_extra(unstructured<P> & u, const data::borrow & b, bool f)
+    : borrow_extra(u, b, f, typename P::entity_lists()) {}
 
 private:
   friend unstructured<P>; // for access::send
@@ -327,14 +311,13 @@ private:
     special_;
 
   template<typename P::index_space... VV, class... TT>
-  borrow_extra(scheduler & s,
-    unstructured<P> & u,
+  borrow_extra(unstructured<P> & u,
     const data::borrow & b,
     bool f,
     util::types<util::key_type<VV, TT>...> /* deduce pack */)
-    : borrow_extra::borrow_sizes(s, u, b, f),
+    : borrow_extra::borrow_sizes(u, b, f),
       special_(u.special_.template get<VV>().map([&](auto & t) {
-        return borrow_base::wrap<std::decay_t<decltype(t)>>(s, t, b, f);
+        return borrow_base::wrap<std::decay_t<decltype(t)>>(t, b, f);
       })...) {}
 };
 
@@ -351,8 +334,7 @@ struct topology<Policy, topo::unstructured_base>::access {
   void send(F && f) {
     std::size_t i = 0;
     for(auto & a : size_)
-      a.topology_send(
-        f, [&i](auto & u) -> auto & { return u.get_sizes(i++); });
+      f(a, [&i](auto & u) { return topo::resize::field(u.get_sizes(i++)); });
 
     connect_send(f, connect_, topology::connect_);
     lists_send(
@@ -362,7 +344,6 @@ struct topology<Policy, topo::unstructured_base>::access {
 
 protected:
   using entity_list = typename Policy::entity_list;
-  access() : connect_(topology::connect_) {}
 
   /*!
     Return an index space as a range.
@@ -412,14 +393,13 @@ private:
     Private data members.
    *--------------------------------------------------------------------------*/
 
-  template<const auto & Field>
-  using accessor =
-    data::accessor_member<Field, privilege_pack<privilege_merge(Privileges)>>;
-  util::key_array<data::scalar_access<topo::resize::field, Privileges>,
+  util::key_array<data::scalar_access<topo::resize::Field::value_type,
+                    privilege_merge(Privileges)>,
     index_spaces>
     size_;
   connect_access<Policy, Privileges> connect_;
-  lists_t<accessor<special_field>, Policy> special_;
+  lists_t<field<util::id>::accessor<privilege_merge(Privileges)>, Policy>
+    special_;
 
 }; // struct unstructured<Policy>::access
 

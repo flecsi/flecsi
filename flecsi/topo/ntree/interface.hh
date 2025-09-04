@@ -235,7 +235,7 @@ private:
   static std::array<std::size_t, 2> make_tree_local_task(
     typename field<key_t>::template accessor<rw, na> e_keys,
     typename field<key_t>::template accessor<rw, na> n_keys,
-    typename field<ntree_data>::template accessor<ro, na> data_field,
+    typename field<ntree_data>::template accessor<ro, ro> data_field,
     typename field<hmap_pair_t>::template accessor<rw, na> hcells,
     typename field<meta_type, data::single>::template accessor<rw>
       mf) noexcept {
@@ -584,7 +584,7 @@ private:
   }
 
   static void copy_sizes_task(topo::resize::Field::accessor<wo> a,
-    field<util::id>::accessor<ro, na> b) noexcept {
+    field<util::id>::accessor<ro, ro> b) noexcept {
     a = std::accumulate(b.span().begin(),
       b.span().begin() + run::context::instance().colors(),
       0);
@@ -708,8 +708,6 @@ public:
     s.execute<recolor_task>(*this);
     s.execute<exchange_boundaries_task>(
       e_keys(*this), meta_field(this->meta), data_field(*this));
-
-    cp_data_tree.issue_copy({data_field.fid});
 
     // Create the local tree
     // Return the list of nodes to share (top of the tree)
@@ -1012,7 +1010,6 @@ public:
 
     s.execute<find_local_task<false>>(
       *this, share_ghosts_cid_comm_field(*this));
-    cp_share_ghosts_comms.issue_copy({share_ghosts_comms_field.fid});
 
     s.execute<reset_ghosts>(meta_field(this->meta), hcells(*this));
 
@@ -1048,7 +1045,6 @@ public:
     // Now fill info
     s.execute<find_distant_task<false>>(
       *this, share_ghosts_buffer_comm_field(*this));
-    cp_share_ghosts_comms.issue_copy({share_ghosts_comms_field.fid});
 
     // Resize
     {
@@ -1172,6 +1168,8 @@ public:
       return &*cp_top_tree_nodes;
     else if constexpr(Space == tree_data)
       return &cp_data_tree;
+    else if constexpr(Space == share_ghosts_comms)
+      return &cp_share_ghosts_comms;
     return nullptr;
   }
 
@@ -1195,39 +1193,36 @@ public:
 template<class Policy>
 template<Privileges Priv>
 struct topology<Policy, ntree_base>::access {
-  template<const auto & F>
-  using accessor = data::accessor_member<F, Priv>;
-  /// Entities keys
-  accessor<topology::e_keys> e_keys;
+  template<class T>
+  using accessor = typename field<T>::template accessor1<Priv>;
+  accessor<key_t> e_keys, ///< Entities keys
+    n_keys; ///< Nodes keys
   /// Entities Color
-  accessor<topology::e_colors> e_colors;
+  accessor<Color> e_colors;
   /// Entities Id (for key collisions)
-  accessor<topology::e_ids> e_ids;
-  /// Nodes keys
-  accessor<topology::n_keys> n_keys;
+  accessor<util::id> e_ids;
   // Entities interaction fields
-  accessor<topology::e_i> e_i;
+  accessor<entity_data> e_i;
   /// Nodes interaction fields
-  accessor<topology::n_i> n_i;
+  accessor<node_data> n_i;
 
 private:
-  accessor<topology::data_field> data_field;
-  accessor<topology::hcells> hcells;
-  data::scalar_access<meta_field, privilege_pack<ro>> mf;
+  accessor<ntree_data> data_field;
+  accessor<hmap_pair_t> hcells;
+  data::scalar_access<meta_type, ro> mf;
 
 public:
   template<class F>
   void send(F && f) {
-    e_keys.topology_send(f);
-    n_keys.topology_send(f);
-    e_colors.topology_send(f);
-    e_ids.topology_send(f);
-    data_field.topology_send(f);
-    hcells.topology_send(f);
-    e_i.topology_send(f);
-    n_i.topology_send(f);
-    mf.topology_send(
-      std::forward<F>(f), [](auto & n) -> auto & { return n.meta; });
+    f(e_keys, topology::e_keys);
+    f(n_keys, topology::n_keys);
+    f(e_colors, topology::e_colors);
+    f(e_ids, topology::e_ids);
+    f(data_field, topology::data_field);
+    f(hcells, topology::hcells);
+    f(e_i, topology::e_i);
+    f(n_i, topology::n_i);
+    std::forward<F>(f)(mf, [](auto & n) { return meta_field(n.meta); });
   }
 
   /// Hashing table type

@@ -54,9 +54,10 @@ struct copy_plan {
         dest_,
         pointers<P, S>(t).use(std::forward<F>(src)).fid()) {}
 
-  void issue_copy(const std::vector<field_id_t> & ff) const {
+  template<exec::processor P = exec::processor::loc>
+  void issue_copy(const copy_request::vec & ff) const {
     util::annotation::rguard<util::annotation::execute_task_copy_engine> ann;
-    engine(ff);
+    engine.copy<P>(ff);
   }
 
   // Return the field id of pointers

@@ -735,9 +735,9 @@ public:
         dest,
         src,
         util::constant<space>());
-      std::vector<field_id_t> ff{values.fid()};
+      data::copy_request::vec ff{{values.fid(), true}};
       for(auto & af : apply_fields)
-        ff.push_back(af->fid);
+        ff.push_back({af->fid, true});
       cp.issue_copy(ff);
     }
 

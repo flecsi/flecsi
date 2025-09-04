@@ -75,6 +75,46 @@ function(flecsi_add_sphinx_target name)
     string(REPLACE .dot .svg generated_svg_files "${source_dot_files}")
   endif()
 
+  # Generate PDF graphics from LaTeX TikZ sources.
+  file(
+    GLOB_RECURSE source_tex_files
+    LIST_DIRECTORIES false
+    "${sphx_CONFIG}/*.tex"
+  )
+
+  if(source_tex_files)
+    find_program(PDFLATEX_EXECUTABLE NAMES pdflatex)
+    find_program(PDF2SVG_EXECUTABLE NAMES pdf2svg)
+
+    if(NOT PDFLATEX_EXECUTABLE)
+      message(FATAL_ERROR "pdflatex not found. Required to build TikZ images.")
+    endif()
+
+    if(NOT PDF2SVG_EXECUTABLE)
+      message(FATAL_ERROR "pdf2svg not found. Required to generate SVGs from PDFs.")
+    endif()
+
+    foreach(image_tex IN LISTS source_tex_files)
+      get_filename_component(tex_dir ${image_tex} DIRECTORY)
+      get_filename_component(tex_name ${image_tex} NAME_WE)
+
+      set(image_pdf "${tex_dir}/${tex_name}.pdf")
+      set(image_svg "${tex_dir}/${tex_name}.svg")
+
+      add_custom_command(
+        OUTPUT ${image_svg}
+        MAIN_DEPENDENCY ${image_tex}
+        WORKING_DIRECTORY ${tex_dir}
+        COMMAND ${PDFLATEX_EXECUTABLE} -interaction=nonstopmode -halt-on-error ${image_tex}
+        COMMAND ${PDF2SVG_EXECUTABLE} ${image_pdf} ${image_svg}
+        COMMENT "Generating TikZ SVG: ${image_svg} from ${image_tex}"
+      )
+
+      list(APPEND generated_svg_files ${image_svg})
+      list(APPEND generated_pdf_files ${image_pdf})
+    endforeach()
+  endif()
+
   configure_file(${sphx_CONFIG}/conf.py.in
     ${sphx_OUTPUT}/.sphinx/conf.py)
 
