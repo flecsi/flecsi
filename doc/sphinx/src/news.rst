@@ -24,6 +24,10 @@ Fixed
 
   * Writable ``unstructured`` topology accessors with more than one privilege work.
 
+* MPI backend
+
+  * ``reduction_accessor`` works with GPU tasks.
+
 Changes in v2.4.0 (June 5 2025)
 +++++++++++++++++++++++++++++++
 

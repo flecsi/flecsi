@@ -34,20 +34,21 @@ struct bind_accessors : local::bind<bind_accessors<Proc>, Proc> {
     : bind_accessors::bind(regions_partitions), comm(comm) {}
 
   template<typename R, typename T>
-  void reduce(util::span<T> storage) {
-    reductions.push_back([storage](run::communicator & comm) {
+  void reduce(data::local::field f) {
+    reductions.push_back([f = std::move(f)](run::communicator & comm) {
       using data_type = ::hpx::serialization::serialize_buffer<T>;
       using namespace ::hpx::collectives;
+      const auto host_s = f.as<T, rw>();
       auto fut = all_reduce(comm.comm(),
-        data_type(storage.data(), storage.size()),
+        data_type(host_s.data(), host_s.size()),
         exec::fold::wrap<R>{},
         comm.gen());
 
-      return fut.then(::hpx::launch::sync, [storage](auto && fut) {
+      return fut.then(::hpx::launch::sync, [host_s](auto && fut) {
         auto && data = fut.get();
-        flog_assert(data.size() == storage.size(),
+        flog_assert(data.size() == host_s.size(),
           "received size of data must be the same as the storage size");
-        std::move(data.begin(), data.begin() + data.size(), storage.data());
+        std::move(data.begin(), data.begin() + data.size(), host_s.data());
       });
     });
   }
