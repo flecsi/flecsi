@@ -125,7 +125,7 @@ if(ENABLE_LIBRARY)
   enable_language(C)
 
   set(CXX_STANDARD_REQUIRED ON)
-  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD "17" CACHE STRING "C++ standard")
   set(CMAKE_CXX_EXTENSIONS OFF)
 
   include(GNUInstallDirs)
@@ -142,6 +142,14 @@ if(ENABLE_LIBRARY)
 
   add_library(FleCSI)
   add_library(FleCSI::FleCSI ALIAS FleCSI)
+
+  target_compile_features(FleCSI PUBLIC cxx_std_${CMAKE_CXX_STANDARD})
+
+  set_target_properties(FleCSI PROPERTIES
+    CXX_STANDARD ${CMAKE_CXX_STANDARD}
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+  )
 
   target_include_directories(FleCSI
     PUBLIC
