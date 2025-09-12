@@ -115,9 +115,9 @@ public:
       });
     // In the rare case where we do not have anywhere to store a future, we
     // create our own single-use communicator.
-    data::comms::comm own;
+    run::communicator::ptr own;
     if(need_comm && !future)
-      own = data::comms::make_comm();
+      own = run::comms::make_comm();
     auto f = ::hpx::dataflow(
       [out = run::context::instance().outstanding(),
         regions_partitions = detach(),

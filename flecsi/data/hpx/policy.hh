@@ -12,11 +12,6 @@
 #include "flecsi/run/hpx/context.hh"
 #include "flecsi/util/types.hh"
 
-#include <cstddef>
-#include <cstring>
-#include <list>
-#include <set>
-#include <string>
 #include <vector>
 
 namespace flecsi {
@@ -86,150 +81,6 @@ private:
   }
 };
 
-// Store unique (according to C) T objects in insertion order.
-template<class T, auto & C>
-struct ordered_set {
-  using iterator = typename std::list<T>::iterator;
-
-  [[nodiscard]] bool empty() const {
-    return l.empty();
-  }
-  auto size() const {
-    return l.size();
-  }
-
-  bool push(T t) {
-    const bool ret = s.insert(key(t)).second;
-    if(ret)
-      l.push_back(std::move(t));
-    return ret;
-  }
-
-  iterator begin() {
-    return l.begin();
-  }
-  iterator end() {
-    return l.end();
-  }
-  auto begin() const {
-    return l.begin();
-  }
-  auto end() const {
-    return l.end();
-  }
-
-  iterator erase(iterator i) {
-    s.erase(key(*i));
-    return l.erase(i);
-  }
-
-  void merge(ordered_set && o) {
-    for(iterator i = o.l.begin(), e = o.l.end(); i != e;)
-      if(s.count(key(*i)))
-        i = o.l.erase(i);
-      else
-        ++i;
-    l.splice(l.end(), std::move(o.l));
-    auto m = std::move(o.s);
-    s.merge(m);
-  }
-
-private:
-  static auto key(const T & t) { // supply const
-    return C(t);
-  }
-
-  std::list<T> l;
-  std::set<std::decay_t<decltype(C(std::declval<const T &>()))>> s;
-};
-
-// Communicators are stored in a graph that summarizes task dependencies; they
-// are moved to later, dependent nodes that use them or that are reachable
-// from a superset of (current) root nodes.  Edges in the graph are
-// aggressively contracted to keep the graph small.
-struct comms {
-  using ptr = std::shared_ptr<comms>;
-  // Provide a stable address for asynchronous operations:
-  using comm = std::unique_ptr<run::communicator>;
-
-  void depend(ptr n) {
-    memo m;
-    if(n && n.get() != this && !absorb(n, m))
-      past.push(std::move(n));
-  }
-
-  run::communicator & get() & {
-    memo m;
-    collapse(m);
-    if(ours.empty()) {
-      if(past.empty())
-        ours.push_back(make_comm());
-      else {
-        // Take from a direct predecessor; deeper means more broadly useful.
-        const auto it = --past.end();
-        comms & p = **it;
-        ours.push_back(std::move(p.ours.back()));
-        p.ours.pop_back();
-        if(inherit(p))
-          past.erase(it);
-      }
-    }
-    return *ours.front();
-  }
-
-  static ptr make() {
-    return std::make_shared<comms>();
-  }
-  static comm make_comm() {
-    return std::make_unique<run::communicator>(
-      run::context::instance().world_comm());
-  }
-
-private:
-  using memo = std::set<comms *>;
-  static comms * key(const ptr & p) {
-    return p.get();
-  }
-
-  void collapse(memo & m) {
-    auto i = past.begin();
-    for(auto n = past.size(); n--;)
-      if(absorb(*i, m))
-        i = past.erase(i);
-      else
-        ++i;
-  }
-  bool absorb(const ptr & c, memo & m) {
-    // Precheck c to minimize std::set allocations for shallow graphs.
-    // use_count is safe since we're just one thread here (no tasks).
-    // c might get deleted; we assume that we can still compare to it.
-    const bool uniq = c.use_count() == 1;
-    if(uniq || (!c->past.empty() && m.insert(c.get()).second))
-      c->collapse(m);
-    if(uniq) {
-      auto v = std::move(c->ours);
-      if(v.size() > ours.size()) // make the smaller insertion
-        ours.swap(v);
-      ours.insert(
-        ours.end(), std::move_iterator(v.begin()), std::move_iterator(v.end()));
-      past.merge(std::move(c->past));
-      return true;
-    }
-    return inherit(*c);
-  }
-  bool inherit(const comms & c) {
-    if(!c.ours.empty())
-      return false;
-    for(const auto & p : c.past)
-      past.push(p);
-    return true;
-  }
-
-  std::vector<comm> ours; // elements never empty
-  // Avoid duplicate parents without ordering by process-local addresses:
-  ordered_set<ptr, key> past;
-};
-
 // To automatically construct the task graph, we must maintain a set of
 // futures that constitute its frontier.  hold objects, several for each
 // field, collectively contain those futures as well as the graph of
@@ -263,14 +114,14 @@ struct hold {
 
   static hold make(fate::future f = {}) {
     hold ret;
-    ret.c = comms::make();
+    ret.c = run::comms::make();
     ret.f = fate::make(f);
     return ret;
   }
 
 private:
   // Nodes are allocated for these together but destroyed separately.
-  comms::ptr c; // destroyed only after waiting on users
+  run::comms::ptr c; // destroyed only after waiting on users
   fate f;
 };
 
