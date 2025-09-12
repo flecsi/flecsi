@@ -146,13 +146,8 @@ reduce_internal(Args &&... args) {
           .get();
       })};
     }
-    else if constexpr(!std::is_void_v<R>) {
+    else
       return future<R, exec::launch_type_t::index>{delay(delayed_apply)};
-    }
-    else {
-      // index launch of void functions, e.g. printf("hello world");
-      return future<void, exec::launch_type_t::index>{delay(delayed_apply)};
-    }
   }
 }
 
