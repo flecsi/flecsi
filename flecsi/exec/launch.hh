@@ -7,6 +7,7 @@
 #include "flecsi/data/field.hh"
 #include "flecsi/exec/kernel.hh"
 #include "flecsi/exec/task_attributes.hh"
+#include "flecsi/util/constant.hh"
 #include "flecsi/util/function_traits.hh"
 
 #include <cstddef>
@@ -37,6 +38,14 @@ struct bind_tag {};
 struct send_tag {};
 /// \endcond
 
+/// A class that inherits from params_tag is a composite task parameter.
+/// The interface requires that the class provide a flecsi_params() member
+/// function that returns a std::tie of all members. The class must be
+/// constructible from the element types of the tuple returned by flecsi_params.
+/// The corresponding argument is a tuple of task arguments for each element
+/// type.
+struct params_tag : bind_tag {};
+
 /// \}
 } // namespace data
 
@@ -58,7 +67,7 @@ constexpr bool bad_accessor<M, data::accessor<L, T, P>> =
 // single non-template overload, so we use SFINAE to detect that we have
 // no replacement defined for an argument.
 // XREF: more specializations in accessor.hh
-template<class>
+template<class, class = void>
 struct task_param {};
 // A is what the user gives us when calling execute(), P is what the user
 // defined function/task expects. P may not be the same as A, for example, user
@@ -107,7 +116,7 @@ constexpr bool must_bind_v = must_bind<T>::value;
 // launch), or std::nullptr_t (don't care).
 using Index = std::optional<Color>;
 
-template<class P, class A>
+template<class P, class A, class = void>
 struct launch {
   static auto get(const A &) {
     return nullptr;
@@ -639,6 +648,17 @@ template<class R>
 struct must_convert<future<R, launch_type_t::index>> : std::true_type {};
 
 template<class P>
+struct task_param<P, std::enable_if_t<std::is_base_of_v<data::params_tag, P>>> {
+  template<class A>
+  static P replace(A && t) {
+    using decayed_params_tuple =
+      util::decay_tuple_t<decltype(std::declval<P &>().flecsi_params())>;
+    return std::make_from_tuple<P>(
+      exec::replace_argument<decayed_params_tuple>(std::forward<A>(t)));
+  }
+};
+
+template<class P>
 struct task_param<std::vector<P>> {
   template<class A>
   static std::enable_if_t<replace_argument<P, const A &>::special,
@@ -704,6 +724,18 @@ struct launch<std::tuple<PP...>, std::tuple<AA...>> {
       .value();
   }
 };
+
+template<class P, class... AA>
+struct launch<P,
+  std::tuple<AA...>,
+  std::enable_if_t<std::is_base_of_v<data::params_tag, P>>> {
+  static auto get(const std::tuple<AA...> & t) {
+    return launch<
+      util::decay_tuple_t<decltype(std::declval<P &>().flecsi_params())>,
+      std::tuple<AA...>>::get(t);
+  }
+};
+
 template<class... TT>
 struct must_bind<std::tuple<TT...>> : std::disjunction<must_bind<TT>...> {};
 

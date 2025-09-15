@@ -128,6 +128,13 @@ private:
     p.send(visitor(a));
   }
 
+  template<class P, class... AA>
+  std::enable_if_t<std::is_base_of_v<data::params_tag, P>> visit(P & p,
+    const std::tuple<AA...> & a) {
+    auto l_value_params = p.flecsi_params();
+    visit(l_value_params, a);
+  }
+
   template<class P, class T>
   void visit(P & p, data::topology_slot<T> & t) {
     visit(p, t.get());
@@ -193,6 +200,12 @@ private:
   template<typename T>
   static void visit(const data::detail::scalar_value<T> & s) {
     s.template copy<Proc>();
+  }
+
+  template<class P>
+  std::enable_if_t<std::is_base_of_v<data::params_tag, P>> visit(P & p) {
+    auto l_value_params = p.flecsi_params();
+    visit(l_value_params);
   }
 
   template<class P>

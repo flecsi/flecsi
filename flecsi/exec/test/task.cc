@@ -151,6 +151,46 @@ gpuse(field<int, data::particle>::accessor<ro> a,
   return std::accumulate(a.begin(), a.end(), 0);
 }
 
+namespace user_types {
+
+const field<int>::definition<arr> int_field;
+const field<double>::definition<arr> double_field;
+
+constexpr int test_int = 317;
+constexpr double test_double = 8.64;
+
+struct type_with_accessors : data::params_tag {
+  field<int>::accessor<wo> fa1;
+  field<double>::accessor<wo> fa2;
+
+  type_with_accessors(decltype(fa1) fa1, decltype(fa2) fa2)
+    : fa1(fa1), fa2(fa2) {}
+
+  auto flecsi_params() {
+    return std::tie(fa1, fa2);
+  }
+
+  void update_members(int test_int, double test_double) const {
+    fa1[0] = test_int;
+    fa2[0] = test_double;
+  }
+};
+
+void
+set_field_values(type_with_accessors instance) noexcept {
+  instance.update_members(test_int, test_double);
+}
+
+int
+get_field_values(type_with_accessors instance) noexcept {
+  UNIT() {
+    ASSERT_EQ(instance.fa1[0], test_int);
+    ASSERT_EQ(instance.fa2[0], test_double);
+  };
+}
+
+} // namespace user_types
+
 int
 task_driver(scheduler & s) {
   UNIT() {
@@ -218,6 +258,12 @@ task_driver(scheduler & s) {
     const float obj = 8.9;
     s.execute<hydro::simple<const float *>>(&obj);
     s.execute<hydro::move>(exec::on, std::make_unique<int>());
+
+    s.execute<user_types::set_field_values>(std::tuple(
+      user_types::int_field(arr_s), user_types::double_field(arr_s)));
+    EXPECT_EQ(s.test<user_types::get_field_values>(std::tuple(
+                user_types::int_field(arr_s), user_types::double_field(arr_s))),
+      0);
   };
 } // task_driver
 
