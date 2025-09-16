@@ -104,18 +104,17 @@ struct ordered_set {
       l.push_back(std::move(t));
     return ret;
   }
-  T & peek() {
-    return l.back();
-  }
-  void pop() {
-    s.erase(key(peek()));
-    l.pop_back();
-  }
 
   iterator begin() {
     return l.begin();
   }
   iterator end() {
+    return l.end();
+  }
+  auto begin() const {
+    return l.begin();
+  }
+  auto end() const {
     return l.end();
   }
 
@@ -167,11 +166,12 @@ struct comms {
         ours.push_back(make_comm());
       else {
         // Take from a direct predecessor; deeper means more broadly useful.
-        const ptr & p = past.peek();
-        ours.push_back(std::move(p->ours.back()));
-        p->ours.pop_back();
-        if(absorb(p, m))
-          past.pop();
+        const auto it = --past.end();
+        comms & p = **it;
+        ours.push_back(std::move(p.ours.back()));
+        p.ours.pop_back();
+        if(inherit(p))
+          past.erase(it);
       }
     }
     return *ours.front();
@@ -213,12 +213,15 @@ private:
       ours.insert(
         ours.end(), std::move_iterator(v.begin()), std::move_iterator(v.end()));
       past.merge(std::move(c->past));
+      return true;
     }
-    else if(c->ours.empty())
-      for(const auto & p : c->past)
-        past.push(p);
-    else
+    return inherit(*c);
+  }
+  bool inherit(const comms & c) {
+    if(!c.ours.empty())
       return false;
+    for(const auto & p : c.past)
+      past.push(p);
     return true;
   }
 
