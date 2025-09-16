@@ -184,6 +184,12 @@ private:
   T t;
 };
 
+template<class P, class A>
+auto
+launch_size_single(const A & a) {
+  return launch<std::decay_t<P>, A>::get(a);
+}
+
 template<bool M = false, class... PP, class... AA>
 auto
 launch_size(std::tuple<PP...> *, const AA &... aa) {
@@ -194,7 +200,7 @@ launch_size(std::tuple<PP...> *, const AA &... aa) {
     else
       return nullptr;
   }()) | ... |
-          launch_combine(launch<std::decay_t<PP>, AA>::get(aa)));
+          launch_combine(launch_size_single<PP>(aa)));
 }
 
 template<class, class = void>
@@ -758,7 +764,7 @@ struct launch<P,
 template<class P, class A>
 struct launch<P, A, std::enable_if_t<std::is_base_of_v<data::arg_tag, A>>> {
   static auto get(const A & a) {
-    return launch_size(static_cast<std::tuple<P> *>(nullptr), a.flecsi_arg());
+    return launch_size_single<P>(a.flecsi_arg());
   }
 };
 
