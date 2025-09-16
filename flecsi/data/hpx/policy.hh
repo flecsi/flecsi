@@ -203,9 +203,10 @@ private:
     // Precheck c to minimize std::set allocations for shallow graphs.
     // use_count is safe since we're just one thread here (no tasks).
     // c might get deleted; we assume that we can still compare to it.
-    if(c.use_count() == 1 || (!c->past.empty() && m.insert(c.get()).second))
+    const bool uniq = c.use_count() == 1;
+    if(uniq || (!c->past.empty() && m.insert(c.get()).second))
       c->collapse(m);
-    if(c.use_count() == 1) {
+    if(uniq) {
       auto v = std::move(c->ours);
       if(v.size() > ours.size()) // make the smaller insertion
         ours.swap(v);
