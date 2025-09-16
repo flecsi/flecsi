@@ -189,6 +189,38 @@ get_field_values(type_with_accessors instance) noexcept {
   };
 }
 
+struct type_with_references : data::arg_tag {
+  using topo_t = arr::topology;
+  topo_t & topo1;
+  topo_t & topo2;
+
+  type_with_references(topo_t & topo1, topo_t & topo2)
+    : topo1(topo1), topo2(topo2) {}
+
+  auto flecsi_arg() const {
+    return std::tuple(
+      user_types::int_field(topo1), user_types::double_field(topo2));
+  }
+};
+
+void
+set_values(std::tuple<field<int>::accessor<wo>, field<double>::accessor<wo>>
+    aa) noexcept {
+  auto & [fa1, fa2] = aa;
+  fa1[0] = test_int;
+  fa2[0] = test_double;
+}
+
+int
+get_values(std::tuple<field<int>::accessor<ro>, field<double>::accessor<ro>>
+    aa) noexcept {
+  UNIT() {
+    auto & [fa1, fa2] = aa;
+    EXPECT_EQ(fa1[0], test_int);
+    EXPECT_EQ(fa2[0], test_double);
+  };
+}
+
 } // namespace user_types
 
 int
@@ -259,11 +291,23 @@ task_driver(scheduler & s) {
     s.execute<hydro::simple<const float *>>(&obj);
     s.execute<hydro::move>(exec::on, std::make_unique<int>());
 
+    // params test
     s.execute<user_types::set_field_values>(std::tuple(
       user_types::int_field(arr_s), user_types::double_field(arr_s)));
     EXPECT_EQ(s.test<user_types::get_field_values>(std::tuple(
                 user_types::int_field(arr_s), user_types::double_field(arr_s))),
       0);
+
+    // args test
+    user_types::type_with_references type_with_references_instance{
+      arr_s, arr_s};
+    s.execute<user_types::set_values>(type_with_references_instance);
+    EXPECT_EQ(s.test<user_types::get_values>(type_with_references_instance), 0);
+
+    // params and args combined
+    s.execute<user_types::set_field_values>(type_with_references_instance);
+    EXPECT_EQ(
+      s.test<user_types::get_field_values>(type_with_references_instance), 0);
   };
 } // task_driver
 

@@ -135,6 +135,12 @@ private:
     visit(l_value_params, a);
   }
 
+  template<class P, class A>
+  std::enable_if_t<std::is_base_of_v<data::arg_tag, std::remove_reference_t<A>>>
+  visit(P & p, const A & a) {
+    visit(p, a.flecsi_arg());
+  }
+
   template<class P, class T>
   void visit(P & p, data::topology_slot<T> & t) {
     visit(p, t.get());

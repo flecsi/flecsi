@@ -46,6 +46,11 @@ struct send_tag {};
 /// type.
 struct params_tag : bind_tag {};
 
+/// A class that inherits from arg_tag is a custom task argument.
+/// The interface requires that the class provide a flecsi_arg() member
+/// function that returns a substitute task argument.
+struct arg_tag : convert_tag {};
+
 /// \}
 } // namespace data
 
@@ -619,6 +624,17 @@ template<typename Return,
 struct future;
 
 namespace exec::detail {
+template<class P, class A>
+struct replace_argument<P,
+  A,
+  std::enable_if_t<
+    std::is_base_of_v<data::arg_tag, std::remove_reference_t<A>>>> {
+  static constexpr bool special = true;
+  static decltype(auto) replace(A a) {
+    return exec::replace_argument<P>(static_cast<A>(a).flecsi_arg());
+  }
+};
+
 template<>
 struct task_param<cpu> {
   static cpu replace(const on_t &) {
@@ -650,7 +666,10 @@ struct must_convert<future<R, launch_type_t::index>> : std::true_type {};
 template<class P>
 struct task_param<P, std::enable_if_t<std::is_base_of_v<data::params_tag, P>>> {
   template<class A>
-  static P replace(A && t) {
+  static std::enable_if_t< // process arg_tag first if both are in use
+    !std::is_base_of_v<data::arg_tag, std::remove_reference_t<A>>,
+    P>
+  replace(A && t) {
     using decayed_params_tuple =
       util::decay_tuple_t<decltype(std::declval<P &>().flecsi_params())>;
     return std::make_from_tuple<P>(
@@ -733,6 +752,13 @@ struct launch<P,
     return launch<
       util::decay_tuple_t<decltype(std::declval<P &>().flecsi_params())>,
       std::tuple<AA...>>::get(t);
+  }
+};
+
+template<class P, class A>
+struct launch<P, A, std::enable_if_t<std::is_base_of_v<data::arg_tag, A>>> {
+  static auto get(const A & a) {
+    return launch_size(static_cast<std::tuple<P> *>(nullptr), a.flecsi_arg());
   }
 };
 
