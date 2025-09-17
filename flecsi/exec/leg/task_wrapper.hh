@@ -169,7 +169,7 @@ struct task_wrapper {
   static RETURN execute(const Legion::Task * task,
     const std::vector<Legion::PhysicalRegion> & regions,
     Legion::Context context,
-    Legion::Runtime * runtime) {
+    Legion::Runtime * runtime) noexcept {
 
     // Unpack task arguments
     auto & flecsi_context = run::context::instance();
@@ -203,7 +203,7 @@ struct task_wrapper<F, processor::mpi> {
   static RETURN execute(const Legion::Task * task,
     const std::vector<Legion::PhysicalRegion> & regions,
     Legion::Context context,
-    Legion::Runtime * runtime) {
+    Legion::Runtime * runtime) noexcept {
 
     flog_assert(!task->arglen, "unexpected task arguments");
     auto & c = run::context::instance();

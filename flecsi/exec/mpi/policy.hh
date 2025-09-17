@@ -73,7 +73,9 @@ reduce_internal(Args &&... args) {
   //    Allgather is needed.
   //
   const auto ds = launch_size<Attributes, decltype(params)>(args...);
-  const auto task = [&params] { return std::apply(F, std::move(params)); };
+  const auto task = [&params]() noexcept {
+    return std::apply(F, std::move(params));
+  };
   util::annotation::rguard<util::annotation::execute_task_user> ann{task_name};
   if constexpr(std::is_same_v<decltype(ds), const std::monostate>) {
     const bool root = !flecsi::run::context::instance().process();

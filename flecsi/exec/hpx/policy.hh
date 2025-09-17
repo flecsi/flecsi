@@ -148,7 +148,7 @@ reduce_internal(Args &&... args) {
     auto apply_delayed_prolog = [f = std::forward<decltype(f)>(f)](
                                   auto & regions_partitions,
                                   run::communicator * comm,
-                                  auto && params) mutable {
+                                  auto && params) mutable noexcept {
       // The bind_parameters constructor will possibly schedule additional steps
       // to run during destruction that require execution after the task
       // finished running (reduction operations).

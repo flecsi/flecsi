@@ -24,7 +24,7 @@ void
 context_t::top_level_task(const Legion::Task *,
   const std::vector<Legion::PhysicalRegion> &,
   Legion::Context,
-  Legion::Runtime *) {
+  Legion::Runtime *) noexcept {
 
   context_t & context_ = instance();
 
