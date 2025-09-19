@@ -92,14 +92,13 @@ reduce_internal(Args &&... args) {
     };
     if(need_comm)
       bound_params.request_comm();
-    return future < std::remove_cv_t<R>,
-           std::is_void_v<Reduction> && !single
-             ? launch_type_t::index
-             : launch_type_t::single >
-                 {std::move(bound_params)
-                     .template delay_execution<R>(std::move(params),
-                       util::symbol<F>(),
-                       std::move(apply_delayed_prolog))};
+    return std::make_from_tuple<future<std::remove_cv_t<R>,
+      std::is_void_v<Reduction> && !single ? launch_type_t::index
+                                           : launch_type_t::single>>(
+      std::move(bound_params)
+        .template delay_execution<R>(std::move(params),
+          util::symbol<F>(),
+          std::move(apply_delayed_prolog)));
   };
 
   constexpr auto delayed_apply = [](auto && params) {

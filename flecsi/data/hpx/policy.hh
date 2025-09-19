@@ -112,10 +112,10 @@ struct hold {
     return h.f.release();
   }
 
-  static hold make(fate::future f = {}) {
+  static hold make(run::comms::ptr c = run::comms::make()) {
     hold ret;
-    ret.c = run::comms::make();
-    ret.f = fate::make(f);
+    ret.c = std::move(c);
+    ret.f = fate::make();
     return ret;
   }
 

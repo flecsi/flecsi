@@ -134,16 +134,21 @@ struct comms {
     return *ours.front();
   }
 
+  explicit operator bool() const {
+    return !ours.empty() || !past.empty();
+  }
+
   static ptr make() {
     return std::make_shared<comms>();
   }
-  static inline communicator::ptr make_comm();
 
 private:
   using memo = std::set<comms *>;
   static comms * key(const ptr & p) {
     return p.get();
   }
+
+  static inline communicator::ptr make_comm();
 
   void collapse(memo & m) {
     auto i = past.begin();
@@ -233,8 +238,18 @@ struct context_t : local::context {
   auto p2p_tag() {
     return ::hpx::collectives::tag_arg(++tag);
   }
-  communicator world_comm();
-  communicator world0;
+  communicator::ptr world_comm();
+  void depend(comms::ptr c) {
+    // Partly to avoid data race when using futures inside tasks:
+    if(!c || !*c)
+      return;
+    if(world_comms.use_count() != 1) {
+      auto old = std::exchange(world_comms, comms::make());
+      world_comms->depend(std::move(old));
+    }
+    world_comms->depend(std::move(c));
+  }
+  comms::ptr world_comms;
 
 private:
   struct outstanding_guard {
@@ -274,7 +289,7 @@ private:
 
 communicator::ptr
 comms::make_comm() {
-  return std::make_unique<communicator>(context::instance().world_comm());
+  return context::instance().world_comm();
 }
 
 /// \}
