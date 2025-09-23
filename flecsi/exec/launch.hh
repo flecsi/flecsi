@@ -190,7 +190,7 @@ launch_size_single(const A & a) {
   return launch<std::decay_t<P>, A>::get(a);
 }
 
-template<bool M = false, class... PP, class... AA>
+template<bool M, class... PP, class... AA>
 auto
 launch_size(std::tuple<PP...> *, const AA &... aa) {
   return (launch_combine([] {
@@ -201,6 +201,11 @@ launch_size(std::tuple<PP...> *, const AA &... aa) {
       return nullptr;
   }()) | ... |
           launch_combine(launch_size_single<PP>(aa)));
+}
+template<class P, bool M = false, class... AA>
+auto
+launch_size(const AA &... aa) {
+  return launch_size<M>(static_cast<P *>(nullptr), aa...);
 }
 
 template<class, class = void>
@@ -288,8 +293,8 @@ make_parameters(AA &&... aa) {
 template<TaskAttributes A, class P, class... AA>
 auto
 launch_size(const AA &... aa) {
-  return detail::launch_size<mask_to_processor_type(A) == processor::mpi>(
-    static_cast<P *>(nullptr), aa...)
+  return detail::launch_size<P, mask_to_processor_type(A) == processor::mpi>(
+    aa...)
     .get();
 }
 
@@ -742,10 +747,7 @@ template<class... PP, class... AA>
 struct launch<std::tuple<PP...>, std::tuple<AA...>> {
   static auto get(const std::tuple<AA...> & t) {
     return std::apply(
-      [](auto &... xx) {
-        return launch_size(static_cast<std::tuple<PP...> *>(nullptr), xx...);
-      },
-      t)
+      [](auto &... xx) { return launch_size<std::tuple<PP...>>(xx...); }, t)
       .value();
   }
 };
