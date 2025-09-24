@@ -12,7 +12,6 @@
 #include "flecsi/data/hpx/copy.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"
-#include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/hpx/future.hh"
 #include "flecsi/exec/hpx/reduction_wrapper.hh"
 #include "flecsi/exec/local/params.hh"
@@ -123,7 +122,7 @@ public:
       [out = run::context::instance().outstanding(),
         regions_partitions = detach(),
         task = std::forward<Task>(task),
-        params = std::forward<Params>(params),
+        params = std::optional(std::forward<Params>(params)),
         task_name = std::move(task_name),
         comm = need_comm && future ? &future.comm() : own.get(),
         own = std::move(own)](data::dependencies::type deps) mutable {
@@ -134,14 +133,19 @@ public:
         // annotate new HPX thread
         ::hpx::scoped_annotation _(task_name);
 
-        // regions_partitions must outlive this:
-        auto finalize = param_buffers(params, task_name);
+        // Destroy parameters (especially mutators) deterministically:
+        struct guard {
+          ~guard() {
+            p.reset();
+          }
+          decltype(params) & p;
+        } g{params};
 
         // rethrow exceptions propagated from dependencies
         for(auto && f : std::forward<decltype(deps)>(deps))
           f.get();
 
-        return task(regions_partitions, comm, std::move(params));
+        return task(regions_partitions, comm, std::move(*params));
       },
       dependencies.detach())
                .share();

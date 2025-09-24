@@ -6,7 +6,6 @@
 
 #include "flecsi/config.hh"
 
-#include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/params.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/run/backend.hh"
@@ -183,7 +182,6 @@ struct task_wrapper {
     auto task_args = bind_tuple(any_args.params);
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
-    const param_buffers buf(task_args, tname);
     (ann::rguard<ann::execute_task_bind>(tname),
       bind_parameters<P>(
         task_args, runtime, context, regions, any_args.which, task->futures));
@@ -212,7 +210,6 @@ struct task_wrapper<F, processor::mpi> {
 
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
-    const param_buffers buf(p.params, tname);
     (ann::rguard<ann::execute_task_bind>(tname)),
       bind_parameters<LegionProcessor>(
         p.params, runtime, context, regions, p.which, task->futures);

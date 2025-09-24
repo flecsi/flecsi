@@ -183,37 +183,6 @@ launch_size(std::tuple<PP...> *, const AA &... aa) {
           launch_combine(launch<std::decay_t<PP>, AA>::get(aa)));
 }
 
-template<class D>
-struct bind_base { // decomposes parameters only
-protected:
-  auto visitor() {
-    return [this](auto & p, auto &&) { d().visit(p); };
-  }
-
-  template<class T>
-  void visit(std::vector<T> & v) {
-    for(auto & t : v)
-      d().visit(t);
-  }
-  void visit(std::vector<bool> &) {}
-  template<class... TT>
-  void visit(std::tuple<TT...> & t) {
-    std::apply(
-      [&](auto &&... xx) { (d().visit(std::forward<decltype(xx)>(xx)), ...); },
-      t);
-  }
-
-  // The const gives a different parameter type (avoiding Clang bug #49583)
-  // and makes this a worse overload than that for send_tag.
-  template<class P>
-  static std::enable_if_t<!must_bind_v<P>> visit(const P &) {}
-
-private:
-  D & d() {
-    return static_cast<D &>(*this);
-  }
-};
-
 template<class, class = void>
 struct has_space : std::false_type {};
 template<class S>
