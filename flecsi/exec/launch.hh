@@ -49,6 +49,8 @@ struct params_tag : bind_tag {};
 /// A class that inherits from arg_tag is a custom task argument.
 /// The interface requires that the class provide a flecsi_arg() member
 /// function that returns a substitute task argument.
+/// \warning \c flecsi_arg may be called multiple times on one task argument
+///   as an rvalue or an lvalue (even after a call as an rvalue).
 struct arg_tag : convert_tag {};
 
 /// \}
