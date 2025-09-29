@@ -8,7 +8,6 @@
 #include "flecsi/config.hh"
 
 #include <legion.h>
-#include <legion/legion_mapping.h>
 #include <mappers/default_mapper.h>
 
 #include <iomanip>
@@ -615,7 +614,7 @@ protected:
 /// Replace default mappers with \c mpi_mapper_t instances.  \ns::run.
 inline void
 mapper_registration(Legion::Machine machine,
-  Legion::HighLevelRuntime * rt,
+  Legion::Runtime * rt,
   const std::set<Legion::Processor> & local_procs) {
   for(std::set<Legion::Processor>::const_iterator it = local_procs.begin();
       it != local_procs.end();
