@@ -8,7 +8,6 @@
 #include "flecsi/config.hh"
 
 #include <legion.h>
-#include <legion/legion_mapping.h>
 #include <mappers/default_mapper.h>
 
 #include <iomanip>
