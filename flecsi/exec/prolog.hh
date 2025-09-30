@@ -125,14 +125,8 @@ private:
   template<class... PP, class... AA>
   void visit(std::tuple<PP...> & pt, const std::tuple<AA...> & at) {
     std::apply(
-      [&](auto &&... pp) {
-        std::apply(
-          [&](auto &&... aa) {
-            (visit(
-               std::forward<decltype(pp)>(pp), std::forward<decltype(aa)>(aa)),
-              ...);
-          },
-          at);
+      [&](auto &... pp) {
+        std::apply([&](auto &... aa) { (visit(pp, aa), ...); }, at);
       },
       pt);
   }
