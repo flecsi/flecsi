@@ -65,10 +65,10 @@ namespace flecsi::exec {
 /// The exact member function signatures may vary between backends.
 /// \tparam Proc for the task being executed
 template<processor Proc>
-struct task_prologue : prolog_base {
+struct task_prolog : prolog_base {
 protected:
   /// Constructible as is \c prolog_base.
-  explicit task_prologue(scheduler &);
+  explicit task_prolog(scheduler &);
 
   /// Send a raw field reference to a raw accessor.
   template<typename T, Privileges P, class Topo, typename Topo::index_space S>
@@ -98,12 +98,12 @@ protected:
   Analyzes task arguments and updates data objects before launching a task.
 */
 template<processor Proc>
-struct prolog : task_prologue<Proc> {
+struct prolog : task_prolog<Proc> {
   // Note that accessors are (initially) empty and
   // that the arguments have been moved from (which doesn't matter for the
   // relevant types).
   template<class P, class... AA>
-  prolog(P & p, AA &... aa) : task_prologue<Proc>(*scheduler::instance) {
+  prolog(P & p, AA &... aa) : task_prolog<Proc>(*scheduler::instance) {
     util::annotation::rguard<util::annotation::execute_task_prolog> ann;
     std::apply([&](auto &... pp) { (visit(pp, aa), ...); }, p);
     this->template issue_copy<Proc>();
@@ -116,7 +116,7 @@ private:
       [&](auto & p, auto && f) { visit(p, std::forward<decltype(f)>(f)(a)); };
   }
 
-  using task_prologue<Proc>::visit; // for raw accessors, futures, etc.
+  using task_prolog<Proc>::visit; // for raw accessors, futures, etc.
 
   static void visit(data::detail::host_only &, decltype(nullptr)) {
     static_assert(Proc != flecsi::exec::processor::toc,

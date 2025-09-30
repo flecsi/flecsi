@@ -42,7 +42,7 @@ private:
 };
 } // namespace detail
 
-struct task_prologue_impl : prolog_base {
+struct task_prolog_impl : prolog_base {
   using prolog_base::prolog_base;
 
   std::vector<Legion::RegionRequirement> && region_requirements() && {
@@ -196,7 +196,7 @@ private:
 };
 
 template<processor>
-using task_prologue = task_prologue_impl;
+using task_prolog = task_prolog_impl;
 
 /*!
   The bind_accessors type is called to walk the user task arguments inside of
@@ -204,7 +204,7 @@ using task_prologue = task_prologue_impl;
   pointing the accessor \em view instances to the appropriate legion-mapped
   buffers.
 
-  This is the other half of the wire protocol implemented by \c task_prologue.
+  This is the other half of the wire protocol implemented by \c task_prolog.
  */
 template<processor Proc>
 struct bind_accessors {

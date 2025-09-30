@@ -12,8 +12,8 @@
 namespace flecsi::exec {
 
 template<processor Proc>
-struct task_prologue : local::prolog<task_prologue<Proc>> {
-  using task_prologue::prolog::prolog;
+struct task_prolog : local::prolog<task_prolog<Proc>> {
+  using task_prolog::prolog::prolog;
 
   template<class T>
   void broadcast(const data::local::field & f) {
@@ -34,14 +34,14 @@ struct task_prologue : local::prolog<task_prologue<Proc>> {
   }
 
 protected:
-  using task_prologue::prolog::visit;
+  using task_prolog::prolog::visit;
 
   template<typename R>
   static void visit(future<R, exec::launch_type_t::single> & single,
     const future<R, exec::launch_type_t::index> & index) {
     single = future<R>::make(index.result);
   }
-}; // struct task_prologue
+}; // struct task_prolog
 
 template<processor Proc>
 struct bind_accessors : local::bind<bind_accessors<Proc>, Proc> {

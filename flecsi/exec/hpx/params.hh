@@ -29,7 +29,7 @@
 
 namespace flecsi::exec {
 
-struct task_prologue_base : local::prolog<task_prologue_base> {
+struct task_prolog_base : local::prolog<task_prolog_base> {
   using prolog::prolog;
 
   template<class T>
@@ -162,14 +162,14 @@ private:
 };
 
 template<processor>
-using task_prologue = task_prologue_base;
+using task_prolog = task_prolog_base;
 
 /*!
   The bind_accessors type is called to walk the user task arguments inside of an
   executing HPX task to properly complete the users accessors, i.e., by pointing
   the accessor \em view instances to the appropriate buffers.
 
-  This is the other half of the wire protocol implemented by \c task_prologue.
+  This is the other half of the wire protocol implemented by \c task_prolog.
  */
 template<processor Proc>
 struct bind_accessors : local::bind<bind_accessors<Proc>, Proc> {
