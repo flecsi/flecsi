@@ -9,11 +9,11 @@ namespace task {
 void red(flecsi::exec::accelerator,
   mesh::accessor<ro> m,
   field<double>::accessor<rw, ro> ua,
-  field<double>::accessor<ro, ro> fa) noexcept;
+  field<double>::accessor<ro, na> fa) noexcept;
 void black(flecsi::exec::accelerator,
   mesh::accessor<ro> m,
   field<double>::accessor<rw, ro> ua,
-  field<double>::accessor<ro, ro> fa) noexcept;
+  field<double>::accessor<ro, na> fa) noexcept;
 
 } // namespace task
 } // namespace poisson

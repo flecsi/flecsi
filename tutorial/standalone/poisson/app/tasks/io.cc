@@ -8,7 +8,7 @@ using namespace flecsi;
 void
 poisson::task::io(exec::cpu s,
   mesh::accessor<ro> m,
-  field<double>::accessor<ro, ro> ua,
+  field<double>::accessor<ro, na> ua,
   std::string filebase) {
   auto u = m.mdspan<mesh::vertices>(ua);
 

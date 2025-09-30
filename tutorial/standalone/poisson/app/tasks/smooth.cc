@@ -6,7 +6,7 @@ void
 poisson::task::red(exec::accelerator s,
   mesh::accessor<ro> m,
   field<double>::accessor<rw, ro> ua,
-  field<double>::accessor<ro, ro> fa) noexcept {
+  field<double>::accessor<ro, na> fa) noexcept {
   auto u = m.mdspan<mesh::vertices>(ua);
   auto f = m.mdspan<mesh::vertices>(fa);
   const auto dxdy = m.dxdy();
@@ -30,7 +30,7 @@ void
 poisson::task::black(exec::accelerator s,
   mesh::accessor<ro> m,
   field<double>::accessor<rw, ro> ua,
-  field<double>::accessor<ro, ro> fa) noexcept {
+  field<double>::accessor<ro, na> fa) noexcept {
   auto u = m.mdspan<mesh::vertices>(ua);
   auto f = m.mdspan<mesh::vertices>(fa);
   const auto dxdy = m.dxdy();
