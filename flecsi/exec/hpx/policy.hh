@@ -7,11 +7,10 @@
 #include <hpx/modules/collectives.hpp>
 
 #include "flecsi/config.hh"
-#include "flecsi/exec/bind_parameters.hh"
 #include "flecsi/exec/hpx/future.hh"
 #include "flecsi/exec/hpx/reduction_wrapper.hh"
 #include "flecsi/exec/launch.hh"
-#include "flecsi/exec/prolog.hh"
+#include "flecsi/exec/params.hh"
 #include "flecsi/exec/tracer.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/function_traits.hh"
@@ -65,10 +64,6 @@ reduce_internal(Args &&... args) {
     flecsi::run::context::instance().termination_detection();
   }
 
-  // 'delay' wraps the given task f such that its execution can be postponed
-  // until all dependencies have been satisfied. The dependencies are derived
-  // from the access Attributes for each of the arguments. See
-  // hpx/task_prologue.hh for more details.
   const auto delay = [&](auto && f) {
     static constexpr bool need_comm =
       !std::is_invocable_v<decltype(f), decltype(params) &&>;

@@ -10,7 +10,7 @@
 #include "flecsi/exec/leg/reduction_wrapper.hh"
 #include "flecsi/exec/leg/task_wrapper.hh"
 #include "flecsi/exec/leg/tracer.hh"
-#include "flecsi/exec/prolog.hh"
+#include "flecsi/exec/params.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/demangle.hh"
 #include "flecsi/util/function_traits.hh"

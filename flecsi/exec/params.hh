@@ -3,14 +3,20 @@
 
 // Backend-independent task argument handling.
 
-#ifndef FLECSI_EXEC_PROLOG_HH
-#define FLECSI_EXEC_PROLOG_HH
+#ifndef FLECSI_EXEC_PARAMS_HH
+#define FLECSI_EXEC_PARAMS_HH
 
+#include "flecsi/config.hh"
 #include "flecsi/data/copy_plan.hh"
+#include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/data/topology_slot.hh"
+#include "flecsi/exec/launch.hh"
 #include "flecsi/flog.hh"
+#include "flecsi/util/annotation.hh"
 #include "flecsi/util/demangle.hh"
+
+#include <tuple>
 
 namespace flecsi::exec {
 struct prolog_base {
@@ -41,13 +47,12 @@ private:
 };
 } // namespace flecsi::exec
 
-// task_prologue is implemented per backend:
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
-#include "flecsi/exec/leg/task_prologue.hh"
+#include "flecsi/exec/leg/params.hh"
 #elif FLECSI_BACKEND == FLECSI_BACKEND_mpi
 #include "flecsi/exec/mpi/params.hh"
 #elif FLECSI_BACKEND == FLECSI_BACKEND_hpx
-#include "flecsi/exec/hpx/task_prologue.hh"
+#include "flecsi/exec/hpx/params.hh"
 #endif
 
 /// \cond core
@@ -72,6 +77,20 @@ protected:
   /// Send an index future to a single future.
   template<typename R>
   void visit(future<R> &, const future<R, launch_type_t::index> &);
+};
+
+/// Handling for low-level special task parameters/arguments.
+/// The exact member function signatures may vary between backends.
+/// \note No constructors are specified.
+template<processor Proc>
+struct bind_accessors {
+protected:
+  /// Send a raw field reference to a raw accessor.
+  template<typename T, Privileges P>
+  void visit(data::accessor<data::raw, T, P> &);
+  /// Send a global field reference to a reduction accessor.
+  template<class R, typename T>
+  void visit(data::reduction_accessor<R, T> &);
 };
 #endif
 
@@ -136,6 +155,33 @@ private:
   template<class P, class A>
   static std::enable_if_t<!std::is_base_of_v<data::send_tag, P>>
   visit(const P &, const A &) {} // visit
+};
+
+template<processor Proc>
+struct bind_parameters : detail::bind_base<bind_parameters<Proc>>,
+                         bind_accessors<Proc> {
+
+  template<class A, class... Args>
+  explicit bind_parameters(A & a, Args &&... args)
+    : bind_accessors<Proc>(std::forward<Args>(args)...) {
+    util::annotation::rguard<util::annotation::execute_bind_parameters> ann;
+    std::apply([&](auto &... aa) { (visit(aa), ...); }, a);
+  }
+
+private:
+  friend typename bind_parameters::bind_base;
+  using bind_accessors<Proc>::visit; // for backend-specific stuff
+  using bind_parameters::bind_base::visit;
+
+  template<class P>
+  std::enable_if_t<std::is_base_of_v<data::send_tag, P>> visit(P & p) {
+    p.send(this->visitor());
+  }
+
+  template<typename T>
+  static void visit(const data::detail::scalar_value<T> & s) {
+    s.template copy<Proc>();
+  }
 };
 
 /// \}

@@ -25,7 +25,6 @@ namespace data {
 
 /// Task parameters of types that inherit from bind_tag must be specially
 /// initialized by the backend after the task has been launched.
-/// See, for example, exec/leg/bind_accessors.hh.
 struct bind_tag {};
 
 /// Classes that inherit from send_tag can decompose themselves into simpler
