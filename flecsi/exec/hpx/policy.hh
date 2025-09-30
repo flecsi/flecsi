@@ -27,70 +27,12 @@ namespace flecsi {
 namespace exec {
 namespace detail {
 
-template<class T>
-constexpr bool is_accessor_v = false;
-
-template<data::layout L, class T, Privileges P>
-constexpr bool is_accessor_v<data::accessor<L, T, P>> = true;
-
-template<class T>
-std::decay_t<T>
-decay_copy(T && v) {
-  return std::forward<T>(v);
-}
-
-template<bool M, class P, class A>
-decltype(auto)
-convert_argument(A && a) {
-  const auto gen = [&a]() -> decltype(auto) {
-    return exec::replace_argument<P>(std::forward<A>(a));
-  };
-  using PD = std::decay_t<P>;
-  if constexpr(std::is_same_v<std::decay_t<decltype(gen())>, PD>) {
-    if constexpr(!M && !is_accessor_v<PD>) {
-      // non-MPI tasks need to decay-copy their non-accessor arguments
-      return decay_copy(gen());
-    }
-    else {
-      return gen();
-    }
-  }
-  else {
-    // This backend only must perform implicit conversions early:
-    return [&gen]() -> PD { return gen(); }();
-  }
-}
-
-template<class T>
-constexpr bool mpi_accessor = false;
-template<data::layout L, class T, Privileges P>
-constexpr bool mpi_accessor<data::accessor<L, T, P>> = !data::portable_v<T>;
-
-// Construct a tuple of converted arguments (all non-references).
-template<bool M, class... PP, class... AA>
-auto
-make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
-  if constexpr(!M) {
-    static_assert((std::is_const_v<std::remove_reference_t<const PP>> && ...),
-      "only MPI tasks can accept non-const references");
-    static_assert((!mpi_accessor<std::decay_t<PP>> && ...),
-      "only MPI tasks can accept accessors for non-portable fields");
-  }
-  return std::tuple<decltype(convert_argument<M, PP>(std::forward<AA>(aa)))...>(
-    convert_argument<M, PP>(std::forward<AA>(aa))...);
-}
-
-template<bool M, class P, class... AA>
-auto
-make_parameters(AA &&... aa) {
-  return make_parameters<M>(static_cast<P *>(nullptr), std::forward<AA>(aa)...);
-}
-
 template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
   using Traits = util::function_t<F>;
   using R = typename Traits::return_type;
+  using P = typename Traits::arguments_type;
 
   constexpr auto processor_type = mask_to_processor_type(Attributes);
   constexpr bool mpi_task = processor_type == processor::mpi;
@@ -100,9 +42,7 @@ reduce_internal(Args &&... args) {
     "Unknown launch type");
 
   // replace arguments in args, for example, field_reference -> accessor.
-  auto params =
-    detail::make_parameters<mpi_task, typename Traits::arguments_type>(
-      std::forward<Args>(args)...);
+  auto params = exec::make_parameters<mpi_task, P>(std::forward<Args>(args)...);
 
   auto task_name = util::symbol<F>();
 
@@ -111,9 +51,7 @@ reduce_internal(Args &&... args) {
   // params, especially for the future<>. This is being achieved by creating the
   // prolog<> instances below.
 
-  // For an explanation of the different kinds of task invocation with
-  // flecsi::execute() see flecsi/exec/mpi/policy.hh.
-  const auto ds = exec::launch_size<Attributes, decltype(params)>(args...);
+  const auto ds = exec::launch_size<Attributes, P>(args...);
   util::annotation::rguard<util::annotation::execute_task_user> ann{task_name};
 
   // The prolog will calculate dependencies between tasks based on the

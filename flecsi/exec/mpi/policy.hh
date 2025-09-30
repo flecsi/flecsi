@@ -32,11 +32,11 @@ reduce_internal(Args &&... args) {
   using util::mpi::test;
   using Traits = util::function_t<F>;
   using R = typename Traits::return_type;
+  using P = typename Traits::arguments_type;
   constexpr auto proc = mask_to_processor_type(Attributes);
 
   // replace arguments in args, for example, field_reference -> accessor.
-  auto params = exec::detail::replace_arguments<proc == processor::mpi>(
-    static_cast<typename Traits::arguments_type *>(nullptr),
+  auto params = make_parameters<proc == processor::mpi, P, true>(
     std::forward<Args>(args)...);
 
   // TIP: param_buffers is an RAII type. We create an instance and give
@@ -72,7 +72,7 @@ reduce_internal(Args &&... args) {
   //    index>.get(j) to get the return value on any rank j. This implies an
   //    Allgather is needed.
   //
-  const auto ds = launch_size<Attributes, decltype(params)>(args...);
+  const auto ds = launch_size<Attributes, P>(args...);
   const auto task = [&params]() noexcept {
     return std::apply(F, std::move(params));
   };

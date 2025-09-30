@@ -279,16 +279,21 @@ replace_argument(T && t) {
 }
 
 namespace detail {
-template<bool M, class... PP, class... AA>
+template<bool M, bool R, class... PP, class... AA>
 auto
-replace_arguments(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
+make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
   check_parameters<M, PP...>();
-  // Specify the template arguments explicitly to produce references to
-  // unchanged arguments.
-  return std::tuple<decltype(exec::replace_argument<PP>(std::forward<AA>(
-    aa)))...>(exec::replace_argument<PP>(std::forward<AA>(aa))...);
+  return std::tuple<std::conditional_t<R,
+    decltype(exec::replace_argument<PP>(std::forward<AA>(aa))),
+    std::decay_t<PP>>...>(exec::replace_argument<PP>(std::forward<AA>(aa))...);
 }
 } // namespace detail
+template<bool M, class P, bool R = M, class... AA>
+auto
+make_parameters(AA &&... aa) {
+  return detail::make_parameters<M, R>(
+    static_cast<P *>(nullptr), std::forward<AA>(aa)...);
+}
 
 // Return the number of task invocations for the given parameter tuple and
 // arguments, or std::monostate() if a single launch is appropriate.
