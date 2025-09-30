@@ -11,10 +11,7 @@
 #include "flecsi/exec/prolog.hh"
 #include "flecsi/flog.hh"
 
-#include <cstddef>
 #include <functional>
-#include <string>
-#include <variant>
 #include <vector>
 
 namespace flecsi {

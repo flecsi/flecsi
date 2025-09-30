@@ -9,11 +9,8 @@
 #include "flecsi/data/topology.hh"
 #include "flecsi/exec/leg/future.hh"
 #include "flecsi/util/array_ref.hh"
-#include "flecsi/util/demangle.hh"
 
 #include <legion.h>
-
-#include <memory>
 
 namespace flecsi::exec {
 /// \addtogroup legion-execution
