@@ -177,10 +177,10 @@ protected:
   void visit(data::detail::save_for_epilog &, A & a) {
     // store the field to enact resizing at the end of the trace
     if(exec::is_tracing())
-      epilog_wrappers.push_back([a]() { return trace::save_dynamic_field(a); });
+      epilog_wrappers.push_back([a]() { trace::save_dynamic_field(a); });
     else // launch the reduction to check if resizing is required
       epilog_wrappers.push_back(
-        [a]() { return a.get_elements().reduce_rsz_required(); });
+        [a]() { a.get_elements().reduce_rsz_required(); });
   }
 
 private:
