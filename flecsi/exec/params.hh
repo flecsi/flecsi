@@ -99,7 +99,7 @@ protected:
 */
 template<processor Proc>
 struct prolog : task_prolog<Proc> {
-  // Note that accessors are (initially) empty and
+  // Note that accessors are empty and
   // that the arguments have been moved from (which doesn't matter for the
   // relevant types).
   template<class P, class... AA>
