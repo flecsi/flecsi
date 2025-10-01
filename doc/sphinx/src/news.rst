@@ -18,6 +18,13 @@ Release Notes
 Changes in v2.4.1
 +++++++++++++++++
 
+Possible incompatibilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+* MPI backend
+
+  * Fields are not zero-initialized.
+    (This was never guaranteed, but in practice it changed in 2.4.0 without a release note.)
+
 Fixed
 ^^^^^
 * Data
@@ -165,7 +172,6 @@ Fixed
 * Legion backend
 
   * ``std::vector<bool>`` can be used as a task parameter.
-  * Unit tests work without Kokkos but with OpenMP.
 
 * Utilities
 
