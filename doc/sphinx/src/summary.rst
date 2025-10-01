@@ -232,17 +232,29 @@ This includes that the arguments passed to tasks must be identical across shards
 Task launches
 ^^^^^^^^^^^^^
 
-In general, task parameters must be movable and if they are not references they must be copyable.
-However, special conversions are first applied to certain arguments like field references recognized via the ``replace_argument`` mechanism in ``launch.hh``.
+The core of FleCSI is the analysis of task arguments and parameters, not only to transform the former into the latter but also to collect information from their (partially independent) types and the values of the arguments to guide parallelization.
+This analysis proceeds in several stages, each of which involves various partial specializations or overloads that consider each task parameter (type) in turn, often along with its argument:
 
-In addition to converting arguments that identify resources, those resources are recruited for the task's use in the *prolog*.
+#. ``task_param::replace`` constructs (empty) parameter objects from arguments; ``must_convert`` identifies which arguments require this attention.
+#. ``launch::get`` determines how many point tasks to launch, including the special case of single launches.
+#. ``prolog::visit`` identifies the dependencies of and resources needed for a task.
+#. ``bind_parameters::visit`` fills in the parameter objects with the recruited resources (without access to the arguments); ``must_bind`` again identifies the relevant types.
+
+All of these proceed by recursive decomposition of each parameter/argument pair; more detail about each follows.
+
+In general, task parameters must be movable and if they are not references they must be copyable.
+``replace_argument`` performs the special conversions for arguments that identify backend resources.
+However, the results are incomplete: special parameter objects do not point to any actual data, and other arguments are left alone (and might need ordinary C++ conversions later).
+``launch_size`` similarly recognizes special task arguments (guided by the parameter type), checking for consistency among their indicated sizes.
+Both of these are defined in ``launch.hh``, with a few specializations defined elsewhere alongside the types they handle.
+
+``prolog`` implements another decomposition that eventually reaches the ``task_prolog`` entry point to recruit backend-specific resources.
 For fields, this involves identifying the responsible ``partition`` from the topology on the caller side.
 (For Legion, its associated Legion handles are then identified as resources needed for the task launch, controlling data movement and parallelism discovery.)
 The *global topology* (described further below) is a special case: it uses a ``region`` directly, so all point tasks use the same field values.
 A task that writes to a global topology instance must therefore be a single launch or use a reduction accessor, which combines values from all point tasks using a reduction operation (see below).
 
-On the task side, the resources recruited are used to *bind* the parameters.
-For an accessor, this stores pointers in its ``span`` objects.
+``bind_parameters``, on the task side, delegates to the ``bind_accessors`` entry point, which consults the recruited resources to obtain values for the contained ``span`` (and ``Legion::Future``) objects.
 (``ragged`` and (thus) ``sparse`` mutators also allocate temporary buffers for insertions, but those are merely local.)
 
 On both sides, caller and task, various tag base classes are used to recognize relevant FleCSI types for the parameters.
