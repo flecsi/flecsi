@@ -204,8 +204,7 @@ struct unstructured_base : base {
           colors(std::move(colors)), num_intervals(std::move(num_intervals)) {}
 
       /// The communication peers over all colors, i.e.,
-      /// for each color, the communication peers
-      /// (color ids) are stored.
+      /// for each color, the colors for which it holds shared entities.
       std::vector<std::vector<Color>> peers;
 
       /// The number of entities (including ghosts) for every color.
