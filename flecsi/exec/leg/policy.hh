@@ -10,7 +10,7 @@
 #include "flecsi/exec/leg/reduction_wrapper.hh"
 #include "flecsi/exec/leg/task_wrapper.hh"
 #include "flecsi/exec/leg/tracer.hh"
-#include "flecsi/exec/prolog.hh"
+#include "flecsi/exec/params.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/demangle.hh"
 #include "flecsi/util/function_traits.hh"
@@ -29,38 +29,6 @@ namespace exec {
 /// \ns{exec::leg}.
 /// \ingroup execution
 /// \{
-namespace detail {
-template<class P, class A>
-decltype(auto)
-convert_argument(A && a) {
-  const auto gen = [&a]() -> decltype(auto) {
-    return exec::replace_argument<P>(std::forward<A>(a));
-  };
-  using PD = std::decay_t<P>;
-  if constexpr(std::is_same_v<std::decay_t<decltype(gen())>, PD>)
-    return gen();
-  else
-    // This backend only must perform implicit conversions early:
-    return [&gen]() -> PD { return gen(); }();
-}
-
-// Construct a tuple of converted arguments (or references to existing
-// arguments where possible).
-template<bool M, class... PP, class... AA>
-auto
-make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
-  check_parameters<M, PP...>();
-  return std::tuple<std::conditional_t<M,
-    decltype(convert_argument<PP>(std::forward<AA>(aa))),
-    std::decay_t<PP>>...>(convert_argument<PP>(std::forward<AA>(aa))...);
-}
-
-template<bool M, class P, class... AA>
-auto
-make_parameters(AA &&... aa) {
-  return make_parameters<M>(static_cast<P *>(nullptr), std::forward<AA>(aa)...);
-}
-} // namespace detail
 
 template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
@@ -96,9 +64,8 @@ reduce_internal(Args &&... args) {
   // temporaries).
 
   run::any any;
-  auto & params =
-    any.emplace(leg::parameters(detail::make_parameters<mpi_task, param_tuple>(
-      std::forward<Args>(args)...)));
+  auto & params = any.emplace(leg::parameters(
+    make_parameters<mpi_task, param_tuple>(std::forward<Args>(args)...)));
   prolog<mask_to_processor_type(Attributes)> pro(params.params, args...);
   params.which = std::move(pro).region_indices();
   std::optional<leg::parameters<param_tuple>> mpi_params;

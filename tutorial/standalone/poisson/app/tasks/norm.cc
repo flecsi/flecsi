@@ -4,8 +4,8 @@ using namespace flecsi;
 
 double
 poisson::task::diff(mesh::accessor<ro> m,
-  field<double>::accessor<ro, ro> aa,
-  field<double>::accessor<ro, ro> ba) noexcept {
+  field<double>::accessor<ro, na> aa,
+  field<double>::accessor<ro, na> ba) noexcept {
   auto a = m.mdspan<mesh::vertices>(aa);
   auto b = m.mdspan<mesh::vertices>(ba);
 
@@ -27,7 +27,7 @@ poisson::task::scale(mesh::accessor<ro> m, double sum) noexcept {
 void
 poisson::task::discrete_operator(mesh::accessor<ro> m,
   field<double>::accessor<ro, ro> ua,
-  field<double>::accessor<rw, ro> Aua) noexcept {
+  field<double>::accessor<wo, na> Aua) noexcept {
   auto u = m.mdspan<mesh::vertices>(ua);
   auto Au = m.mdspan<mesh::vertices>(Aua);
 

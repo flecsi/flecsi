@@ -6,8 +6,8 @@
 
 #include "flecsi/config.hh"
 
-#include "flecsi/exec/bind_parameters.hh"
 #include "flecsi/exec/buffers.hh"
+#include "flecsi/exec/params.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/annotation.hh"
