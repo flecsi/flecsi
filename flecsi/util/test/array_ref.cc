@@ -34,10 +34,7 @@ array_ref(scheduler &) {
                    << util::type<refd::pointer>() << '\n'
                    << util::type<refd::reference>() << '\n'
                    << util::type<refd::const_reference>() << '\n'
-                   << util::type<refd::iterator>() << '\n'
-                   << util::type<refd::reverse_iterator>() << '\n'
-                   << util::type<refd::size_type>() << '\n'
-                   << util::type<refd::difference_type>() << '\n';
+                   << util::type<refd::iterator>() << '\n';
     UNIT_CAPTURE() << std::endl;
 
     // ------------------------

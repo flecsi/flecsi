@@ -93,12 +93,10 @@ struct bind {
   }
 
 private:
-  template<class T, privilege P = rw, class A>
-  void accessor(A & a) {
+  const auto & next_storage() {
     flog_assert(
       index < storage.size(), "more accessors than regions/partitions");
-    if(const auto & f = storage[index++]) // for borrow
-      a.bind(f.as<T, P, Proc>());
+    return storage[index++];
   }
 
 protected:
@@ -109,19 +107,22 @@ protected:
 
   template<typename T, Privileges P>
   void visit(data::accessor<data::raw, T, P> & a) {
-    accessor<T, privilege_merge(P)>(a);
+    if(const data::local::field & f = next_storage()) // for borrow
+      a.bind(f.as<T, privilege_merge(P), Proc>());
   } // visit generic topology
 
   template<class R, typename T>
   void visit(data::reduction_accessor<R, T> & a) {
-    accessor<T>(a);
-    const auto s = a.span();
+    const data::local::field & f = next_storage();
 
     // Reset the storage to identity on all processes except 0
-    if(run::context::instance().process() != 0)
+    if(run::context::instance().process() != 0) {
+      const auto s = f.as<T, rw>();
       std::fill(s.begin(), s.end(), R::template identity<T>);
+    }
 
-    static_cast<D &>(*this).template reduce<R>(s);
+    a.bind(f.as<T, rw, Proc>());
+    static_cast<D &>(*this).template reduce<R, T>(f);
   }
 
 private:

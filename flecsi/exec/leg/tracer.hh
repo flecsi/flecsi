@@ -101,7 +101,7 @@ public:
     if(rsz_keys.insert(&a.get_elements()).second)
       resize_wrappers.push_back(
         std::make_pair([a]() { return a.get_elements().maybe_resize(); },
-          [a]() { return a.get_elements().reduce_rsz_required(); }));
+          [a]() { a.get_elements().reduce_rsz_required(); }));
   }
 
   // return true if we had to resize during the epilog

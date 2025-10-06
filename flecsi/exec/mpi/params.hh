@@ -12,8 +12,8 @@
 namespace flecsi::exec {
 
 template<processor Proc>
-struct task_prologue : local::prolog<task_prologue<Proc>> {
-  using task_prologue::prolog::prolog;
+struct task_prolog : local::prolog<task_prolog<Proc>> {
+  using task_prolog::prolog::prolog;
 
   template<class T>
   void broadcast(const data::local::field & f) {
@@ -34,25 +34,27 @@ struct task_prologue : local::prolog<task_prologue<Proc>> {
   }
 
 protected:
-  using task_prologue::prolog::visit;
+  using task_prolog::prolog::visit;
 
   template<typename R>
   static void visit(future<R, exec::launch_type_t::single> & single,
     const future<R, exec::launch_type_t::index> & index) {
     single = future<R>::make(index.result);
   }
-}; // struct task_prologue
+}; // struct task_prolog
 
 template<processor Proc>
 struct bind_accessors : local::bind<bind_accessors<Proc>, Proc> {
   using bind_accessors::bind::bind;
 
   template<class R, typename T>
-  void reduce(util::span<T> s) {
-    reductions.push_back([s](MPI_Request * r) {
+  void reduce(data::local::field f) {
+    reductions.push_back([f = std::move(f)](MPI_Request * r) {
+      // reductions are only implemented on the host
+      const auto host_s = f.as<T, rw>();
       util::mpi::test(MPI_Iallreduce(MPI_IN_PLACE,
-        s.begin(),
-        s.size(),
+        host_s.data(),
+        host_s.size(),
         flecsi::util::mpi::type<T>(),
         exec::fold::wrap<R, T>::op,
         MPI_COMM_WORLD,

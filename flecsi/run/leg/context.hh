@@ -177,7 +177,7 @@ template<class R = void>
 using task = R(const Legion::Task *,
   const std::vector<Legion::PhysicalRegion> &,
   Legion::Context,
-  Legion::Runtime *);
+  Legion::Runtime *) noexcept;
 }
 
 struct dependencies_guard : util::mpi::init {

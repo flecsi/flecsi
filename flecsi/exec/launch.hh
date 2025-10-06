@@ -25,7 +25,6 @@ namespace data {
 
 /// Task parameters of types that inherit from bind_tag must be specially
 /// initialized by the backend after the task has been launched.
-/// See, for example, exec/leg/bind_accessors.hh.
 struct bind_tag {};
 
 /// Classes that inherit from send_tag can decompose themselves into simpler
@@ -184,37 +183,6 @@ launch_size(std::tuple<PP...> *, const AA &... aa) {
           launch_combine(launch<std::decay_t<PP>, AA>::get(aa)));
 }
 
-template<class D>
-struct bind_base { // decomposes parameters only
-protected:
-  auto visitor() {
-    return [this](auto & p, auto &&) { d().visit(p); };
-  }
-
-  template<class T>
-  void visit(std::vector<T> & v) {
-    for(auto & t : v)
-      d().visit(t);
-  }
-  void visit(std::vector<bool> &) {}
-  template<class... TT>
-  void visit(std::tuple<TT...> & t) {
-    std::apply(
-      [&](auto &&... xx) { (d().visit(std::forward<decltype(xx)>(xx)), ...); },
-      t);
-  }
-
-  // The const gives a different parameter type (avoiding Clang bug #49583)
-  // and makes this a worse overload than that for send_tag.
-  template<class P>
-  static std::enable_if_t<!must_bind_v<P>> visit(const P &) {}
-
-private:
-  D & d() {
-    return static_cast<D &>(*this);
-  }
-};
-
 template<class, class = void>
 struct has_space : std::false_type {};
 template<class S>
@@ -279,16 +247,21 @@ replace_argument(T && t) {
 }
 
 namespace detail {
-template<bool M, class... PP, class... AA>
+template<bool M, bool R, class... PP, class... AA>
 auto
-replace_arguments(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
+make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
   check_parameters<M, PP...>();
-  // Specify the template arguments explicitly to produce references to
-  // unchanged arguments.
-  return std::tuple<decltype(exec::replace_argument<PP>(std::forward<AA>(
-    aa)))...>(exec::replace_argument<PP>(std::forward<AA>(aa))...);
+  return std::tuple<std::conditional_t<R,
+    decltype(exec::replace_argument<PP>(std::forward<AA>(aa))),
+    std::decay_t<PP>>...>(exec::replace_argument<PP>(std::forward<AA>(aa))...);
 }
 } // namespace detail
+template<bool M, class P, bool R = M, class... AA>
+auto
+make_parameters(AA &&... aa) {
+  return detail::make_parameters<M, R>(
+    static_cast<P *>(nullptr), std::forward<AA>(aa)...);
+}
 
 // Return the number of task invocations for the given parameter tuple and
 // arguments, or std::monostate() if a single launch is appropriate.

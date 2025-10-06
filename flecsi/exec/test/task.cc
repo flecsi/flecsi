@@ -202,10 +202,10 @@ task_driver(scheduler & s) {
     for(int i = 0; i < 2; ++i)
       s.execute<reduction>(std::tuple(arr_vals, vals));
     EXPECT_EQ(s.test<check>(vals, np), 0);
-    execute<gpinit>(gpart(gl_arr_s));
-    EXPECT_EQ(
-      (reduce<gpuse, exec::fold::sum>(gpart(gl_arr_s), exec::launch_domain{np}))
-        .get(),
+    s.execute<gpinit>(gpart(gl_arr_s));
+    EXPECT_EQ((s.reduce<gpuse, exec::fold::sum>(
+                 gpart(gl_arr_s), exec::launch_domain{np}))
+                .get(),
       17 * np);
 
     exec::trace t0, t1 = std::move(t0);

@@ -10,7 +10,7 @@ namespace task {
 
 void io(flecsi::exec::cpu,
   mesh::accessor<ro> m,
-  field<double>::accessor<ro, ro> ua,
+  field<double>::accessor<ro, na> ua,
   std::string filebase);
 
 } // namespace task

@@ -1,8 +1,8 @@
 // Copyright (c) 2016, Triad National Security, LLC
 // All rights reserved.
 
-#ifndef FLECSI_EXEC_HPX_TASK_PROLOGUE_HH
-#define FLECSI_EXEC_HPX_TASK_PROLOGUE_HH
+#ifndef FLECSI_EXEC_HPX_PARAMS_HH
+#define FLECSI_EXEC_HPX_PARAMS_HH
 
 #include <hpx/modules/collectives.hpp>
 #include <hpx/modules/concurrency.hpp>
@@ -12,13 +12,14 @@
 #include "flecsi/data/hpx/copy.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"
-#include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/hpx/future.hh"
+#include "flecsi/exec/hpx/reduction_wrapper.hh"
 #include "flecsi/exec/local/params.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/demangle.hh"
 
 #include <algorithm>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -27,7 +28,7 @@
 
 namespace flecsi::exec {
 
-struct task_prologue_base : local::prolog<task_prologue_base> {
+struct task_prolog_base : local::prolog<task_prolog_base> {
   using prolog::prolog;
 
   template<class T>
@@ -121,7 +122,7 @@ public:
       [out = run::context::instance().outstanding(),
         regions_partitions = detach(),
         task = std::forward<Task>(task),
-        params = std::forward<Params>(params),
+        params = std::optional(std::forward<Params>(params)),
         task_name = std::move(task_name),
         comm = need_comm && future ? &future.comm() : own.get(),
         own = std::move(own)](data::dependencies::type deps) mutable {
@@ -132,14 +133,19 @@ public:
         // annotate new HPX thread
         ::hpx::scoped_annotation _(task_name);
 
-        // regions_partitions must outlive this:
-        auto finalize = param_buffers(params, task_name);
+        // Destroy parameters (especially mutators) deterministically:
+        struct guard {
+          ~guard() {
+            p.reset();
+          }
+          decltype(params) & p;
+        } g{params};
 
         // rethrow exceptions propagated from dependencies
         for(auto && f : std::forward<decltype(deps)>(deps))
           f.get();
 
-        return task(regions_partitions, comm, std::move(params));
+        return task(regions_partitions, comm, std::move(*params));
       },
       dependencies.detach())
                .share();
@@ -160,8 +166,56 @@ private:
 };
 
 template<processor>
-using task_prologue = task_prologue_base;
+using task_prolog = task_prolog_base;
+
+/*!
+  The bind_accessors type is called to walk the user task arguments inside of an
+  executing HPX task to properly complete the users accessors, i.e., by pointing
+  the accessor \em view instances to the appropriate buffers.
+
+  This is the other half of the wire protocol implemented by \c task_prolog.
+ */
+template<processor Proc>
+struct bind_accessors : local::bind<bind_accessors<Proc>, Proc> {
+  explicit bind_accessors(run::communicator * comm,
+    data::local::storages & regions_partitions)
+    : bind_accessors::bind(regions_partitions), comm(comm) {}
+
+  template<typename R, typename T>
+  void reduce(data::local::field f) {
+    reductions.push_back([f = std::move(f)](run::communicator & comm) {
+      using data_type = ::hpx::serialization::serialize_buffer<T>;
+      using namespace ::hpx::collectives;
+      const auto host_s = f.as<T, rw>();
+      auto fut = all_reduce(comm.comm(),
+        data_type(host_s.data(), host_s.size()),
+        exec::fold::wrap<R>{},
+        comm.gen());
+
+      return fut.then(::hpx::launch::sync, [host_s](auto && fut) {
+        auto && data = fut.get();
+        flog_assert(data.size() == host_s.size(),
+          "received size of data must be the same as the storage size");
+        std::move(data.begin(), data.begin() + data.size(), host_s.data());
+      });
+    });
+  }
+
+  ~bind_accessors() {
+    flog_assert(reductions.empty() || comm, "no communicator for reductions");
+    std::vector<data::fate> requests;
+    requests.reserve(reductions.size());
+    for(auto & f : reductions) {
+      requests.push_back(data::fate::make(f(*comm)));
+    }
+  }
+
+private:
+  run::communicator * comm;
+  std::vector<std::function<::hpx::future<void>(run::communicator &)>>
+    reductions;
+};
 
 } // namespace flecsi::exec
 
-#endif // FLECSI_EXEC_HPX_TASK_PROLOGUE_HH
+#endif

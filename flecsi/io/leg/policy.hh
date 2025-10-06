@@ -38,7 +38,7 @@ inline void
 checkpoint_task(const Legion::Task * task,
   const std::vector<Legion::PhysicalRegion> & regions,
   Legion::Context ctx,
-  Legion::Runtime * runtime) {
+  Legion::Runtime * runtime) noexcept {
   using F = hdf5::file;
 
   const int point = task->index_point.point_data[0];

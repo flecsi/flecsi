@@ -7,14 +7,14 @@ namespace poisson {
 namespace task {
 
 double diff(mesh::accessor<ro> m,
-  field<double>::accessor<ro, ro> aa,
-  field<double>::accessor<ro, ro> ba) noexcept;
+  field<double>::accessor<ro, na> aa,
+  field<double>::accessor<ro, na> ba) noexcept;
 
 double scale(mesh::accessor<ro> m, double sum) noexcept;
 
 void discrete_operator(mesh::accessor<ro> m,
   field<double>::accessor<ro, ro> ua,
-  field<double>::accessor<rw, ro> Aua) noexcept;
+  field<double>::accessor<wo, na> Aua) noexcept;
 
 } // namespace task
 } // namespace poisson

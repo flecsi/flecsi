@@ -4,12 +4,10 @@
 #ifndef FLECSI_EXEC_MPI_POLICY_HH
 #define FLECSI_EXEC_MPI_POLICY_HH
 
-#include "flecsi/exec/bind_parameters.hh"
-#include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/launch.hh"
 #include "flecsi/exec/mpi/future.hh"
 #include "flecsi/exec/mpi/reduction_wrapper.hh"
-#include "flecsi/exec/prolog.hh"
+#include "flecsi/exec/params.hh"
 #include "flecsi/exec/tracer.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/function_traits.hh"
@@ -32,21 +30,14 @@ reduce_internal(Args &&... args) {
   using util::mpi::test;
   using Traits = util::function_t<F>;
   using R = typename Traits::return_type;
+  using P = typename Traits::arguments_type;
   constexpr auto proc = mask_to_processor_type(Attributes);
 
   // replace arguments in args, for example, field_reference -> accessor.
-  auto params = exec::detail::replace_arguments<proc == processor::mpi>(
-    static_cast<typename Traits::arguments_type *>(nullptr),
+  auto params = make_parameters<proc == processor::mpi, P, true>(
     std::forward<Args>(args)...);
 
-  // TIP: param_buffers is an RAII type. We create an instance and give
-  // the object a reference to the parameters and name of the task. We then
-  // assign it to the `finalize` variable so it is not destroyed immediately.
-  // The object will be destroyed when reduce_internal() returns. The
-  // ~param_buffers() will then perform the necessary clean up on the
-  // parameters (mostly calling mutator.commit()).
   auto task_name = util::symbol<F>();
-  auto finalize = param_buffers{params, task_name};
 
   auto storage = prolog<proc>(params, args...).detach();
   bind_parameters<proc> bp(params, storage);
@@ -72,8 +63,10 @@ reduce_internal(Args &&... args) {
   //    index>.get(j) to get the return value on any rank j. This implies an
   //    Allgather is needed.
   //
-  const auto ds = launch_size<Attributes, decltype(params)>(args...);
-  const auto task = [&params] { return std::apply(F, std::move(params)); };
+  const auto ds = launch_size<Attributes, P>(args...);
+  const auto task = [&params]() noexcept {
+    return std::apply(F, std::move(params));
+  };
   util::annotation::rguard<util::annotation::execute_task_user> ann{task_name};
   if constexpr(std::is_same_v<decltype(ds), const std::monostate>) {
     const bool root = !flecsi::run::context::instance().process();

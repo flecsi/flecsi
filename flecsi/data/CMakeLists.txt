@@ -36,9 +36,3 @@ elseif(FLECSI_BACKEND STREQUAL "hpx")
     hpx/policy.hh
   )
 endif()
-
-flecsi_add_test(data
-  SOURCES
-    test/data.cc
-  PROCS 2
-)
