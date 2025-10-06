@@ -158,9 +158,7 @@ private:
 };
 
 template<processor Proc>
-struct bind_parameters : detail::bind_base<bind_parameters<Proc>>,
-                         bind_accessors<Proc> {
-
+struct bind_parameters : bind_accessors<Proc> {
   template<class A, class... Args>
   explicit bind_parameters(A & a, Args &&... args)
     : bind_accessors<Proc>(std::forward<Args>(args)...) {
@@ -169,19 +167,36 @@ struct bind_parameters : detail::bind_base<bind_parameters<Proc>>,
   }
 
 private:
-  friend typename bind_parameters::bind_base;
   using bind_accessors<Proc>::visit; // for backend-specific stuff
-  using bind_parameters::bind_base::visit;
+
+  auto visitor() {
+    return [&](auto & p, auto &&) { visit(p); }; // Clang deems 'this' unused
+  }
+
+  template<class T>
+  void visit(std::vector<T> & v) {
+    for(auto & t : v)
+      visit(t);
+  }
+  void visit(std::vector<bool> &) {}
+  template<class... TT>
+  void visit(std::tuple<TT...> & t) {
+    std::apply(
+      [&](auto &&... xx) { (visit(std::forward<decltype(xx)>(xx)), ...); }, t);
+  }
 
   template<class P>
   std::enable_if_t<std::is_base_of_v<data::send_tag, P>> visit(P & p) {
-    p.send(this->visitor());
+    p.send(visitor());
   }
 
   template<typename T>
   static void visit(const data::detail::scalar_value<T> & s) {
     s.template copy<Proc>();
   }
+
+  template<class P>
+  static std::enable_if_t<!detail::must_bind_v<P>> visit(P &) {}
 };
 
 /// \}

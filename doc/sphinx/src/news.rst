@@ -20,6 +20,10 @@ Changes in v2.4.1
 
 Fixed
 ^^^^^
+* Data
+
+  * Vectors/tuples of ragged/sparse mutators work as task parameters.
+
 * Topologies
 
   * Writable ``unstructured`` topology accessors with more than one privilege work.

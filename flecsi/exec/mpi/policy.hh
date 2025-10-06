@@ -4,7 +4,6 @@
 #ifndef FLECSI_EXEC_MPI_POLICY_HH
 #define FLECSI_EXEC_MPI_POLICY_HH
 
-#include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/launch.hh"
 #include "flecsi/exec/mpi/future.hh"
 #include "flecsi/exec/mpi/reduction_wrapper.hh"
@@ -38,14 +37,7 @@ reduce_internal(Args &&... args) {
   auto params = make_parameters<proc == processor::mpi, P, true>(
     std::forward<Args>(args)...);
 
-  // TIP: param_buffers is an RAII type. We create an instance and give
-  // the object a reference to the parameters and name of the task. We then
-  // assign it to the `finalize` variable so it is not destroyed immediately.
-  // The object will be destroyed when reduce_internal() returns. The
-  // ~param_buffers() will then perform the necessary clean up on the
-  // parameters (mostly calling mutator.commit()).
   auto task_name = util::symbol<F>();
-  auto finalize = param_buffers{params, task_name};
 
   auto storage = prolog<proc>(params, args...).detach();
   bind_parameters<proc> bp(params, storage);

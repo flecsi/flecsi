@@ -151,10 +151,6 @@ struct execute_bind_parameters : execute_task<execute_bind_parameters> {
 struct execute_task_user : execute_task<execute_task_user> {
   static constexpr const char * tag = "user";
 };
-struct execute_task_unbind : execute_task<execute_task_unbind> {
-  static constexpr const char * tag = "unbind-accessors";
-  static constexpr detail detail_level = detail::high;
-};
 struct execute_task_copy_engine : execute_task<execute_task_copy_engine> {
   static constexpr const char * tag = "copy-engine";
   static constexpr detail detail_level = detail::high;

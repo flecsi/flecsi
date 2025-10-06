@@ -235,20 +235,22 @@ Task launches
 In general, task parameters must be movable and if they are not references they must be copyable.
 However, special conversions are first applied to certain arguments like field references recognized via the ``replace_argument`` mechanism in ``launch.hh``.
 
-In addition to converting arguments that identify resources, those resources are recruited for the task's use.
+In addition to converting arguments that identify resources, those resources are recruited for the task's use in the *prolog*.
 For fields, this involves identifying the responsible ``partition`` from the topology on the caller side.
 (For Legion, its associated Legion handles are then identified as resources needed for the task launch, controlling data movement and parallelism discovery.)
 The *global topology* (described further below) is a special case: it uses a ``region`` directly, so all point tasks use the same field values.
 A task that writes to a global topology instance must therefore be a single launch or use a reduction accessor, which combines values from all point tasks using a reduction operation (see below).
-On the task side, the recruited resources and the accessors' field IDs are consulted to obtain values for the contained ``span`` objects.
-Because a task's parameters are destroyed as soon as it returns, state accumulated by mutators is stored in separate *buffers* that can be processed afterwards.
+
+On the task side, the resources recruited are used to *bind* the parameters.
+For an accessor, this stores pointers in its ``span`` objects.
+(``ragged`` and (thus) ``sparse`` mutators also allocate temporary buffers for insertions, but those are merely local.)
 
 On both sides, caller and task, various tag base classes are used to recognize relevant FleCSI types for the parameters.
 The most important of these is ``send_tag``: task-parameter types that inherit from it provide a member function template called ``send`` to send an object from a task caller to the task itself.
 This ``send`` method also accepts a callback function.
 When applying operations to the task parameters, instead of duplicating code to handle the lower-level task parameters, it relies on this callback mechanism.
 With it, task parameters are able to decompose themselves down to simpler parameters that have specific processing defined, such as raw accessors that underlie accessors and mutators.
-This composition process is handled via inheritance and aggregation, and the ``send`` method may be called multiple times and for various purposes depending on the backend and the path taken to send the object between caller and task.
+This decomposition takes place on both sides to expose the components for both the prolog and bind operations.
 
 A call to ``execute<F>`` can return before the task does; it returns a *future* that can be used to wait on the task to finish and obtain its return value (if any).
 (Legion provides a mechanism for nontrivial class types to serialize themselves when so returned.)
@@ -263,7 +265,7 @@ The function template ``execute`` simply forwards to ``reduce`` with ``void`` as
 In turn, ``reduce`` performs periodic log aggregation and then calls the ``reduce_internal`` entry point defined in ``*/policy.hh``.
 Certain implementations of ``send`` may themselves execute tasks to prepare field data for the requested task, which means that ``reduce_internal`` is in general *reentrant*.
 
-Common portions of the argument and parameter handling are defined in ``prolog.hh`` and ``buffers.hh``.
+Common portions of the argument and parameter handling are defined in ``prolog.hh`` and ``bind_parameters.hh``.
 The undefined primary template for ``future`` is declared in ``launch.hh``, along with documentation-only definitions of the single- and index-launch specializations.
 The backend-specific implementations are in ``*/future.hh``.
 
