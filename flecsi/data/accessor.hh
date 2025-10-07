@@ -100,47 +100,6 @@ template<class T, Privileges P, bool M>
 using particle_raw =
   typename field<T, data::particle>::base_type::template accessor1<
     !M && get_privilege(0, P) == wo ? privilege_pack<rw> : P>;
-
-// Data used by param_buffers but created on the caller side:
-template<class T>
-struct clone {
-  template<class... UU>
-  explicit clone(UU &&... uu)
-    : p(std::make_shared<T>(std::forward<UU>(uu)...)) {}
-  clone(const clone & c) : p(std::make_shared<T>(*c)) {}
-  clone(clone && c) : p(c.p) {}
-
-  T & operator*() {
-    return *p;
-  }
-  const T & operator*() const {
-    return *p;
-  }
-  T * operator->() {
-    return &*p;
-  }
-  const T * operator->() const {
-    return &*p;
-  }
-
-private:
-  std::shared_ptr<T> p;
-};
-
-template<class A, class = void>
-struct multi_buffer {};
-template<class A>
-struct multi_buffer<A, util::voided<typename A::TaskBuffer>> {
-  using TaskBuffer = std::vector<typename A::TaskBuffer>;
-  void buffer(TaskBuffer & b) {
-    const auto aa = static_cast<multi<A> &>(*this).accessors();
-    // NB: Some of these will be unused because the accessors are discarded.
-    b.resize(aa.size());
-    auto i = b.begin();
-    for(auto & a : aa)
-      a.buffer(*i++);
-  }
-};
 } // namespace detail
 
 // All accessors are ultimately implemented in terms of those for the raw
@@ -420,6 +379,7 @@ struct mutator<ragged, T, P>
     privilege_repeat<privilege_discard(P) ? wo : rw, privilege_count(P)>>;
   using size_type = typename base_type::size_type;
 
+private:
   struct Overflow {
     size_type del;
     std::vector<detail::Bool::maybe<T>> buffer;
@@ -427,7 +387,6 @@ struct mutator<ragged, T, P>
 
   using TaskBuffer = std::vector<Overflow>;
 
-private:
   using base_row = typename base_type::row;
   using span_iterator = typename base_row::iterator; // T*
   using buffer_iterator = typename std::vector<T>::iterator;
@@ -722,6 +681,11 @@ public:
   }; // struct row
 
   explicit mutator(const topo::resize::policy & p) : grow(p) {}
+  ~mutator() {
+    // Avoid needing a back pointer for a custom destructor:
+    if(over.use_count() == 1)
+      commit();
+  }
 
   /// Get the row at an index point.
   row operator[](size_type i) const {
@@ -744,9 +708,6 @@ public:
   const topo::resize::policy & get_grow() const {
     return grow;
   }
-  void buffer(TaskBuffer & b) { // for unbind_accessors
-    over = &b;
-  }
   template<class F>
   void send(F && f) {
     detail::require_host(f);
@@ -754,12 +715,12 @@ public:
     f(get_base(), util::identity());
     std::forward<F>(f)(
       get_size(), [](const auto & r) { return r.get_elements().sizes(); });
-    if(over)
-      over->resize(acc.size()); // no-op on caller side
+    if(size()) // no-op on caller side
+      over = std::make_shared<TaskBuffer>(size());
   }
 
-  /// \cond core
-  /*! Repack the data within the raw layout.  Shrink the storage for each row
+private:
+  /* Repack the data within the raw layout.  Shrink the storage for each row
    * that got shorter. Expand the storage for each row that got longer.
    * Rearrange data to fit into the new layout, taking care not to overwrite
    * something that's not yet been relocated.
@@ -867,9 +828,7 @@ public:
     // Set new size for later resizing of backing storage
     sz = grow(acc.total(), all.size());
   } // commit()
-  /// \endcond
 
-private:
   raw_row raw_get(size_type i) const {
     return {get_base()[i], &(*over)[i]};
   }
@@ -877,7 +836,9 @@ private:
   base_type acc;
   topo::resize::Field::accessor<wo> sz;
   topo::resize::policy grow;
-  TaskBuffer * over = nullptr;
+  // We must be copyable (in the empty state) to support multiple point tasks;
+  // using reference semantics generally then avoids surprise.
+  std::shared_ptr<TaskBuffer> over;
 }; // struct mutator<ragged, T, P>
 
 // Many compilers incorrectly require the 'template' for a base class.
@@ -952,7 +913,6 @@ private:
 public:
   using base_type = typename Field::base_type::template mutator1<P>;
   using size_type = typename base_type::size_type;
-  using TaskBuffer = typename base_type::TaskBuffer;
 
 private:
   using base_row = typename base_type::row;
@@ -1158,13 +1118,6 @@ public:
     std::forward<F>(f)(get_base(), [](const auto & r) {
       return r.template cast<ragged, typename base_row::value_type>();
     });
-  }
-  void buffer(TaskBuffer & b) { // for unbind_accessors
-    rag.buffer(b);
-  }
-
-  void commit() const {
-    rag.commit();
   }
 
 private:
@@ -1429,8 +1382,6 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
     return iterator(this, 1 + (i ? i + beg : this->first_skip()));
   }
 
-  void commit() const {}
-
   template<class F>
   void send(F && f) {
     base_type::send(std::forward<F>(f));
@@ -1529,11 +1480,11 @@ using scalar_access = std::conditional_t<P == ro,
 /// \tparam A an \c accessor, \c mutator, or \c topology_accessor
 ///   specialization
 template<class A>
-struct multi : detail::multi_buffer<A>, send_tag {
-  multi(Color n, const A & a) : vp(n, round{{}, a}) {}
+struct multi : send_tag {
+  multi(Color n, const A & a) : v(n, round{{}, a}) {}
 
   Color depth() const {
-    return vp->size();
+    return v.size();
   }
 
   /// Get the components for each color.
@@ -1541,25 +1492,25 @@ struct multi : detail::multi_buffer<A>, send_tag {
   /// \return a sized random-access range of color-accessor pairs
   auto components() const {
     return util::transform_view(
-      util::span(*vp), [](const round & r) -> std::pair<Color, const A &> {
+      util::span(v), [](const round & r) -> std::pair<Color, const A &> {
         return {r.row, r.a};
       });
   }
   // Usable on caller side:
   auto accessors() {
-    return xform(*vp);
+    return xform(v);
   }
   auto accessors() const {
-    return xform(*vp);
+    return xform(v);
   }
 
   template<class F>
   void send(F && f) {
-    auto & v = *vp;
     Color i = 0;
     for(auto & [c, a] : v) {
       f(c, [&](auto & r) {
-        flog_assert(r.map().depth() == Color(v.size()),
+        // Work around GCC bug #122048:
+        flog_assert(r.map().depth() == Color(this->v.size()),
           "launch map has depth " << r.map().depth() << ", not " << v.size());
         return r.map().claims(i);
       });
@@ -1585,7 +1536,7 @@ private:
       util::span(v), [](auto & r) -> auto & { return r.a; });
   }
 
-  detail::clone<std::vector<round>> vp;
+  std::vector<round> v;
 };
 
 /// \}

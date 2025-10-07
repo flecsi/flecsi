@@ -1,26 +1,22 @@
 flecsi_headers(
   backend.hh
-  bind_parameters.hh
-  buffers.hh
   fold.hh
   fwd.hh
   kernel.hh
   launch.hh
-  prolog.hh
+  params.hh
   task_attributes.hh
   future.hh
 )
 
 if(FLECSI_BACKEND STREQUAL "legion")
   flecsi_headers(
-    leg/bind_accessors.hh
     leg/task_wrapper.hh
+    leg/params.hh
     leg/policy.hh
     leg/future.hh
-    leg/task_prologue.hh
     leg/reduction_wrapper.hh
     leg/tracer.hh
-    bind_parameters.hh
   )
 elseif(FLECSI_BACKEND STREQUAL "mpi")
   flecsi_headers(
@@ -34,12 +30,10 @@ elseif(FLECSI_BACKEND STREQUAL "mpi")
 elseif(FLECSI_BACKEND STREQUAL "hpx")
   flecsi_headers(
     local/params.hh
-    hpx/bind_accessors.hh
     hpx/future.hh
+    hpx/params.hh
     hpx/policy.hh
     hpx/reduction_wrapper.hh
-    hpx/task_prologue.hh
-    bind_parameters.hh
     tracer.hh
   )
 endif()

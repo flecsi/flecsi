@@ -6,8 +6,7 @@
 
 #include "flecsi/config.hh"
 
-#include "flecsi/exec/bind_parameters.hh"
-#include "flecsi/exec/buffers.hh"
+#include "flecsi/exec/params.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/annotation.hh"
@@ -169,7 +168,7 @@ struct task_wrapper {
   static RETURN execute(const Legion::Task * task,
     const std::vector<Legion::PhysicalRegion> & regions,
     Legion::Context context,
-    Legion::Runtime * runtime) {
+    Legion::Runtime * runtime) noexcept {
 
     // Unpack task arguments
     auto & flecsi_context = run::context::instance();
@@ -183,7 +182,6 @@ struct task_wrapper {
     auto task_args = bind_tuple(any_args.params);
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
-    const param_buffers buf(task_args, tname);
     (ann::rguard<ann::execute_task_bind>(tname),
       bind_parameters<P>(
         task_args, runtime, context, regions, any_args.which, task->futures));
@@ -203,7 +201,7 @@ struct task_wrapper<F, processor::mpi> {
   static RETURN execute(const Legion::Task * task,
     const std::vector<Legion::PhysicalRegion> & regions,
     Legion::Context context,
-    Legion::Runtime * runtime) {
+    Legion::Runtime * runtime) noexcept {
 
     flog_assert(!task->arglen, "unexpected task arguments");
     auto & c = run::context::instance();
@@ -212,7 +210,6 @@ struct task_wrapper<F, processor::mpi> {
 
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
-    const param_buffers buf(p.params, tname);
     (ann::rguard<ann::execute_task_bind>(tname)),
       bind_parameters<LegionProcessor>(
         p.params, runtime, context, regions, p.which, task->futures);

@@ -4,9 +4,6 @@ double const*
 double
 double
 double const*
-std::reverse_iterator<double const*>
-unsigned long
-long
 
 abcdefghi
 
