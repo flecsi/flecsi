@@ -25,11 +25,18 @@ Possible incompatibilities
   * Fields are not zero-initialized.
     (This was never guaranteed, but in practice it changed in 2.4.0 without a release note.)
 
+Deprecated
+^^^^^^^^^^
+* Data
+
+  * That all-``wo`` privileges always create new objects |mdash| set the desired state in the task.
+
 Fixed
 ^^^^^
 * Data
 
   * Vectors/tuples of ragged/sparse mutators work as task parameters.
+  * ``wo`` privileges for only part of a field put those field elements in a valid but unspecified state ("moved from"); the previously documented behavior of default initialization was ever implemented only for whole fields.
 
 * Topologies
 
