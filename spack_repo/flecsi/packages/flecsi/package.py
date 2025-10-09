@@ -24,7 +24,7 @@ class Flecsi(Flecsi):
     conflicts('^hpx networking=tcp', when='backend=hpx')
 
     variant("format", default=False, description="Enable Formatting")
-    depends_on("llvm@13 +clang", type="build", when="+format")
+    depends_on("llvm@20 +clang", type="build", when="+format")
     depends_on("git", type="build", when="+format")
 
     def setup_build_environment(self, env):
