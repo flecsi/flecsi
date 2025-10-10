@@ -80,6 +80,8 @@ template<auto & Task,
     Additionally, a parameter may be a \c std::vector of such a type or a \c
     std::tuple that includes such a type; it accepts a \c std::vector of or a
     \c std::tuple including the corresponding argument type.
+    Furthermore, a parameter may be a class that inherits from params_tag, and
+    an argument may be a class that inherits from arg_tag.
   \return a \ref future providing the value(s) returned from the task
 
   \ns.

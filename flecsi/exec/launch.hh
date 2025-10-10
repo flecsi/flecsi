@@ -7,6 +7,7 @@
 #include "flecsi/data/field.hh"
 #include "flecsi/exec/kernel.hh"
 #include "flecsi/exec/task_attributes.hh"
+#include "flecsi/util/constant.hh"
 #include "flecsi/util/function_traits.hh"
 
 #include <cstddef>
@@ -37,6 +38,21 @@ struct bind_tag {};
 struct send_tag {};
 /// \endcond
 
+/// A class that inherits from params_tag is a composite task parameter.
+/// The interface requires that the class provide a flecsi_params() member
+/// function that returns a std::tie of all members. The class must be
+/// constructible from the element types of the tuple returned by flecsi_params.
+/// The corresponding argument is a tuple of task arguments for each element
+/// type.
+struct params_tag : bind_tag {};
+
+/// A class that inherits from arg_tag is a custom task argument.
+/// The interface requires that the class provide a flecsi_arg() member
+/// function that returns a substitute task argument.
+/// \warning \c flecsi_arg may be called multiple times on one task argument
+///   as an rvalue or an lvalue (even after a call as an rvalue).
+struct arg_tag : convert_tag {};
+
 /// \}
 } // namespace data
 
@@ -58,7 +74,7 @@ constexpr bool bad_accessor<M, data::accessor<L, T, P>> =
 // single non-template overload, so we use SFINAE to detect that we have
 // no replacement defined for an argument.
 // XREF: more specializations in accessor.hh
-template<class>
+template<class, class = void>
 struct task_param {};
 // A is what the user gives us when calling execute(), P is what the user
 // defined function/task expects. P may not be the same as A, for example, user
@@ -107,7 +123,7 @@ constexpr bool must_bind_v = must_bind<T>::value;
 // launch), or std::nullptr_t (don't care).
 using Index = std::optional<Color>;
 
-template<class P, class A>
+template<class P, class A, class = void>
 struct launch {
   static auto get(const A &) {
     return nullptr;
@@ -170,7 +186,13 @@ private:
   T t;
 };
 
-template<bool M = false, class... PP, class... AA>
+template<class P, class A>
+auto
+launch_size_single(const A & a) {
+  return launch<std::decay_t<P>, A>::get(a);
+}
+
+template<bool M, class... PP, class... AA>
 auto
 launch_size(std::tuple<PP...> *, const AA &... aa) {
   return (launch_combine([] {
@@ -180,7 +202,12 @@ launch_size(std::tuple<PP...> *, const AA &... aa) {
     else
       return nullptr;
   }()) | ... |
-          launch_combine(launch<std::decay_t<PP>, AA>::get(aa)));
+          launch_combine(launch_size_single<PP>(aa)));
+}
+template<class P, bool M = false, class... AA>
+auto
+launch_size(const AA &... aa) {
+  return launch_size<M>(static_cast<P *>(nullptr), aa...);
 }
 
 template<class, class = void>
@@ -268,8 +295,8 @@ make_parameters(AA &&... aa) {
 template<TaskAttributes A, class P, class... AA>
 auto
 launch_size(const AA &... aa) {
-  return detail::launch_size<mask_to_processor_type(A) == processor::mpi>(
-    static_cast<P *>(nullptr), aa...)
+  return detail::launch_size<P, mask_to_processor_type(A) == processor::mpi>(
+    aa...)
     .get();
 }
 
@@ -610,6 +637,17 @@ template<typename Return,
 struct future;
 
 namespace exec::detail {
+template<class P, class A>
+struct replace_argument<P,
+  A,
+  std::enable_if_t<
+    std::is_base_of_v<data::arg_tag, std::remove_reference_t<A>>>> {
+  static constexpr bool special = true;
+  static decltype(auto) replace(A a) {
+    return exec::replace_argument<P>(static_cast<A>(a).flecsi_arg());
+  }
+};
+
 template<>
 struct task_param<cpu> {
   static cpu replace(const on_t &) {
@@ -637,6 +675,20 @@ struct task_param<future<R>> {
 };
 template<class R>
 struct must_convert<future<R, launch_type_t::index>> : std::true_type {};
+
+template<class P>
+struct task_param<P, std::enable_if_t<std::is_base_of_v<data::params_tag, P>>> {
+  template<class A>
+  static std::enable_if_t< // process arg_tag first if both are in use
+    !std::is_base_of_v<data::arg_tag, std::remove_reference_t<A>>,
+    P>
+  replace(A && t) {
+    using decayed_params_tuple =
+      util::decay_tuple_t<decltype(std::declval<P &>().flecsi_params())>;
+    return std::make_from_tuple<P>(
+      exec::replace_argument<decayed_params_tuple>(std::forward<A>(t)));
+  }
+};
 
 template<class P>
 struct task_param<std::vector<P>> {
@@ -697,13 +749,29 @@ template<class... PP, class... AA>
 struct launch<std::tuple<PP...>, std::tuple<AA...>> {
   static auto get(const std::tuple<AA...> & t) {
     return std::apply(
-      [](auto &... xx) {
-        return launch_size(static_cast<std::tuple<PP...> *>(nullptr), xx...);
-      },
-      t)
+      [](auto &... xx) { return launch_size<std::tuple<PP...>>(xx...); }, t)
       .value();
   }
 };
+
+template<class P, class... AA>
+struct launch<P,
+  std::tuple<AA...>,
+  std::enable_if_t<std::is_base_of_v<data::params_tag, P>>> {
+  static auto get(const std::tuple<AA...> & t) {
+    return launch<
+      util::decay_tuple_t<decltype(std::declval<P &>().flecsi_params())>,
+      std::tuple<AA...>>::get(t);
+  }
+};
+
+template<class P, class A>
+struct launch<P, A, std::enable_if_t<std::is_base_of_v<data::arg_tag, A>>> {
+  static auto get(const A & a) {
+    return launch_size_single<P>(a.flecsi_arg());
+  }
+};
+
 template<class... TT>
 struct must_bind<std::tuple<TT...>> : std::disjunction<must_bind<TT>...> {};
 
