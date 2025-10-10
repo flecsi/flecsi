@@ -92,8 +92,9 @@ Below presents a proper implementation of the tracing:
 In other trials using Legion in Release mode, tracing has been shown to all but completely eliminate any of the overhead from Legion's superlinear dynamic dependency analysis.
 These experiments simply used 10ms sleeps in every task and passed varying number of fields for a varying number of task launches in each trial.
 Without tracing, the asymptotic overhead time per task is approximately :math:`(560 ps)f^{2}w + (97 µs)f + (190 µs)` where f is the number of fields passed and w is legion's `window size`__.
-This represents an upper bound on the cost of Legion's dependency analysis.
+This represents an upper bound on the cost of Legion's dependency analysis; note that with the default *w* the first term is the smallest for :math:`f<174`, so reducing *w* is likely to produce more inefficiency from stalls than it avoids from redundant checks.
 
 __ https://legion.stanford.edu/profiling/index.html
 
-By adding tracing, one is essentially reducing the window size by reducing the number of tasks Legion has to analyze. Reducing the window size manually however will not produce the same effect of reducing the task overhead dramatically and removing any nonlinearity.
+Creating a trace in this case took 642 µs per field, and using it adds 50 µs (20%) to a task launch, but it reduces the task overhead per field by a factor of 32 to 3 µs.
+It is thus a net improvement for even one field after 15 task launches and after 7 or 8 task launches for at least 4 fields.
