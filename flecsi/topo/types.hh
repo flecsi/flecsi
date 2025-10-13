@@ -141,11 +141,6 @@ struct id {
   id(const id &) = default;
 
   FLECSI_INLINE_TARGET
-  T operator+() const {
-    return t;
-  }
-
-  FLECSI_INLINE_TARGET
   operator T() const {
     return t;
   }
