@@ -18,11 +18,25 @@ Release Notes
 Changes in v2.4.1
 +++++++++++++++++
 
+Possible incompatibilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+* MPI backend
+
+  * Fields are not zero-initialized.
+    (This was never guaranteed, but in practice it changed in 2.4.0 without a release note.)
+
+Deprecated
+^^^^^^^^^^
+* Data
+
+  * That all-``wo`` privileges always create new objects |mdash| set the desired state in the task.
+
 Fixed
 ^^^^^
 * Data
 
   * Vectors/tuples of ragged/sparse mutators work as task parameters.
+  * ``wo`` privileges for only part of a field put those field elements in a valid but unspecified state ("moved from"); the previously documented behavior of default initialization was ever implemented only for whole fields.
 
 * Topologies
 
@@ -165,7 +179,6 @@ Fixed
 * Legion backend
 
   * ``std::vector<bool>`` can be used as a task parameter.
-  * Unit tests work without Kokkos but with OpenMP.
 
 * Utilities
 

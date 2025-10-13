@@ -20,8 +20,15 @@ using PrivilegeCount = unsigned short;
   Access privileges for data passed
   to FleCSI tasks.
 
-  Each field must be initialized with \c wo privileges (perhaps combined with
-  \c na).  Any use of such privileges produces default-initialized values.
+  Each field must be initialized with \e discarding privileges: all \c wo,
+  except that ghosts may instead be \c na.  Any use of \c wo produces a valid
+  but unspecified state for the selected objects (after any needed ghost
+  copies of them are made).
+
+  When field elements are created, they are default-initialized.  Using
+  discarding privileges may create new field elements, concurrently destroying
+  any that already exist.  There is a \b deprecated guarantee that this always
+  takes place.
 
   Ghost data is updated only when read access to it is requested.
   Writes to shared data are never propagated to ghost data for which the same

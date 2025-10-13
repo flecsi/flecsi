@@ -188,7 +188,7 @@ Mutators also have permissions: write-only mutators (re)initialize a field (to a
 Multiple permissions distinguish mutators that trigger ghost copies from those that implement them.
 
 Accessors of different layouts form a hierarchy parallel to that of field definitions.
-The ultimately underlying ``raw`` accessors merely store a ``util::span<T>``, along with a field ID used to look up the storage.
+The ultimately underlying ``raw`` accessors merely store a ``util::span<T>``.
 Higher-level accessors implement additional behavior, including certain automatic task launches.
 Additionally, ``ragged`` mutators are implemented in terms of the same underlying accessors as ``ragged`` accessors, and ``sparse`` mutators are in turn a wrapper around them.
 All these types are defined in ``accessor.hh``, but the (undefined) primary templates are declared in the lower-level ``field.hh``.
@@ -196,9 +196,6 @@ All these types are defined in ``accessor.hh``, but the (undefined) primary temp
 Because the structural information about a topology is often necessary for using the physics fields defined on it, each topology defines a *topology accessor* type that packages accessors for the fields that hold that structural information (registered by the topology itself), further extending the hierarchy of composite accessors.
 Topology accessors are of course also task-only; a topology accessor parameter is matched by a ``topology`` argument.
 The topology's ``access`` type is used wrapped in the ``topology_accessor`` class template defined in ``topology_accessor.hh``.
-
-To help specify the members of topology accessors, which typically are accessors for preselected fields, ``field.hh`` also defines the class template ``accessor_member`` that accepts (a reference to) the field as a template argument and automatically initializes the accessor with the correct field ID.
-(The field ID is not known until runtime, but the *location* where it will be stored is known at compile time.)
 
 *Multi-color accessors* allow an execution agent to access data outside of its color (beyond that supplied by ghost copies), including the special case of data outside of the data model altogether (*e.g.*, distributed objects created by MPI-based libraries).
 These take the form of a sequence of color-accessor pairs inside a task; the accessor can also be a mutator or a topology accessor.
@@ -232,17 +229,29 @@ This includes that the arguments passed to tasks must be identical across shards
 Task launches
 ^^^^^^^^^^^^^
 
-In general, task parameters must be movable and if they are not references they must be copyable.
-However, special conversions are first applied to certain arguments like field references recognized via the ``replace_argument`` mechanism in ``launch.hh``.
+The core of FleCSI is the analysis of task arguments and parameters, not only to transform the former into the latter but also to collect information from their (partially independent) types and the values of the arguments to guide parallelization.
+This analysis proceeds in several stages, each of which involves various partial specializations or overloads that consider each task parameter (type) in turn, often along with its argument:
 
-In addition to converting arguments that identify resources, those resources are recruited for the task's use in the *prolog*.
+#. ``task_param::replace`` constructs (empty) parameter objects from arguments; ``must_convert`` identifies which arguments require this attention.
+#. ``launch::get`` determines how many point tasks to launch, including the special case of single launches.
+#. ``prolog::visit`` identifies the dependencies of and resources needed for a task.
+#. ``bind_parameters::visit`` fills in the parameter objects with the recruited resources (without access to the arguments); ``must_bind`` again identifies the relevant types.
+
+All of these proceed by recursive decomposition of each parameter/argument pair; more detail about each follows.
+
+In general, task parameters must be movable and if they are not references they must be copyable.
+``replace_argument`` performs the special conversions for arguments that identify backend resources.
+However, the results are incomplete: special parameter objects do not point to any actual data, and other arguments are left alone (and might need ordinary C++ conversions later).
+``launch_size`` similarly recognizes special task arguments (guided by the parameter type), checking for consistency among their indicated sizes.
+Both of these are defined in ``launch.hh``, with a few specializations defined elsewhere alongside the types they handle.
+
+``prolog`` implements another decomposition that eventually reaches the ``task_prolog`` entry point to recruit backend-specific resources.
 For fields, this involves identifying the responsible ``partition`` from the topology on the caller side.
 (For Legion, its associated Legion handles are then identified as resources needed for the task launch, controlling data movement and parallelism discovery.)
 The *global topology* (described further below) is a special case: it uses a ``region`` directly, so all point tasks use the same field values.
 A task that writes to a global topology instance must therefore be a single launch or use a reduction accessor, which combines values from all point tasks using a reduction operation (see below).
 
-On the task side, the resources recruited are used to *bind* the parameters.
-For an accessor, this stores pointers in its ``span`` objects.
+``bind_parameters``, on the task side, delegates to the ``bind_accessors`` entry point, which consults the recruited resources to obtain values for the contained ``span`` (and ``Legion::Future``) objects.
 (``ragged`` and (thus) ``sparse`` mutators also allocate temporary buffers for insertions, but those are merely local.)
 
 On both sides, caller and task, various tag base classes are used to recognize relevant FleCSI types for the parameters.
@@ -265,7 +274,7 @@ The function template ``execute`` simply forwards to ``reduce`` with ``void`` as
 In turn, ``reduce`` performs periodic log aggregation and then calls the ``reduce_internal`` entry point defined in ``*/policy.hh``.
 Certain implementations of ``send`` may themselves execute tasks to prepare field data for the requested task, which means that ``reduce_internal`` is in general *reentrant*.
 
-Common portions of the argument and parameter handling are defined in ``prolog.hh`` and ``bind_parameters.hh``.
+Common portions of the argument and parameter handling are defined in ``params.hh``.
 The undefined primary template for ``future`` is declared in ``launch.hh``, along with documentation-only definitions of the single- and index-launch specializations.
 The backend-specific implementations are in ``*/future.hh``.
 
