@@ -188,7 +188,7 @@ Mutators also have permissions: write-only mutators (re)initialize a field (to a
 Multiple permissions distinguish mutators that trigger ghost copies from those that implement them.
 
 Accessors of different layouts form a hierarchy parallel to that of field definitions.
-The ultimately underlying ``raw`` accessors merely store a ``util::span<T>``, along with a field ID used to look up the storage.
+The ultimately underlying ``raw`` accessors merely store a ``util::span<T>``.
 Higher-level accessors implement additional behavior, including certain automatic task launches.
 Additionally, ``ragged`` mutators are implemented in terms of the same underlying accessors as ``ragged`` accessors, and ``sparse`` mutators are in turn a wrapper around them.
 All these types are defined in ``accessor.hh``, but the (undefined) primary templates are declared in the lower-level ``field.hh``.
@@ -196,9 +196,6 @@ All these types are defined in ``accessor.hh``, but the (undefined) primary temp
 Because the structural information about a topology is often necessary for using the physics fields defined on it, each topology defines a *topology accessor* type that packages accessors for the fields that hold that structural information (registered by the topology itself), further extending the hierarchy of composite accessors.
 Topology accessors are of course also task-only; a topology accessor parameter is matched by a ``topology`` argument.
 The topology's ``access`` type is used wrapped in the ``topology_accessor`` class template defined in ``topology_accessor.hh``.
-
-To help specify the members of topology accessors, which typically are accessors for preselected fields, ``field.hh`` also defines the class template ``accessor_member`` that accepts (a reference to) the field as a template argument and automatically initializes the accessor with the correct field ID.
-(The field ID is not known until runtime, but the *location* where it will be stored is known at compile time.)
 
 *Multi-color accessors* allow an execution agent to access data outside of its color (beyond that supplied by ghost copies), including the special case of data outside of the data model altogether (*e.g.*, distributed objects created by MPI-based libraries).
 These take the form of a sequence of color-accessor pairs inside a task; the accessor can also be a mutator or a topology accessor.
@@ -277,7 +274,7 @@ The function template ``execute`` simply forwards to ``reduce`` with ``void`` as
 In turn, ``reduce`` performs periodic log aggregation and then calls the ``reduce_internal`` entry point defined in ``*/policy.hh``.
 Certain implementations of ``send`` may themselves execute tasks to prepare field data for the requested task, which means that ``reduce_internal`` is in general *reentrant*.
 
-Common portions of the argument and parameter handling are defined in ``prolog.hh`` and ``bind_parameters.hh``.
+Common portions of the argument and parameter handling are defined in ``params.hh``.
 The undefined primary template for ``future`` is declared in ``launch.hh``, along with documentation-only definitions of the single- and index-launch specializations.
 The backend-specific implementations are in ``*/future.hh``.
 
