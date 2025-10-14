@@ -107,12 +107,7 @@ struct scheduler {
   template<class, class R, class... AA>
   auto reduce(AA &&...);
   /// Launch a variant of a task.
-  /// \tparam V class with a static member \c task that is either a function
-  ///   or a function template with a single type template parameter \p S (the
-  ///   execution \ref space).  In the latter case, the signatures of the
-  ///   specializations for \c exec::cpu, \c exec::gpu, and \c exec::omp may
-  ///   vary only in that the type of a parameter may be \a S; an unspecified
-  ///   such specialization that is not deleted is launched.
+  /// \tparam V like \c task_class
   template<class V, class... AA>
   auto execute(AA &&... aa) {
     return reduce<V, void>(std::forward<AA>(aa)...);
@@ -160,6 +155,25 @@ private:
   flecsi::runtime & r;
 };
 inline std::optional<scheduler> scheduler::instance;
+
+#ifdef DOXYGEN
+/// Example task class which is not really implemented.
+struct task_class {
+  /// A task can be a static member function.
+  /// Parameters and return type can vary.
+  /// \param s execution space, if desired
+  static void task(exec::cpu s) noexcept;
+
+  /// A task can be a static member function template.
+  /// Parameters and return type can vary.
+  /// An unspecified specialization that is not deleted is launched.
+  /// \tparam S execution \ref space
+  ///   (\c exec::cpu, \c exec::gpu, or \c exec::omp)
+  /// \param s only allowed signature variation among specializations
+  template<class S>
+  static void task(S s) noexcept;
+};
+#endif
 
 namespace exec {
 // Learn from backend whether a trace is supported, active, and not skipped.
