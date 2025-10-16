@@ -36,7 +36,8 @@ protected:
   template<processor P>
   inline void issue_copy() const {
     for(const auto & [p, ff] : copies)
-      p->issue_copy<P>(ff);
+      // template keyword added as workaround for GCC 12.3
+      p->template issue_copy<P>(ff);
   }
 
   scheduler * sched;
