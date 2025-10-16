@@ -25,6 +25,13 @@
 namespace flecsi {
 namespace exec {
 namespace detail {
+template<class T>
+struct reset_guard { // Clang 17.0.6 warns about this as a local class
+  ~reset_guard() {
+    t.reset();
+  }
+  T & t;
+};
 
 template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
@@ -71,34 +78,34 @@ reduce_internal(Args &&... args) {
       !std::is_invocable_v<decltype(f), decltype(params) &&>;
     // The apply_delayed_prolog is run after all dependencies for the embedded
     // task f have been satisfied.
-    auto apply_delayed_prolog = [f = std::forward<decltype(f)>(f)](
-                                  auto & regions_partitions,
-                                  run::communicator * comm,
-                                  auto && params) mutable noexcept {
-      // The bind_parameters constructor will possibly schedule additional steps
-      // to run during destruction that require execution after the task
-      // finished running (reduction operations).
-      bind_parameters<processor_type> provide_storage(
-        params, comm, regions_partitions);
+    auto apply_delayed_prolog =
+      [f = std::forward<decltype(f)>(f),
+        params = std::optional(std::forward<decltype(params)>(params))](
+        auto & regions_partitions, run::communicator * comm) mutable noexcept {
+        // Destroy parameters (especially mutators) deterministically:
+        reset_guard<decltype(params)> g{params};
 
-      if(mpi_task) // after possibly creating a communicator
-        ::hpx::distributed::barrier::synchronize();
-      if constexpr(need_comm)
-        return std::forward<decltype(f)>(f)(
-          *comm, std::forward<decltype(params)>(params));
-      else
-        return std::forward<decltype(f)>(f)(
-          std::forward<decltype(params)>(params));
-    };
+        // The bind_parameters constructor will possibly schedule additional
+        // steps to run during destruction that require execution after the task
+        // finished running (reduction operations).
+        bind_parameters<processor_type> provide_storage(
+          *params, comm, regions_partitions);
+
+        if(mpi_task) // after possibly creating a communicator
+          ::hpx::distributed::barrier::synchronize();
+        if constexpr(need_comm)
+          return std::forward<decltype(f)>(f)(*comm, std::move(*params));
+        else
+          return std::forward<decltype(f)>(f)(std::move(*params));
+      };
     if(need_comm)
       bound_params.request_comm();
     return std::make_from_tuple<future<std::remove_cv_t<R>,
       std::is_void_v<Reduction> && !single ? launch_type_t::index
                                            : launch_type_t::single>>(
       std::move(bound_params)
-        .template delay_execution<R>(std::move(params),
-          util::symbol<F>(),
-          std::move(apply_delayed_prolog)));
+        .template delay_execution<R>(
+          util::symbol<F>(), std::move(apply_delayed_prolog)));
   };
 
   constexpr auto delayed_apply = [](auto && params) {
