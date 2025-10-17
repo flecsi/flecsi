@@ -17,10 +17,15 @@ FleCSI performs only a few fundamental actions, each of which corresponds to one
 * ``io``: Save and restore the contents of fields to and from disk.
 * ``flog``: Aggregate diagnostic output from multiple processes.
 
-The implementation of these components is divided between the "front end" and one of a number of *backends* that leverage some external mechanism for allocating memory, transferring distributed data, and executing tasks.
-The common backend API comprises a small set of classes and function templates that are sufficient to implement the front end; each is called an *entry point*.
-Most entry points are defined in files named ``policy.hh`` in a backend-specific directory in a component.
-``topo`` and ``flog`` are implemented entirely in the front end.
+Some FleCSI actions have a single implementation while others rely on different implementations depending on the underlying communication and tasking mechanisms.
+In the preceding list, the ``topo`` and ``flog`` components have a single implementation.
+The other FleCSI components are built atop *backends* that leverage some external mechanism for allocating memory, transferring distributed data, and executing tasks.
+The common backend API comprises a small set of classes and function templates that are sufficient to implement the rest of FleCSI; each class/function template is called an *entry point*.
+Most entry points are defined in files named ``policy.hh`` in a backend-specific directory in each of the ``data``, ``exec``, and ``io`` components.
+
+A backend is selected at CMake configuration time by providing a value for the ``FLECSI_BACKEND`` option.
+It must be one of ``legion``, ``hpx``, or ``mpi``.
+FleCSI will define the preprocessor macro ``FLECSI_BACKEND`` as an integer ``FLECSI_BACKEND_``\ *backend* (e.g., ``FLECSI_BACKEND_legion``), which can be tested against to delineate backend-specific code.
 
 The reference backend uses Legion for these purposes, which imposes `stringent requirements <https://legion.stanford.edu/tutorial/hybrid.html>`_ on the application because of its implicit operation across processors and memory spaces.
 The conceit is that code (in FleCSI and its clients) that is compatible with Legion will also work with most other backends.
@@ -35,7 +40,7 @@ Other components provide support for the above activities:
 * ``run``: Maintain internal state, communicate with the external mechanism, and invoke structured sequences of callback functions to perform a simulation.
 * ``util``: Organize local data, support compile-time computation, and implement unit-testing assertions akin to those in Google Test.
 
-Of these, ``util`` is implemented entirely in the front end.
+``util`` has no backend-specific code; ``run`` does.
 
 Every component has a single user-level header with a similar (if longer) name directly in ``flecsi/``.
 
@@ -272,11 +277,22 @@ The most common reduction operations are provided in the ``exec::fold`` namespac
 
 The function template ``execute`` simply forwards to ``reduce`` with ``void`` as the (non-)reduction type; both are defined in ``execution.hh``.
 In turn, ``reduce`` performs periodic log aggregation and then calls the ``reduce_internal`` entry point defined in ``*/policy.hh``.
+``reduce_internal`` traverses all arguments supplied to the task that is to be scheduled.
+Depending on the access rights associated with those arguments, it derives the dependencies between the task to be scheduled and tasks that were scheduled previously.
 Certain implementations of ``send`` may themselves execute tasks to prepare field data for the requested task, which means that ``reduce_internal`` is in general *reentrant*.
 
 Common portions of the argument and parameter handling are defined in ``params.hh``.
 The undefined primary template for ``future`` is declared in ``launch.hh``, along with documentation-only definitions of the single- and index-launch specializations.
 The backend-specific implementations are in ``*/future.hh``.
+``bind_accessors``, defined in ``bind_parameters.hh`` with a documentation-only template and expected to be implemented by each backend, is used by ``bind_parameters`` to complete the accessors referenced by the task's arguments.
+
+The FleCSI bind operation that ensures that the field memory is available is delayed such that it runs only after all dependencies for the scheduled task have been satisfied.
+This also possibly schedules additional reduction operations to run after the scheduled task is finished executing but before all dependent tasks are triggered.
+There is some degree of variability across FleCSI backends in how binding operates:
+
+* The Legion backend needs to handle futures at the binding step.
+* The Legion backend does not schedule additional reduction operations.
+* The MPI backend does not launch tasks in parallel.
 
 Explicit parallelism
 ^^^^^^^^^^^^^^^^^^^^
@@ -338,6 +354,22 @@ Predefined
 Because the global and index topologies do not need user-defined specializations, a predefined specialization is provided of each (and the categories are suffixed with ``_category``).
 A deprecated global instance of each is defined in ``flecsi/data.hh``.
 Each backend's initialization code uses the ``data_guard`` type to manage their lifetimes.
+
+Runtime Support
++++++++++++++++
+
+``flecsi::run::context_t`` manages the initialization and shutdown of FleCSI's runtime system.
+It provides a mapping between FleCSI constructs such as colors and the backend's implementation of those.
+Of primary importance, however, ``context_t`` accepts a function provided by its client, asks the backend to execute that function (and any child work it creates), and awaits function completion.
+This is the mechanism by which ``flecsi::runtime::control`` begins execution of the control model.
+As may be expected, a ``context_t`` is entirely backend-specific although it does inherit its interface from ``flecsi::run::context``.
+
+Contexts are constructed from a ``flecsi::run::config``.
+This is the mechanism by which backend-specific initialization parameters can be provided to a backend.
+
+It typically is not meaningful for task-based backends such as the Legion and HPX backends to store information in (OS) thread-local storage because tasks can migrate across threads, leaving their state behind.
+Hence, FleCSI exposes *task*-local storage to applications via the ``flecsi::task_local`` template, which is an entry point that a backend must implement.
+FleCSI itself stores in task-local storage only the current Flog tag (``cur_tag``) and the stream for ``UNIT_DUMP``.
 
 .. I/O
 

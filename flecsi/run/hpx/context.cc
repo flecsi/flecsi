@@ -29,10 +29,18 @@ context_t::start(std::function<int()> const & action, bool) {
 
   ::hpx::init_params params;
   // HPX doesn't know its own options for some reason, so we have to use a !:
-  params.cfg = {// allocate at least two cores
+  params.cfg = {
+    // Instruct the HPX runtime to occupy at least two cores for scheduling
+    // FleCSI tasks.  This setting has to be taken into account when
+    // running more than one HPX locality (rank) on the same node.  Any
+    // single node should not run more than `N` localities, where `N ==
+    // num_cores / 2`.
     "hpx.force_min_os_threads!=2",
+    // Disable installing HPX signal handlers as FleCSI is a library
+    // and therefore should not consume signals itself.
     "hpx.handle_signals!=0",
-    // call the below on every process
+    // Instruct HPX to schedule the initial task (the lambda passed to
+    // `hpx::init`) on all localities.
     "hpx.run_hpx_main!=1"};
   params.cfg.insert(params.cfg.end(),
     std::move_iterator(cfg.begin()),
