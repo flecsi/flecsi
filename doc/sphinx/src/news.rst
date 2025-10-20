@@ -15,8 +15,8 @@ Release Notes
 
    The bullets in each such discussion are in descending order of importance.
 
-Changes in v2.4.1
-+++++++++++++++++
+Changes in v2.4.1 (October 20 2025)
++++++++++++++++++++++++++++++++++++
 
 Possible incompatibilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
