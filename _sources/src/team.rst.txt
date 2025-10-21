@@ -25,7 +25,7 @@ Ben Bergen
 
    .. container:: rightside
 
-      **CCS-7 Applied Computer Science** |br|
+      **CAI-1 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
       Ben is a computational scientist working on problems in space
@@ -50,7 +50,7 @@ Richard Berger
 
    .. container:: rightside
 
-      **CCS-7 Applied Computer Science** |br|
+      **CAI-1 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
       Richard is a computational scientist in the Co-Design team with a
@@ -73,7 +73,7 @@ Jonathan Graham
 
    .. container:: rightside
 
-      **CCS-7 Applied Computer Science** |br|
+      **CAI-1 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
       Jonathan has a multidisciplinary background in observational solar
@@ -104,7 +104,7 @@ Davis Herring
 
    .. container:: rightside
 
-      **CCS-7 Applied Computer Science** |br|
+      **CAI-1 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
       Davis is a physicist and computer scientist with experience in
@@ -136,7 +136,7 @@ Christoph Junghans
 
    .. container:: rightside
 
-      **CCS-7 Applied Computer Science** |br|
+      **CAI-1 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
       Christoph is a computational physicist with a background in
@@ -145,7 +145,7 @@ Christoph Junghans
       run-time systems.
       His interests lie in understanding modern computing architectures
       and the design of sustainable code.
-      Christoph is the CCS-7 group leader.
+      Christoph is the CAI-1 group leader.
 
 |clearboth|
 
@@ -162,7 +162,7 @@ Julien Loiseau
 
    .. container:: rightside
 
-      **CCS-7 Applied Computer Science** |br|
+      **CAI-1 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
       Julien is a High Performance Computing scientist in the Co-Design
@@ -188,7 +188,7 @@ Maxim Moraru
 
    .. container:: rightside
 
-      **CCS-7 Applied Computer Science** |br|
+      **CAI-1 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
       Maxim is a computational scientist in the Co-Design team with a
@@ -213,7 +213,7 @@ Scott Pakin
 
    .. container:: rightside
 
-      **CCS-7 Applied Computer Science** |br|
+      **CAI-1 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
       Scott is a computer scientist with broad interests in

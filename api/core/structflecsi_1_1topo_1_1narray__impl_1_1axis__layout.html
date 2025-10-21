@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.1</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -313,11 +313,11 @@ template&lt;short E&gt; </div>
 <p>The extended entities, i.e., the logical entities including boundary padding. </p>
 <p>The boundary depth can be computed like:</p><div class="fragment"><div class="line">boundary_depth_low = <a class="code hl_function" href="#a827c16d9ef2ec0ed1f28f69f403b40c5">logical&lt;0&gt;</a>() - <a class="code hl_function" href="#a4466d3e9ff8fc6f94b0e834a786b320a">extended&lt;0&gt;</a>();</div>
 <div class="line">boundary_depth_high = <a class="code hl_function" href="#a4466d3e9ff8fc6f94b0e834a786b320a">extended&lt;1&gt;</a>() - <a class="code hl_function" href="#a827c16d9ef2ec0ed1f28f69f403b40c5">logical&lt;1&gt;</a>();</div>
-<div class="ttc" id="astructflecsi_1_1topo_1_1narray__impl_1_1axis__layout_html_a4466d3e9ff8fc6f94b0e834a786b320a"><div class="ttname"><a href="#a4466d3e9ff8fc6f94b0e834a786b320a">flecsi::topo::narray_impl::axis_layout::extended</a></div><div class="ttdeci">util::id extended() const</div><div class="ttdoc">The extended entities, i.e., the logical entities including boundary padding.</div><div class="ttdef"><b>Definition</b> types.hh:252</div></div>
-<div class="ttc" id="astructflecsi_1_1topo_1_1narray__impl_1_1axis__layout_html_a827c16d9ef2ec0ed1f28f69f403b40c5"><div class="ttname"><a href="#a827c16d9ef2ec0ed1f28f69f403b40c5">flecsi::topo::narray_impl::axis_layout::logical</a></div><div class="ttdeci">util::id logical() const</div><div class="ttdoc">The beginning or end index of the logical entities, i.e., the entities for this color without boundar...</div><div class="ttdef"><b>Definition</b> types.hh:211</div></div>
+<div class="ttc" id="astructflecsi_1_1topo_1_1narray__impl_1_1axis__layout_html_a4466d3e9ff8fc6f94b0e834a786b320a"><div class="ttname"><a href="#a4466d3e9ff8fc6f94b0e834a786b320a">flecsi::topo::narray_impl::axis_layout::extended</a></div><div class="ttdeci">util::id extended() const</div><div class="ttdoc">The extended entities, i.e., the logical entities including boundary padding.</div><div class="ttdef"><b>Definition</b> types.hh:253</div></div>
+<div class="ttc" id="astructflecsi_1_1topo_1_1narray__impl_1_1axis__layout_html_a827c16d9ef2ec0ed1f28f69f403b40c5"><div class="ttname"><a href="#a827c16d9ef2ec0ed1f28f69f403b40c5">flecsi::topo::narray_impl::axis_layout::logical</a></div><div class="ttdeci">util::id logical() const</div><div class="ttdoc">The beginning or end index of the logical entities, i.e., the entities for this color without boundar...</div><div class="ttdef"><b>Definition</b> types.hh:212</div></div>
 </div><!-- fragment --><p> The ghost depth can be computed like:</p><div class="fragment"><div class="line">halo_depth_low = <a class="code hl_function" href="#a4466d3e9ff8fc6f94b0e834a786b320a">extended&lt;0&gt;</a>();</div>
 <div class="line">halo_depth_high = <a class="code hl_function" href="#ac3c1233b3aaa6d495328a3f5918d958e">extent</a>() - <a class="code hl_function" href="#a4466d3e9ff8fc6f94b0e834a786b320a">extended&lt;1&gt;</a>();</div>
-<div class="ttc" id="astructflecsi_1_1topo_1_1narray__impl_1_1axis__layout_html_ac3c1233b3aaa6d495328a3f5918d958e"><div class="ttname"><a href="#ac3c1233b3aaa6d495328a3f5918d958e">flecsi::topo::narray_impl::axis_layout::extent</a></div><div class="ttdeci">util::id extent() const</div><div class="ttdoc">The local extent of this color.</div><div class="ttdef"><b>Definition</b> types.hh:197</div></div>
+<div class="ttc" id="astructflecsi_1_1topo_1_1narray__impl_1_1axis__layout_html_ac3c1233b3aaa6d495328a3f5918d958e"><div class="ttname"><a href="#ac3c1233b3aaa6d495328a3f5918d958e">flecsi::topo::narray_impl::axis_layout::extent</a></div><div class="ttdeci">util::id extent() const</div><div class="ttdoc">The local extent of this color.</div><div class="ttdef"><b>Definition</b> types.hh:198</div></div>
 </div><!-- fragment --> <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">E</td><td>0 or 1 for beginning or end </td></tr>

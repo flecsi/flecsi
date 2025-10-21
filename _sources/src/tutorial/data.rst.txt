@@ -38,6 +38,10 @@ Writing to a global field requires a single task launch.
   :start-at: void
   :end-at: // advance()
 
+The first task that accesses a field must do so with ``wo`` privileges, since there are no previous values to read.
+Field elements are default-initialized when first created; this does not give any usable value for primitive types like ``double``.
+``std::fill`` can be used to set an initial value if required.
+
 Example 2: Index data 
 +++++++++++++++++++++
 

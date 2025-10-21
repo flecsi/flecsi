@@ -4,11 +4,11 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data Model &mdash; FleCSI 2.4.0 documentation</title>
+  <title>Data Model &mdash; FleCSI 2.4.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-    <link rel="canonical" href="http://www.flecsi.org/src/user-guide/data-model.html"/>
+    <link rel="canonical" href="http://www.flecsi.org/src/user-guide/data.html"/>
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.4.0
+                Version: 2.4.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -74,9 +74,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kernels.html">On-node Parallelism</a></li>
 <li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance Do’s and Don’ts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="profiling.html">Profiling with Legion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cmake.html">CMake for FleCSI client applications</a></li>
 </ul>
@@ -103,7 +105,7 @@
           <li class="breadcrumb-item"><a href="../user-guide.html">User Guide</a></li>
       <li class="breadcrumb-item active">Data Model</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/src/user-guide/data-model.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/src/user-guide/data.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -135,9 +137,9 @@ particle.
 It provides the information necessary to manage the memory for that variable.</p>
 </dd>
 </dl>
-<figure class="align-default" id="id3">
+<figure class="align-default" id="id4">
 <img alt="../../_images/index-space.svg" src="../../_images/index-space.svg" /><figcaption>
-<p><span class="caption-number">Fig. 14 </span><span class="caption-text">Schematic of two fields on an index space</span><a class="headerlink" href="#id3" title="Permalink to this image"></a></p>
+<p><span class="caption-number">Fig. 14 </span><span class="caption-text">Schematic of two fields on an index space</span><a class="headerlink" href="#id4" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </section>
@@ -164,10 +166,10 @@ you may want to create additional colors so that some processors can handle mult
 as a hydrodynamics solver and an energy source.  In that situation you
 could use fewer colors than processes so that some processes can perform calculations for the hydrodynamics while others perform calculations for the energy source.</p></li>
 </ul>
-<figure class="align-center" id="id4">
+<figure class="align-center" id="id5">
 <a class="reference internal image-reference" href="../../_images/coloring.svg"><img alt="../../_images/coloring.svg" src="../../_images/coloring.svg" width="30%" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 15 </span><span class="caption-text">An unstructured mesh topology instance with 4 colors.</span><a class="headerlink" href="#id4" title="Permalink to this image"></a></p>
+<p><span class="caption-number">Fig. 15 </span><span class="caption-text">An unstructured mesh topology instance with 4 colors.</span><a class="headerlink" href="#id5" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 <section id="ghost-elements">
@@ -187,17 +189,17 @@ to be ghost elements are known as <em>exclusive elements</em>.</p></li>
 <p>The read/write permissions of <a class="reference internal" href="#field-accessors"><span class="std std-ref">accessors</span></a>
 may distinguish between these three varieties of index points in order
 to expose additional opportunities for parallelization.</p>
-<figure class="align-center" id="id5">
+<figure class="align-center" id="id6">
 <a class="reference internal image-reference" href="../../_images/extended-index-spaces.svg"><img alt="../../_images/extended-index-spaces.svg" src="../../_images/extended-index-spaces.svg" width="80%" /></a>
 <figcaption>
 <p><span class="caption-number">Fig. 16 </span><span class="caption-text">Index spaces with ghost elements as seen by each color of a
-topology instance.</span><a class="headerlink" href="#id5" title="Permalink to this image"></a></p>
+topology instance.</span><a class="headerlink" href="#id6" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </section>
 </section>
 <section id="fields">
-<h2>Fields<a class="headerlink" href="#fields" title="Permalink to this heading"></a></h2>
+<span id="id2"></span><h2>Fields<a class="headerlink" href="#fields" title="Permalink to this heading"></a></h2>
 <p>A field defines a variable associated with an index space.
 Only tasks can access the actual data.</p>
 <section id="registration">
@@ -257,7 +259,7 @@ If you want an array-of-structs approach, you could declare</p>
 </div>
 </section>
 <section id="layouts">
-<span id="id2"></span><h3>Layouts<a class="headerlink" href="#layouts" title="Permalink to this heading"></a></h3>
+<span id="id3"></span><h3>Layouts<a class="headerlink" href="#layouts" title="Permalink to this heading"></a></h3>
 <p>Each field has one of several pre-defined layouts, which specifies how field elements (of type <code class="docutils literal notranslate"><span class="pre">T</span></code>) relate to index points:</p>
 <ul>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">single</span></code> layout stores one <code class="docutils literal notranslate"><span class="pre">T</span></code> for each color.  For example,
@@ -296,16 +298,16 @@ color; the index points are simply arbitrary ids for the particles.</p></li>
 </ul>
 <p>The field registration examples above use the <code class="docutils literal notranslate"><span class="pre">dense</span></code> layout by default.
 Other layouts are chosen with syntax like <code class="docutils literal notranslate"><span class="pre">flecsi::field&lt;double,</span> <span class="pre">flecsi::data::ragged&gt;</span></code>.</p>
-<figure class="align-default" id="id6">
+<figure class="align-default" id="id7">
 <a class="reference internal image-reference" href="../../_images/fields.svg"><img alt="../../_images/fields.svg" src="../../_images/fields.svg" width="100%" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 17 </span><span class="caption-text">Illustration of the single, dense and ragged layout for various index spaces and data types.</span><a class="headerlink" href="#id6" title="Permalink to this image"></a></p>
+<p><span class="caption-number">Fig. 17 </span><span class="caption-text">Illustration of the single, dense and ragged layout for various index spaces and data types.</span><a class="headerlink" href="#id7" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
-<figure class="align-center" id="id7">
+<figure class="align-center" id="id8">
 <a class="reference internal image-reference" href="../../_images/sparse-and-particle.svg"><img alt="../../_images/sparse-and-particle.svg" src="../../_images/sparse-and-particle.svg" width="80%" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 18 </span><span class="caption-text">Fields in sparse and particle layouts.</span><a class="headerlink" href="#id7" title="Permalink to this image"></a></p>
+<p><span class="caption-number">Fig. 18 </span><span class="caption-text">Fields in sparse and particle layouts.</span><a class="headerlink" href="#id8" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </section>
@@ -375,13 +377,13 @@ For the <code class="docutils literal notranslate"><span class="pre">ragged</spa
 <p>Field references for <code class="docutils literal notranslate"><span class="pre">ragged</span></code> or <code class="docutils literal notranslate"><span class="pre">sparse</span></code> fields provide a <code class="docutils literal notranslate"><span class="pre">get_elements</span></code> member function that provides access to the topology component that stores elements.
 The object returned can be used to allocate memory manually (with <code class="docutils literal notranslate"><span class="pre">resize</span></code>) or automatically based on a heuristic (with <code class="docutils literal notranslate"><span class="pre">growth</span></code>).</p>
 <p>The current implementation of memory management for these layouts imposes several limitations.
-First, the automatic memory allocation is incompatible with <a class="reference internal" href="tracing.html"><span class="doc">Tracing</span></a>, so <code class="docutils literal notranslate"><span class="pre">ragged</span></code> and <code class="docutils literal notranslate"><span class="pre">sparse</span></code> mutators cannot be used in a task launched during a trace.
+First, the automatic memory allocation is incompatible with <a class="reference internal" href="execution.html#tracing"><span class="std std-ref">Tracing</span></a>, so <code class="docutils literal notranslate"><span class="pre">ragged</span></code> and <code class="docutils literal notranslate"><span class="pre">sparse</span></code> mutators cannot be used in a task launched during a trace.
 Ghost copies for these layouts are implemented using mutators, so they are excluded from traces as well.
 Moreover, they use further temporary allocations during a task that are incompatible with GPU execution, so they cannot be used in a <code class="docutils literal notranslate"><span class="pre">toc</span></code> task.</p>
 </section>
 </section>
 <section id="multi-color-accessors">
-<h3>Multi-color accessors<a class="headerlink" href="#multi-color-accessors" title="Permalink to this heading"></a></h3>
+<span id="multi-accessors"></span><h3>Multi-color accessors<a class="headerlink" href="#multi-color-accessors" title="Permalink to this heading"></a></h3>
 <p>In addition to ghost elements, the Legion backend provides <em>launch maps</em> as another mechanism for accessing another color’s data in a point task.
 They explicitly nominate one or more colors to be processed by each point task, so they can permute colors as well as duplicating them (for read-only access) or omitting them.
 Accessors, mutators, or topology accessors (discussed later) can be wrapped in a <code class="docutils literal notranslate"><span class="pre">data::multi</span></code> task parameter; the launch map takes the place of the underlying topology in the task argument (<em>e.g.</em>, in forming a field reference).

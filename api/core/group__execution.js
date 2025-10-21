@@ -41,9 +41,6 @@ var group__execution =
       [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html#a62b21fc0ade336fa963fd22abc565356", null ]
     ] ],
     [ "launch_domain", "structflecsi_1_1exec_1_1launch__domain.html", null ],
-    [ "multi< class >", "structflecsi_1_1data_1_1multi.html", [
-      [ "components", "structflecsi_1_1data_1_1multi.html#ae82e5e157786aaef49a91d346aaa9c77", null ]
-    ] ],
     [ "omp", "structflecsi_1_1exec_1_1omp.html", null ],
     [ "partial< F, AA >", "structflecsi_1_1exec_1_1partial.html", null ],
     [ "prolog< Proc >", "structflecsi_1_1exec_1_1prolog.html", null ],
@@ -68,16 +65,17 @@ var group__execution =
       ] ],
       [ "launch", "structflecsi_1_1exec_1_1space__base.html#a9aab76352e84db4dc78b51574eb0e1a4", null ]
     ] ],
+    [ "task_class", "structflecsi_1_1task__class.html", null ],
     [ "task_local< T >", "structflecsi_1_1task__local.html", [
       [ "task_local", "structflecsi_1_1task__local.html#a1496dd6d0a4a218a8bfa6cd7cbe946c4", null ],
       [ "task_local", "structflecsi_1_1task__local.html#a360ab9e99f23575f7d7a63d481465c99", null ],
       [ "operator*", "structflecsi_1_1task__local.html#abfa44f22c830a36b36c2bbc7dc66505e", null ],
       [ "operator->", "structflecsi_1_1task__local.html#ad728d8b1b343869d8f0aa27e8fadf24a", null ]
     ] ],
-    [ "task_prologue< Proc >", "structflecsi_1_1exec_1_1task__prologue.html", [
-      [ "task_prologue", "structflecsi_1_1exec_1_1task__prologue.html#a55f6f418081ec894921fe98a3f7df82d", null ],
-      [ "visit", "structflecsi_1_1exec_1_1task__prologue.html#acdf1fd0f60010b2525b106c5223a1d50", null ],
-      [ "visit", "structflecsi_1_1exec_1_1task__prologue.html#a8f8bdb329553f7edea9da2429f54eb6c", null ]
+    [ "task_prolog< Proc >", "structflecsi_1_1exec_1_1task__prolog.html", [
+      [ "task_prolog", "structflecsi_1_1exec_1_1task__prolog.html#a2ca464cc77c7cbfaafbb3818792bf799", null ],
+      [ "visit", "structflecsi_1_1exec_1_1task__prolog.html#acdf1fd0f60010b2525b106c5223a1d50", null ],
+      [ "visit", "structflecsi_1_1exec_1_1task__prolog.html#a8f8bdb329553f7edea9da2429f54eb6c", null ]
     ] ],
     [ "trace", "structflecsi_1_1exec_1_1trace.html", [
       [ "trace", "structflecsi_1_1exec_1_1trace.html#adf6e151f76b1209e675d2f0e7c506397", null ],

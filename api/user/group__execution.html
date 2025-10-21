@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.4.0</span>
+   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.4.1</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -161,9 +161,6 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1launch__domain.html">launch_domain</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An explicit launch domain size.  <a href="structflecsi_1_1exec_1_1launch__domain.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1multi.html">multi&lt; class &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A sequence of accessors obtained from a <code><a class="el" href="structflecsi_1_1data_1_1launch_1_1mapping.html" title="A prepared assignment of colors.">launch::mapping</a></code>.  <a href="structflecsi_1_1data_1_1multi.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1omp.html">omp</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">OpenMP execution space.  <a href="structflecsi_1_1exec_1_1omp.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -175,6 +172,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1space__base.html">space_base</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An execution space.  <a href="structflecsi_1_1exec_1_1space__base.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1task__class.html">task_class</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Example task class which is not really implemented.  <a href="structflecsi_1_1task__class.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1task__local.html">task_local&lt; T &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A global variable with a task-specific value.  <a href="structflecsi_1_1task__local.html#details">More...</a><br /></td></tr>
@@ -400,7 +400,7 @@ template&lt;auto &amp; F, class... AA&gt; </div>
 <div class="line">  <span class="keyword">auto</span> p = <a class="code hl_function" href="#gac28f2f0eafd476e4798d91d751e90ff6">make_partial&lt;func&gt;</a>(<span class="comment">/*...*/</span>);</div>
 <div class="line">  s.execute&lt;task&lt;<span class="keyword">decltype</span>(p)&gt;&gt;(p);  <span class="comment">// note explicit template argument</span></div>
 <div class="line">}</div>
-<div class="ttc" id="agroup__execution_html_gac28f2f0eafd476e4798d91d751e90ff6"><div class="ttname"><a href="#gac28f2f0eafd476e4798d91d751e90ff6">flecsi::make_partial</a></div><div class="ttdeci">constexpr exec::partial&lt; F, std::decay_t&lt; AA &gt;... &gt; make_partial(AA &amp;&amp;... aa)</div><div class="ttdoc">Partially apply a function.</div><div class="ttdef"><b>Definition</b> launch.hh:619</div></div>
+<div class="ttc" id="agroup__execution_html_gac28f2f0eafd476e4798d91d751e90ff6"><div class="ttname"><a href="#gac28f2f0eafd476e4798d91d751e90ff6">flecsi::make_partial</a></div><div class="ttdeci">constexpr exec::partial&lt; F, std::decay_t&lt; AA &gt;... &gt; make_partial(AA &amp;&amp;... aa)</div><div class="ttdoc">Partially apply a function.</div><div class="ttdef"><b>Definition</b> launch.hh:592</div></div>
 </div><!-- fragment --></dd></dl>
 <p>Appears directly in <code>flecsi</code>. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000013">Deprecated</a></b></dt><dd>Use a lambda or <code>std::bind</code>. </dd></dl>
 

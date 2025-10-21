@@ -14,7 +14,7 @@ var group__topology =
       [ "wrap", "structflecsi_1_1topo_1_1borrow__base.html#a621241fd395c97682fa780bf9f57a875", null ]
     ] ],
     [ "borrow_extra< T >", "structflecsi_1_1topo_1_1borrow__extra.html", [
-      [ "borrow_extra", "structflecsi_1_1topo_1_1borrow__extra.html#a18bf87b152737058ac86898adf2bfa9c", null ]
+      [ "borrow_extra", "structflecsi_1_1topo_1_1borrow__extra.html#a04ec5345e066684115d695ad3faaedec", null ]
     ] ],
     [ "core_base", "structflecsi_1_1topo_1_1core__base.html", [
       [ "coloring", "structflecsi_1_1topo_1_1core__base.html#a2d4c8266c5779173033066b8cd176e36", null ]
@@ -55,7 +55,7 @@ var group__topology =
       [ "specialization_base", "structflecsi_1_1topo_1_1specialization__base.html#a848c5847b75fe733e2b150fe9183b92e", null ]
     ] ],
     [ "topology< P, borrow_base >", "structflecsi_1_1topo_1_1topology_3_01P_00_01borrow__base_01_4.html", [
-      [ "topology", "structflecsi_1_1topo_1_1topology_3_01P_00_01borrow__base_01_4.html#a8967e51476945cdd783a6f06976eb577", null ],
+      [ "topology", "structflecsi_1_1topo_1_1topology_3_01P_00_01borrow__base_01_4.html#a94e649d1a9b7abdedc35d61e343e2b2d", null ],
       [ "base", "structflecsi_1_1topo_1_1topology_3_01P_00_01borrow__base_01_4.html#a6d095124c356c086414aafa687faab36", null ]
     ] ],
     [ "topology< P, core_base >", "structflecsi_1_1topo_1_1topology_3_01P_00_01core__base_01_4.html", [

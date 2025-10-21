@@ -10,7 +10,7 @@ var searchData=
   ['make_5ftree_7',['make_tree',['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html#a30f19a2df235002b8cac3b7328ec7e48',1,'flecsi::topo::topology&lt; Policy, ntree_base &gt;::make_tree(scheduler &amp;s)'],['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html#a6873724d7c5164efa55cffe799c01e56',1,'flecsi::topo::topology&lt; Policy, ntree_base &gt;::make_tree(typename Policy::slot &amp;ts)']]],
   ['map_5fcopy_8',['map_copy',['../classflecsi_1_1run_1_1mpi__mapper__t.html#ab71b88b5f7cf96028c52705efe31149e',1,'flecsi::run::mpi_mapper_t']]],
   ['map_5ftask_9',['map_task',['../classflecsi_1_1run_1_1mpi__mapper__t.html#afbad5905c5b37581edaf40c837924e50',1,'flecsi::run::mpi_mapper_t']]],
-  ['mapper_5fregistration_10',['mapper_registration',['../group__legion-runtime.html#ga888156213fe841362ad9168aa15176af',1,'flecsi::run']]],
+  ['mapper_5fregistration_10',['mapper_registration',['../group__legion-runtime.html#gad59ad16ad394d4ac039380b1c7a066f3',1,'flecsi::run']]],
   ['max_11',['max',['../classflecsi_1_1util_1_1filling__curve__key.html#ae8e1f0475c85e757cb3d48e16f912cd8',1,'flecsi::util::filling_curve_key']]],
   ['max_5fdepth_12',['max_depth',['../classflecsi_1_1util_1_1filling__curve__key.html#ab5f8422240bf1ac3c8ef36e20a2017e7',1,'flecsi::util::filling_curve_key']]],
   ['max_5fsize_13',['max_size',['../structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4_1_1row.html#ac2a85e463df4e95c1bf051cfb8237805',1,'flecsi::data::mutator&lt; ragged, T, P &gt;::row::max_size()'],['../structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4_1_1row.html#ac2a85e463df4e95c1bf051cfb8237805',1,'flecsi::data::mutator&lt; sparse, T, P &gt;::row::max_size()']]],

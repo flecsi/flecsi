@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.1</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -106,11 +106,11 @@ $(function(){initNavTree('structflecsi_1_1exec_1_1bind__accessors.html',''); ini
   <div class="summary">
 <a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="structflecsi_1_1exec_1_1bind__accessors-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">bind_accessors&lt; Proc &gt; Struct Template Reference<div class="ingroups"><a class="el" href="group__execution.html">Execution Model</a> &#124; <a class="el" href="group__execution.html">Execution Model</a> &raquo; <a class="el" href="group__legion-execution.html">Legion Execution</a></div></div></div>
+  <div class="headertitle"><div class="title">bind_accessors&lt; Proc &gt; Struct Template Reference<div class="ingroups"><a class="el" href="group__execution.html">Execution Model</a> &raquo; <a class="el" href="group__legion-execution.html">Legion Execution</a> &#124; <a class="el" href="group__execution.html">Execution Model</a></div></div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Handling for low-level special task parameters/arguments.  
+<p>The <a class="el" href="structflecsi_1_1exec_1_1bind__accessors.html" title="The bind_accessors type is called to walk the user task arguments inside of an executing HPX task to ...">bind_accessors</a> type is called to walk the user task arguments inside of an executing HPX task to properly complete the users accessors, i.e., by pointing the accessor <em>view</em> instances to the appropriate buffers.  
  <a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
@@ -126,11 +126,11 @@ Protected Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="group__execution.html#ga20dd9285653d4bb30a046aaeec10c74d">processor</a> Proc&gt;<br />
-struct flecsi::exec::bind_accessors&lt; Proc &gt;</div><p>Handling for low-level special task parameters/arguments. </p>
-<p>The <a class="el" href="structflecsi_1_1exec_1_1bind__accessors.html" title="Handling for low-level special task parameters/arguments.">bind_accessors</a> type is called to walk the user task arguments inside of an executing legion task to properly complete the users accessors, i.e., by pointing the accessor <em>view</em> instances to the appropriate legion-mapped buffers.</p>
-<p>The <a class="el" href="structflecsi_1_1exec_1_1bind__accessors.html" title="Handling for low-level special task parameters/arguments.">bind_accessors</a> type is called to walk the user task arguments inside of an executing HPX task to properly complete the users accessors, i.e., by pointing the accessor <em>view</em> instances to the appropriate buffers.</p>
-<p>The exact member function signatures may vary between backends. </p><dl class="section note"><dt>Note</dt><dd>No constructors are specified.</dd></dl>
-<p>This is the other half of the wire protocol implemented by <code><a class="el" href="structflecsi_1_1exec_1_1task__prologue.html" title="Handling for low-level special task parameters/arguments.">task_prologue</a></code>. </p>
+struct flecsi::exec::bind_accessors&lt; Proc &gt;</div><p>The <a class="el" href="structflecsi_1_1exec_1_1bind__accessors.html" title="The bind_accessors type is called to walk the user task arguments inside of an executing HPX task to ...">bind_accessors</a> type is called to walk the user task arguments inside of an executing HPX task to properly complete the users accessors, i.e., by pointing the accessor <em>view</em> instances to the appropriate buffers. </p>
+<p>Handling for low-level special task parameters/arguments.</p>
+<p>The <a class="el" href="structflecsi_1_1exec_1_1bind__accessors.html" title="The bind_accessors type is called to walk the user task arguments inside of an executing HPX task to ...">bind_accessors</a> type is called to walk the user task arguments inside of an executing legion task to properly complete the users accessors, i.e., by pointing the accessor <em>view</em> instances to the appropriate legion-mapped buffers.</p>
+<p>This is the other half of the wire protocol implemented by <code><a class="el" href="structflecsi_1_1exec_1_1task__prolog.html" title="Handling for low-level special task parameters/arguments.">task_prolog</a></code>.</p>
+<p>The exact member function signatures may vary between backends. </p><dl class="section note"><dt>Note</dt><dd>No constructors are specified. </dd></dl>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a902a777aea08b56c211e705be7cd7be3" name="a902a777aea08b56c211e705be7cd7be3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a902a777aea08b56c211e705be7cd7be3">&#9670;&#160;</a></span>visit() <span class="overload">[1/2]</span></h2>

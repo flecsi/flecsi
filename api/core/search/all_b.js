@@ -13,7 +13,7 @@ var searchData=
   ['map_5fbase_3c_20offsets_20_3e_10',['map_base&lt; offsets &gt;',['../structflecsi_1_1util_1_1map__base.html',1,'flecsi::util']]],
   ['map_5fcopy_11',['map_copy',['../classflecsi_1_1run_1_1mpi__mapper__t.html#ab71b88b5f7cf96028c52705efe31149e',1,'flecsi::run::mpi_mapper_t']]],
   ['map_5ftask_12',['map_task',['../classflecsi_1_1run_1_1mpi__mapper__t.html#afbad5905c5b37581edaf40c837924e50',1,'flecsi::run::mpi_mapper_t']]],
-  ['mapper_5fregistration_13',['mapper_registration',['../group__legion-runtime.html#ga888156213fe841362ad9168aa15176af',1,'flecsi::run']]],
+  ['mapper_5fregistration_13',['mapper_registration',['../group__legion-runtime.html#gad59ad16ad394d4ac039380b1c7a066f3',1,'flecsi::run']]],
   ['mapping_14',['mapping',['../structflecsi_1_1data_1_1launch_1_1mapping.html',1,'flecsi::data::launch']]],
   ['mapping_3c_20sort_5fbase_3a_3asort_5farray_5ft_20_3e_15',['mapping&lt; sort_base::sort_array_t &gt;',['../structflecsi_1_1data_1_1launch_1_1mapping.html',1,'flecsi::data::launch']]],
   ['maps_16',['Launch maps',['../group__launch.html',1,'']]],

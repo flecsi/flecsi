@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.1</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -122,9 +122,6 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:afce99a75399ac776b73cdcaf2fee2373" id="r_afce99a75399ac776b73cdcaf2fee2373"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afce99a75399ac776b73cdcaf2fee2373">commit</a> () const</td></tr>
-<tr class="memdesc:afce99a75399ac776b73cdcaf2fee2373"><td class="mdescLeft">&#160;</td><td class="mdescRight">Repack the data within the raw layout.  <br /></td></tr>
-<tr class="separator:afce99a75399ac776b73cdcaf2fee2373"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9dcd4c1880266ef3b9ddf916e605f309" id="r_a9dcd4c1880266ef3b9ddf916e605f309"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4_1_1row.html">row</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9dcd4c1880266ef3b9ddf916e605f309">operator[]</a> (size_type i) const</td></tr>
 <tr class="memdesc:a9dcd4c1880266ef3b9ddf916e605f309"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the row at an index point.  <br /></td></tr>
 <tr class="separator:a9dcd4c1880266ef3b9ddf916e605f309"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -189,29 +186,6 @@ template&lt;class T , Privileges P&gt; </div>
 </div><div class="memdoc">
 
 <p>Get the number of rows. </p>
-
-</div>
-</div>
-<a id="afce99a75399ac776b73cdcaf2fee2373" name="afce99a75399ac776b73cdcaf2fee2373"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afce99a75399ac776b73cdcaf2fee2373">&#9670;&#160;</a></span>commit()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class T , Privileges P&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">void commit </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Repack the data within the raw layout. </p>
-<p>Shrink the storage for each row that got shorter. Expand the storage for each row that got longer. Rearrange data to fit into the new layout, taking care not to overwrite something that's not yet been relocated.</p>
-<p>The total number of elements across all rows is allowed to change, but the total memory required is not allowed to increase. That is, the slack space at the end of the raw layout can increase or decrease, but if you run out of slack space at the end of the raw layout then the commit operation fails because there's not enough memory allocated for the new layout. </p>
 
 </div>
 </div>

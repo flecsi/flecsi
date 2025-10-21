@@ -1,6 +1,5 @@
 var NAVTREEINDEX4 =
 {
-"structflecsi_1_1util_1_1offsets.html#a74638244961ad502bbd42a0a4a69ba3b":[1,7,17,2],
 "structflecsi_1_1util_1_1offsets.html#a7e8a760141ec667bc700fc383f4d33d5":[1,7,17,0],
 "structflecsi_1_1util_1_1serial_1_1cast.html":[1,7,6,0],
 "structflecsi_1_1util_1_1serial_1_1cast.html#a23fb85e63b19f54698db2b7a126c5028":[1,7,6,0,0],

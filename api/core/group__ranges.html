@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.1</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -140,6 +140,10 @@ Functions</h2></td></tr>
 <tr class="memitem:ga9fb574edd1b1b9cdb2eeee754324bed8"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ga9fb574edd1b1b9cdb2eeee754324bed8">binary_index</a> (R &amp;&amp;r, const T &amp;t)</td></tr>
 <tr class="memdesc:ga9fb574edd1b1b9cdb2eeee754324bed8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find the index of a value in a sorted range.  <br /></td></tr>
 <tr class="separator:ga9fb574edd1b1b9cdb2eeee754324bed8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf40e17013cab512514d1552548b9e9b1" id="r_gaf40e17013cab512514d1552548b9e9b1"><td class="memTemplParams" colspan="2">template&lt;class R , class A , class B &gt; </td></tr>
+<tr class="memitem:gaf40e17013cab512514d1552548b9e9b1"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#gaf40e17013cab512514d1552548b9e9b1">ckd_mul</a> (R *result, A a, B b)</td></tr>
+<tr class="memdesc:gaf40e17013cab512514d1552548b9e9b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">A simple implementation of ckd_mul from C++26.  <br /></td></tr>
+<tr class="separator:gaf40e17013cab512514d1552548b9e9b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gadfd2941c293de413db968a12b67b3aa1" id="r_gadfd2941c293de413db968a12b67b3aa1"><td class="memTemplParams" colspan="2">template&lt;class R , class F &gt; </td></tr>
 <tr class="memitem:gadfd2941c293de413db968a12b67b3aa1"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#gadfd2941c293de413db968a12b67b3aa1">partition_point</a> (R &amp;&amp;r, F &amp;&amp;f)</td></tr>
 <tr class="memdesc:gadfd2941c293de413db968a12b67b3aa1"><td class="mdescLeft">&#160;</td><td class="mdescRight">A subset of <code>std::ranges::partition_point</code> from C++20.  <br /></td></tr>
@@ -392,6 +396,45 @@ template&lt;class B , class R &gt; </div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>view of selected elements, random access iff <code>R</code> is </dd></dl>
+
+</div>
+</div>
+<a id="gaf40e17013cab512514d1552548b9e9b1" name="gaf40e17013cab512514d1552548b9e9b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf40e17013cab512514d1552548b9e9b1">&#9670;&#160;</a></span>ckd_mul()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class R , class A , class B &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ckd_mul </td>
+          <td>(</td>
+          <td class="paramtype">R *</td>          <td class="paramname"><span class="paramname"><em>result</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">A</td>          <td class="paramname"><span class="paramname"><em>a</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">B</td>          <td class="paramname"><span class="paramname"><em>b</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A simple implementation of ckd_mul from C++26. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">result</td><td>address to store the multiplication result </td></tr>
+    <tr><td class="paramname">a</td><td>unsigned integer value </td></tr>
+    <tr><td class="paramname">b</td><td>unsigned integer value </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>false if *result was assigned a valid multiplication result, true otherwise. </dd></dl>
 
 </div>
 </div>

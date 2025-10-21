@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Developer Guide &mdash; FleCSI 2.4.0 documentation</title>
+  <title>Developer Guide &mdash; FleCSI 2.4.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
@@ -21,7 +21,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Internal Summary" href="summary.html" />
+    <link rel="next" title="Internal Summary" href="developer-guide/summary.html" />
     <link rel="prev" title="API Reference" href="api.html" /> 
 </head>
 
@@ -38,7 +38,7 @@
               <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.4.0
+                Version: 2.4.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -56,23 +56,13 @@
 <li class="toctree-l1"><a class="reference internal" href="user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Developer Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="summary.html">Internal Summary</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#style-guide">Style Guide</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#exceptions">Exceptions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#additional-rules">Additional Rules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#directory-structure">Directory Structure</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#commits">Commits</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#versioning">Versioning</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#branch-types">Branch Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#flecsi-version-file-version-and-flecsi-version">FleCSI Version File (<code class="docutils literal notranslate"><span class="pre">.version</span></code>) and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#published-documentation">Published Documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#building-for-darwin">Building for Darwin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#doxygen">Doxygen</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#sphinx">Sphinx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/summary.html">Internal Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/backend.html">Backend Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/hpx-backend.html">HPX Backend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/style-guide.html">Style Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/versioning.html">Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/darwin-build.html">Building for Darwin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/documentation.html">Documentation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
@@ -106,437 +96,45 @@
 <h1>Developer Guide<a class="headerlink" href="#developer-guide" title="Permalink to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="summary.html">Internal Summary</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="summary.html#components">Components</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="summary.html#hierarchy">Hierarchy</a></li>
-<li class="toctree-l3"><a class="reference internal" href="summary.html#compound-clients">Compound clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-guide/summary.html">Internal Summary</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/summary.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/summary.html#data">Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/summary.html#execution">Execution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/summary.html#topologies">Topologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/summary.html#runtime-support">Runtime Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/summary.html#utilities">Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="summary.html#data">Data</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="summary.html#task-separation">Task separation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="summary.html#storage">Storage</a></li>
-<li class="toctree-l3"><a class="reference internal" href="summary.html#layouts">Layouts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="summary.html#definition">Definition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="summary.html#access">Access</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-guide/backend.html">Backend Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-guide/hpx-backend.html">HPX Backend</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/hpx-backend.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/hpx-backend.html#run-module"><code class="docutils literal notranslate"><span class="pre">run</span></code> module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/hpx-backend.html#exec-module"><code class="docutils literal notranslate"><span class="pre">exec</span></code> module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/hpx-backend.html#data-module"><code class="docutils literal notranslate"><span class="pre">data</span></code> module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/hpx-backend.html#managing-task-dependencies">Managing Task Dependencies</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="summary.html#execution">Execution</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="summary.html#levels">Levels</a></li>
-<li class="toctree-l3"><a class="reference internal" href="summary.html#task-launches">Task launches</a></li>
-<li class="toctree-l3"><a class="reference internal" href="summary.html#explicit-parallelism">Explicit parallelism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-guide/style-guide.html">Style Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/style-guide.html#exceptions">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/style-guide.html#additional-rules">Additional Rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/style-guide.html#directory-structure">Directory Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/style-guide.html#commits">Commits</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="summary.html#topologies">Topologies</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="summary.html#interfaces">Interfaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="summary.html#subcomponents">Subcomponents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="summary.html#predefined">Predefined</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-guide/versioning.html">Versioning</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/versioning.html#branch-types">Branch Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/versioning.html#flecsi-version-file-version-and-flecsi-version">FleCSI Version File (<code class="docutils literal notranslate"><span class="pre">.version</span></code>) and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="summary.html#utilities">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-guide/darwin-build.html">Building for Darwin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-guide/documentation.html">Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/documentation.html#published">Published</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/documentation.html#doxygen">Doxygen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/documentation.html#sphinx">Sphinx</a></li>
 </ul>
 </li>
 </ul>
 </div>
-<hr class="docutils" />
-<section id="style-guide">
-<h2>Style Guide<a class="headerlink" href="#style-guide" title="Permalink to this heading"></a></h2>
-<p>Unless otherwise specified, follow the <a class="reference external" href="https://www.boost.org/development/requirements.html#Design_and_Programming">Boost “Design and Programming”
-guidelines</a> and <a class="reference external" href="https://www.boost.org/development/header.html">header guidelines</a>.  They do not address purely stylistic
-matters of indentation, spacing, and brace placement; those are addressed for
-FleCSI by <code class="docutils literal notranslate"><span class="pre">clang-format</span></code>.</p>
-<section id="exceptions">
-<h3>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this heading"></a></h3>
-<p>Starting from the 2019 version:</p>
-<ul class="simple">
-<li><p>Optimization does matter for FleCSI, but only where the overhead it
-introduces is expected to be a significant fraction of the application’s
-runtime.</p></li>
-<li><p>Obviously FleCSI uses certain additional libraries (like Legion).  Do not
-add further dependencies without discussion.  As a single component, there
-is no need to limit use of one part of FleCSI by another.</p></li>
-<li><p>The ABI concerns, especially for Windows, are irrelevant.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">noexcept</span></code> has replaced exception-specifications and should be used as
-appropriate, especially for move operations.</p></li>
-<li><p>FleCSI uses its own unit-testing framework, not Boost’s.</p></li>
-<li><p>The preferable line-length limit is 78 characters, so that even a diff of
-such a file avoids the line continuations used in some displays.</p></li>
-<li><p>Individual documentation files do not get their own copyright/license.</p></li>
-<li><p>The source-file header is of course different.</p></li>
-<li><p>FleCSI uses <code class="docutils literal notranslate"><span class="pre">flog_assert</span></code>, not <code class="docutils literal notranslate"><span class="pre">BOOST_ASSERT</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">min</span></code> and <code class="docutils literal notranslate"><span class="pre">max</span></code> do not require special treatment.</p></li>
-<li><p>Header and source files are suffixed with <code class="docutils literal notranslate"><span class="pre">.hh</span></code> and <code class="docutils literal notranslate"><span class="pre">.cc</span></code>.</p></li>
-<li><p>There are no “primary directories”.</p></li>
-<li><p>Code documentation is generated by Doxygen (where <code class="docutils literal notranslate"><span class="pre">\</span></code> is used instead of <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>), prose by Sphinx.</p></li>
-</ul>
-</section>
-<section id="additional-rules">
-<h3>Additional Rules<a class="headerlink" href="#additional-rules" title="Permalink to this heading"></a></h3>
-<ul class="simple">
-<li><p>Class and enumeration names do not get a suffix <code class="docutils literal notranslate"><span class="pre">_t</span></code>.</p></li>
-<li><p>Header names are “absolute” (<em>i.e.</em>, begin with <code class="docutils literal notranslate"><span class="pre">flecsi/</span></code>).</p></li>
-<li><p>Function documentation uses the imperative mood.</p></li>
-</ul>
-</section>
-<section id="directory-structure">
-<h3>Directory Structure<a class="headerlink" href="#directory-structure" title="Permalink to this heading"></a></h3>
-<p>Each subdirectory of <code class="docutils literal notranslate"><span class="pre">flecsi</span></code> has a <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> file which names further subdirectories (many of which are backend-specific) as needed.
-Most also have <code class="docutils literal notranslate"><span class="pre">test</span></code> subdirectories, as do the <code class="docutils literal notranslate"><span class="pre">topo</span></code> subdirectories (which typically need more data files).</p>
-</section>
-<section id="commits">
-<h3>Commits<a class="headerlink" href="#commits" title="Permalink to this heading"></a></h3>
-<p>While exceptions must occasionally be made to each of the following, ideally each commit should</p>
-<ul class="simple">
-<li><p>build and pass tests (partly to support <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">bisect</span></code>)</p></li>
-<li><p>not add or change material changed later in the same merge request (partly to help <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">blame</span></code>)</p></li>
-<li><p>include the smallest subset of an overall set of changes that follows the above rules</p></li>
-<li><p>add or update any relevant documentation, including the <a class="reference internal" href="news.html"><span class="doc">Release Notes</span></a></p></li>
-<li><p>not be a <a class="reference external" href="https://docs.kernel.org/maintainer/rebasing-and-merging.html#merging-from-sibling-or-upstream-trees">meaningless merge</a> from the destination branch (as introduced by <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code>)</p></li>
-<li><p>have a meaningful message that follows the <a class="reference external" href="http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html">50/72 rule</a></p></li>
-<li><p>be properly formatted per <code class="docutils literal notranslate"><span class="pre">clang-format</span></code></p></li>
-<li><p>either make only purely stylistic changes or make no such changes</p></li>
-</ul>
-<p>Stylistic changes should be rare and are best put in their own merge request (so that they do not complicate any substantive review).
-Improvements to the style of code already being modified are encouraged, so long as they do not materially interfere with review.</p>
-<p>Expending a reasonable effort to rewrite the history of a merge request to obtain the above properties is encouraged.
-The usual tool is <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">rebase</span> <span class="pre">-i</span></code>, although retroactive formatting is much easier with (a script that runs) <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">filter-branch</span></code>.</p>
-<p>The name of the source branch of a merge request appears in the machine-generated commit that merges it.
-Those names should therefore be meaningful; in particular, to avoid confusion they shouldn’t just be that of the destination branch (as from commands like <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">2.1</span></code>).</p>
-</section>
-</section>
-<hr class="docutils" />
-<section id="versioning">
-<h2>Versioning<a class="headerlink" href="#versioning" title="Permalink to this heading"></a></h2>
-<p>FleCSI uses the <a class="reference external" href="https://semver.org/">Semantic Versioning</a> system.
-Note that it defines the three kinds of releases in terms of <em>restrictions</em> on what changes can appear in each, and that those restrictions are phrased in terms of the documented interface.
-We interpret compatibility strictly in terms of source (with the inevitable judgment calls for things like SFINAE).
-Even altogether new code can appear in a “patch” release if it serves to fix a bug or improve performance rather than as a new documented feature.
-As an exception to the specification, deprecations can be made in such a release as well, since they are merely documentation for the careful user who wants to upgrade early for forward compatibility.
-However, since features are typically deprecated in favor of some new feature, most will nonetheless appear in feature releases.</p>
-<p>There is one active, shared branch for each of the three types of release, as described below.
-Tags are used to identify releases as well as certain internal reference points for development.</p>
-<section id="branch-types">
-<h3>Branch Types<a class="headerlink" href="#branch-types" title="Permalink to this heading"></a></h3>
-<dl class="simple">
-<dt>incompatible</dt><dd><p>The <em>develop</em> branch is where work on the next major release takes
-place, potentially with interface and feature changes that are
-<em>incompatible</em> with previous versions.</p>
-</dd>
-<dt>feature</dt><dd><p>Feature branches (named for their <em>major</em> version number, e.g., 1, 2,
-3) are for feature development on the current major version.</p>
-</dd>
-<dt>release</dt><dd><p>Release branches (named for their <em>major.minor</em> version number, e.g.,
-1.1, 1.2) are interface-stable versions of the code base.
-At appropriate points, tags (named for their
-<em>major.minor.patch</em> version number, e.g., 1.1.2) are used to identify
-patched versions.</p>
-</dd>
-</dl>
-<figure class="align-default" id="id10">
-<span id="branch"></span><img alt="../_images/branch.png" src="../_images/branch.png" />
-<figcaption>
-<p><span class="caption-number">Fig. 25 </span><span class="caption-text">Workflow diagram illustrating basic workflow using the three branch
-types described above. (Figure due to Angela Herring.)</span><a class="headerlink" href="#id10" title="Permalink to this image"></a></p>
-</figcaption>
-</figure>
-<p>In general, each change should be made on the most restrictive permissible relevant branch so as to minimize divergence between them (after merging) and the associated potential for future merge conflicts.
-The condition of relevance pertains to an internal feature that might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
-A sometimes countervailing consideration is stability: users expect that patch releases are less likely to cause problems when upgrading even though it is simply a bug if even a feature release does so.
-It is also unfortunate to need to consider reverting a change because an official release is needed in the interval between introducing it and becoming confident in it.</p>
-</section>
-<section id="flecsi-version-file-version-and-flecsi-version">
-<h3>FleCSI Version File (<code class="docutils literal notranslate"><span class="pre">.version</span></code>) and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code><a class="headerlink" href="#flecsi-version-file-version-and-flecsi-version" title="Permalink to this heading"></a></h3>
-<p>The contents of the <code class="docutils literal notranslate"><span class="pre">.version</span></code> file in the root of a FleCSI source
-checkout is used to identify the branch type and version of
-FleCSI. Given the three different branch types and tagged versioned
-releases, its content will be one of the following four schemes:</p>
-<dl class="simple">
-<dt>develop branch</dt><dd><p><code class="docutils literal notranslate"><span class="pre">develop</span></code></p>
-</dd>
-<dt>feature branch</dt><dd><p><code class="docutils literal notranslate"><span class="pre">f&lt;major&gt;</span></code></p>
-</dd>
-<dt>release branch</dt><dd><p><code class="docutils literal notranslate"><span class="pre">r&lt;major&gt;.&lt;minor&gt;</span></code></p>
-</dd>
-<dt>tagged release</dt><dd><p><code class="docutils literal notranslate"><span class="pre">v&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;</span></code></p>
-</dd>
-</dl>
-<p>FleCSI uses the information in <code class="docutils literal notranslate"><span class="pre">.version</span></code> to define
-<code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code> in its <code class="docutils literal notranslate"><span class="pre">flecsi/config.hh</span></code> header. This constant
-encodes the major, minor and patch version of FleCSI in a single
-integer value.</p>
-<p>For <strong>tagged releases</strong> (<code class="docutils literal notranslate"><span class="pre">v&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;</span></code>) it is defined
-as <code class="docutils literal notranslate"><span class="pre">(major</span> <span class="pre">&lt;&lt;</span> <span class="pre">16)</span> <span class="pre">|</span> <span class="pre">(minor</span> <span class="pre">&lt;&lt;</span> <span class="pre">8)</span> <span class="pre">|</span> <span class="pre">patch</span></code>.</p>
-<p>On <strong>release branches</strong> both major and minor version components are
-set to the release version, however, the patch version component is set
-to its maximal value 255.</p>
-<p>On <strong>feature branches</strong> only the major version component is set to the
-version value, while the minor version component is set to its maximum
-255 and the patch version component is set to 0.</p>
-<p>Finally, on the <strong>develop branch</strong>, the major version component is set
-to its maximum 255, while the other components are set
-to 0.</p>
-<p>The following table summarizes these rules with some examples:</p>
-<table class="docutils align-default" id="id11">
-<caption><span class="caption-number">Table 1 </span><span class="caption-text">Examples of <code class="docutils literal notranslate"><span class="pre">.version</span></code> and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code></span><a class="headerlink" href="#id11" title="Permalink to this table"></a></caption>
-<thead>
-<tr class="row-odd"><th class="head"><p>Source</p></th>
-<th class="head"><p>Contents of <code class="docutils literal notranslate"><span class="pre">.version</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">develop</span></code> branch</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">develop</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">0xff0000</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">2</span></code> feature branch</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">f2</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">0x02ff00</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">2.1</span></code> release branch</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">r2.1</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">0x0201ff</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">v2.2.0</span></code> tagged release</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">v2.2.0</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">0x020200</span></code></p></td>
-</tr>
-</tbody>
-</table>
-</section>
-</section>
-<hr class="docutils" />
-<section id="published-documentation">
-<h2>Published Documentation<a class="headerlink" href="#published-documentation" title="Permalink to this heading"></a></h2>
-<p>The <a class="reference external" href="http://www.flecsi.org/">project homepage</a> is a GitHub Pages site generated from <a class="reference external" href="https://github.com/flecsi/flecsi/tree/gh-pages">the current GitHub repository</a>.
-The <code class="docutils literal notranslate"><span class="pre">deploy-docs</span></code> Make target sets up a repository to update it by pushing to the appropriate branch.</p>
-<blockquote>
-<div></div></blockquote>
-</section>
-<section id="building-for-darwin">
-<h2>Building for Darwin<a class="headerlink" href="#building-for-darwin" title="Permalink to this heading"></a></h2>
-<p>Darwin is a testbed cluster at LANL that provides a wide variety of
-node hardware configurations.
-The FleCSI distribution provides a
-script, <code class="docutils literal notranslate"><span class="pre">tools/darwin.sh</span></code>, that automates downloading, building, and
-installing FleCSI and all of its dependencies.  The script can be run
-either from a checked-out version of the FleCSI repository, in which
-case it will not re-download FleCSI, or as a standalone script, in
-which case it will clone the <code class="docutils literal notranslate"><span class="pre">flecsi</span></code> repository and build from
-there.</p>
-<p>The former is the preferred approach.  From a back-end node, run</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git<span class="w"> </span>clone<span class="w"> </span>ssh://git@re-git.lanl.gov:10022/flecsi/flecsi.git
-<span class="gp">$ </span>flecsi/tools/darwin.sh
-</pre></div>
-</div>
-<p>The script performs the following operations:</p>
-<ol class="arabic simple">
-<li><p>Clone <code class="docutils literal notranslate"><span class="pre">flecsi</span></code> if the script was not run as above, from a cloned
-repository.</p></li>
-<li><p>Install a version of the <a class="reference external" href="https://spack.readthedocs.io/">Spack package manager</a> known to work with FleCSI into
-<code class="docutils literal notranslate"><span class="pre">$HOME/spack</span></code>.</p></li>
-<li><p>Load Darwin’s <a class="reference external" href="http://modules.sourceforge.net/">environment modules</a> for known-to-work-with-FleCSI
-versions of various tools.</p></li>
-<li><p>Create and activate a <code class="docutils literal notranslate"><span class="pre">flecsi-mpich</span></code> Spack environment.
-Download, build, and install FleCSI’s dependencies into this
-environment.  (This is by far the more time-consuming part of the
-script.  Plan on about 45 minutes.)</p></li>
-<li><p>Configure, build, test, and install FleCSI into
-<code class="docutils literal notranslate"><span class="pre">$HOME/flecsi-inst</span></code>, including documentation.</p></li>
-<li><p>Configure and build the FleCSI tutorial files.  This ensures that
-it is possible to compile and link against the headers and
-libraries in <code class="docutils literal notranslate"><span class="pre">$HOME/flecsi-inst</span></code>.</p></li>
-</ol>
-<p>The script expects a fairly virgin environment.  It currently fails if
-Spack is already installed, conflicting modules are already loaded, or
-other aspects of the installation already have been run.</p>
-<p>Once the script completes, you can activate the FleCSI environment with</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">source</span><span class="w"> </span>~/spack/share/spack/setup-env.sh
-<span class="gp">$ </span>spack<span class="w"> </span>env<span class="w"> </span>activate<span class="w"> </span>flecsi-mpich
-</pre></div>
-</div>
-<p>The complete <code class="docutils literal notranslate"><span class="pre">tools/darwin.sh</span></code> script is reproduced below.  Although
-the script is intended to be run on the Darwin cluster, it should not
-be too hard to adapt it to other systems or even simply use the script
-as a reference for the commands needed to get FleCSI up and running.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#! /bin/bash</span>
-
-<span class="c1">######################################</span>
-<span class="c1"># Build FleCSI entirely from scratch #</span>
-<span class="c1"># (tested on LANL&#39;s Darwin cluster)  #</span>
-<span class="c1">######################################</span>
-
-<span class="c1"># Trace commands and abort on the first error.</span>
-<span class="nb">set</span><span class="w"> </span>-e
-
-<span class="c1"># Clone flecsi into the current directory unless the script was run</span>
-<span class="c1"># from what looks like a flecsi clone.</span>
-<span class="nv">script_dir</span><span class="o">=</span><span class="k">$(</span>dirname<span class="w"> </span><span class="k">$(</span>readlink<span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="k">))</span>
-<span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$script_dir</span><span class="s2">&quot;</span>
-<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-d<span class="w"> </span>../flecsi<span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<span class="w">    </span><span class="nb">cd</span><span class="w"> </span>..
-<span class="k">else</span>
-<span class="w">    </span><span class="nb">cd</span><span class="w"> </span>-
-<span class="w">    </span>git<span class="w"> </span>clone<span class="w"> </span>ssh://git@re-git.lanl.gov:10022/flecsi/flecsi.git
-<span class="w">    </span><span class="nb">cd</span><span class="w"> </span>flecsi
-<span class="k">fi</span>
-
-<span class="c1"># Log where we came from in Git in case this is needed for troubleshooting.</span>
-<span class="o">(</span>
-<span class="w">    </span><span class="nb">set</span><span class="w"> </span>+e
-<span class="w">    </span>git<span class="w"> </span>config<span class="w"> </span>--get<span class="w"> </span>remote.origin.url<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="se">\</span>
-<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">0</span><span class="si">}</span><span class="s2">: Directory </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2"> does not appear to have come from Git&quot;</span><span class="w"> </span><span class="m">1</span>&gt;<span class="p">&amp;</span><span class="m">2</span>
-<span class="w">    </span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD<span class="w"> </span><span class="m">2</span>&gt;/dev/null
-<span class="o">)</span>
-
-<span class="c1"># Define an installation directory.</span>
-<span class="nv">FLECSI_INSTALL</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/flecsi-inst&quot;</span>
-
-<span class="c1"># Set GCC version we&#39;re going to use</span>
-<span class="nv">GCC_VERSION</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="k">$(</span>grep<span class="w"> </span>GCC_VERSION:<span class="w"> </span>.gitlab-ci.yml<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d:<span class="w"> </span>-f2<span class="k">))</span>
-
-<span class="c1"># Download a version of Spack known to work with FleCSI and activate it.</span>
-<span class="nv">SPACK_VERSION</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="k">$(</span>grep<span class="w"> </span>USE_SPACK_UPSTREAM:<span class="w"> </span>.gitlab-ci.yml<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d:<span class="w"> </span>-f2<span class="k">))</span>
-
-<span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SPACK_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span>~<span class="w"> </span><span class="s2">&quot;develop-&quot;</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<span class="w">  </span><span class="nv">SPACK_COMMIT</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$SPACK_VERSION</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d-<span class="w"> </span>-f2<span class="k">)</span>
-<span class="k">fi</span>
-
-<span class="nb">pushd</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">&quot;</span>
-<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>spack<span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<span class="w">  </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/spack/spack.git
-<span class="w">  </span><span class="nb">cd</span><span class="w"> </span>spack
-<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SPACK_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span>~<span class="w"> </span><span class="s2">&quot;develop-&quot;</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<span class="w">    </span>git<span class="w"> </span>checkout<span class="w"> </span><span class="nv">$SPACK_COMMIT</span>
-<span class="w">  </span><span class="k">else</span>
-<span class="w">    </span>git<span class="w"> </span>switch<span class="w"> </span>releases/<span class="nv">$SPACK_VERSION</span>
-<span class="w">  </span><span class="k">fi</span>
-<span class="w">  </span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD
-<span class="k">else</span>
-<span class="w">  </span><span class="nb">cd</span><span class="w"> </span>spack
-<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Found existing Spack install in ~/spack&quot;</span>
-<span class="w">  </span>git<span class="w"> </span>fetch<span class="w"> </span>origin
-
-<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SPACK_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span>~<span class="w"> </span><span class="s2">&quot;develop-&quot;</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nv">_TMP</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD<span class="k">)</span><span class="p">;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="si">${</span><span class="nv">_TMP</span><span class="p">:</span><span class="nv">0</span><span class="p">:</span><span class="nv">8</span><span class="si">}</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SPACK_COMMIT</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;ERROR: The current checkout does not match </span><span class="si">${</span><span class="nv">SPACK_COMMIT</span><span class="si">}</span><span class="s2">!&quot;</span>
-<span class="w">      </span><span class="nb">echo</span>
-<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Please update manually with:&quot;</span>
-<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; git -C ~/spack checkout </span><span class="si">${</span><span class="nv">SPACK_COMMIT</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="w">      </span><span class="nb">echo</span>
-<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;WARNING: This may invalidate other Spack environments that rely on&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">           </span><span class="s2">&quot;this Spack instance!&quot;</span>
-<span class="w">      </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
-<span class="w">    </span><span class="k">fi</span>
-<span class="w">  </span><span class="k">else</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>origin/releases/<span class="nv">$SPACK_VERSION</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;ERROR: The current checkout does not match origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">!&quot;</span>
-<span class="w">      </span><span class="nb">echo</span>
-<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Please update manually with:&quot;</span>
-<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; git -C ~/spack fetch +releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">:refs/remotes/origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">&quot;</span>
-<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; git -C ~/spack switch origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">&quot;</span>
-<span class="w">      </span><span class="nb">echo</span>
-<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;WARNING: This may invalidate other Spack environments that rely on&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">           </span><span class="s2">&quot;this Spack instance!&quot;</span>
-<span class="w">      </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
-<span class="w">    </span><span class="k">fi</span>
-<span class="w">  </span><span class="k">fi</span>
-<span class="k">fi</span>
-<span class="nb">source</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/spack/share/spack/setup-env.sh&quot;</span>
-<span class="nb">popd</span>
-
-
-<span class="c1"># Create new Spack environment and activate it</span>
-spack<span class="w"> </span>env<span class="w"> </span>remove<span class="w"> </span>-y<span class="w"> </span>flecsi-mpich<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
-spack<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>flecsi-mpich
-spack<span class="w"> </span>env<span class="w"> </span>activate<span class="w"> </span>flecsi-mpich
-
-<span class="c1"># Load GCC version known to work with FleCSI</span>
-<span class="c1"># and make it visible to Spack</span>
-module<span class="w"> </span>load<span class="w"> </span>gcc/<span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span>
-
-<span class="c1"># ignore configuration in ~/.spack to avoid conflicts</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">SPACK_DISABLE_LOCAL_CONFIG</span><span class="o">=</span><span class="nb">true</span>
-
-<span class="c1"># allow spack to dynamically concretize packages together instead of separately.</span>
-<span class="c1"># this avoids some installation errors due to multiple python packages depending</span>
-<span class="c1"># on different versions of a dependency</span>
-spack<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>concretizer:reuse:false
-spack<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>packages:all:compiler:<span class="o">[</span><span class="s2">&quot;gcc@</span><span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">]</span>
-
-<span class="c1"># add FleCSI spack package repository</span>
-spack<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>spack-repo
-
-<span class="c1"># On Darwin we have a Spack upstream that already has prebuilt dependencies</span>
-<span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="o">=</span>/projects/flecsi-devel/gitlab/spack-upstream/<span class="nv">$SPACK_VERSION</span>
-
-<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$DARWIN_SPACK_UPSTREAM</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-x<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<span class="w">  </span><span class="c1"># add spack upstream if accessible</span>
-<span class="w">  </span>spack<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>upstreams:default:install_tree:<span class="si">${</span><span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="si">}</span>/opt/spack/
-<span class="w">  </span>cp<span class="w"> </span><span class="si">${</span><span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="si">}</span>/etc/spack/<span class="o">{</span>compilers.yaml,packages.yaml<span class="o">}</span><span class="w"> </span><span class="nv">$HOME</span>/spack/etc/spack/
-<span class="k">else</span>
-<span class="w">  </span><span class="c1"># Otherwise, load a compatible cmake and expose whatever else happens to be</span>
-<span class="w">  </span><span class="c1"># sitting around as Spack externals</span>
-<span class="w">  </span>module<span class="w"> </span>load<span class="w"> </span>cmake/3.26.3
-<span class="w">  </span>spack<span class="w"> </span>compiler<span class="w"> </span>find
-<span class="w">  </span>spack<span class="w"> </span>external<span class="w"> </span>find
-<span class="k">fi</span>
-
-<span class="c1"># Install FleCSI&#39;s dependencies with Spack.</span>
-spack<span class="w"> </span>add<span class="w"> </span>flecsi%gcc@<span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span><span class="w"> </span><span class="nv">backend</span><span class="o">=</span>legion<span class="w"> </span>+doc<span class="w"> </span>+graphviz<span class="w"> </span>+hdf5<span class="w"> </span>+kokkos<span class="w"> </span>+flog<span class="w"> </span><span class="se">\</span>
-<span class="w">          </span>^legion<span class="w"> </span><span class="nv">network</span><span class="o">=</span>gasnet<span class="w"> </span><span class="nv">conduit</span><span class="o">=</span>mpi<span class="w"> </span><span class="nv">build_type</span><span class="o">=</span>Debug<span class="w"> </span><span class="se">\</span>
-<span class="w">          </span>^kokkos<span class="w"> </span>+hwloc<span class="w"> </span>~cuda<span class="w"> </span>~rocm<span class="w"> </span><span class="se">\</span>
-<span class="w">          </span>^mpich
-spack<span class="w"> </span>install<span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span><span class="w"> </span>--only<span class="w"> </span>dependencies
-
-<span class="c1"># Build, test, and install FleCSI.</span>
-
-<span class="c1"># configure FleCSI, inheriting (-i) the its configuration from the Spack environment</span>
-<span class="nb">test</span><span class="w"> </span>-d<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>build
-tools/spack_cmake<span class="w"> </span>-i<span class="w"> </span>-t<span class="w"> </span>flecsi<span class="w"> </span>--<span class="w"> </span>-DCMAKE_INSTALL_PREFIX<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$FLECSI_INSTALL</span><span class="s2">&quot;</span>
-<span class="nb">cd</span><span class="w"> </span>build
-cmake<span class="w"> </span>--build<span class="w"> </span>.<span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span>
-ctest
-cmake<span class="w"> </span>--build<span class="w"> </span>.<span class="w"> </span>--target<span class="w"> </span>install
-<span class="nb">cd</span><span class="w"> </span>..
-
-<span class="c1"># Ensure the tutorial examples build properly.</span>
-
-<span class="c1"># This makes the installed FleCSI visible to CMake&#39;s find_package</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">CMAKE_PREFIX_PATH</span><span class="o">=</span><span class="nv">$FLECSI_INSTALL</span>:<span class="nv">$CMAKE_PREFIX_PATH</span>
-<span class="nb">cd</span><span class="w"> </span>tutorial
-<span class="nb">test</span><span class="w"> </span>-d<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>build
-
-<span class="c1"># configure tutorial examples with the same compiler and compiler flags as flecsi</span>
-../tools/spack_cmake<span class="w"> </span>-c<span class="w"> </span>-i<span class="w"> </span>flecsi
-cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span>
-
-<span class="c1"># Build complete</span>
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;BUILD COMPLETE&quot;</span>
-<span class="nb">echo</span>
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;To continue working in the same Spack environment, execute the following commands:&quot;</span>
-<span class="nb">echo</span>
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; source \$HOME/spack/share/spack/setup-env.sh&quot;</span>
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; spack env activate flecsi-mpich&quot;</span>
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; module load gcc/</span><span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="nb">echo</span>
-</pre></div>
-</div>
-</section>
-<hr class="docutils" />
-<section id="doxygen">
-<h2><a class="reference external" href="https://www.doxygen.nl/manual/">Doxygen</a><a class="headerlink" href="#doxygen" title="Permalink to this heading"></a></h2>
-<p>The API reference is organized exclusively using the groups feature; none of the files and namespaces are documented, since they have little relevance to the user.
-Note that members of namespaces enclosed by the <code class="docutils literal notranslate"><span class="pre">\{</span></code> and <code class="docutils literal notranslate"><span class="pre">\}</span></code> of a grouping command are not included in the group.</p>
-<p>The developers’ version of the API reference includes a selection of internal interfaces for core developers (who of course must nonetheless consult the source in general).
-Use <code class="docutils literal notranslate"><span class="pre">\cond</span> <span class="pre">core</span></code> and <code class="docutils literal notranslate"><span class="pre">\endcond</span></code> to mark material that should appear only there.
-Developers must also check for such markers to identify internal interfaces; the output does not distinguish them, since users should consult only the users’ version anyway.</p>
-</section>
-<hr class="docutils" />
-<section id="sphinx">
-<h2><a class="reference external" href="https://www.sphinx-doc.org/en/master">Sphinx</a><a class="headerlink" href="#sphinx" title="Permalink to this heading"></a></h2>
-<p>By convention, headings are underlined with characters in the order <code class="docutils literal notranslate"><span class="pre">*+^=</span></code>.
-Because our formatting tends to have many tasks begin with a line of just <code class="docutils literal notranslate"><span class="pre">void</span></code>, some tutorial code has additional comments whose principal purpose is to be a <code class="docutils literal notranslate"><span class="pre">:start-after:</span></code> anchor.</p>
-</section>
 </section>
 
 
@@ -544,7 +142,7 @@ Because our formatting tends to have many tasks begin with a line of just <code 
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="api.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="summary.html" class="btn btn-neutral float-right" title="Internal Summary" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="developer-guide/summary.html" class="btn btn-neutral float-right" title="Internal Summary" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

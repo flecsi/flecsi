@@ -134,6 +134,7 @@ var annotated_dup =
       [ "program_option", "structflecsi_1_1program__option.html", "structflecsi_1_1program__option" ],
       [ "runtime", "structflecsi_1_1runtime.html", "structflecsi_1_1runtime" ],
       [ "scheduler", "structflecsi_1_1scheduler.html", "structflecsi_1_1scheduler" ],
+      [ "task_class", "structflecsi_1_1task__class.html", null ],
       [ "task_local", "structflecsi_1_1task__local.html", "structflecsi_1_1task__local" ],
       [ "topology", "structflecsi_1_1topology.html", "structflecsi_1_1topology" ]
     ] ]

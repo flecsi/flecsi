@@ -22,5 +22,6 @@ var group__ranges =
     [ "transform", "group__ranges.html#ga702af3d1f1dde0fa6750f5691045efdb", null ],
     [ "partition_point", "group__ranges.html#gadfd2941c293de413db968a12b67b3aa1", null ],
     [ "binary_index", "group__ranges.html#ga9fb574edd1b1b9cdb2eeee754324bed8", null ],
-    [ "permutation_view", "group__ranges.html#gad4345f1e9a1b852f5374920d61c51423", null ]
+    [ "permutation_view", "group__ranges.html#gad4345f1e9a1b852f5374920d61c51423", null ],
+    [ "ckd_mul", "group__ranges.html#gaf40e17013cab512514d1552548b9e9b1", null ]
 ];

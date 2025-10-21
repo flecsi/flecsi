@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Introduction &mdash; FleCSI 2.4.0 documentation</title>
+  <title>Introduction &mdash; FleCSI 2.4.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/favicon.ico"/>
@@ -37,7 +37,7 @@
               <img src="_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.4.0
+                Version: 2.4.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -266,23 +266,23 @@ structure representations.</p>
 <li class="toctree-l3"><a class="reference internal" href="src/user-guide/programming.html#mpi-tasks">MPI Tasks</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/data-model.html">Data Model</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data-model.html#important-concepts">Important Concepts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data-model.html#index-spaces">Index Spaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data-model.html#colors">Colors</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data-model.html#ghost-elements">Ghost Elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/user-guide/data.html">Data Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data.html#important-concepts">Important Concepts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data.html#index-spaces">Index Spaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data.html#colors">Colors</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#ghost-elements">Ghost Elements</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data-model.html#fields">Fields</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data-model.html#registration">Registration</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data-model.html#layouts">Layouts</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data-model.html#references">References</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data-model.html#accessors">Accessors</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data-model.html#mutators">Mutators</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="src/user-guide/data-model.html#memory">Memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data.html#fields">Fields</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#registration">Registration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#layouts">Layouts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#references">References</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#accessors">Accessors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#mutators">Mutators</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="src/user-guide/data.html#memory">Memory</a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data-model.html#multi-color-accessors">Multi-color accessors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#multi-color-accessors">Multi-color accessors</a></li>
 </ul>
 </li>
 </ul>
@@ -292,6 +292,27 @@ structure representations.</p>
 <li class="toctree-l3"><a class="reference internal" href="src/user-guide/topologies.html#index-spaces">Index Spaces</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/user-guide/topologies.html#provided-topologies">Provided Topologies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/user-guide/topologies.html#colorings">Colorings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/user-guide/execution.html">Execution Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/execution.html#schedulers">Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/execution.html#tasks">Tasks</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/execution.html#callee-side">Callee Side</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/execution.html#caller-side">Caller Side</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/execution.html#futures-and-reductions">Futures and Reductions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/execution.html#mpi-tasks">MPI Tasks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/execution.html#tracing">Tracing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/user-guide/kernels.html">On-node Parallelism</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/kernels.html#simple-parallel-loop">Simple Parallel Loop</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/kernels.html#advanced-ranges">Advanced Ranges</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/kernels.html#reductions-inside-kernels">Reductions Inside Kernels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/kernels.html#further-executor-features">Further executor features</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="src/user-guide/specializations.html">Specializations</a><ul>
@@ -305,28 +326,13 @@ structure representations.</p>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="src/user-guide/utilities.html">Utilities</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/utilities.html#ranges">Ranges</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/utilities.html#renumbering">Renumbering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/utilities.html#memory-view-utilities-span-mdspan-and-mdcolex">Memory View Utilities: span, mdspan, and mdcolex</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/utilities.html#renumbering">Renumbering</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/performance.html">Performance Do’s and Don’ts</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/performance.html#do-activate-tracing-around-your-execute-loops">Do Activate Tracing Around Your <code class="docutils literal notranslate"><span class="pre">execute&lt;&gt;</span></code> Loops</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/tracing.html">Tracing</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="src/user-guide/tracing.html#implementing-tracing-in-your-code">Implementing Tracing in Your Code</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/user-guide/tracing.html#when-to-use-tracing">When to Use Tracing</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/performance.html#don-t-block-the-top-level-task-tlt">Don’t Block the Top-Level Task (TLT)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/blocking.html">Performance Effect of <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/blocking.html#forcing-bulk-synchronousity-in-your-code">Forcing Bulk-Synchronousity in Your Code</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/blocking.html#removing-bulk-synchronousity-from-your-code">Removing Bulk-Synchronousity from Your Code</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/blocking.html#when-to-call-get-outside-of-a-task">When to Call <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="src/user-guide/performance.html">Performance</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/performance.html#futures">Futures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/performance.html#tracing">Tracing</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="src/user-guide/profiling.html">Profiling with Legion</a></li>
@@ -345,51 +351,76 @@ structure representations.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="src/api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="src/developer-guide.html">Developer Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="src/summary.html">Internal Summary</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/summary.html#components">Components</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/summary.html#hierarchy">Hierarchy</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/summary.html#compound-clients">Compound clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/summary.html">Internal Summary</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/summary.html#components">Components</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#hierarchy">Hierarchy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#compound-clients">Compound clients</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/summary.html#data">Data</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/summary.html#task-separation">Task separation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/summary.html#storage">Storage</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/summary.html#layouts">Layouts</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/summary.html#definition">Definition</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/summary.html#access">Access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/summary.html#data">Data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#task-separation">Task separation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#storage">Storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#layouts">Layouts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#definition">Definition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#access">Access</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/summary.html#execution">Execution</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/summary.html#levels">Levels</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/summary.html#task-launches">Task launches</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/summary.html#explicit-parallelism">Explicit parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/summary.html#execution">Execution</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#levels">Levels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#task-launches">Task launches</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#explicit-parallelism">Explicit parallelism</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/summary.html#topologies">Topologies</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/summary.html#interfaces">Interfaces</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/summary.html#subcomponents">Subcomponents</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/summary.html#predefined">Predefined</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/summary.html#topologies">Topologies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#interfaces">Interfaces</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#subcomponents">Subcomponents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#predefined">Predefined</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/summary.html#utilities">Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/summary.html#runtime-support">Runtime Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/summary.html#utilities">Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide.html#style-guide">Style Guide</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide.html#exceptions">Exceptions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide.html#additional-rules">Additional Rules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide.html#directory-structure">Directory Structure</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide.html#commits">Commits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/backend.html">Backend Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/hpx-backend.html">HPX Backend</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/hpx-backend.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/hpx-backend.html#run-module"><code class="docutils literal notranslate"><span class="pre">run</span></code> module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/hpx-backend.html#flecsi-run-context-t"><code class="docutils literal notranslate"><span class="pre">flecsi::run::context_t</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/hpx-backend.html#flecsi-task-local"><code class="docutils literal notranslate"><span class="pre">flecsi::task_local</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide.html#versioning">Versioning</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide.html#branch-types">Branch Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide.html#flecsi-version-file-version-and-flecsi-version">FleCSI Version File (<code class="docutils literal notranslate"><span class="pre">.version</span></code>) and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/hpx-backend.html#exec-module"><code class="docutils literal notranslate"><span class="pre">exec</span></code> module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/hpx-backend.html#flecsi-exec-task-prologue-base"><code class="docutils literal notranslate"><span class="pre">flecsi::exec::task_prologue_base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/hpx-backend.html#flecsi-exec-fold-wrap"><code class="docutils literal notranslate"><span class="pre">flecsi::exec::fold::wrap</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide.html#published-documentation">Published Documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide.html#building-for-darwin">Building for Darwin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide.html#doxygen">Doxygen</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide.html#sphinx">Sphinx</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/hpx-backend.html#data-module"><code class="docutils literal notranslate"><span class="pre">data</span></code> module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/hpx-backend.html#flecsi-data-copy-engine"><code class="docutils literal notranslate"><span class="pre">flecsi::data::copy_engine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/hpx-backend.html#flecsi-data-backend-storage"><code class="docutils literal notranslate"><span class="pre">flecsi::data::backend_storage</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/hpx-backend.html#managing-task-dependencies">Managing Task Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/style-guide.html">Style Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/style-guide.html#exceptions">Exceptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/style-guide.html#additional-rules">Additional Rules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/style-guide.html#directory-structure">Directory Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/style-guide.html#commits">Commits</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/versioning.html">Versioning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/versioning.html#branch-types">Branch Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/versioning.html#flecsi-version-file-version-and-flecsi-version">FleCSI Version File (<code class="docutils literal notranslate"><span class="pre">.version</span></code>) and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/darwin-build.html">Building for Darwin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/documentation.html">Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/documentation.html#published">Published</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/documentation.html#doxygen">Doxygen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/documentation.html#sphinx">Sphinx</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="src/team.html">Contributors</a><ul>

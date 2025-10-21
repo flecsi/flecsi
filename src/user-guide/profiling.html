@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Profiling with Legion &mdash; FleCSI 2.4.0 documentation</title>
+  <title>Profiling with Legion &mdash; FleCSI 2.4.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -22,7 +22,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="CMake for FleCSI client applications" href="cmake.html" />
-    <link rel="prev" title="Performance Effect of get() Outside of a Task" href="blocking.html" /> 
+    <link rel="prev" title="Performance" href="performance.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.4.0
+                Version: 2.4.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -55,11 +55,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="programming.html">Programming Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data-model.html">Data Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">Data Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kernels.html">On-node Parallelism</a></li>
 <li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance Do’s and Don’ts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Profiling with Legion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cmake.html">CMake for FleCSI client applications</a></li>
 </ul>
@@ -130,7 +132,7 @@ simplest ways of achieving this is by using Python’s embeded HTTP server:</p>
 <figure class="align-default" id="id2">
 <img alt="../../_images/cycle_legion_prof.png" src="../../_images/cycle_legion_prof.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 23 </span><span class="caption-text">Screenshot of Legion Prof GUI for cycle test</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
+<p><span class="caption-number">Fig. 24 </span><span class="caption-text">Screenshot of Legion Prof GUI for cycle test</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 <p>Please see the <a class="reference external" href="https://legion.stanford.edu/profiling/index.html">Performance Profiling and Tuning</a> page for further details
@@ -148,7 +150,7 @@ signature to its full signature.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="blocking.html" class="btn btn-neutral float-left" title="Performance Effect of get() Outside of a Task" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="performance.html" class="btn btn-neutral float-left" title="Performance" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="cmake.html" class="btn btn-neutral float-right" title="CMake for FleCSI client applications" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

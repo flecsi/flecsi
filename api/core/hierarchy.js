@@ -15,7 +15,9 @@ var hierarchy =
       [ "ragged_accessor< T, P, privilege_repeat< privilege_discard(P) ? wo :rw, privilege_count(P)> >", "structflecsi_1_1data_1_1ragged__accessor.html", null ],
       [ "ragged_accessor< T, P, OP >", "structflecsi_1_1data_1_1ragged__accessor.html", null ]
     ] ],
+    [ "accessor< ro >", "structflecsi_1_1data_1_1accessor.html", null ],
     [ "accessor< sparse, T, P >", "structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4.html", null ],
+    [ "accessor< wo >", "structflecsi_1_1data_1_1accessor.html", null ],
     [ "action< T, CP, M >", "structflecsi_1_1run_1_1control_1_1action.html", null ],
     [ "action< wrap, cp >", "structflecsi_1_1run_1_1control_1_1action.html", null ],
     [ "axis", "structflecsi_1_1topo_1_1narray__impl_1_1axis.html", null ],
@@ -91,7 +93,6 @@ var hierarchy =
     [ "definition< Topo, Space >", "structflecsi_1_1field_1_1definition.html", null ],
     [ "definition< claims >", "structflecsi_1_1field_1_1definition.html", null ],
     [ "definition< flecsi::topo::resize >", "structflecsi_1_1field_1_1definition.html", null ],
-    [ "definition< meta< Policy > >", "structflecsi_1_1field_1_1definition.html", null ],
     [ "definition< used >", "structflecsi_1_1field_1_1definition.html", null ],
     [ "dependencies_config", "structflecsi_1_1run_1_1dependencies__config.html", null ],
     [ "dependencies_guard", "structflecsi_1_1run_1_1dependencies__guard.html", null ],
@@ -232,7 +233,7 @@ var hierarchy =
       [ "topology_accessor< typename Policy::mesh_type, privilege_repeat< get_privilege(0, Priv), 3 > >", "structflecsi_1_1data_1_1topology__accessor.html", null ],
       [ "accessor< dense, T, P >", "structflecsi_1_1data_1_1accessor_3_01dense_00_01T_00_01P_01_4.html", null ],
       [ "accessor< single, DATA_TYPE, PRIVILEGES >", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html", null ],
-      [ "multi< class >", "structflecsi_1_1data_1_1multi.html", null ],
+      [ "multi< A >", "structflecsi_1_1data_1_1multi.html", null ],
       [ "mutator< ragged, T, P >", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html", null ],
       [ "mutator< sparse, T, P >", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html", null ],
       [ "particle_accessor< T, P, M >", "structflecsi_1_1data_1_1particle__accessor.html", null ],
@@ -294,10 +295,11 @@ var hierarchy =
     [ "sum", "structflecsi_1_1exec_1_1fold_1_1sum.html", null ],
     [ "Symbol< S >", "structflecsi_1_1util_1_1Symbol.html", null ],
     [ "tag", "structflecsi_1_1flog_1_1tag.html", null ],
+    [ "task_class", "structflecsi_1_1task__class.html", null ],
     [ "task_local< T >", "structflecsi_1_1task__local.html", null ],
     [ "task_local< std::size_t >", "structflecsi_1_1task__local.html", null ],
     [ "task_local< test_output_t >", "structflecsi_1_1task__local.html", null ],
-    [ "task_prologue< Proc >", "structflecsi_1_1exec_1_1task__prologue.html", [
+    [ "task_prolog< Proc >", "structflecsi_1_1exec_1_1task__prolog.html", [
       [ "prolog< Proc >", "structflecsi_1_1exec_1_1prolog.html", null ]
     ] ],
     [ "task_wrapper< F, P >", "structflecsi_1_1exec_1_1leg_1_1task__wrapper.html", null ],

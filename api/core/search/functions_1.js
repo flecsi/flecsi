@@ -8,7 +8,7 @@ var searchData=
   ['bit_5fwidth_5',['bit_width',['../group__utils.html#gaf8cbcb05fe17534adaaf473f98dc57fb',1,'flecsi::util']]],
   ['block_6',['block',['../group__launch.html#gae443fe4e5c2d4f5b00e1a455848149a9',1,'flecsi::data::launch']]],
   ['borrow_7',['borrow',['../structflecsi_1_1data_1_1borrow.html#ab84853b31902bb316874000b8e2df040',1,'flecsi::data::borrow']]],
-  ['borrow_5fextra_8',['borrow_extra',['../structflecsi_1_1topo_1_1borrow__extra.html#a18bf87b152737058ac86898adf2bfa9c',1,'flecsi::topo::borrow_extra']]],
+  ['borrow_5fextra_8',['borrow_extra',['../structflecsi_1_1topo_1_1borrow__extra.html#a04ec5345e066684115d695ad3faaedec',1,'flecsi::topo::borrow_extra']]],
   ['bounding_5fbox_9',['bounding_box',['../structflecsi_1_1topo_1_1unstructured__base.html#aad5b49d33c9e5433947a1e9d8e56d7c2',1,'flecsi::topo::unstructured_base']]],
   ['buffer_10',['buffer',['../group__serial.html#gaa260f27fb22b419c2fb52e6df5c27478',1,'flecsi::util::serial']]],
   ['buffer_5fiter_11',['buffer_iter',['../structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4_1_1row.html#adfa769d1af85ee285d51189922cbef6a',1,'flecsi::data::mutator&lt; ragged, T, P &gt;::row']]]

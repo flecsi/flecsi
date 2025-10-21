@@ -44,7 +44,7 @@ var group__data =
     [ "field_reference< T, L, Topo, Space >", "structflecsi_1_1data_1_1field__reference.html", [
       [ "get_elements", "structflecsi_1_1data_1_1field__reference.html#a9490160bb9e5e0f0bf789b99c7c14c7f", null ]
     ] ],
-    [ "multi< class >", "structflecsi_1_1data_1_1multi.html", [
+    [ "multi< A >", "structflecsi_1_1data_1_1multi.html", [
       [ "components", "structflecsi_1_1data_1_1multi.html#ae82e5e157786aaef49a91d346aaa9c77", null ]
     ] ],
     [ "multi_reference< T, L, Topo, S >", "structflecsi_1_1data_1_1multi__reference.html", null ],

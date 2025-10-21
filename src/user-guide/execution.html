@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Execution Model &mdash; FleCSI 2.4.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="canonical" href="http://www.flecsi.org/src/user-guide/execution.html"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="On-node Parallelism" href="kernels.html" />
+    <link rel="prev" title="Topologies" href="topologies.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html">
+            
+              <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                Version: 2.4.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="programming.html">Programming Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">Data Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Execution Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#schedulers">Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tasks">Tasks</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#callee-side">Callee Side</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#caller-side">Caller Side</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#futures-and-reductions">Futures and Reductions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mpi-tasks">MPI Tasks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tracing">Tracing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="kernels.html">On-node Parallelism</a></li>
+<li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html">Profiling with Legion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmake.html">CMake for FleCSI client applications</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">FleCSI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../user-guide.html">User Guide</a></li>
+      <li class="breadcrumb-item active">Execution Model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/src/user-guide/execution.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="execution-model">
+<h1>Execution Model<a class="headerlink" href="#execution-model" title="Permalink to this heading"></a></h1>
+<p>This section describes the FleCSI execution model.
+FleCSI expresses parallelism via tasks, which are coarse-grained and can be distributed, and kernels, which are fine-grained and utilize shared memory.</p>
+<section id="schedulers">
+<h2>Schedulers<a class="headerlink" href="#schedulers" title="Permalink to this heading"></a></h2>
+<p>A FleCSI <em>scheduler</em> is an object that manages the launch of tasks.
+Where and when to execute the task is determined based on the task’s parameter types and arguments.</p>
+<p>Schedulers are obtained from the control-model object provided to an action:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">action</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="n">cp</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">scheduler</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cp</span><span class="p">.</span><span class="n">scheduler</span><span class="p">();</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">&gt;</span><span class="p">(...);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="tasks">
+<h2>Tasks<a class="headerlink" href="#tasks" title="Permalink to this heading"></a></h2>
+<p>A task in FleCSI serves as the bridge between two core parts of the execution model.
+On the caller side, each <code class="docutils literal notranslate"><span class="pre">process</span></code>, also referred to as a <code class="docutils literal notranslate"><span class="pre">rank</span></code> in the MPI terminology, executes its own copy of the <code class="docutils literal notranslate"><span class="pre">main</span></code> function and the associated control model.</p>
+<p>After all processes collectively launch a task, its function then executes, typically several times concurrently.
+Each of these executions is referred to as a <em>point task</em>; their number does not necessarily match the number of processes, and they can run on any process.
+This allows FleCSI to support flexible and scalable task-parallel execution.</p>
+<figure class="align-default" id="id2">
+<img alt="../../_images/flecsi_execution_model.svg" src="../../_images/flecsi_execution_model.svg" /><figcaption>
+<p><span class="caption-number">Fig. 23 </span><span class="caption-text">The different levels of execution in FleCSI.</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+<section id="callee-side">
+<h3>Callee Side<a class="headerlink" href="#callee-side" title="Permalink to this heading"></a></h3>
+<p>A task is a function that can accept certain special parameter types.
+For instance, the task <code class="docutils literal notranslate"><span class="pre">foo</span></code> may be defined as:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">foo</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">exec</span><span class="o">::</span><span class="n">cpu</span><span class="w"> </span><span class="n">e</span><span class="p">,</span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="p">,</span><span class="w"> </span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">f1</span><span class="p">,</span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">field</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">rw</span><span class="p">,</span><span class="w"> </span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">f2</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* ... */</span><span class="w"> </span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Tasks must be declared <code class="docutils literal notranslate"><span class="pre">noexcept</span></code>: they are called asynchronously without any means of handling an exception.
+Here the first parameter, <code class="docutils literal notranslate"><span class="pre">e</span></code>, specifies the execution space where the task runs.
+Available options include <code class="docutils literal notranslate"><span class="pre">cpu</span></code>, <code class="docutils literal notranslate"><span class="pre">omp</span></code>, <code class="docutils literal notranslate"><span class="pre">gpu</span></code>, or <code class="docutils literal notranslate"><span class="pre">accelerator</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">accelerator</span></code> space is flexible and will use the backend selected when compiling Kokkos (e.g., CUDA, OpenMP, or serial), allowing the same task code to use different kinds of hardware.
+If there is no execution space parameter, the task will default to CPU execution.</p>
+<p><a class="reference internal" href="data.html#field-accessors"><span class="std std-ref">Accessors</span></a> are automatically converted from field references provided during the task launch.
+The field data they describe is placed in the correct memory space; ghost elements are updated if required by the privileges.</p>
+<p>Tasks can also handle collections of fields, using either <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> or <code class="docutils literal notranslate"><span class="pre">std::tuple</span></code>.
+For example, if all fields share the same type, a <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> can be used to group them together:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">bar</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">exec</span><span class="o">::</span><span class="n">cpu</span><span class="w"> </span><span class="n">e</span><span class="p">,</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="p">,</span><span class="w"> </span><span class="n">ro</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">fv1</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* ... */</span><span class="w"> </span><span class="p">}</span>
+</pre></div>
+</div>
+<p>The corresponding invocation might look like:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">bar</span><span class="o">&gt;</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">exec</span><span class="o">::</span><span class="n">on</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="p">{</span><span class="n">fr1</span><span class="p">,</span><span class="w"> </span><span class="n">fr2</span><span class="p">,</span><span class="w"> </span><span class="n">fr3</span><span class="p">});</span>
+</pre></div>
+</div>
+</section>
+<section id="caller-side">
+<h3>Caller Side<a class="headerlink" href="#caller-side" title="Permalink to this heading"></a></h3>
+<p>Tasks are launched by <code class="docutils literal notranslate"><span class="pre">scheduler::execute</span></code>:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">exec</span><span class="o">::</span><span class="n">on</span><span class="p">,</span><span class="w"> </span><span class="n">fr1</span><span class="p">,</span><span class="w"> </span><span class="n">fr2</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Here, the task <code class="docutils literal notranslate"><span class="pre">foo</span></code> from above is specified as a template parameter.
+The first argument, <code class="docutils literal notranslate"><span class="pre">flecsi::exec::on</span></code>, represents the execution space (when one is specified by the task).</p>
+<p>The subsequent arguments, <code class="docutils literal notranslate"><span class="pre">fr1</span></code> and <code class="docutils literal notranslate"><span class="pre">fr2</span></code>, are field references passed into the task.
+These field references act as logical handles to the underlying data.</p>
+</section>
+</section>
+<section id="futures-and-reductions">
+<span id="future"></span><h2>Futures and Reductions<a class="headerlink" href="#futures-and-reductions" title="Permalink to this heading"></a></h2>
+<p>In FleCSI, tasks can return values through <em>futures</em>.
+A future represents the result of a task that might not yet be completed.
+The value is available only after the task is actually executed.
+This asynchronous behavior allows for flexible execution ordering.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">toto</span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="c1">// ...</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">future</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">toto</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">get</span></code> function blocks until the associated task completes and returns the resolved value of the future.
+Another function, <code class="docutils literal notranslate"><span class="pre">wait</span></code>, can be used to pause execution until the future is resolved.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The incorrect usage of futures can create some <a class="reference internal" href="performance.html"><span class="doc">Performance</span></a> bottlenecks.</p>
+</div>
+<p>FleCSI supports reductions through the <code class="docutils literal notranslate"><span class="pre">reduce</span></code> function, which combines results from multiple point tasks into a single value. For instance:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">reduce</span><span class="o">&lt;</span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">sum</span><span class="o">&gt;</span><span class="p">(</span><span class="w"> </span><span class="cm">/* ... */</span><span class="w"> </span><span class="p">);</span>
+</pre></div>
+</div>
+<p id="reduction-folds">The future provides the sum of the values returned by all point tasks.
+FleCSI provides several built-in reduction folds, including <cite>min</cite>, <cite>max</cite>, <cite>sum</cite>, and <cite>product</cite>.
+Users can define custom folds by implementing <a class="reference external" href="../../api/user/structflecsi_1_1exec_1_1fold_1_1reduce.html">a structure</a> with <code class="docutils literal notranslate"><span class="pre">combine</span></code> and <code class="docutils literal notranslate"><span class="pre">identity</span></code> methods.
+The reduction types can use a specific type or provide a function template.</p>
+</section>
+<section id="mpi-tasks">
+<h2>MPI Tasks<a class="headerlink" href="#mpi-tasks" title="Permalink to this heading"></a></h2>
+<p>FleCSI also supports a special class of tasks known as <em>MPI tasks</em>.
+Exactly one point task for an MPI task runs on each process, like the control-model action that launched it.</p>
+<p>MPI tasks are invoked as follows:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">flecsi</span><span class="o">::</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">qux</span><span class="p">,</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">mpi</span><span class="o">&gt;</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">exec</span><span class="o">::</span><span class="n">on</span><span class="p">,</span><span class="w"> </span><span class="n">fr1</span><span class="p">,</span><span class="w"> </span><span class="n">fr2</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Unlike standard tasks, MPI tasks are invoked using the <code class="docutils literal notranslate"><span class="pre">flecsi::</span></code> namespace rather than a scheduler object with <code class="docutils literal notranslate"><span class="pre">s.execute</span></code>.
+In future versions, MPI tasks may be launched through the scheduler interface for consistency with other task types.</p>
+</div>
+<p>MPI tasks can use <a class="reference internal" href="data.html#multi-accessors"><span class="std std-ref">Multi-color accessors</span></a> to access fields whose number of colors does not match the number of processes.</p>
+</section>
+<section id="tracing">
+<span id="id1"></span><h2>Tracing<a class="headerlink" href="#tracing" title="Permalink to this heading"></a></h2>
+<p>The Legion backend uses a feature called <em>tracing</em> to improve performance for repeated execution patterns, particularly in critical loops.</p>
+<p>When tracing is enabled, Legion records task launches, data movement, and communication patterns during the first execution.
+On subsequent iterations, it reuses this recorded information instead of redoing scheduling and analysis, significantly reducing overhead.</p>
+<p>Here is an example of tracing in use:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">trace</span><span class="w"> </span><span class="n">t</span><span class="p">;</span>
+<span class="n">t</span><span class="p">.</span><span class="n">skip</span><span class="p">();</span><span class="w"> </span><span class="c1">// optional: skips tracing for the first iteration</span>
+
+<span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">size</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">make_guard</span><span class="p">();</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task1</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task2</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In this example, the <cite>trace</cite> object <code class="docutils literal notranslate"><span class="pre">t</span></code> can be used on several regions.
+The call to <code class="docutils literal notranslate"><span class="pre">make_guard()</span></code> creates a scope in which tasks and data movement will be recorded.
+On subsequent executions of the loop, Legion reuses this trace to optimize performance.</p>
+<p>It is important to note that during the first iteration of a loop, the communication and task execution patterns may differ from later iterations because of ghost copies.
+This will lead to an error at runtime, due to an inconsistent trace.
+To address this, FleCSI provides a <code class="docutils literal notranslate"><span class="pre">skip()</span></code> function, which tells the tracing mechanism to ignore the first iteration and begin tracing on the second.
+This ensures that the recorded pattern reflects the steady-state behavior of the loop.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="topologies.html" class="btn btn-neutral float-left" title="Topologies" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="kernels.html" class="btn btn-neutral float-right" title="On-node Parallelism" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+
+  <style>
+    /* Contents caption */
+    .wy-menu-vertical>p.caption {
+      color: #ffffff;
+    }
+
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #e3e2db;
+    }
+    .wy-side-nav-search>div.version, .wy-nav-top>div.version {
+      color: #5f5d5f;
+    }
+
+    /* Sidebar */
+    .wy-nav-side {
+      background: #216897;
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

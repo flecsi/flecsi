@@ -50,7 +50,7 @@ var group__data =
       [ "get_elements", "structflecsi_1_1data_1_1field__reference.html#a9490160bb9e5e0f0bf789b99c7c14c7f", null ],
       [ "use", "structflecsi_1_1data_1_1field__reference.html#a2e3d756598b3e1d9bedf2f23092bdaf8", null ]
     ] ],
-    [ "multi< class >", "structflecsi_1_1data_1_1multi.html", [
+    [ "multi< A >", "structflecsi_1_1data_1_1multi.html", [
       [ "components", "structflecsi_1_1data_1_1multi.html#ae82e5e157786aaef49a91d346aaa9c77", null ]
     ] ],
     [ "multi_reference< T, L, Topo, S >", "structflecsi_1_1data_1_1multi__reference.html", null ],
@@ -93,8 +93,7 @@ var group__data =
         [ "buffer_iter", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4_1_1row.html#adfa769d1af85ee285d51189922cbef6a", null ]
       ] ],
       [ "operator[]", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html#a9dcd4c1880266ef3b9ddf916e605f309", null ],
-      [ "size", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html#a0801762a3fe36fe32dca5f16e515478d", null ],
-      [ "commit", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html#afce99a75399ac776b73cdcaf2fee2373", null ]
+      [ "size", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html#a0801762a3fe36fe32dca5f16e515478d", null ]
     ] ],
     [ "mutator< sparse, T, P >", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html", [
       [ "row", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4_1_1row.html", [
@@ -157,7 +156,7 @@ var group__data =
       [ "operator->", "structflecsi_1_1data_1_1topology__slot.html#af4dec327a6eaf7f57bbe1dda2373b06c", null ],
       [ "colors", "structflecsi_1_1data_1_1topology__slot.html#a27c97040e58856c6f97f83aa06537a66", null ]
     ] ],
-    [ "scalar_access", "group__data.html#ga509e66584d5291a179659190313a9114", null ],
+    [ "scalar_access", "group__data.html#gaf410d6956e0e62afdcb6b40288b8fca8", null ],
     [ "layout", "group__data.html#ga43d9cf57236e19c5fc3bc74b429c835a", [
       [ "raw", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa58ee402b69bb1b9fe5f437ab6e82e7d5", null ],
       [ "single", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa44512857a6d1077e4462c754c0a1d11b", null ],

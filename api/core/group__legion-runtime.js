@@ -15,7 +15,7 @@ var group__legion_runtime =
       [ "slice_task", "classflecsi_1_1run_1_1mpi__mapper__t.html#a587f885da1cf4887a962240e85b3c590", null ],
       [ "map_copy", "classflecsi_1_1run_1_1mpi__mapper__t.html#ab71b88b5f7cf96028c52705efe31149e", null ]
     ] ],
-    [ "mapper_registration", "group__legion-runtime.html#ga888156213fe841362ad9168aa15176af", null ],
+    [ "mapper_registration", "group__legion-runtime.html#gad59ad16ad394d4ac039380b1c7a066f3", null ],
     [ "force_rank_match", "group__legion-runtime.html#ga700b3d72d33eaae12282c4b2a8ddf4d1", null ],
     [ "prefer_gpu", "group__legion-runtime.html#ga4dd0af770088ee250567fc029178faa6", null ],
     [ "prefer_omp", "group__legion-runtime.html#gac13c265eed3eac3cdfe85a6bc363a6a7", null ]

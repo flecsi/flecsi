@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.1</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -123,12 +123,13 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a131c7e741b59fa0749720f32a95b2213" id="r_a131c7e741b59fa0749720f32a95b2213"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="group__execution.html#ga20dd9285653d4bb30a046aaeec10c74d">exec::processor</a> P&gt; </td></tr>
+<tr class="memitem:a131c7e741b59fa0749720f32a95b2213"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a131c7e741b59fa0749720f32a95b2213">copy</a> (const copy_request::vec &amp;) const</td></tr>
+<tr class="memdesc:a131c7e741b59fa0749720f32a95b2213"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy fields from <em>src</em> to <em>dest</em>.  <br /></td></tr>
+<tr class="separator:a131c7e741b59fa0749720f32a95b2213"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa880fc69bf6c114a25830ff438807bd8" id="r_aa880fc69bf6c114a25830ff438807bd8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa880fc69bf6c114a25830ff438807bd8">copy_engine</a> (const <a class="el" href="structflecsi_1_1data_1_1prefixes.html">prefixes</a> &amp;src, const <a class="el" href="structflecsi_1_1data_1_1intervals.html">intervals</a> &amp;dest, field_id_t id)</td></tr>
 <tr class="memdesc:aa880fc69bf6c114a25830ff438807bd8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepare to copy into intervals.  <br /></td></tr>
 <tr class="separator:aa880fc69bf6c114a25830ff438807bd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b85b06e9e14f503fa6747aeb72c3a02" id="r_a6b85b06e9e14f503fa6747aeb72c3a02"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6b85b06e9e14f503fa6747aeb72c3a02">operator()</a> (const std::vector&lt; field_id_t &gt; &amp;) const</td></tr>
-<tr class="memdesc:a6b85b06e9e14f503fa6747aeb72c3a02"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy fields from <em>src</em> to <em>dest</em>.  <br /></td></tr>
-<tr class="separator:a6b85b06e9e14f503fa6747aeb72c3a02"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -229,22 +230,30 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a6b85b06e9e14f503fa6747aeb72c3a02" name="a6b85b06e9e14f503fa6747aeb72c3a02"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6b85b06e9e14f503fa6747aeb72c3a02">&#9670;&#160;</a></span>operator()()</h2>
+<a id="a131c7e741b59fa0749720f32a95b2213" name="a131c7e741b59fa0749720f32a95b2213"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a131c7e741b59fa0749720f32a95b2213">&#9670;&#160;</a></span>copy()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="group__execution.html#ga20dd9285653d4bb30a046aaeec10c74d">exec::processor</a> P&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">void operator() </td>
+          <td class="memname">void copy </td>
           <td>(</td>
-          <td class="paramtype">const std::vector&lt; field_id_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype">const copy_request::vec &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Copy fields from <em>src</em> to <em>dest</em>. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">P</td><td>for the necessitating task </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

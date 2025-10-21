@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.1</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -223,7 +223,7 @@ template&lt;class V , class... AA&gt; </div>
 <p>Launch a variant of a task. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">V</td><td>class with a static member <code>task</code> that is either a function or a function template with a single type template parameter <code>S</code> (the execution space). In the latter case, the signatures of the specializations for <code><a class="el" href="structflecsi_1_1exec_1_1cpu.html" title="Single-core execution space.">exec::cpu</a></code>, <code><a class="el" href="structflecsi_1_1exec_1_1gpu.html" title="GPU execution space.">exec::gpu</a></code>, and <code><a class="el" href="structflecsi_1_1exec_1_1omp.html" title="OpenMP execution space.">exec::omp</a></code> may vary only in that the type of a parameter may be <em>S</em>; an unspecified such specialization that is not deleted is launched. </td></tr>
+    <tr><td class="paramname">V</td><td>like <code><a class="el" href="structflecsi_1_1task__class.html" title="Example task class which is not really implemented.">task_class</a></code> </td></tr>
   </table>
   </dd>
 </dl>

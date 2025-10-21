@@ -73,7 +73,7 @@ var annotated_dup =
         [ "space", "structflecsi_1_1exec_1_1space.html", "structflecsi_1_1exec_1_1space" ],
         [ "space_base", "structflecsi_1_1exec_1_1space__base.html", "structflecsi_1_1exec_1_1space__base" ],
         [ "sub_range", "structflecsi_1_1exec_1_1sub__range.html", "structflecsi_1_1exec_1_1sub__range" ],
-        [ "task_prologue", "structflecsi_1_1exec_1_1task__prologue.html", "structflecsi_1_1exec_1_1task__prologue" ],
+        [ "task_prolog", "structflecsi_1_1exec_1_1task__prolog.html", "structflecsi_1_1exec_1_1task__prolog" ],
         [ "trace", "structflecsi_1_1exec_1_1trace.html", "structflecsi_1_1exec_1_1trace" ]
       ] ],
       [ "flog", null, [
@@ -195,6 +195,7 @@ var annotated_dup =
       [ "program_option", "structflecsi_1_1program__option.html", "structflecsi_1_1program__option" ],
       [ "runtime", "structflecsi_1_1runtime.html", "structflecsi_1_1runtime" ],
       [ "scheduler", "structflecsi_1_1scheduler.html", "structflecsi_1_1scheduler" ],
+      [ "task_class", "structflecsi_1_1task__class.html", null ],
       [ "task_local", "structflecsi_1_1task__local.html", "structflecsi_1_1task__local" ],
       [ "topology", "structflecsi_1_1topology.html", "structflecsi_1_1topology" ]
     ] ]

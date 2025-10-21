@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.0</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.4.1</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -164,7 +164,7 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1field__reference.html">field_reference&lt; class, layout, Topo, index_space &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Identifies a field on a particular topology instance.  <a href="structflecsi_1_1data_1_1field__reference.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1multi.html">multi&lt; class &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1multi.html">multi&lt; A &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A sequence of accessors obtained from a <code><a class="el" href="structflecsi_1_1data_1_1launch_1_1mapping.html" title="A prepared assignment of colors.">launch::mapping</a></code>.  <a href="structflecsi_1_1data_1_1multi.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1data_1_1multi__reference.html">multi_reference&lt; T, L, Topo, S &gt;</a></td></tr>
@@ -206,10 +206,10 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ga509e66584d5291a179659190313a9114" id="r_ga509e66584d5291a179659190313a9114"><td class="memTemplParams" colspan="2">template&lt;const auto &amp; F, Privileges P&gt; </td></tr>
-<tr class="memitem:ga509e66584d5291a179659190313a9114"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ga509e66584d5291a179659190313a9114">scalar_access</a></td></tr>
-<tr class="memdesc:ga509e66584d5291a179659190313a9114"><td class="mdescLeft">&#160;</td><td class="mdescRight">Metadata provided with this type is made available on the host if read-only even if fields are stored on a device.  <br /></td></tr>
-<tr class="separator:ga509e66584d5291a179659190313a9114"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf410d6956e0e62afdcb6b40288b8fca8" id="r_gaf410d6956e0e62afdcb6b40288b8fca8"><td class="memTemplParams" colspan="2">template&lt;class T , <a class="el" href="#gab353df4d05111feae11afb61d2b9cda1">privilege</a> P&gt; </td></tr>
+<tr class="memitem:gaf410d6956e0e62afdcb6b40288b8fca8"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#gaf410d6956e0e62afdcb6b40288b8fca8">scalar_access</a></td></tr>
+<tr class="memdesc:gaf410d6956e0e62afdcb6b40288b8fca8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Metadata provided with this type is made available on the host if read-only even if fields are stored on a device.  <br /></td></tr>
+<tr class="separator:gaf410d6956e0e62afdcb6b40288b8fca8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -263,16 +263,16 @@ Variables</h2></td></tr>
 <p>Contents are in <code>flecsi::data</code> unless otherwise specified. </p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;flecsi/data.hh&quot;</span></div>
 </div><!-- fragment --><p>The inclusion of <a class="el" href="group__topology.html">flecsi/topology.hh</a> by this header is <b>deprecated</b>. </p>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a id="ga509e66584d5291a179659190313a9114" name="ga509e66584d5291a179659190313a9114"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga509e66584d5291a179659190313a9114">&#9670;&#160;</a></span>scalar_access</h2>
+<a id="gaf410d6956e0e62afdcb6b40288b8fca8" name="gaf410d6956e0e62afdcb6b40288b8fca8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf410d6956e0e62afdcb6b40288b8fca8">&#9670;&#160;</a></span>scalar_access</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;const auto &amp; F, Privileges P&gt; </div>
+template&lt;class T , <a class="el" href="#gab353df4d05111feae11afb61d2b9cda1">privilege</a> P&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="#ga509e66584d5291a179659190313a9114">scalar_access</a></td>
+          <td class="memname">using <a class="el" href="#gaf410d6956e0e62afdcb6b40288b8fca8">scalar_access</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -332,7 +332,8 @@ template&lt;const auto &amp; F, Privileges P&gt; </div>
 </div><div class="memdoc">
 
 <p>Access privileges for data passed to FleCSI tasks. </p>
-<p>Each field must be initialized with <code>wo</code> privileges (perhaps combined with <code>na</code>). Any use of such privileges produces default-initialized values.</p>
+<p>Each field must be initialized with <em>discarding</em> privileges: all <code>wo</code>, except that ghosts may instead be <code>na</code>. Any use of <code>wo</code> produces a valid but unspecified state for the selected objects (after any needed ghost copies of them are made).</p>
+<p>When field elements are created, they are default-initialized. Using discarding privileges may create new field elements, concurrently destroying any that already exist. There is a <b>deprecated</b> guarantee that this always takes place.</p>
 <p>Ghost data is updated only when read access to it is requested. Writes to shared data are never propagated to ghost data for which the same task has write access, as it is assumed to have updated them.</p>
 <p>Appears directly in <code>flecsi</code>. </p>
 <table class="fieldtable">

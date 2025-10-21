@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data Model &mdash; FleCSI 2.4.0 documentation</title>
+  <title>Data Model &mdash; FleCSI 2.4.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.4.0
+                Version: 2.4.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -150,6 +150,9 @@ Writing to a global field requires a single task launch.</p>
 <span class="p">}</span><span class="w"> </span><span class="c1">// advance()</span>
 </pre></div>
 </div>
+<p>The first task that accesses a field must do so with <code class="docutils literal notranslate"><span class="pre">wo</span></code> privileges, since there are no previous values to read.
+Field elements are default-initialized when first created; this does not give any usable value for primitive types like <code class="docutils literal notranslate"><span class="pre">double</span></code>.
+<code class="docutils literal notranslate"><span class="pre">std::fill</span></code> can be used to set an initial value if required.</p>
 </section>
 <section id="example-2-index-data">
 <h2>Example 2: Index data<a class="headerlink" href="#example-2-index-data" title="Permalink to this heading"></a></h2>

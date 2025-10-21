@@ -1,8 +1,8 @@
 var searchData=
 [
   ['n_20dimensional_20tree_0',['N-dimensional Tree',['../group__ntree.html',1,'']]],
-  ['n_5fi_1',['n_i',['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html#a49fe74ba47ac725f56256af67b0c4890',1,'flecsi::topo::topology&lt; Policy, ntree_base &gt;::n_i'],['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a7e2c9675c4ec7f30a437c01e64fe9784',1,'flecsi::topo::topology&lt; Policy, ntree_base &gt;::access::n_i']]],
-  ['n_5fkeys_2',['n_keys',['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html#ab2250a690423a5b71e18639e98c7deb9',1,'flecsi::topo::topology&lt; Policy, ntree_base &gt;::n_keys'],['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#ab9c2a2aebc0f5afe4baae844cabe3c53',1,'flecsi::topo::topology&lt; Policy, ntree_base &gt;::access::n_keys']]],
+  ['n_5fi_1',['n_i',['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html#a49fe74ba47ac725f56256af67b0c4890',1,'flecsi::topo::topology&lt; Policy, ntree_base &gt;::n_i'],['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a606f223506db7a0d5993c33324a282a9',1,'flecsi::topo::topology&lt; Policy, ntree_base &gt;::access::n_i']]],
+  ['n_5fkeys_2',['n_keys',['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html#ab2250a690423a5b71e18639e98c7deb9',1,'flecsi::topo::topology&lt; Policy, ntree_base &gt;::n_keys'],['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a7dc1659b600afabdbe4bf12cd33a5d56',1,'flecsi::topo::topology&lt; Policy, ntree_base &gt;::access::n_keys']]],
   ['na_3',['na',['../group__data.html#ggab353df4d05111feae11afb61d2b9cda1a1da1f012b8343b3921ffd893e9f2c944',1,'flecsi']]],
   ['named_4',['named',['../structflecsi_1_1exec_1_1blocks.html#acdf41f166c09fb27d3e7be7719ab57cd',1,'flecsi::exec::blocks::named()'],['../structflecsi_1_1exec_1_1agent.html#acdf41f166c09fb27d3e7be7719ab57cd',1,'flecsi::exec::agent::named()']]],
   ['narray_5',['narray',['../group__narray.html#gab78cf0304f7dd67018c597fc3af0104f',1,'flecsi::topo']]],

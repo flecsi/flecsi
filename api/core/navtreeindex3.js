@@ -1,6 +1,5 @@
 var NAVTREEINDEX3 =
 {
-"structflecsi_1_1topo_1_1narray__base.html#ae77a5a6b7ad326c2eff72df2f21345f0":[1,5,2,7,2],
 "structflecsi_1_1topo_1_1narray__base.html#afd208d36bba9c0773eeb8b064a1360ae":[1,5,2,7,1],
 "structflecsi_1_1topo_1_1narray__base_1_1coloring.html":[1,5,2,7,0],
 "structflecsi_1_1topo_1_1narray__base_1_1coloring.html#a91c5368faa0c9acc96ca52cc0d0ae35c":[1,5,2,7,0,0],
@@ -111,7 +110,7 @@ var NAVTREEINDEX3 =
 "structflecsi_1_1topo_1_1topology_1_1access.html#ab3d19ec88791bf0adaf9ec81524b4350":[1,5,5,0,0],
 "structflecsi_1_1topo_1_1topology_3_01P_00_01borrow__base_01_4.html":[1,5,16],
 "structflecsi_1_1topo_1_1topology_3_01P_00_01borrow__base_01_4.html#a6d095124c356c086414aafa687faab36":[1,5,16,1],
-"structflecsi_1_1topo_1_1topology_3_01P_00_01borrow__base_01_4.html#a8967e51476945cdd783a6f06976eb577":[1,5,16,0],
+"structflecsi_1_1topo_1_1topology_3_01P_00_01borrow__base_01_4.html#a94e649d1a9b7abdedc35d61e343e2b2d":[1,5,16,0],
 "structflecsi_1_1topo_1_1topology_3_01P_00_01core__base_01_4.html":[1,5,17],
 "structflecsi_1_1topo_1_1topology_3_01P_00_01core__base_01_4.html#a64ec4b79dbdce028da11e5f453440e9a":[1,5,17,2],
 "structflecsi_1_1topo_1_1topology_3_01P_00_01core__base_01_4.html#abb52eb668be31dd27bca59cf2a055769":[1,5,17,3],
@@ -150,16 +149,16 @@ var NAVTREEINDEX3 =
 "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html":[1,5,3,0],
 "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a0aaa6cff1641de5bfe94ace9e92d544c":[1,5,3,0,7],
 "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a10a23d1b9598a64f5465812ce3856e53":[1,5,3,0,4],
-"structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a7a4e4882c9660aeaf4f2ad69f8ce63be":[1,5,3,0,9],
+"structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a606f223506db7a0d5993c33324a282a9":[1,5,3,0,13],
 "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a7db77d0ad68e0e5f350f0d9de931e4be":[1,5,3,0,8],
-"structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a7e2c9675c4ec7f30a437c01e64fe9784":[1,5,3,0,13],
+"structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a7dc1659b600afabdbe4bf12cd33a5d56":[1,5,3,0,10],
 "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a84bf9534c4eb8f3a1ac62ad71e68913b":[1,5,3,0,5],
-"structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a8b2ce56ad2a72a432d84d4e4d6513bac":[1,5,3,0,11],
+"structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a8b88e0b26b59f235011f6f5fd520e0aa":[1,5,3,0,11],
+"structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a8f917ab06a9ad62d81453399baad92f0":[1,5,3,0,12],
 "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a99b5851d6e18bb07e96c01f9b7bdab84":[1,5,3,0,3],
+"structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#a9bc69f06ee2e89da72b13c278599f8bc":[1,5,3,0,9],
 "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#aa182334fed79abc5c84b9371ac7f7787":[1,5,3,0,2],
-"structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#aadfca9c90d41ed63a248745789e7576e":[1,5,3,0,10],
 "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#ab3d19ec88791bf0adaf9ec81524b4350":[1,5,3,0,1],
-"structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#ab9c2a2aebc0f5afe4baae844cabe3c53":[1,5,3,0,12],
 "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#aeb9f2d08cf79b3c9b59662274fb7edd8":[1,5,3,0,0],
 "structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4_1_1access.html#af1ab29f9420eea7b832cd3046378b212":[1,5,3,0,6],
 "structflecsi_1_1topo_1_1topology_3_01Policy_00_01set__base_01_4.html":[1,5,4,2],
@@ -249,5 +248,6 @@ var NAVTREEINDEX3 =
 "structflecsi_1_1util_1_1my__key.html":[1,7,1,3],
 "structflecsi_1_1util_1_1my__key.html#af65ea3f97540f60ced2ab2197bfff539":[1,7,1,3,0],
 "structflecsi_1_1util_1_1offsets.html":[1,7,17],
-"structflecsi_1_1util_1_1offsets.html#a15be5031183a4cd579f159d9d0a6d071":[1,7,17,1]
+"structflecsi_1_1util_1_1offsets.html#a15be5031183a4cd579f159d9d0a6d071":[1,7,17,1],
+"structflecsi_1_1util_1_1offsets.html#a74638244961ad502bbd42a0a4a69ba3b":[1,7,17,2]
 };

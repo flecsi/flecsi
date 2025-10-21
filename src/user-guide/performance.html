@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Performance Do’s and Don’ts &mdash; FleCSI 2.4.0 documentation</title>
+  <title>Performance &mdash; FleCSI 2.4.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -18,10 +18,11 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Tracing" href="tracing.html" />
+    <link rel="next" title="Profiling with Legion" href="profiling.html" />
     <link rel="prev" title="Utilities" href="utilities.html" /> 
 </head>
 
@@ -38,7 +39,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.4.0
+                Version: 2.4.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -55,22 +56,15 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="programming.html">Programming Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data-model.html">Data Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">Data Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kernels.html">On-node Parallelism</a></li>
 <li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Performance Do’s and Don’ts</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#do-activate-tracing-around-your-execute-loops">Do Activate Tracing Around Your <code class="docutils literal notranslate"><span class="pre">execute&lt;&gt;</span></code> Loops</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tracing.html">Tracing</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#don-t-block-the-top-level-task-tlt">Don’t Block the Top-Level Task (TLT)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="blocking.html">Performance Effect of <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
-<li class="toctree-l4"><a class="reference internal" href="blocking.html#forcing-bulk-synchronousity-in-your-code">Forcing Bulk-Synchronousity in Your Code</a></li>
-<li class="toctree-l4"><a class="reference internal" href="blocking.html#removing-bulk-synchronousity-from-your-code">Removing Bulk-Synchronousity from Your Code</a></li>
-<li class="toctree-l4"><a class="reference internal" href="blocking.html#when-to-call-get-outside-of-a-task">When to Call <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
-</ul>
-</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Performance</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#futures">Futures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tracing">Tracing</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="profiling.html">Profiling with Legion</a></li>
@@ -97,7 +91,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../user-guide.html">User Guide</a></li>
-      <li class="breadcrumb-item active">Performance Do’s and Don’ts</li>
+      <li class="breadcrumb-item active">Performance</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/src/user-guide/performance.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -107,36 +101,93 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="performance-do-s-and-don-ts">
-<h1>Performance Do’s and Don’ts<a class="headerlink" href="#performance-do-s-and-don-ts" title="Permalink to this heading"></a></h1>
-<p>FleCSI’s programming model enables asynchronous parallel performance.
-This is a partial list of patterns (do’s) and anti-patterns (don’ts)
-that have significant performance consequences.</p>
-<div class="toctree-wrapper compound">
+  <section id="performance">
+<h1>Performance<a class="headerlink" href="#performance" title="Permalink to this heading"></a></h1>
+<p>This section provides insights into performance concerns in FleCSI applications.</p>
+<section id="futures">
+<h2>Futures<a class="headerlink" href="#futures" title="Permalink to this heading"></a></h2>
+<p>As explained in the <a class="reference internal" href="execution.html#future"><span class="std std-ref">Futures and Reductions</span></a> section, performance can be negatively impacted when <cite>get()</cite> or <cite>wait()</cite> is called outside of a task.
+Doing so introduces a synchronization point that blocks the execution flow until the future is resolved, effectively serializing the runtime.</p>
+<p>This issue becomes particularly significant in scalable iterative algorithms.
+For example, the following weak scaling plot shows the performance of a Red-Black Gauss-Seidel iteration for solving Poisson’s equation in 2D.
+The green squares represent runs where <cite>get()</cite> is used outside of tasks.
+Already at fifty nodes, performance drops by a factor of 30.
+The solution time with <cite>get()</cite> scales roughly as <span class="math notranslate nohighlight">\((\texttt{nodes})^{0.7}\)</span>.</p>
+<img alt="../../_images/blocked_vs_nonblocking.png" src="../../_images/blocked_vs_nonblocking.png" />
+<p>The following example illustrates this bottleneck, where <cite>get()</cite> is called outside a task:</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-number">Listing 1 </span><span class="caption-text">Forced bulk-synchronous anti-pattern</span><a class="headerlink" href="#id2" title="Permalink to this code"></a></div>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
+
+<span class="k">auto</span><span class="w"> </span><span class="n">residual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">reduce</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">diff</span><span class="p">,</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">sum</span><span class="o">&gt;</span><span class="p">(</span><span class="cm">/* ... */</span><span class="p">);</span>
+<span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">sqrt</span><span class="p">(</span><span class="n">residual</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+<span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;residual: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</pre></div>
 </div>
-<hr class="docutils" />
-<section id="do-activate-tracing-around-your-execute-loops">
-<h2>Do Activate Tracing Around Your <code class="docutils literal notranslate"><span class="pre">execute&lt;&gt;</span></code> Loops<a class="headerlink" href="#do-activate-tracing-around-your-execute-loops" title="Permalink to this heading"></a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="tracing.html">Tracing</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tracing.html#implementing-tracing-in-your-code">Implementing Tracing in Your Code</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tracing.html#when-to-use-tracing">When to Use Tracing</a></li>
-</ul>
-</li>
-</ul>
 </div>
+<p>A more efficient pattern is to defer the call to <cite>get()</cite> into a task itself.
+This keeps the control flow non-blocking and allows the runtime to overlap communication and computation:</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-number">Listing 2 </span><span class="caption-text">Red-Black Gauss-Seidel non-blocking, traced</span><a class="headerlink" href="#id3" title="Permalink to this code"></a></div>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
+
+<span class="k">auto</span><span class="w"> </span><span class="n">residual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">reduce</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">diff</span><span class="p">,</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">sum</span><span class="o">&gt;</span><span class="p">(</span><span class="cm">/* ... */</span><span class="p">);</span>
+<span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">print_residual</span><span class="o">&gt;</span><span class="p">(</span><span class="n">residual</span><span class="p">);</span>
+
+<span class="cm">/* ... */</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">task::print_residual</span><span class="p">(</span><span class="n">future</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">residual</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">sqrt</span><span class="p">(</span><span class="n">residual</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;residual: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>The key takeaway is to avoid calling <cite>get()</cite> outside of tasks during iterative execution.
+While such blocking may be acceptable during initialization or finalization, it should be avoided in performance-critical loops.</p>
 </section>
-<section id="don-t-block-the-top-level-task-tlt">
-<h2>Don’t Block the Top-Level Task (TLT)<a class="headerlink" href="#don-t-block-the-top-level-task-tlt" title="Permalink to this heading"></a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="blocking.html">Performance Effect of <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
-<li class="toctree-l1"><a class="reference internal" href="blocking.html#forcing-bulk-synchronousity-in-your-code">Forcing Bulk-Synchronousity in Your Code</a></li>
-<li class="toctree-l1"><a class="reference internal" href="blocking.html#removing-bulk-synchronousity-from-your-code">Removing Bulk-Synchronousity from Your Code</a></li>
-<li class="toctree-l1"><a class="reference internal" href="blocking.html#when-to-call-get-outside-of-a-task">When to Call <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
-</ul>
+<section id="tracing">
+<h2>Tracing<a class="headerlink" href="#tracing" title="Permalink to this heading"></a></h2>
+<p>As discussed in the <a class="reference internal" href="execution.html#tracing"><span class="std std-ref">Tracing</span></a> section, the Legion backend can dramatically reduce overhead by tracing task dependencies during repeated execution patterns.
+This is particularly important when tasks are launched on the same fields in regular loops, such as in time-stepping or iterative solvers.</p>
+<p>The following weak scaling plot compares traced and untraced execution of Red-Black Gauss-Seidel in 2D.
+The blue circles show the performance without tracing, while the green squares represent traced runs.
+At fifty nodes, tracing yields a 20X improvement.
+The untraced solution time scales approximately as <span class="math notranslate nohighlight">\((\texttt{nodes})^{0.7}\)</span>, and this performance gap increases with scale.</p>
+<img alt="../../_images/tracing_vs_no_tracing.png" src="../../_images/tracing_vs_no_tracing.png" />
+<p>Below presents a proper implementation of the tracing:</p>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-number">Listing 3 </span><span class="caption-text">Red-Black Gauss-Seidel loop with tracing</span><a class="headerlink" href="#id4" title="Permalink to this code"></a></div>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
+
+<span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">sub</span><span class="p">{</span><span class="mi">3</span><span class="p">};</span>
+<span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">ita</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+
+<span class="k">static</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">trace</span><span class="w"> </span><span class="n">t</span><span class="p">;</span>
+<span class="n">t</span><span class="p">.</span><span class="n">skip</span><span class="p">();</span><span class="w"> </span><span class="c1">// skip tracing first iteration</span>
+
+<span class="k">do</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">make_guard</span><span class="p">();</span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">sub</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">red</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">));</span>
+<span class="w">    </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">black</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">));</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">ita</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">sub</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">discrete_operator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">Aud</span><span class="p">(</span><span class="n">m</span><span class="p">));</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">residual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">reduce</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">diff</span><span class="p">,</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">sum</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">Aud</span><span class="p">(</span><span class="n">m</span><span class="p">));</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">print_residual</span><span class="o">&gt;</span><span class="p">(</span><span class="n">residual</span><span class="p">,</span><span class="w"> </span><span class="n">ita</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">sub</span><span class="p">);</span>
+
+<span class="p">}</span><span class="w"> </span><span class="k">while</span><span class="p">(</span><span class="n">ita</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">max_iterations</span><span class="p">.</span><span class="n">value</span><span class="p">());</span>
+</pre></div>
 </div>
+</div>
+<p>In other trials using Legion in Release mode, tracing has been shown to all but completely eliminate any of the overhead from Legion’s superlinear dynamic dependency analysis.
+These experiments simply used 10ms sleeps in every task and passed varying number of fields for a varying number of task launches in each trial.
+Without tracing, the asymptotic overhead time per task is approximately <span class="math notranslate nohighlight">\((560 ps)f^{2}w + (97 µs)f + (190 µs)\)</span> where f is the number of fields passed and w is legion’s <a class="reference external" href="https://legion.stanford.edu/profiling/index.html">window size</a>.
+This represents an upper bound on the cost of Legion’s dependency analysis; note that with the default <em>w</em> the first term is the smallest for <span class="math notranslate nohighlight">\(f&lt;174\)</span>, so reducing <em>w</em> is likely to produce more inefficiency from stalls than it avoids from redundant checks.</p>
+<p>Creating a trace in this case took 642 µs per field, and using it adds 50 µs (20%) to a task launch, but it reduces the task overhead per field by a factor of 32 to 3 µs.
+It is thus a net improvement for even one field after 15 task launches and after 7 or 8 task launches for at least 4 fields.</p>
 </section>
 </section>
 
@@ -145,7 +196,7 @@ that have significant performance consequences.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="utilities.html" class="btn btn-neutral float-left" title="Utilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="tracing.html" class="btn btn-neutral float-right" title="Tracing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="profiling.html" class="btn btn-neutral float-right" title="Profiling with Legion" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

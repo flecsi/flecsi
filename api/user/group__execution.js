@@ -35,9 +35,6 @@ var group__execution =
       [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html#a62b21fc0ade336fa963fd22abc565356", null ]
     ] ],
     [ "launch_domain", "structflecsi_1_1exec_1_1launch__domain.html", null ],
-    [ "multi< class >", "structflecsi_1_1data_1_1multi.html", [
-      [ "components", "structflecsi_1_1data_1_1multi.html#ae82e5e157786aaef49a91d346aaa9c77", null ]
-    ] ],
     [ "omp", "structflecsi_1_1exec_1_1omp.html", null ],
     [ "scheduler", "structflecsi_1_1scheduler.html", [
       [ "scheduler", "structflecsi_1_1scheduler.html#ac62618e7e4df3307c910d783fb11bfac", null ],
@@ -60,6 +57,7 @@ var group__execution =
       ] ],
       [ "launch", "structflecsi_1_1exec_1_1space__base.html#a9aab76352e84db4dc78b51574eb0e1a4", null ]
     ] ],
+    [ "task_class", "structflecsi_1_1task__class.html", null ],
     [ "task_local< T >", "structflecsi_1_1task__local.html", [
       [ "task_local", "structflecsi_1_1task__local.html#a1496dd6d0a4a218a8bfa6cd7cbe946c4", null ],
       [ "task_local", "structflecsi_1_1task__local.html#a360ab9e99f23575f7d7a63d481465c99", null ],
