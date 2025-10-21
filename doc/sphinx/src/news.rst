@@ -15,6 +15,15 @@ Release Notes
 
    The bullets in each such discussion are in descending order of importance.
 
+Changes in v2.4.2
++++++++++++++++++
+
+Fixed
+^^^^^
+* HPX backend
+
+  * The performance of reduction tasks and certain kinds of single tasks is significantly improved.
+
 Changes in v2.4.1 (October 20 2025)
 +++++++++++++++++++++++++++++++++++
 

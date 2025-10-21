@@ -65,13 +65,13 @@ context_t::start(std::function<int()> const & action, bool) {
       context::threads_ = context::processes_;
       channel = ::hpx::collectives::create_channel_communicator(
         ::hpx::launch::sync, "/flecsi/p2p_comm");
-      world0 = world_comm();
+      world_comms = comms::make();
 
       struct guard {
         context_t & c;
         ~guard() {
           c.channel = {};
-          c.world0 = {};
+          c.world_comms = {};
           ::hpx::finalize();
         }
       } g{*this};
@@ -82,13 +82,14 @@ context_t::start(std::function<int()> const & action, bool) {
     params);
 }
 
-communicator
+communicator::ptr
 context_t::world_comm() {
   using namespace ::hpx::collectives;
-  return create_communicator("/flecsi/world_comm/",
-    num_sites_arg(processes_),
-    this_site_arg(process_),
-    generation_arg(world++));
+  return std::make_unique<communicator>(
+    create_communicator("/flecsi/world_comm/",
+      num_sites_arg(processes_),
+      this_site_arg(process_),
+      generation_arg(world++)));
 }
 
 void

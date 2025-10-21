@@ -51,6 +51,8 @@ reduce_internal(Args &&... args) {
   // prolog<> instances below.
 
   const auto ds = exec::launch_size<Attributes, P>(args...);
+  static constexpr bool single =
+    std::is_same_v<decltype(ds), const std::monostate>;
   util::annotation::rguard<util::annotation::execute_task_user> ann{task_name};
 
   // The prolog will calculate dependencies between tasks based on the
@@ -90,29 +92,31 @@ reduce_internal(Args &&... args) {
     };
     if(need_comm)
       bound_params.request_comm();
-    return std::move(bound_params)
-      .template delay_execution<R>(
-        std::move(params), util::symbol<F>(), std::move(apply_delayed_prolog));
+    return std::make_from_tuple<future<std::remove_cv_t<R>,
+      std::is_void_v<Reduction> && !single ? launch_type_t::index
+                                           : launch_type_t::single>>(
+      std::move(bound_params)
+        .template delay_execution<R>(std::move(params),
+          util::symbol<F>(),
+          std::move(apply_delayed_prolog)));
   };
 
   constexpr auto delayed_apply = [](auto && params) {
     return std::apply(F, std::forward<decltype(params)>(params));
   };
 
-  if constexpr(std::is_same_v<decltype(ds), const std::monostate>) {
+  if constexpr(single) {
     const bool root = flecsi::run::context::instance().process() == 0;
-
-    // single launch, only invoke the user task on the Root.
     if constexpr(std::is_void_v<R>) {
       if(root) {
-        return future<void>{delay(delayed_apply)};
+        return delay(delayed_apply);
       }
       else {
-        return future<void>{delay([](auto &&) {})};
+        return delay([](auto &&) {});
       }
     }
     else {
-      return future<R>{delay([root](run::communicator & comm, auto && params) {
+      return delay([root](run::communicator & comm, auto && params) {
         // Broadcast the result from root to the rest of ranks return future<R,
         // launch_type::single> where clients on every rank will get the same
         // value when calling .get().
@@ -126,7 +130,7 @@ reduce_internal(Args &&... args) {
         else {
           return broadcast_from<R>(comm.comm(), comm.gen()).get();
         }
-      })};
+      });
     }
   }
   else {
@@ -137,22 +141,17 @@ reduce_internal(Args &&... args) {
     if constexpr(!std::is_void_v<Reduction>) {
       static_assert(!std::is_void_v<R>, "can not reduce results of void task");
 
-      return future<R>{delay([](run::communicator & comm, auto && params) {
+      return delay([](run::communicator & comm, auto && params) {
         using namespace ::hpx::collectives;
         return all_reduce(comm.comm(),
           std::apply(F, std::forward<decltype(params)>(params)),
           exec::fold::wrap<Reduction>{},
           comm.gen())
           .get();
-      })};
+      });
     }
-    else if constexpr(!std::is_void_v<R>) {
-      return future<R, exec::launch_type_t::index>{delay(delayed_apply)};
-    }
-    else {
-      // index launch of void functions, e.g. printf("hello world");
-      return future<void, exec::launch_type_t::index>{delay(delayed_apply)};
-    }
+    else
+      return delay(delayed_apply);
   }
 }
 
