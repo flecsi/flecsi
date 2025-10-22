@@ -128,7 +128,7 @@ struct parameters {
     : params(std::move(q.params)), which(std::move(q.which)) {}
 
   P params;
-  Indices which;
+  bindings which;
 };
 
 template<class>
@@ -174,12 +174,12 @@ struct task_wrapper {
 
     auto & c = run::context::instance();
 
-    const auto call = [&](auto & params, auto && ours) {
+    const auto call = [&](auto && ours, const bindings & which) {
       namespace ann = util::annotation;
       auto tname = util::symbol<F>();
       (ann::rguard<ann::execute_task_bind>(tname),
         bind_parameters<P>(
-          ours, runtime, context, regions, params.which, task->futures));
+          ours, runtime, context, regions, task->futures, which));
       if constexpr(mpi) {
         if constexpr(std::is_void_v<RETURN>) {
           (ann::rguard<ann::execute_task_user>(tname)),
@@ -201,7 +201,7 @@ struct task_wrapper {
       flog_assert(!task->arglen, "unexpected task arguments");
       auto & p = *static_cast<parameters<typename Traits::arguments_type> *>(
         c.mpi_params);
-      return call(p, p.params);
+      return call(p.params, p.which);
     }
     else {
       // There is a optimization opportunity here to move
@@ -209,7 +209,7 @@ struct task_wrapper {
       const auto access = c.params.at(run::get1<std::size_t>(*task));
       const auto & p = access.get<parameters<
         typename decay_tuple<typename Traits::arguments_type>::type>>();
-      return call(p, bind_tuple(p.params));
+      return call(bind_tuple(p.params), p.which);
     }
   }
 }; // struct task_wrapper

@@ -67,7 +67,7 @@ reduce_internal(Args &&... args) {
   auto & params = any.emplace(leg::parameters(
     make_parameters<mpi_task, param_tuple>(std::forward<Args>(args)...)));
   prolog<mask_to_processor_type(Attributes)> pro(params.params, args...);
-  params.which = std::move(pro).region_indices();
+  params.which = std::move(pro).bindings();
   std::optional<leg::parameters<param_tuple>> mpi_params;
   std::vector<std::byte> buf;
   if constexpr(mpi_task) {
