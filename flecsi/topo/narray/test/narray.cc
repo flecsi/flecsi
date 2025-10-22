@@ -756,7 +756,6 @@ coloring_driver(scheduler & s) {
       glin.strs[d] = a.colormap.size();
       a.hdepth = 1;
     }
-    const auto cc = idef.process_colors();
 
     const auto verify = [&](const std::string & name,
                           const mesh3d::index_definition & id) {
@@ -773,7 +772,9 @@ coloring_driver(scheduler & s) {
         return ss.str();
       };
 
-      for(const auto & c3 : cc) {
+      for(const auto c1 : util::equal_map(
+            idef.colors(), s.runtime().processes())[s.runtime().process()]) {
+        const auto c3 = idef.color_indices(c1);
         std::vector<std::size_t> g, e, o;
         std::vector<std::string> log, ext;
         color.push_back(glin({c3[0], c3[1], c3[2]}));

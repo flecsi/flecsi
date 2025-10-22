@@ -221,17 +221,6 @@ make_ids(C && c) {
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
 }
 
-template<class T>
-void
-concatenate(std::vector<T> & v, Color total, MPI_Comm comm) {
-  auto g = util::mpi::all_gatherv(v, comm);
-  v.clear();
-  v.reserve(total);
-  for(auto & g1 : g)
-    for(auto & t : g1)
-      v.push_back(std::move(t));
-}
-
 // Describe a sorted range of integers as a union of intervals
 // (a sort of run-length encoding), as to make a data::copy_plan.
 template<class R>
