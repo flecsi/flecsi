@@ -125,23 +125,19 @@ reduce_internal(Args &&... args) {
       legion_runtime->issue_execution_fence(legion_context);
     }
 
-    if constexpr(!std::is_void_v<Reduction>) {
-      auto ret = future<return_t, launch_type_t::single>{{},
-        legion_runtime->execute_index_space(
-          legion_context, launcher, fold::wrap<Reduction, return_t>::REDOP_ID)};
-      if(mpi_task)
-        ret.wait();
-      return ret;
-    }
-    else {
-      auto ret = future<return_t, launch_type_t::index>{
-        legion_runtime->execute_index_space(legion_context, launcher)};
-      if(mpi_task)
-        ret.wait();
-
-      return ret;
-    } // if reduction
-
+    auto ret = [&] {
+      if constexpr(!std::is_void_v<Reduction>)
+        return future<return_t>{{},
+          legion_runtime->execute_index_space(legion_context,
+            launcher,
+            fold::wrap<Reduction, return_t>::REDOP_ID)};
+      else
+        return future<return_t, launch_type_t::index>{
+          legion_runtime->execute_index_space(legion_context, launcher)};
+    }();
+    if(mpi_task)
+      ret.wait();
+    return ret;
   } // if constexpr
 
 } // reduce_internal
