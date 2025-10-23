@@ -55,12 +55,7 @@ private:
       tracing = dat.get();
       // Call Legion tracing tool
       Legion::Runtime::get_runtime()->begin_trace(
-        Legion::Runtime::get_context(),
-        *tracing,
-        false, // logical_only = false
-        false, // static_trace  = false
-        NULL // std::set<RegionTreeID> *managed = NULL
-      );
+        Legion::Runtime::get_context(), *tracing);
     }
   }
 
