@@ -1,8 +1,3 @@
-.. |br| raw:: html
-
-   <br />
-
-
 Shared-memory parallelism
 *************************
 

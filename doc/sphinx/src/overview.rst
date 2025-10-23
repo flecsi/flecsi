@@ -1,8 +1,3 @@
-.. |br| raw:: html
-
-   <br />
-
-
 Overview
 ********
 FleCSI separates the concerns of simulation application development and efficient hardware utilization in part by supporting the construction of *specializations* of its generic topology data structures that provide domain-specific interfaces based on the relevant numerical methods.
