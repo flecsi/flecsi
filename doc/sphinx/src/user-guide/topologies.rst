@@ -141,6 +141,4 @@ The name ``mpi_coloring`` serves as a reminder that this procedure is launched a
    :align: center
    :width: 50%
 
-   A mesh file loaded by 2 MPI ranks that divide it into 4 colors.
-
-.. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
+   A mesh file loaded by 2 processes that divide it into 4 colors.

@@ -23,7 +23,7 @@ Tasks
 +++++
 
 A task in FleCSI serves as the bridge between two core parts of the execution model.
-On the caller side, each ``process``, also referred to as a ``rank`` in the MPI terminology, executes its own copy of the ``main`` function and the associated control model.
+On the caller side, each *process* executes its own copy of the ``main`` function and the associated control model.
 
 After all processes collectively launch a task, its function then executes, typically several times concurrently.
 Each of these executions is referred to as a *point task*; their number does not necessarily match the number of processes, and they can run on any process.

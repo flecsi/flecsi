@@ -119,7 +119,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   } // color
 
   // Compute local center of masses
-  // They will then be sent to other ranks to compute
+  // They will then be shared to compute
   // the whole tree information
   template<bool local = false>
   static void compute_centroid(sph_ntree_t::accessor<rw, ro> t) noexcept {

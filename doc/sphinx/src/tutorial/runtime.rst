@@ -624,7 +624,8 @@ example, consider the following caliper configuration file:
 This file defines three caliper configuration profiles that can be used to
 generate reports using the ``mpireport`` service (see
 http://software.llnl.gov/Caliper/services.html).  This service aggregates
-timings across all ranks using ``CALI_MPI_REPORT_CONFIG`` query statements.  For
+timings across all processes using ``CALI_MPI_REPORT_CONFIG`` query statements.
+For
 example, to run with the second configuration profile in this file (named
 user), ensure ``caliper.config`` is in your working directory and run with::
 

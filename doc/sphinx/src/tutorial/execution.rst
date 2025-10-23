@@ -7,7 +7,7 @@ Tasks
   Tasks operate on data distributed to one or more address spaces and
   use data privileges to maintain memory consistency. FleCSI tasks are
   like a more flexible version of MPI that does not require the user to
-  explicitly update dependencies between different ranks and which does not use static process mappings: i.e., relocatable, distributed-memory
+  explicitly copy data between processes and which does not use static process mappings: i.e., relocatable, distributed-memory
   data parallelism.
 
 Kernels
@@ -123,7 +123,8 @@ Example 3: MPI Tasks
 ++++++++++++++++++++
 
 MPI task is an index task that has launch domain size equal to number of
-MPI ranks and index points mapped to corresponding MPI ranks. Executing
+processes and index points mapped to corresponding MPI ranks.
+Executing an
 MPI task adds synchronization between Legion and MPI and, therefore,
 should only be used when one needs to call MPI library.  
 To execute an MPI task, ``flecsi::execute`` must be used, with its second template argument set to ``mpi``.

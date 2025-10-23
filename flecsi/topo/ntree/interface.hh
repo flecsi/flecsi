@@ -1066,7 +1066,7 @@ public:
             .get())
       ;
 
-    // Load entities destinated for this rank
+    // Load entities sent here:
     s.execute<load_entities_task>(hcells(*this),
       meta_field(this->meta),
       share_ghosts_distant_buffer_comm_field(*this));

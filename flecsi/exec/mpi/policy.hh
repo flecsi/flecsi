@@ -45,24 +45,6 @@ reduce_internal(Args &&... args) {
   run::context_t::depth_guard rg;
   run::task_local_base::guard tlg;
 
-  // Different kinds of task invocation with flecsi::execute():
-  // 1. domain_size is a std::monostate: a single task launch. On a single
-  //    rank (0) of our choice, we apply F to ARGS. Given the return type R of
-  //    F, we return a future<R, single>. The client can later call
-  //    future<>.get() on any rank to get the result. The value returned by
-  //    .get should be the same on all ranks, implying a Broadcast is needed.
-  // 2. Reduction is not void: a true reduction task.
-  //    We apply F to ARGS and reduce the return values with the Reduction
-  //    operation. We then put the reduced value into a future<R,
-  //    launch_type::single> and return it. Again, the client could call
-  //    .get() to get the (same) result on any rank, implying either an
-  //    Allreduce or Reduce/Broadcast is needed.
-  // 3. Reduction is void: an index launch. We apply F to ARGS on every rank,
-  //    each will return a value r_i. The value r_i will be put into the the
-  //    slot i in the future<R, index>. The client can call future<R,
-  //    index>.get(j) to get the return value on any rank j. This implies an
-  //    Allgather is needed.
-  //
   const auto ds = launch_size<Attributes, P>(args...);
   const auto task = [&params]() noexcept {
     return std::apply(F, std::move(params));
@@ -81,8 +63,6 @@ reduce_internal(Args &&... args) {
     else {
       auto ret = future<R>::make(task, root);
 
-      // Initiate Ibroadcast to broadcast the result from root to the rest of
-      // ranks
       test(MPI_Ibcast(ret->data(),
         1,
         flecsi::util::mpi::type<R>(),
@@ -95,12 +75,12 @@ reduce_internal(Args &&... args) {
   }
   else {
     if(ds != run::context::instance().processes())
-      flog_fatal("MPI backend supports only per-rank index launches");
-    // index launch (including "mpi task"), invoke the user task on all ranks.
+      flog_fatal("MPI backend supports only per-process index launches");
+    // Index launch (including "mpi task"): invoke user task on every process.
     if constexpr(!std::is_void_v<Reduction>) {
       static_assert(!std::is_void_v<R>, "can not reduce results of void task");
 
-      // A real reduce operation, every rank needs to be able to access the
+      // A real reduce operation: every process needs to be able to access the
       // same result through future<R>::get().
       // 1. Call the F, get the local return value
       auto ret = future<R>::make(task, true);

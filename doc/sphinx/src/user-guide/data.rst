@@ -18,7 +18,7 @@ Important Concepts
 
 **Colors**
     Each index space is partitioned into a number of *colors* that can be processed in parallel.
-    A color is not strictly bound to the memory space of a particular process (MPI rank), but can be
+    A color is not strictly bound to the memory space of a particular process, but can be
     relocated by the task-based parallelism machinery depending on the
     needs of the application.
 
@@ -43,7 +43,7 @@ As a point task has access to only one color at a time, an index point is just a
 Colors
 ========================================================================
 Following Legion, FleCSI refers to simulation subdomains, each processed by a single C++ function call at a time, as *colors*.
-The data for a subdomain is not owned by a process (an MPI rank) but can be
+The data for a subdomain is not owned by a process but can be
 relocated depending on the needs of the simulation.
 Moreover, with the Legion backend their number is not required to match the number of processes:
 

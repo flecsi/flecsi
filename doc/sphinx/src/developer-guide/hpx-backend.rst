@@ -7,7 +7,7 @@ Overview
 ++++++++
 
 The HPX backend implements data management similarly to FleCSI's MPI backend while task execution management is implemented similarly to FleCSI's Legion backend.
-Consequently, the HPX backend supports only one ``color`` per rank.
+Consequently, the HPX backend supports only one ``color`` per process.
 However, it supports concurrent execution of FleCSI tasks whenever possible.
 
 The HPX backend extracts execution dependencies among FleCSI tasks by analyzing the task parameters (accessor privileges) and arguments (which fields and topologies are used).

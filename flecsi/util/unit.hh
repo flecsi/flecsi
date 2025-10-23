@@ -121,14 +121,14 @@ accelerator_config([[maybe_unused]] run::config & c) {
   // environment information passed to the application by Slurm (or
   // another) batch scheduler.  This setting allows all tests to be run
   // from a single batch job even if different tests involve, e.g.,
-  // different numbers of ranks.  If this setting is not used, conflicting
+  // different process counts.  If this setting is not used, conflicting
   // configuration information is passed to HPX, causing possible hangs
   // during the execution of the tests.
   //
   // Setting `hpx.os_threads=4` specifies that HPX should allocate four OS
   // threads, which are used for running FleCSI tasks.  This configuration
   // setting avoids oversubscription of the test environment with multiple
-  // ranks on the same node.
+  // processes on the same node.
   c.hpx = {"hpx.ignore_batch_env!=1", "hpx.os_threads!=4"};
 #endif
 }

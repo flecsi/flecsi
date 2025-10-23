@@ -60,7 +60,7 @@ public:
     int position = 2 + lineC * offset_[c];
     myfile_.seekg(position);
 
-    // Coordinates, ignore the other ranks
+    // Coordinates, ignore the other colors
     for(size_t i = 0; i < nlocal_entities_; ++i) {
       for(int j = 0; j < dim; ++j)
         myfile_ >> entities_[i].coordinates_[j];
@@ -144,8 +144,7 @@ private:
 
     offset_.resize(size + 1, 0);
     distribution_.resize(size, 0);
-    // Entities per ranks
-    int nlocal_entities = nglobal_entities_ / size;
+    int nlocal_entities = nglobal_entities_ / size; // per color
     int lm = nglobal_entities_ % size;
     for(int i = 0; i < size; ++i) {
       distribution_[i] = nlocal_entities;

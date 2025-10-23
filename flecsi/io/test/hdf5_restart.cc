@@ -140,8 +140,7 @@ restart_driver(scheduler & s) {
 
         s.execute<init>(exec::on, m, mf1, mf2, mfi, mfs, mfr1, mfr2);
 
-        // Legion backend doesn't support N-to-M yet - use 1 rank/file
-        // MPI backend supports N-to-M restarts - use 2 ranks/file
+        // Legion backend doesn't support combined files yet:
         io::io_interface iif(FLECSI_BACKEND == FLECSI_BACKEND_legion ? 1 : 2);
         auto filename =
           std::string{"hdf5_restart"} + (Attach ? "_w" : "_wo") + ".dat";

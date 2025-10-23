@@ -32,7 +32,7 @@ context_t::start(std::function<int()> const & action, bool) {
   params.cfg = {
     // Instruct the HPX runtime to occupy at least two cores for scheduling
     // FleCSI tasks.  This setting has to be taken into account when
-    // running more than one HPX locality (rank) on the same node.  Any
+    // running more than one HPX locality (process) on the same node.  Any
     // single node should not run more than `N` localities, where `N ==
     // num_cores / 2`.
     "hpx.force_min_os_threads!=2",
