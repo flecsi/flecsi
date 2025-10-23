@@ -94,15 +94,15 @@ Data structures
 +++++++++++++++
 
 FleCSI does not provide ready-to-use, distributed data-structure types.
-Rather, it provides "proto data-structure types" called *topology categories*.
+Rather, it provides "proto data-structure types" called `topology categories`.
 These require additional compile-time information, such as the number
 of dimensions of a multidimensional array, and additional run-time
 information, such as how to distribute their data, to form a concrete
-data structure.  Applications are expected to define *specializations*
+data structure.  Applications are expected to define `specializations`
 to provide all of this information.
 
 FLAXPY is based on the ``user`` category, so named because it is the simplest available to users.
-It is essentially a 1-D vector of user-defined *fields* with
+It is essentially a 1-D vector of user-defined `fields` with
 no support for ghost cells.
 Each category specifies a ``coloring`` type, which represents
 additional run-time data the topology needs
@@ -112,7 +112,7 @@ accepts whatever parameters make sense for that specialization
 and returns a ``coloring``.
 The ``user`` category defines its ``coloring`` type as
 a ``std::vector<std::size_t>`` that represents
-the number of vector indices to assign to each *color*.
+the number of vector indices to assign to each `color`.
 (A color is a unit of data upon which a point task operates.)
 ``user`` does not require that the specialization provide
 any compile-time information,
@@ -144,7 +144,7 @@ colors.
 At this point we have what is effectively a distributed 1-D vector
 data type that is templated over the element type.  The next step is
 to specify the element type.  In FleCSI, each element of a data
-structure comprises one or more *fields*.  One can think of fields as
+structure comprises one or more `fields`.  One can think of fields as
 named columns in a tabular representation of data.  FLAXPY adds two
 fields of type ``double``: ``x_field`` and ``y_field``.  These are
 added outside of the ``flaxpy`` namespace, in an anonymous namespace.
@@ -310,7 +310,7 @@ Each point task is individually responsible for processing a subspace
 Because FleCSI follows `Legion <https://legion.stanford.edu/>`_'s data
 and concurrency model,
 a point task is provided access to a subspace
-via an *accessor* templated on an access right:
+via an `accessor` templated on an access right:
 ``ro`` (read only),
 ``wo`` (write only),
 ``rw`` (read/write), or

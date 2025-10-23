@@ -15,11 +15,11 @@ options that are available.
 Example 1: Minimal
 ++++++++++++++++++
 
-To use FleCSI, a ``runtime`` object must be configured and a *control policy* must be specified that describes the computation to be performed.
+To use FleCSI, a ``runtime`` object must be configured and a `control policy` must be specified that describes the computation to be performed.
 In the simplest case, both parts can be accomplished in one line; later examples will illustrate more advanced options.
 
 FleCSI executes the control policy after setting up the task execution backend.
-A simple control policy is supplied that calls a single function (object) given to it with a *scheduler* (used later for launching tasks) and uses its return value as an ``int`` exit status.
+A simple control policy is supplied that calls a single function (object) given to it with a `scheduler` (used later for launching tasks) and uses its return value as an ``int`` exit status.
 
 This example demonstrates a minimal use of FleCSI that just executes an
 action to print out *Hello World*. Code for this example can be found in
@@ -341,7 +341,7 @@ object:
 This works just like any of the C++ output objects. FLOG provides four
 basic output objects: *trace*, *info*, *warn*, and *error*. These
 provide different color decorations for easy identification in terminal
-output and can be controlled using *strip levels* (discussed in the next
+output and can be controlled using `strip levels` (discussed in the next
 section).
 
 The following code from this example shows some trivial usage of each of

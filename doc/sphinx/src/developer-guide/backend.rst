@@ -1,7 +1,7 @@
 Backend Development
 +++++++++++++++++++
 
-A FleCSI backend must implement a number of *entry points* (see :doc:`summary`) for invocation by the rest of FleCSI—and in a few cases, directly by application code.
+A FleCSI backend must implement a number of `entry points` (see :doc:`summary`) for invocation by the rest of FleCSI—and in a few cases, directly by application code.
 Almost all of these entry points can be identified by a
 
 .. code-block:: cpp

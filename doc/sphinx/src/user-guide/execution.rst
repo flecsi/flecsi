@@ -7,7 +7,7 @@ FleCSI expresses parallelism via tasks, which are coarse-grained and can be dist
 Schedulers
 ++++++++++
 
-A FleCSI *scheduler* is an object that manages the launch of tasks.
+A FleCSI `scheduler` is an object that manages the launch of tasks.
 Where and when to execute the task is determined based on the task's parameter types and arguments.
 
 Schedulers are obtained from the control-model object provided to an action:
@@ -23,10 +23,10 @@ Tasks
 +++++
 
 A task in FleCSI serves as the bridge between two core parts of the execution model.
-On the caller side, each *process* executes its own copy of the ``main`` function and the associated control model.
+On the caller side, each `process` executes its own copy of the ``main`` function and the associated control model.
 
 After all processes collectively launch a task, its function then executes, typically several times concurrently.
-Each of these executions is referred to as a *point task*; their number does not necessarily match the number of processes, and they can run on any process.
+Each of these executions is referred to as a `point task`; their number does not necessarily match the number of processes, and they can run on any process.
 This allows FleCSI to support flexible and scalable task-parallel execution.
 
 .. figure:: tikz/flecsi_execution_model.svg
@@ -88,7 +88,7 @@ These field references act as logical handles to the underlying data.
 Futures and Reductions
 ++++++++++++++++++++++
 
-In FleCSI, tasks can return values through *futures*.
+In FleCSI, tasks can return values through `futures`.
 A future represents the result of a task that might not yet be completed.
 The value is available only after the task is actually executed.
 This asynchronous behavior allows for flexible execution ordering.
@@ -180,7 +180,7 @@ Given the previous declaration, this call to ``execute`` will not attempt to use
 MPI Tasks
 +++++++++
 
-FleCSI also supports a special class of tasks known as *MPI tasks*.
+FleCSI also supports a special class of tasks known as `MPI tasks`.
 Exactly one point task for an MPI task runs on each process, like the control-model action that launched it.
 
 MPI tasks are invoked as follows:
@@ -200,7 +200,7 @@ MPI tasks can use :ref:`multi-accessors` to access fields whose number of colors
 Tracing
 +++++++
 
-The Legion backend uses a feature called *tracing* to improve performance for repeated execution patterns, particularly in critical loops.
+The Legion backend uses a feature called `tracing` to improve performance for repeated execution patterns, particularly in critical loops.
 
 When tracing is enabled, Legion records task launches, data movement, and communication patterns during the first execution.
 On subsequent iterations, it reuses this recorded information instead of redoing scheduling and analysis, significantly reducing overhead.

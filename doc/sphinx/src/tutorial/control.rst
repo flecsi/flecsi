@@ -3,9 +3,9 @@ Control Model
 
 The FleCSI control model allows users to define the high-level structure
 of an application
-using a control-flow graph (CFG) of *control points*,
-under each of which a directed acyclic graph (DAG) of *actions* can be defined.
-Actions in turn launch *tasks* to operate on distributed data.
+using a control-flow graph (CFG) of `control points`,
+under each of which a directed acyclic graph (DAG) of `actions` can be defined.
+Actions in turn launch `tasks` to operate on distributed data.
 
 .. sidebar:: Control-model concepts
 

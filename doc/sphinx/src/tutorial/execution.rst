@@ -16,12 +16,12 @@ Kernels
   as a relaxed-consistency memory model. The kernel interface in
   FleCSI is defined by two parallel operations: *forall* and *reduceall*.
   Each of these is a fine-grained, data-parallel operation.
-  The use of the *kernel* nomenclature is derived from CUDA and OpenCL
+  The use of the `kernel` nomenclature is derived from CUDA and OpenCL
   and is conceptually consistent with those models. Please see the
   example of using *forall* kernels in the *parallel* section of the
   tutorial. 
 
-Tasks are launched by *schedulers*.
+Tasks are launched by `schedulers`.
 
 ----
 
@@ -96,12 +96,12 @@ Again, execution is straightforward:
 
 Example 2: Index Tasks
 ++++++++++++++++++++++
-An index task launch calls a given function a number of times asynchronously, typically distributed over multiple processes; each is called a *point task*.
-The usual purpose is operating on different parts of a distributed data structure (different *colors* of a *topology*) in parallel.
+An index task launch calls a given function a number of times asynchronously, typically distributed over multiple processes; each is called a `point task`.
+The usual purpose is operating on different parts of a distributed data structure (different `colors` of a `topology`) in parallel.
 
 In this example we explicitly ask to call ``task`` 4 times via
 the ``launch_domain`` argument; the task must declare a parameter for it, but it need not be named or used.
-To receive information about the task launch, a task can declare an *execution space* parameter; the task launch provides the dummy value ``exec::on`` to initialize it.
+To receive information about the task launch, a task can declare an `execution space` parameter; the task launch provides the dummy value ``exec::on`` to initialize it.
 An execution space parameter also controls where the task runs; ``exec::cpu`` is the default, but others will be used later.
 
 .. literalinclude:: ../../../../tutorial/3-execution/2-index-task.cc

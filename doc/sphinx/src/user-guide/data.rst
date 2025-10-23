@@ -13,17 +13,17 @@ Important Concepts
 ========================================================================
 
 **Index Spaces**
-    An *index space* is an enumeration of all entities of one kind (such as cells, nodes, or particles) in a computational domain.
-    Each entity in an index space is labeled with an *index point*.
+    An `index space` is an enumeration of all entities of one kind (such as cells, nodes, or particles) in a computational domain.
+    Each entity in an index space is labeled with an `index point`.
 
 **Colors**
-    Each index space is partitioned into a number of *colors* that can be processed in parallel.
+    Each index space is partitioned into a number of `colors` that can be processed in parallel.
     A color is not strictly bound to the memory space of a particular process, but can be
     relocated by the task-based parallelism machinery depending on the
     needs of the application.
 
 **Fields**
-    A *field* defines a variable over a particular index
+    A `field` defines a variable over a particular index
     space, such as the mass in a cell (or a list per material) or the momentum vector of a
     particle.
     It provides the information necessary to manage the memory for that variable.
@@ -42,7 +42,7 @@ As a point task has access to only one color at a time, an index point is just a
 
 Colors
 ========================================================================
-Following Legion, FleCSI refers to simulation subdomains, each processed by a single C++ function call at a time, as *colors*.
+Following Legion, FleCSI refers to simulation subdomains, each processed by a single C++ function call at a time, as `colors`.
 The data for a subdomain is not owned by a process but can be
 relocated depending on the needs of the simulation.
 Moreover, with the Legion backend their number is not required to match the number of processes:
@@ -70,17 +70,17 @@ Ghost Elements
 
 Field values can be communicated between colors via ghost elements.
 
-* A *ghost element* is an index point that belongs to another color, but
+* A `ghost element` is an index point that belongs to another color, but
   a copy is provided to the current color.  An example would be the use
   of ghost cells in stencil-based codes so that each cell can read its
   neighbors' values and compute gradients.
   Typical usage does not involve writing to ghosts.
 
 * An index point that belongs to the current color but could be copied
-  to be a ghost element of another color is called a *shared element*.
+  to be a ghost element of another color is called a `shared element`.
 
 * Any index points belonging to the current color that are never copied
-  to be ghost elements are known as *exclusive elements*.
+  to be ghost elements are known as `exclusive elements`.
 
 The read/write permissions of :ref:`accessors <field-accessors>`
 may distinguish between these three varieties of index points in order
@@ -105,7 +105,7 @@ Registration
 ------------------------------------------------------------------------
 
 Index spaces are organized into :doc:`topologies <topologies>`; variables are defined on an index space by registering fields on its topology.
-The tag type used for the registration (and other purposes to be discussed) is a *specialization*.
+The tag type used for the registration (and other purposes to be discussed) is a `specialization`.
 Supposing we have a specialization ``topo_t``, we can write
 
 .. code-block:: cpp
@@ -240,7 +240,7 @@ However, the language does not actually allow extending a type.
 Instead, the
 field objects themselves become tools to extract the field data, so you
 would get the mass field from ``grid`` by calling ``mass_field(grid)``.
-This expression produces a *field reference* which can be passed as an argument to a task that uses the field.
+This expression produces a `field reference` which can be passed as an argument to a task that uses the field.
 
 .. sidebar:: Memory Allocation
 
@@ -251,7 +251,7 @@ This expression produces a *field reference* which can be passed as an argument 
 Accessors
 ------------------------------------------------------------------------
 
-A task accepts field references as arguments for special function parameters called *accessors*.
+A task accepts field references as arguments for special function parameters called `accessors`.
 When the task is launched, memory for the fields is allocated if necessary and is provided to the task via the accessors.
 Accessors also encode the privileges for each task, which are used by the task
 model to determine the order in which tasks may be executed.  For
@@ -293,7 +293,7 @@ Mutators
 ------------------------------------------------------------------------
 
 An accessor can read or write the values in a field but cannot add or remove them.
-Layouts that support those operations provide *mutators* for the purpose:
+Layouts that support those operations provide `mutators` for the purpose:
 
 * A ``ragged`` mutator provides an interface at each index point based on ``std::vector``.
 * A ``sparse`` mutator provides an interface at each index point based on ``std::map``.
@@ -322,7 +322,7 @@ Moreover, they use further temporary allocations during a task that are incompat
 
 Multi-color accessors
 ---------------------
-In addition to ghost elements, the Legion backend provides *launch maps* as another mechanism for accessing another color's data in a point task.
+In addition to ghost elements, the Legion backend provides `launch maps` as another mechanism for accessing another color's data in a point task.
 They explicitly nominate one or more colors to be processed by each point task, so they can permute colors as well as duplicating them (for read-only access) or omitting them.
 Accessors, mutators, or topology accessors (discussed later) can be wrapped in a ``data::multi`` task parameter; the launch map takes the place of the underlying topology in the task argument (*e.g.*, in forming a field reference).
 A task can accept multiple multi-color accessors as well as ordinary accessors (relative to which any permutation is meaningful).

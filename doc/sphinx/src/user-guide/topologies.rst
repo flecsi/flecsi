@@ -5,7 +5,7 @@ This section describes the common behavior of FleCSI topologies as well as provi
 Terminology
 +++++++++++
 **Topologies**
-    A *topology* is a collection of index spaces that represent a computational domain like a mesh or a layout of particles in space.
+    A `topology` is a collection of index spaces that represent a computational domain like a mesh or a layout of particles in space.
     (Fields on some of these index spaces express physical quantities; others contain structural information describing the domain itself.)
     An application can use multiple topologies of the same or different types, serially or simultaneously.
     Sometimes the word "topology" refers to one of these *types* rather than to a specific instance of it.
@@ -15,7 +15,7 @@ Terminology
     Each topology type is defined in terms of one such category; clients cannot define their own.
 
 **Specializations**
-    A *specialization* is a customization of a topology category to create
+    A `specialization` is a customization of a topology category to create
     an interface that allows domain experts to implement operations on
     top of the topology.  The relevant operations will depend strongly
     on the needs of the domain experts, but will often include queries

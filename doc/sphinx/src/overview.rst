@@ -1,6 +1,6 @@
 Overview
 ********
-FleCSI separates the concerns of simulation application development and efficient hardware utilization in part by supporting the construction of *specializations* of its generic topology data structures that provide domain-specific interfaces based on the relevant numerical methods.
+FleCSI separates the concerns of simulation application development and efficient hardware utilization in part by supporting the construction of `specializations` of its generic topology data structures that provide domain-specific interfaces based on the relevant numerical methods.
 Most sections of the documentation contain material intended for the developers of such specializations; application developers do not in general need to understand such details but do need to consult the documentation for the specialization(s) they use.
 Only a few interfaces have the reverse position of being useful only to application developers (mainly because they concern program initialization); they are not specially marked.
 

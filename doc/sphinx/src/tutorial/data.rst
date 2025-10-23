@@ -23,7 +23,7 @@ is natural to use the ``data::single`` layout.
   :start-at: template<typename T>
   :end-at: const single<double>::definition<global> gfield;
 
-To create a topology instance, declare a variable of type ``topology`` initialized with a scheduler and an argument appropriate to the topology called a *coloring*.
+To create a topology instance, declare a variable of type ``topology`` initialized with a scheduler and an argument appropriate to the topology called a `coloring`.
 In general, a coloring describes the structure of a topology and its distribution among colors.
 The global topology is a special case that does not actually use colors; its "coloring" is simply a count of values for each field.
 Writing to a global field requires a single task launch.
@@ -64,7 +64,7 @@ The ``canonical`` topology is a very simple specialization of the ``unstructured
 It illustrates the use of the ``mpi_coloring`` type, which applies a specialization-defined rule for specifying a coloring.
 Here, a file is the source of the mesh (for purposes of illustration).
 The resulting coloring is used to initialize two meshes ``canonical`` and ``cp``, and the ``copy`` task operates on both of them at once using a low-level accessor.
-The ``init`` and ``print`` tasks, by contrast, use a *topology accessor* as a parameter that provides access to the structure of the mesh via the ``entities`` function.
+The ``init`` and ``print`` tasks, by contrast, use a `topology accessor` as a parameter that provides access to the structure of the mesh via the ``entities`` function.
 
 .. literalinclude:: ../../../../tutorial/4-data/3-dense.cc
   :language: cpp
@@ -97,7 +97,7 @@ After executing a task to store the sizes, they must be applied with ``resize``:
   :start-at: rag(mesh)
   :end-at: resize
 
-Initializing the field, or changing the number of values stored at any point later, requires a *mutator*.
+Initializing the field, or changing the number of values stored at any point later, requires a `mutator`.
 The interface is closely modeled on ``std::vector``:
 
 .. literalinclude:: ../../../../tutorial/4-data/4-ragged.cc

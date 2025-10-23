@@ -2,10 +2,10 @@ On-node Parallelism
 *******************
 
 
-FleCSI tasks can launch *kernels* to exploit fine-grained, on-node parallelism.
+FleCSI tasks can launch `kernels` to exploit fine-grained, on-node parallelism.
 These kernels operate inside the task body and are typically mapped to hardware threads by Kokkos.
 
-FleCSI provides a unified API for launching kernels through an *executor*, using constructs like ``forall`` and ``reduceall``.
+FleCSI provides a unified API for launching kernels through an `executor`, using constructs like ``forall`` and ``reduceall``.
 
 Simple Parallel Loop
 ++++++++++++++++++++
