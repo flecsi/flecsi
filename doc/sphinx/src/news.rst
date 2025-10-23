@@ -18,6 +18,12 @@ Release Notes
 Changes in v2.4.2
 +++++++++++++++++
 
+Deprecated
+^^^^^^^^^^
+* Logging
+
+  * ``fixme`` |mdash| use ``flog(warn)``
+
 Fixed
 ^^^^^
 * HPX backend

@@ -442,6 +442,7 @@ to_string(T const & t) {
 
 /*!
   Alias for severity level warn.
+  \deprecated Use `flog(warn)`.
  */
 
 #define fixme() flog(warn)
