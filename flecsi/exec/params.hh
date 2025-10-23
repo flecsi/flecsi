@@ -75,9 +75,18 @@ protected:
   template<typename T, Privileges P, class Topo, typename Topo::index_space S>
   void visit(data::accessor<data::raw, T, P> &,
     const data::field_reference<T, data::raw, Topo, S> &);
+  /// Send a dense field reference to a reduction accessor.
+  template<class R, class T, class Topo, typename Topo::index_space S>
+  void visit(data::reduction_accessor<R, T> &,
+    const data::field_reference<T, data::dense, Topo, S> &);
   /// Send an index future to a single future.
+  /// (Some backends also need to handle the single-single case.)
   template<typename R>
   void visit(future<R> &, const future<R, launch_type_t::index> &);
+
+  /// Record that a ragged accessor/mutator may need resizing.
+  template<class A>
+  void visit(data::detail::save_for_epilog &, A &);
 };
 
 /// Handling for low-level special task parameters/arguments.
