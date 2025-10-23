@@ -99,9 +99,9 @@ public:
 
   // Delay the execution of the given task until all dependencies have been
   // satisfied (if any).
-  template<typename R, typename Params, typename Task>
+  template<typename R, typename Task>
   std::pair<::hpx::shared_future<R>, run::comms::ptr>
-  delay_execution(Params && params, std::string task_name, Task && task) && {
+  delay_execution(std::string task_name, Task && task) && {
     auto comms = run::comms::make();
     // First dependency has lowest priority:
     comms->depend(run::context::instance().world_comms);
@@ -123,7 +123,6 @@ public:
       [out = run::context::instance().outstanding(),
         regions_partitions = detach(),
         task = std::forward<Task>(task),
-        params = std::optional(std::forward<Params>(params)),
         task_name = std::move(task_name),
         comm = need_comm ? &comms->get() : nullptr,
         // Keep comm alive if the hold can't:
@@ -136,19 +135,11 @@ public:
         // annotate new HPX thread
         ::hpx::scoped_annotation _(task_name);
 
-        // Destroy parameters (especially mutators) deterministically:
-        struct guard {
-          ~guard() {
-            p.reset();
-          }
-          decltype(params) & p;
-        } g{params};
-
         // rethrow exceptions propagated from dependencies
         for(auto && f : std::forward<decltype(deps)>(deps))
           f.get();
 
-        return task(regions_partitions, comm, std::move(*params));
+        return task(regions_partitions, comm);
       },
       dependencies.detach())
                .share();

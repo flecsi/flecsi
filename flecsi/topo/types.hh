@@ -141,11 +141,6 @@ struct id {
   id(const id &) = default;
 
   FLECSI_INLINE_TARGET
-  T operator+() const {
-    return t;
-  }
-
-  FLECSI_INLINE_TARGET
   operator T() const {
     return t;
   }
@@ -224,17 +219,6 @@ FLECSI_INLINE_TARGET auto
 make_ids(C && c) {
   return util::transform_view(
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
-}
-
-template<class T>
-void
-concatenate(std::vector<T> & v, Color total, MPI_Comm comm) {
-  auto g = util::mpi::all_gatherv(v, comm);
-  v.clear();
-  v.reserve(total);
-  for(auto & g1 : g)
-    for(auto & t : g1)
-      v.push_back(std::move(t));
 }
 
 // Describe a sorted range of integers as a union of intervals

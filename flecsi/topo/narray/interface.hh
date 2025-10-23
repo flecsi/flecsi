@@ -201,9 +201,9 @@ private:
     // The index_definition provides the layout of other colors to compute
     // shared offsets.
     static std::pair<points, intervals> ghosts(const index_definition & idef,
-      const narray_impl::colors & ci) {
+      Color i) {
       using narray_impl::linearize;
-      const auto md = make(idef, ci);
+      const auto md = make(idef, idef.color_indices(i));
 
       const linearize<dimension> local{md.extent()};
       const linearize<dimension, Color> global{md.colors()};
@@ -285,24 +285,24 @@ private:
         [p =
             [&] {
               auto & idef = c.idx_colorings[index<Value>];
+              const Color nc = idef.colors();
               std::vector<std::size_t> partitions;
-              for(const auto & ci : idef.process_colors()) {
+              partitions.reserve(nc);
+              for(Color i = 0; i < nc; ++i) {
                 auto & total = partitions.emplace_back(1);
                 Dimension d = 0;
-                for(const auto i : ci)
+                for(const auto i : idef.color_indices(i))
                   if(util::ckd_mul(
                        &total, total, idef.make_axis(d++, i)().extent()))
                     flog_fatal("overflow: total number of index points exceed "
                                "std::size_t limits");
               }
-              concatenate(partitions, c.colors(), MPI_COMM_WORLD);
               return partitions;
             }()](std::size_t i) { return p[i]; })...}},
-      plan_{{make_copy_plan<CI>(s, c.colors(), c.idx_colorings[index<CI>])...}},
+      plan_{{make_copy_plan<CI>(s, c.idx_colorings[index<CI>])...}},
       ragged_buffers_{{data::buffers::topology(s,
         meta_data::peers(c.idx_colorings[index<CI>]))...}} {
-    execute<set_meta<Value...>, mpi>(
-      meta_field(data::launch::make(s, this->meta)), c);
+    s.execute<set_meta<Value...>>(exec::on, meta_field(this->meta), &c).wait();
     (
       [&] { // Sanity checks for indexes spaces for which privilege count is 1
         if(Policy::template privilege_count<Value> == 1) {
@@ -319,100 +319,57 @@ private:
       ...);
   }
 
-  /*!
-   Method to compute the local ghost "intervals" and "points" which store map of
-   local ghost offset to remote/shared offset. This method is called by the
-   "make_copy_plan" method in the derived topology to create the copy plan
-   objects.
+  static void set_dests(exec::cpu s,
+    field<data::intervals::Value>::accessor<wo> a,
+    const index_definition * idef) noexcept {
+    const auto c = s.launch().index;
+    std::size_t i{0};
+    for(auto & it : meta_data::ghosts(*idef, c).second)
+      a[i++] = data::intervals::make({it.first, it.second}, c);
+  }
 
-   @param idef index definition
-   @param[out] num_intervals vector of number of ghost intervals, over all
-   colors, this vector is assumed to be sized correctly (all colors)
-   @param[out] intervals  vector of local ghost intervals, over process colors
-   @param[out] points vector of maps storing (local ghost offset, remote shared
-   offset) for a shared color, over process colors
-  */
-  static void idx_itvls(index_definition const & idef,
-    std::vector<std::size_t> & num_intervals,
-    std::vector<typename meta_data::intervals> & intervals,
-    std::vector<typename meta_data::points> & points,
-    MPI_Comm const & comm) {
-    std::vector<std::size_t> local_itvls;
-    for(const auto & c : idef.process_colors(comm)) {
-      auto [pts, itvls] = meta_data::ghosts(idef, c);
-      local_itvls.emplace_back(itvls.size());
-      intervals.emplace_back(std::move(itvls));
-      points.emplace_back(std::move(pts));
-    }
-
-    /*
-      Gather global interval sizes.
-     */
-
-    auto global_itvls = util::mpi::all_gatherv(local_itvls, comm);
-
-    auto it = num_intervals.begin();
-    for(const auto & pv : global_itvls) {
-      for(auto i : pv) {
-        *it++ = i;
-      }
-    }
-  } // idx_itvls
-
-  /*!
-   Method to create copy plans for entities of an index-space.
-   @param colors  The number of colors
-   @param idef index definition
-  */
   template<index_space S>
-  data::copy_plan
-  make_copy_plan(scheduler & s, Color colors, index_definition const & idef) {
+  static void set_ptrs(exec::cpu s,
+    field<data::copy_engine::Point>::accessor1<
+      privilege_repeat<wo, Policy::template privilege_count<S>>> a,
+    const index_definition * idef) noexcept {
+    for(const auto & [own, gg] :
+      meta_data::ghosts(*idef, s.launch().index).first)
+      for(const auto & [l, r] : gg)
+        a[l] = data::copy_engine::point(own, r);
+  }
 
-    std::vector<std::size_t> num_intervals(colors, 0);
-    std::vector<typename meta_data::intervals> intervals;
-    std::vector<typename meta_data::points> points;
-
-    // The intervals encode local ghost
-    // intervals, whereas points capture the  local offset and corresponding
-    // remote/shared offset on remote/shared color. The intervals and points are
-    // used to create function objects "dest_tasks" and "ptrs_tasks" that is
-    // subsequently used by copy plan to perform the data communication. Note
-    // that after this call the copy plan objects have been created. The actual
-    // communication is invoked as part of task execution depending upon the
-    // privilege requirements of the task.
-
-    idx_itvls(idef, num_intervals, intervals, points, MPI_COMM_WORLD);
-
-    // clang-format off
-    auto dest_task = [&](auto f) {
-      auto lm = data::launch::make(s, f.topology());
-      execute<set_dests, mpi>(lm(f), intervals);
-    };
-
-    auto ptrs_task = [&](auto f) {
-      auto lm = data::launch::make(s, f.topology());
-      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
-        lm(f), points);
-    };
-    // clang-format on
-
-    return {s, *this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
+  template<index_space S>
+  data::copy_plan make_copy_plan(scheduler & s, index_definition const & idef) {
+    for(auto & ax : idef.axes)
+      ax.check_halo();
+    // Call meta_data::ghosts several times to avoid communication:
+    return {s,
+      *this,
+      [&idef] {
+        const Color nc = idef.colors();
+        data::copy_plan::Sizes ret;
+        ret.reserve(nc);
+        for(Color i = 0; i < nc; ++i)
+          ret.push_back(meta_data::ghosts(idef, i).second.size());
+        return ret;
+      }(),
+      [&](auto f) { s.execute<set_dests>(exec::on, f, &idef).wait(); },
+      [&](auto f) { s.execute<set_ptrs<S>>(exec::on, f, &idef).wait(); },
+      util::constant<S>()};
   }
 
   template<auto... Value> // index_spaces
-  static void set_meta(
-    data::multi<typename policy_meta::Field::template accessor<wo>> mm,
-    narray_base::coloring const & c) {
+  static void set_meta(exec::cpu s,
+    typename policy_meta::Field::template accessor<wo> m,
+    const coloring * c) noexcept {
     std::size_t index{0};
-    ((
-       [&] {
-         const auto ma = mm.accessors();
-         const auto & idef = c.idx_colorings[index];
-         auto it = ma.begin();
-         for(const auto & ci : idef.process_colors())
-           (*it++)->index.template get<Value>() = meta_data::make(idef, ci);
-       }(),
-       ++index),
+    (
+      [&] {
+        const auto & idef = c->idx_colorings[index++];
+        m->index.template get<Value>() =
+          meta_data::make(idef, idef.color_indices(s.launch().index));
+      }(),
       ...);
   }
 

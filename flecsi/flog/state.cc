@@ -87,8 +87,9 @@ state::send_to_one(bool last) {
           auto remote_packets = util::serial::get1<std::vector<packet_t>>(
             buffer.data() + offsets[p]);
 
-          packets_.insert(
-            packets_.end(), remote_packets.begin(), remote_packets.end());
+          packets_.insert(packets_.end(),
+            std::move_iterator(remote_packets.begin()),
+            std::move_iterator(remote_packets.end()));
         } // if
       } // for
     }
