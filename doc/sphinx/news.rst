@@ -38,6 +38,7 @@ New features
 * Execution
 
   * A task parameter can be a ``std::optional`` of, or a ``std::variant`` that includes, a FleCSI type such as an accessor.
+  * ``scheduler::wait`` finishes all launched tasks.
   * ``future_kind`` is an alias for the type of the second ``future`` template parameter.
 
 * On-node parallelism

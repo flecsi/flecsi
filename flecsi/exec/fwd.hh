@@ -150,6 +150,9 @@ struct scheduler {
     const typename T::coloring & c,
     AA &&... aa);
 
+  /// Wait until all launched tasks have finished.
+  inline void wait();
+
   // Will become a non-static member of runtime in 3.
   static std::optional<scheduler> instance;
 

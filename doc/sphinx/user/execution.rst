@@ -117,6 +117,8 @@ An index launch produces an `index future` which can also be passed to a task th
 
 Many tasks return ``void`` because their purpose is to compute new field values.
 Their futures can simply be discarded: tasks that use those field values will automatically be scheduled to run only afterwards.
+It can be useful for the control model to occasionally wait on all outstanding tasks to finish: to change a global variable, for instance.
+In that case, ``scheduler::wait`` can be used to wait on all tasks that have been launched: it is equivalent to waiting on every future so far produced.
 
 FleCSI supports reductions through the ``reduce`` function, which combines results from multiple point tasks into a single value. For instance:
 

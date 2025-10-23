@@ -99,7 +99,7 @@ reduce_internal(Args &&... args) {
 
     if(launch::mpi) {
       launcher.tag = run::mapper::force_rank_match;
-      legion_runtime->issue_execution_fence(legion_context);
+      scheduler::instance->wait();
     }
 
     auto ret = [&] {
@@ -121,6 +121,13 @@ reduce_internal(Args &&... args) {
 
 /// \}
 } // namespace exec
+
+void
+scheduler::wait() {
+  Legion::Runtime::get_runtime()->issue_execution_fence(
+    Legion::Runtime::get_context());
+}
+
 } // namespace flecsi
 
 #endif

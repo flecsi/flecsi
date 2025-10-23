@@ -57,9 +57,8 @@ reduce_internal(Args &&... args) {
   // Drain all current tasks before scheduling a flecsi::mpi task (the prolog
   // handling may schedule additional tasks, like ghost-copy operations that
   // should finish running as well).
-  if constexpr(launch::mpi) {
-    flecsi::run::context::instance().termination_detection();
-  }
+  if constexpr(launch::mpi)
+    scheduler::instance->wait();
 
   const auto delay = [&](auto && f) {
     static constexpr bool need_comm =
@@ -150,6 +149,12 @@ reduce_internal(Args &&... args) {
 }
 
 } // namespace exec
+
+void
+scheduler::wait() {
+  run::context::instance().termination_detection();
+}
+
 } // namespace flecsi
 
 #endif // FLECSI_EXEC_HPX_POLICY_HH

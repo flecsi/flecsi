@@ -101,6 +101,10 @@ reduce_internal(Args &&... args) {
 
 /// \}
 } // namespace exec
+
+void
+scheduler::wait() {}
+
 } // namespace flecsi
 
 #endif
