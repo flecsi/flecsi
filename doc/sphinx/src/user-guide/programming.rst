@@ -26,7 +26,7 @@ Because the threads may be pooled, they provide only the `parallel forward progr
 Because they may be implemented in user space, blocking operations provided by FleCSI (*e.g.*, ``flecsi::future::get``) may degrade the caller to be weakly parallel, with forward progress delegation provided only by other such blocking operations.
 Furthermore, thread-local storage (whose utility is already limited by the pooling) may be invalidated by such an operation.
 
-The ``flecsi::exec::parallel_`` operations (including the ``forall`` and ``reduceall`` macros) are asynchronous; values written by one may not be available to another in the same task.
+The ``flecsi::exec::parallel_`` operations (including the ``forall`` and ``reduceall`` macros) are asynchronous, but each waits on the previous such that values written by one may be read by another in the same task.
 
 MPI Tasks
 +++++++++

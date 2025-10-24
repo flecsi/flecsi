@@ -89,7 +89,6 @@ The normal topology categories do require a specialization:
   smoothed-particle hydrodynamics.
 
 * The ``unstructured`` topology comprises an arbitrary set of index spaces along with several kinds of graph adjacency information that support use as an unstructured mesh.
-  The index spaces can be resized to support mesh refinement.
 
 .. figure:: images/narray-coloring.svg
    :align: center
