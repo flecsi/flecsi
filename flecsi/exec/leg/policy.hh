@@ -67,7 +67,7 @@ reduce_internal(Args &&... args) {
   auto & params = any.emplace(leg::parameters(
     make_parameters<mpi_task, param_tuple>(std::forward<Args>(args)...)));
   prolog<mask_to_processor_type(Attributes)> pro(params.params, args...);
-  params.which = std::move(pro).region_indices();
+  params.which = std::move(pro).bindings();
   std::optional<leg::parameters<param_tuple>> mpi_params;
   std::vector<std::byte> buf;
   if constexpr(mpi_task) {
@@ -125,23 +125,19 @@ reduce_internal(Args &&... args) {
       legion_runtime->issue_execution_fence(legion_context);
     }
 
-    if constexpr(!std::is_void_v<Reduction>) {
-      auto ret = future<return_t, launch_type_t::single>{{},
-        legion_runtime->execute_index_space(
-          legion_context, launcher, fold::wrap<Reduction, return_t>::REDOP_ID)};
-      if(mpi_task)
-        ret.wait();
-      return ret;
-    }
-    else {
-      auto ret = future<return_t, launch_type_t::index>{
-        legion_runtime->execute_index_space(legion_context, launcher)};
-      if(mpi_task)
-        ret.wait();
-
-      return ret;
-    } // if reduction
-
+    auto ret = [&] {
+      if constexpr(!std::is_void_v<Reduction>)
+        return future<return_t>{{},
+          legion_runtime->execute_index_space(legion_context,
+            launcher,
+            fold::wrap<Reduction, return_t>::REDOP_ID)};
+      else
+        return future<return_t, launch_type_t::index>{
+          legion_runtime->execute_index_space(legion_context, launcher)};
+    }();
+    if(mpi_task)
+      ret.wait();
+    return ret;
   } // if constexpr
 
 } // reduce_internal
