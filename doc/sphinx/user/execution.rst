@@ -3,6 +3,11 @@ Execution Model
 
 This section describes the FleCSI execution model.
 FleCSI expresses parallelism via tasks, which are coarse-grained and can be distributed, and kernels, which are fine-grained and utilize shared memory.
+These are the lower levels of execution in the figure already seen:
+
+.. figure:: tikz/flecsi_execution_model.svg
+
+   The different levels of execution in FleCSI.
 
 Schedulers
 ++++++++++
@@ -28,10 +33,6 @@ On the caller side, each `process` executes its own copy of the ``main`` functio
 After all processes collectively launch a task, its function then executes, typically several times concurrently.
 Each of these executions is referred to as a `point task`; their number does not necessarily match the number of processes, and they can run on any process.
 This allows FleCSI to support flexible and scalable task-parallel execution.
-
-.. figure:: tikz/flecsi_execution_model.svg
-
-   The different levels of execution in FleCSI.
 
 Callee Side
 ^^^^^^^^^^^

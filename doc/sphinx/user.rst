@@ -5,6 +5,7 @@ They do not mention every component of the interface as does the :doc:`api`, nor
 
 .. toctree::
 
+  user/runtime
   user/control
   user/data
   user/topologies
