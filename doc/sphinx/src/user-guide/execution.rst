@@ -119,6 +119,64 @@ FleCSI provides several built-in reduction folds, including `min`, `max`, `sum`,
 Users can define custom folds by implementing `a structure <../../api/user/structflecsi_1_1exec_1_1fold_1_1reduce.html>`_ with ``combine`` and ``identity`` methods.
 The reduction types can use a specific type or provide a function template.
 
+.. _portable_tasks:
+
+Portable Tasks
+++++++++++++++
+
+A portable task comprises *variants* of the task for different execution spaces.
+These are expressed as the various specializations of a static member function template.
+(Note that for technical reasons they cannot be overloads or non-member function templates.)
+FleCSI chooses one of the variants when the task is launched.
+
+The different execution-space types supply the same interface, so the task can be written just once as the primary template.
+Alternatively, optimized implementations for each space can be provided as explicit specializations.
+Either kind of definition can be deleted to prevent using it.
+
+The example below shows the static member function template for a task:
+
+.. code-block:: cpp
+
+   struct task_variants {
+     template<class S>
+     static void task(S, /* ... */ ) noexcept {
+       /* ... */
+     }
+   };
+
+The following example defines a portable task with variants for ``exec::cpu`` and ``exec::omp``.
+The primary function template is deleted to indicate that no default implementation exists.
+This ensures that tasks cannot be launched on the architectures that are not specified.
+
+.. code-block:: cpp
+
+   struct task_variants {
+     template<class S>
+     static void task(S, /* ... */ ) noexcept = delete;
+   };
+
+   // CPU variant
+   template<>
+   void task_variants::task(exec::cpu c, /* ... */ ) noexcept {
+     /* CPU-specific implementation */
+   }
+
+   // OpenMP variant
+   template<>
+   void task_variants::task(exec::omp c, /* ... */ ) noexcept {
+     /* OpenMP-specific implementation */
+   }
+
+Portable tasks are launched through the scheduler in the same way as other tasks.
+FleCSI automatically uses the variant for the execution space where the task runs.
+
+.. code-block:: cpp
+
+   flecsi::scheduler & s = cp.scheduler();
+   s.execute<task_variants>(exec::on, /* ... */ );
+
+Given the previous declaration, this call to ``execute`` will not attempt to use ``exec::gpu``.
+
 MPI Tasks
 +++++++++
 
