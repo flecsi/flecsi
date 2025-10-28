@@ -25,7 +25,7 @@ This example demonstrates a minimal use of FleCSI that just executes an
 action to print out *Hello World*. Code for this example can be found in
 *tutorial/1-runtime/1-minimal.cc*.
 
-.. literalinclude:: ../../../../tutorial/1-runtime/1-minimal.cc
+.. literalinclude:: ../../../tutorial/1-runtime/1-minimal.cc
   :language: cpp
 
 ----
@@ -99,7 +99,7 @@ Declaring Options
 Let's consider the first *Car Options* option: ``--level``. To declare
 this option, we use the following declaration:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
+.. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
   :start-at: // Add an integer-valued command-line option with a default value
   :end-before: // Add a string-valued command-line option with a default value
@@ -143,7 +143,7 @@ parameters:
 The next option ``--transmission`` is similar but uses a ``std::string``
 value type:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
+.. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
   :start-at: // Add a string-valued command-line option with a default value
   :end-before: // Add an option that defines an implicit value.
@@ -154,7 +154,7 @@ std::string) the default value is also a string.
 The last option in the "Car Options" section ``--child-seat``
 demonstrates the use of flecsi::option_implicit:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
+.. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
   :start-at: // Add an option that defines an implicit value.
   :end-before: // Add a an option to a different section,
@@ -177,7 +177,7 @@ The first option in the *Ride Options* section ``--purpose`` takes an
 integer value *0* or *1*. This option is declared with the following
 code:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
+.. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
   :start-at: // Add a an option to a different section,
   :end-before: // Add an option with no default.
@@ -192,7 +192,7 @@ an implicit value and zero values (meaning that it takes no values). The
 the flag is passed.  This will be useful to demonstrate how we can check
 whether or not an option was passed in the next section:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
+.. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
   :start-at: // Add an option with no default.
   :end-before: // Add a positional option. 
@@ -200,7 +200,7 @@ whether or not an option was passed in the next section:
 The final option in this example is a positional option: i.e., it is an
 argument to the program itself.
 
-.. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
+.. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
   :start-at: // Add a positional option. 
   :end-before: // User-defined program options are available after
@@ -220,7 +220,7 @@ line and on its default and implicit values.
 
 Options that have a default value defined do not need to be tested:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
+.. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
   :start-at: // Add cost for trim level.
   :end-before: // Add cost for lightspeed.
@@ -231,7 +231,7 @@ Here, we simply need to access the value of the option using the
 For options with no default value, we can check whether or not the
 option has a value using the *has_value()* method:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
+.. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
   :start-at: // Add cost for lightspeed.
   :end-before: // Do something with the positional argument.
@@ -239,14 +239,14 @@ option has a value using the *has_value()* method:
 Our one positional option works like the defaulted options (because it
 is required) and can be accessed using the *value()* method:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
+.. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
   :start-at: // Do something with the positional argument.
   :end-at: price *= passengers * 1.10 * price;
 
 Here is the full source for this tutorial example:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
+.. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
 
 ----
@@ -285,7 +285,7 @@ one output stream.
 This should be done after a ``flecsi::runtime`` has been created and before calling ``control`` on it.
 Consider the main function for this example:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
+.. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
   :start-after: // simulation
   :end-at: } // main
@@ -294,7 +294,7 @@ The first output stream added is `std::clog`__.
 
 __ https://en.cppreference.com/w/cpp/io/clog
 
-.. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
+.. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
   :start-at: // Add the standard log descriptor to FLOG's buffers.
   :end-at: log::add_output_stream("clog", std::clog, true);
@@ -315,7 +315,7 @@ The arguments to add_output_stream are:
 
 To add an output stream to a file, we can do the following:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
+.. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
   :start-at: // Add an output file to FLOG's buffers.
   :end-at: log::add_output_stream("log file", log_file);
@@ -347,7 +347,7 @@ section).
 The following code from this example shows some trivial usage of each of
 the basic output objects:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
+.. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
   :start-at: // This output will always be generated because
   :end-at: flog(error) << "Error level output" << std::endl;
@@ -396,7 +396,7 @@ development focus.
 
 To create a new tag, we use the flog::tag type:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
+.. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
   :start-at: // Create some tags to control output.
   :end-at: log::tag tag2("tag2");
@@ -412,21 +412,21 @@ Once you have declared a tag, it can be used to limit output to one or
 more *scoped* regions. The following code defines a guarded section of
 output that will only be generated if *tag1* is enabled:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
+.. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
   :start-at: 'tag1'
   :end-at: } // scope
 
 Here is another code example that defines a guarded section for *tag2*:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
+.. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
   :start-at: 'tag2'
   :end-at: } // scope
 
 This example defines a command-line option to select a tag to enable:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
+.. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
   :start-at: program_option
   :end-at: ;
@@ -573,14 +573,14 @@ annotations using the `caliper query language <http://software.llnl.gov/Caliper/
 Scope guards are used to annotate a code region.
 Consider the main function for this example:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
+.. literalinclude:: ../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
   :start-after: // main
   :end-at: } // main
 
 A scope guard is used to annotate the ``control`` call:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
+.. literalinclude:: ../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
   :start-at: (annotation
   :end-at: run.control
@@ -590,7 +590,7 @@ specified along with a detail level of ``annnotation::detail::low``.
 To avoid hard coding strings throughout an application, annotation regions can be
 specified using structs that inherit from ``annotation::region``:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
+.. literalinclude:: ../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
   :start-at: struct user_execution : annotation::context<user_execution> {
   :end-before: void
@@ -601,12 +601,12 @@ regions are then defined using this context.  The first two regions use the
 default detail level of ``annotation::detail::medium``.
 The main and sleeper functions are then annotated using region-based scope guards:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
+.. literalinclude:: ../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
   :start-at: annotation::rguard<main_region> main_guard;
   :end-at: annotation::rguard<main_region> main_guard;
 
-.. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
+.. literalinclude:: ../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
   :start-at: annotation::rguard<sleeper_subtask>(),
   :end-at: std::this_thread::sleep_for(std::chrono::milliseconds(400));
@@ -618,7 +618,7 @@ Generating Reports
 configure caliper to generate reports for annotated regions of the code.  For
 example, consider the following caliper configuration file:
 
-.. literalinclude:: ../../../../tutorial/1-runtime/caliper.config
+.. literalinclude:: ../../../tutorial/1-runtime/caliper.config
   :language: bash
 
 This file defines three caliper configuration profiles that can be used to

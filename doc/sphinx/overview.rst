@@ -14,11 +14,11 @@ The FleCSI documentation is structured as follows:
 * :doc:`tutorial`.
   The tutorial teaches FleCSI's core concepts through a sequence of annotated examples and associated discussion.
   All tutorial examples are provided in the FleCSI source distribution and can be compiled and run.
-* :doc:`user-guide`.
+* :doc:`user`.
   The user guide delves into more depth on the FleCSI programming model.
 * :doc:`api`.
   This section provides links to the Doxygen-generated API documentation, both the public API intended for use by application and specialization developers and the internal API needed only by FleCSI core developers.
-* :doc:`developer-guide`.
+* :doc:`developer`.
   The Developer Guide is meaningful only to FleCSI core developers.
   It describes how FleCSI is implemented and provides guidance on modifying, managing, and releasing FleCSI itself.
 

@@ -60,7 +60,7 @@ Preliminaries
 
 Here's a simple ``CMakeLists.txt`` file for building FLAXPY:
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/CMakeLists.txt
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/CMakeLists.txt
    :language: cpp
    :start-at: cmake_minimum
    :end-at: target_link
@@ -69,7 +69,7 @@ FLAXPY is implemented as a single file, ``flaxpy.cc``.  We begin by
 including the header files needed to access the data model, execution
 model, and other FleCSI components:
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-at: #include
    :end-at: /run
@@ -84,7 +84,7 @@ other source files—of which there are none in this simple
 example—could import.  ``vector_length`` will be used at run time to
 access the vector length.
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-at: larger program
    :end-at: ;
@@ -123,7 +123,7 @@ The following helper function, still within the ``flaxpy`` namespace,
 handles mapping ``vector_length`` number of indices (see
 `Preliminaries`_ above) onto a given number of colors:
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-at: equal_map
    :end-at: // Define
@@ -132,7 +132,7 @@ Given that helper function, constructing a specialization of ``user``
 is trivial.  FLAXPY names its specialization (still within the
 ``flaxpy`` namespace) ``dist_vector``:
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-at: struct dist_vector
    :end-at: };
@@ -152,7 +152,7 @@ added outside of the ``flaxpy`` namespace, in an anonymous namespace.
 contents are meaningful only locally and not needed by the rest of the
 application.
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-at: For clarity
    :end-at: definition
@@ -205,7 +205,7 @@ FLAXPY defines three control points: ``initialize``, ``mul_add``, and
 ``finalize``.  These are introduced via an enumerated type, which
 FLAXPY calls ``cp`` and defines within the ``flaxpy`` namespace:
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-at: enum class cp
    :end-at: cp
@@ -214,7 +214,7 @@ FleCSI expects to be able to convert a ``cp`` to a string by
 dereferencing it.  This requires overloading the ``*`` operator as
 follows, still within the ``flaxpy`` namespace:
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-at: inline const char *
    :end-before: // Define
@@ -230,7 +230,7 @@ then ``mul_add``,
 and lastly ``finalize``.
 It also defines a topology pointer to hold the field data:
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-at: control_base
    :end-before: // Define
@@ -238,7 +238,7 @@ It also defines a topology pointer to hold the field data:
 The preceding ``control_policy`` class is used to define a fully
 qualified control type that implements the control policy:
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-at: run::control<
    :end-at: <
@@ -253,7 +253,7 @@ action with the ``initialize`` control point, the ``mul_add_action``
 action with the ``mul_add`` control point, and the
 ``finalize_action`` action with the ``finalize`` control point:
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-at: control::action
    :end-at: fin;
@@ -270,7 +270,7 @@ the action launches an ``initialize_vectors_task`` task,
 granting each constituent point task access to a subset of *X* and *Y*
 via the ``x_field`` and ``y_field`` fields declared in `Data structures`_.
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-after: for the initialize
    :end-at: }
@@ -279,7 +279,7 @@ The ``mul_add_action`` action spawns ``mul_add_task`` tasks,
 passing then a scalar constant *a* directly and access to a subset of
 *X* and *Y* via ``x_field`` and ``y_field``:
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-after: for the mul_add
    :end-at: }
@@ -292,7 +292,7 @@ two actions.  ``finalize_action`` uses the FleCSI logging facility,
 FLOG, to output the sum.  Finally, the function deallocates the memory
 previously allocated by ``initialize_action``.
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-after: for the finalize
    :end-at: }
@@ -330,7 +330,7 @@ FLAXPY uses FleCSI's ``forall`` macro to locally parallelize
 the initialization of *Y*.
 (This example works with thread parallelism but not on a GPU, since one field would be accessed on the host and the other on the device.)
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-after: that initializes
    :end-before: for the initialize
@@ -343,7 +343,7 @@ The task then computes
 *Y*\ [*i*] ← *a*\ ⋅\ *X*\ [*i*] + *Y*\ [*i*]
 over its subset of the distributed *X* and *Y* vectors.
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-after: that assigns
    :end-at: }
@@ -355,7 +355,7 @@ and uses FleCSI's ``reduceall`` macro to locally parallelize
 (e.g., using thread parallelism)
 the summation.
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-after: that adds up
    :end-before: for the finalize
@@ -369,7 +369,7 @@ largely boilerplate.  It initializes FleCSI, executes the FLAXPY code
 according to the control flow defined above in `Control flow`_, and
 finalizes FleCSI.
 
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+.. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-after: main program
 

@@ -27,7 +27,7 @@ Every execution space has an ``executor`` that implements its parallelism (if an
    With the MPI backend, running one process per node with ``toc`` tasks or one
    process per core with ``omp`` tasks likely leads to poor performance.
 
-.. literalinclude:: ../../../../tutorial/5-parallel/1-forall.cc
+.. literalinclude:: ../../../tutorial/5-parallel/1-forall.cc
   :language: cpp
 
 Example 2: reduceall
@@ -42,7 +42,7 @@ For syntactic reasons, the function template is wrapped in a ``struct``; it is a
 Note that, to let FleCSI select which specializations to instantiate, the definition of the function template must be available when the task is launched (rather than being defined in another source file).
 The application can influence that choice: here, the ``gpu`` execution space is taken to be undesirable and is disabled by deleting its template specialization.
 
-.. literalinclude:: ../../../../tutorial/5-parallel/2-reduceall.cc
+.. literalinclude:: ../../../tutorial/5-parallel/2-reduceall.cc
   :language: cpp
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

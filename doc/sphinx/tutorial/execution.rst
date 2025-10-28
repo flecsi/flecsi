@@ -34,7 +34,7 @@ data-parallel operation, potentially across many processes.
 The ``trivial`` task is an example of a ``single`` task.
 Consider the following from ``tutorial/3-execution/1-single-task.cc``:
 
-.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
+.. literalinclude:: ../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
   :start-at: // Trivial task (no arguments, no return).
   :end-at: }
@@ -42,21 +42,21 @@ Consider the following from ``tutorial/3-execution/1-single-task.cc``:
 Since they are not invoked directly, tasks cannot throw exceptions and must be declared ``noexcept``.
 Execution of the task is a trivial use of the ``scheduler`` provided to the action:
 
-.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
+.. literalinclude:: ../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
   :start-at: // Execute a trivial task.
   :end-at: execute<trivial>();
 
 A single task can return a value:
 
-.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
+.. literalinclude:: ../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
   :start-at: // Task with return value.
   :end-at: }
 
 The return value can be retrieved with a ``future``:
 
-.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
+.. literalinclude:: ../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
   :start-at: // A future is
   :end-at: } // scope
@@ -68,28 +68,28 @@ e.g., a ``std::vector``:
 
     Because they run asynchronously and not necessarily the same number of times as their callers, normal tasks cannot accept pointers or references to non-const types.
 
-.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
+.. literalinclude:: ../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
   :start-at: non-trivial parameter
   :end-at: } //
 
 Execution of such a task is what you would expect:
 
-.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
+.. literalinclude:: ../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
   :start-at: non-trivial argument
   :end-at: } // scope
 
 FleCSI tasks can also be templated:
 
-.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
+.. literalinclude:: ../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
   :start-at: template<typename Type>
   :end-at: } // template
 
 Again, execution is straightforward:
 
-.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
+.. literalinclude:: ../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
   :start-at: // Execute a templated task.
   :end-at: } // scope
@@ -104,7 +104,7 @@ the ``launch_domain`` argument; the task must declare a parameter for it, but it
 To receive information about the task launch, a task can declare an `execution space` parameter; the task launch provides the dummy value ``exec::on`` to initialize it.
 An execution space parameter also controls where the task runs; ``exec::cpu`` is the default, but others will be used later.
 
-.. literalinclude:: ../../../../tutorial/3-execution/2-index-task.cc
+.. literalinclude:: ../../../tutorial/3-execution/2-index-task.cc
   :language: cpp
   :start-at: // Task with special arguments.
   :end-at: // advance()
@@ -130,7 +130,7 @@ should only be used when one needs to call MPI library.
 To execute an MPI task, ``flecsi::execute`` must be used, with its second template argument set to ``mpi``.
 The ``launch`` information provided is equivalent to ``process`` and ``processes``.
 
-.. literalinclude:: ../../../../tutorial/3-execution/3-mpi-task.cc
+.. literalinclude:: ../../../tutorial/3-execution/3-mpi-task.cc
   :language: cpp
   :start-at: // Task with no arguments.
   :end-at: // advance()

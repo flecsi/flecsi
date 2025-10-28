@@ -116,7 +116,7 @@ FleCSI supports reductions through the ``reduce`` function, which combines resul
 
 The future provides the sum of the values returned by all point tasks.
 FleCSI provides several built-in reduction folds, including `min`, `max`, `sum`, and `product`.
-Users can define custom folds by implementing `a structure <../../api/user/structflecsi_1_1exec_1_1fold_1_1reduce.html>`_ with ``combine`` and ``identity`` methods.
+Users can define custom folds by implementing `a structure <../api/user/structflecsi_1_1exec_1_1fold_1_1reduce.html>`_ with ``combine`` and ``identity`` methods.
 The reduction types can use a specific type or provide a function template.
 
 .. _portable_tasks:

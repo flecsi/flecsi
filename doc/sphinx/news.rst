@@ -335,7 +335,7 @@ New features
 * Build
 
   * ``flecsi/config.hh`` provides information about the build of FleCSI in use.
-  * A :doc:`CMake utility library <user-guide/cmake>` is provided.  (This was added without a release note in 2.2.0.)
+  * A :doc:`CMake utility library <user/cmake>` is provided.  (This was added without a release note in 2.2.0.)
   * ``flecsi_add_target_test`` is a CMake function to define tests using existing targets.
   * ``flecsi_add_test`` can use a launcher command to wrap the test execution.
 
@@ -374,7 +374,7 @@ New features
 
 * Legion backend
 
-  * Task names are now shortened for better usability in Legion profiling tools. See :doc:`user-guide/profiling` for details.
+  * Task names are now shortened for better usability in Legion profiling tools. See :doc:`user/profiling` for details.
 
 * Utilities
 

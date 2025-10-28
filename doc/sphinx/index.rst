@@ -52,13 +52,13 @@ Introduction
 .. toctree::
   :caption: Contents:
 
-  src/overview
-  src/build
-  src/tutorial
-  src/user-guide
-  src/api
-  src/developer-guide
-  src/team
+  overview
+  build
+  tutorial
+  user
+  api
+  developer
+  team
 
 .. Not sure exactly why, but this seems to do what I want at the
    bottom of the page...

@@ -52,7 +52,7 @@ namespace topo {
 /// After these calls the N-Tree is ready to be used and the neighbors are
 /// computed/available.
 /// \tparam Policy the specialization, following \ref ntree_specialization
-/// \see [The N-Tree tutorial](../../src/tutorial/ntree.html)
+/// \see [The N-Tree tutorial](../../tutorial/ntree.html)
 template<typename Policy>
 struct topology<Policy, ntree_base> : ntree_base, with_meta<Policy> {
 

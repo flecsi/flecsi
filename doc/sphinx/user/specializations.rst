@@ -48,8 +48,8 @@ Common interfaces include producing ranges of all index points or those of a par
 Utilities
 +++++++++
 Specializations are defined by inheriting from the ``topo::specialization`` class template, naming the topology category and the specialization being defined.
-For convenience, this base class `provides <../../api/user/structflecsi_1_1topo_1_1specialization.html>`__ several helpful type aliases and defaults for many of the customizable options.
+For convenience, this base class `provides <../api/user/structflecsi_1_1topo_1_1specialization.html>`__ several helpful type aliases and defaults for many of the customizable options.
 
-Additional `class and function templates <../../api/user/group__topology.html>`__ are provided to assist in writing specializations.
+Additional `class and function templates <../api/user/group__topology.html>`__ are provided to assist in writing specializations.
 The class template ``topo::id`` exists to help prevent mistakes such as using a cell ID as if it were a vertex ID.
 ``topo::make_ids`` is a convenience function template to convert a range of ordinary integers into a range of ``id`` objects.

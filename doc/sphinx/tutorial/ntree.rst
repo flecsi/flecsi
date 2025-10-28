@@ -64,7 +64,7 @@ N-Tree Setup and Fields
 
 The N-Tree setup happens in ``initialize_action``:
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+.. literalinclude:: ../../../tutorial/6-topology/ntree.cc
   :language: cpp
   :start-at: const int nents = sph::n_entities.value();
   :end-at: sph_ntree_t::build_ntree
@@ -75,7 +75,7 @@ The coloring ``sph_ntree_t::mpi_coloring`` is constructed internally via the ``c
 Before generating the N-Tree data structure, we must populate the different user-defined fields.
 These fields are defined at the top of the ``ntree.cc`` file:
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+.. literalinclude:: ../../../tutorial/6-topology/ntree.cc
   :language: cpp
   :start-at: const field<double>::definition<sph_ntree_t> density, pressure, energy,
   :end-at: const field<bool>::definition<sph_ntree_t> is_wall;
@@ -90,7 +90,7 @@ The fields are added to the collection of fields that are already provided on th
 These specific fields, tied to the N-Tree topology and vital for its operation, can be accessed through the topology accessor.
 The task ``init_sodtube_task`` shows the access to both this topology accessor and the accessors to the different fields added by the user. We are passing all the fields to a function handled by the physics part of the tutorial in the file ``sph_physics.hh`` called via ``sph::init_physics``.
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+.. literalinclude:: ../../../tutorial/6-topology/ntree.cc
   :language: cpp
   :start-at: // init_sodtube_task
   :end-at: } // init_sodtube_task
@@ -118,7 +118,7 @@ The N-Tree features several ways to access entities/nodes and their neighbors. T
 
 These different methods are illustrated in the different tasks/functions present inside the ``sph_physics.hh`` file. A good example is the computation of the density:
 
-.. literalinclude:: ../../../../tutorial/6-topology/sph_physics.hh
+.. literalinclude:: ../../../tutorial/6-topology/sph_physics.hh
   :language: cpp
   :start-at: // Compute density
   :end-at: } // density
@@ -138,7 +138,7 @@ The specialization is presented in the structure ``sph_ntree_t`` in the file ``n
 This part is out of the scope of what is needed for a user and is dedicated to specialization developers.
 This N-Tree specialization for SPH specifies the mandatory options of the N-tree:
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree_sph.hh
+.. literalinclude:: ../../../tutorial/6-topology/ntree_sph.hh
   :language: cpp
   :start-at: //-------------------- Base policy inputs --------------------- //
   :end-before: using index_space = base::index_space;
@@ -153,7 +153,7 @@ One of the features of the N-Tree is to compute neighboring entities. To compute
 
 To compute the interactions, the user provides the data structure with the minimum information needed for both the nodes and the entities:
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree_sph.hh
+.. literalinclude:: ../../../tutorial/6-topology/ntree_sph.hh
   :language: cpp
   :start-at: struct node_data {
   :end-at: }; // struct entity_data
@@ -161,7 +161,7 @@ To compute the interactions, the user provides the data structure with the minim
 The interaction function(s) will compute node-entity, entity-entity, and node-node interactions.
 In this example all the interactions are computed the same way, and are represented in the ``intersect`` function. This templated function returns ``true`` if there is an interaction, i.e. the spheres representing the node(s) or entity(ies) are overlapping.
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree_sph.hh
+.. literalinclude:: ../../../tutorial/6-topology/ntree_sph.hh
   :language: cpp
   :start-at: template<typename T1, typename T2>
   :end-at: } // intersect
@@ -172,7 +172,7 @@ Coloring
 The current version of the N-Tree restricts users to only one-color-to-one-process match.
 The initial particle distribution is described in the ``color`` function of the specialization:
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree_sph.hh
+.. literalinclude:: ../../../tutorial/6-topology/ntree_sph.hh
   :language: cpp
   :start-at: // N-Tree coloring
   :end-at: } // color
@@ -188,14 +188,14 @@ Tree generation and reset
 The structure of the N-Tree is created by the ``initialize`` function.
 It launches ``init_fields`` as an MPI task to allow access to data not stored in FleCSI fields (here, just the ``offsets`` that are managed by the current process):
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree_sph.hh
+.. literalinclude:: ../../../tutorial/6-topology/ntree_sph.hh
   :language: cpp
   :start-at: void initialize
   :end-before: build_ntree
 
 It uses a launch map to support initializing a topology with a number of colors other than the number of point tasks (which must be equal to the number of processes for an MPI task).
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree_sph.hh
+.. literalinclude:: ../../../tutorial/6-topology/ntree_sph.hh
   :language: cpp
   :start-at: void init_fields
   :end-at: } // init_fields
@@ -209,7 +209,7 @@ To use the N-Tree efficiently, we reset the N-Tree and re-generate the data stru
 
 These two functions are using a similar helper method ``generate_ntree``:
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree_sph.hh
+.. literalinclude:: ../../../tutorial/6-topology/ntree_sph.hh
   :language: cpp
   :start-at: // Compute the range of the domain, the keys for each entities and generate
   :end-at: } // generate_ntree
@@ -230,40 +230,40 @@ Solver
 The simulation repeatedly invokes actions to advance the simulation state and write output from it.
 The former launches several related tasks:
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+.. literalinclude:: ../../../tutorial/6-topology/ntree.cc
   :language: cpp
   :start-after: // The cycle
   :end-at: }
 
 The permissions of the accessors used by these tasks determine the communication structure of the iteration:
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+.. literalinclude:: ../../../tutorial/6-topology/ntree.cc
   :language: cpp
   :start-at: density_task
   :end-at: {
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+.. literalinclude:: ../../../tutorial/6-topology/ntree.cc
   :language: cpp
   :start-at: eos_task
   :end-at: {
 
 ``eos_task`` can run as soon as ``density_task`` completes, without an intervening ghost copy for ``rho``, because it does not read the ghost elements.
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+.. literalinclude:: ../../../tutorial/6-topology/ntree.cc
   :language: cpp
   :start-at: acceleration_task
   :end-at: {
 
 That ghost copy, as well as the one for ``p``, must however take place before ``acceleration_task`` can execute, since it reads the ghosts for both.
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+.. literalinclude:: ../../../tutorial/6-topology/ntree.cc
   :language: cpp
   :start-at: dudt_task
   :end-at: {
 
 ``dudt_task`` reads the ghosts for ``rho`` and ``p`` again, but no second copy is needed since no writes have taken place since the first.
 
-.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+.. literalinclude:: ../../../tutorial/6-topology/ntree.cc
   :language: cpp
   :start-at: advance_task
   :end-at: {

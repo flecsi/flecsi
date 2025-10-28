@@ -22,7 +22,7 @@ Build system
 The build system uses standard CMake and is entirely defined in
 CMakeLists.txt:
 
-.. literalinclude:: ../../../../tutorial/standalone/poisson/CMakeLists.txt
+.. literalinclude:: ../../../tutorial/standalone/poisson/CMakeLists.txt
    :language: cmake
 
 To prepare this file for your project, you should do the following:
@@ -58,7 +58,7 @@ The *main* function for this example is located in ``poisson.cc``.
 Unless you need to initialize additional runtimes that are not handled
 internally by FleCSI, you can likely use this file as is (with a different namespace name).
 
-.. literalinclude:: ../../../../tutorial/standalone/poisson/app/poisson.cc
+.. literalinclude:: ../../../tutorial/standalone/poisson/app/poisson.cc
    :language: cpp
 
 Building the Poisson application

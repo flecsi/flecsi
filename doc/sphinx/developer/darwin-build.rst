@@ -59,5 +59,5 @@ the script is intended to be run on the Darwin cluster, it should not
 be too hard to adapt it to other systems or even simply use the script
 as a reference for the commands needed to get FleCSI up and running.
 
-.. literalinclude:: ../../../../tools/darwin.sh
+.. literalinclude:: ../../../tools/darwin.sh
   :language: bash

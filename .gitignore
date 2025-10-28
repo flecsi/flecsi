@@ -8,8 +8,8 @@
 *.pyc
 
 # exclude generated images appearing in the documentation
-doc/sphinx/src/tutorial/images/*.svg
-doc/sphinx/src/user-guide/tikz/*.log
-doc/sphinx/src/user-guide/tikz/*.pdf
-doc/sphinx/src/user-guide/tikz/*.aux
-doc/sphinx/src/user-guide/tikz/*.png
+/doc/sphinx/tutorial/images/*.svg
+/doc/sphinx/user/tikz/*.log
+/doc/sphinx/user/tikz/*.pdf
+/doc/sphinx/user/tikz/*.aux
+/doc/sphinx/user/tikz/*.png
