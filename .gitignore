@@ -9,6 +9,9 @@
 
 # exclude generated images appearing in the documentation
 /doc/sphinx/tutorial/images/*.svg
+/doc/sphinx/user/images/overview.svg
+/doc/sphinx/user/images/sequential.svg
+/doc/sphinx/user/images/extension.svg
 /doc/sphinx/user/tikz/*.log
 /doc/sphinx/user/tikz/*.pdf
 /doc/sphinx/user/tikz/*.aux

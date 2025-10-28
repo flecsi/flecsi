@@ -5,6 +5,7 @@ User Guide
   :caption: User Guide:
 
   user/programming
+  user/control
   user/data
   user/topologies
   user/execution
