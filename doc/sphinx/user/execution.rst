@@ -62,12 +62,6 @@ For example, if all fields share the same type, a ``std::vector`` can be used to
    void bar(flecsi::exec::cpu e,
      std::vector<flecsi::field<double>::accessor<ro, ro>> fv1) noexcept { /* ... */ }
 
-The corresponding invocation might look like:
-
-.. code-block:: c++
-
-   s.execute<bar>(flecsi::exec::on, std::vector{fr1, fr2, fr3});
-
 Caller Side
 ^^^^^^^^^^^
 
@@ -82,6 +76,12 @@ The first argument, ``flecsi::exec::on``, represents the execution space (when o
 
 The subsequent arguments, ``fr1`` and ``fr2``, are field references passed into the task.
 These field references act as logical handles to the underlying data.
+
+Compound parameters use corresponding compound arguments:
+
+.. code-block:: c++
+
+   s.execute<bar>(flecsi::exec::on, std::vector{fr1, fr2, fr3});
 
 .. _future:
 
