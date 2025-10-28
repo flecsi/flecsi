@@ -185,11 +185,21 @@
 \draw[decorate,align=left,
       decoration={brace, amplitude=8pt},
       line width=1pt]
+      (\BracketX, 0) --
+      (\BracketX, -0.8)
+      node[midway, right=12pt]
+      {\large Runtime Model:\\
+        - \texttt{main}};
+
+
+\draw[decorate,align=left,
+      decoration={brace, amplitude=8pt},
+      line width=1pt]
       (\BracketX, -1) --
       (\BracketX, -5)
       node[midway, right=12pt]
       {\large Control Model:\\
-        - Main, Control Points, Actions\\
+        - Control Points, Actions\\
         - $process$};
 
 \draw[decorate,align=left,
