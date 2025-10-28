@@ -30,7 +30,9 @@ Tasks
 A task in FleCSI serves as the bridge between two core parts of the execution model.
 On the caller side, each `process` executes its own copy of the ``main`` function and the associated control model.
 
-After all processes collectively launch a task, its function then executes, typically several times concurrently.
+After all processes collectively launch a task, its function is then called in a number of `task instances`.
+In certain special cases (determined by the task argument types), a `single launch` occurs with just one task instance (total, not per process).
+In the typical case, several task instances execute concurrently as an `index launch`.
 Each of these executions is referred to as a `point task`; their number does not necessarily match the number of processes, and they can run on any process.
 This allows FleCSI to support flexible and scalable task-parallel execution.
 
