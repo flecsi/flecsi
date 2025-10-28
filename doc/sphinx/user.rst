@@ -4,7 +4,6 @@ User Guide
 .. toctree::
   :caption: User Guide:
 
-  user/programming
   user/control
   user/data
   user/topologies
@@ -12,8 +11,9 @@ User Guide
   user/kernels
   user/specializations
   user/utilities
+  user/cmake
+  user/programming
   user/performance
   user/profiling
-  user/cmake
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
