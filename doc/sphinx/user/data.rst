@@ -325,6 +325,7 @@ Multi-color accessors
 In addition to ghost elements, the Legion backend provides `launch maps` as another mechanism for accessing another color's data in a point task.
 They explicitly nominate one or more colors to be processed by each point task, so they can permute colors as well as duplicating them (for read-only access) or omitting them.
 Accessors, mutators, or topology accessors (discussed later) can be wrapped in a ``data::multi`` task parameter; the launch map takes the place of the underlying topology in the task argument (*e.g.*, in forming a field reference).
+The ``data::multi`` parameter provides each point task the list of colors selected for it and an accessor for each.
 A task can accept multiple multi-color accessors as well as ordinary accessors (relative to which any permutation is meaningful).
 
 .. note::
