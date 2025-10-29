@@ -244,7 +244,7 @@ Certain implementations of ``send`` may themselves execute tasks to prepare fiel
 Common portions of the argument and parameter handling are defined in ``params.hh``.
 The undefined primary template for ``future`` is declared in ``launch.hh``, along with documentation-only definitions of the single- and index-launch specializations.
 The backend-specific implementations are in ``*/future.hh``.
-``bind_accessors``, defined in ``bind_parameters.hh`` with a documentation-only template and expected to be implemented by each backend, is used by ``bind_parameters`` to complete the accessors referenced by the task's arguments.
+``bind_accessors``, defined with a documentation-only template and expected to be implemented by each backend, is used by ``bind_parameters`` to complete the accessors referenced by the task's arguments.
 
 The FleCSI bind operation that ensures that the field memory is available is delayed such that it runs only after all dependencies for the scheduled task have been satisfied.
 This also possibly schedules additional reduction operations to run after the scheduled task is finished executing but before all dependent tasks are triggered.

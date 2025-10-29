@@ -15,13 +15,14 @@ Each of the FleCSI tasks is then scheduled as an HPX task such that it will run 
 This ensures that all tasks run as early as possible and with as much concurrency as possible.
 
 Dependency tracking is implemented via a set of ``hold`` objects, which track the HPX futures and active communicators that are associated with each field.
+Communicators are also associated with each FleCSI future, which is lowered to an HPX future when it is used as an argument to a task.
 When a task has finished execution, the corresponding future is marked as "ready".
 
 As communicator creation is expensive, the HPX backend strives to reuse existing communicators.
 Whether or not a task requires a communicator—as one of its dynamic descendants might—it begins by walking the dependency DAG to prune nodes (``comms`` objects—one per task) that no longer are needed, thereby simplifying the graph for subsequent traversals.
 The task then adds a single node to the DAG, unless it has nowhere to store it.
 This node points to all direct predecessors, "pointing through" any that lack communicators to the nearest indirect predecessor that does not.
-Finally, the task stores a shared pointer to the node in appropriate fields.
+Finally, the task stores a shared pointer to the node in appropriate fields as well as in its (FleCSI) future.
 
 As a result of these graph operations, communicators effectively are moved down the DAG to the deepest point where they still can be discovered by potential users of those communicators.
 A communicator held by a task with no dependents cannot be migrated.
@@ -43,6 +44,7 @@ Once FleCSI has finished running, ``hpx::finalize``, which is a non-blocking ope
 ``flecsi::run::context_t`` manages communicators (an ``hpx::collectives::communicator`` wrapped in a ``flecsi::run::communicator``).
 Its ``p2p_comm`` method returns a (singleton) communicator for HPX peer-to-peer communication operations, and its ``world_comm`` method allocates and returns a new communicator for HPX collective operations.
 The latter maintains a generation number, incremented via ``communicator::gen``, that is used to ensure proper sequencing of communication operations invoked on the same communicator instance.
+An extra node in the communicator graph is stored in ``world_comms`` and used for operations outside of a task; it depends on futures on which an action as waited and is used as a dependency for every task launched, so futures can flow in both directions between tasks and actions.
 
 ``flecsi::run::context_t`` provides the ability to drain all currently scheduled FleCSI tasks (i.e., wait for them to finish running).
 The member function ``context_t::termination_detection`` is used by the HPX backend to create synchronization barriers for FleCSI ``mpi`` tasks.
@@ -59,8 +61,8 @@ That is, ``task_local_data`` is a per-task, type-erased map from ``task_local*``
 ``exec`` module
 +++++++++++++++
 
-``flecsi::exec::task_prologue_base``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``flecsi::exec::task_prolog_base``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This class is responsible for analyzing the access rights specified for FleCSI task arguments and generating the corresponding execution dependencies among those tasks.
 The prolog traverses the arguments of the scheduled task to perform the following operations:
@@ -85,11 +87,11 @@ The prolog traverses the arguments of the scheduled task to perform the followin
     This procedure extends the dependency DAG, ensuring that the current task will block on the completion of all tasks with conflicting access to the fields the current task declares it will access.
 
 
-A noteworthy aspect of ``flecsi::exec::task_prologue_base``\ 's implementation is that a task can run *concurrently* with the installation of its future on the fields.
+A noteworthy aspect of ``flecsi::exec::task_prolog_base``\ 's implementation is that a task can run *concurrently* with the installation of its future on the fields.
 While this ordering may seem unsafe, it is legitimized by the fact that task launches are serialized.
 As a result, the vulnerable state between dependencies being derived and the task's future being installed is in fact unobservable by a FleCSI program.
 
-``flecsi::exec::task_prologue_base`` is exposed via a template, ``task_prologue``, but the template argument (the processor type) is ignored because the HPX backend does not distinguish processor types.
+``flecsi::exec::task_prolog_base`` is exposed via a template, ``task_prolog``, but the template argument (the processor type) is ignored because the HPX backend does not distinguish processor types.
 
 ``flecsi::exec::fold::wrap``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

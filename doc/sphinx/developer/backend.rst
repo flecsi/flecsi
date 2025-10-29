@@ -30,10 +30,6 @@ For backend-developer convenience, the set of entry points is aggregated below, 
 
   * ``flecsi::data::copy_engine``
 
-* ``exec/bind_parameters.hh``
-
-  * ``flecsi::exec::bind_accessors``
-
 * ``exec/future.hh``
 
   * ``flecsi::future<R, single>`` (exposed to applications)
@@ -42,9 +38,11 @@ For backend-developer convenience, the set of entry points is aggregated below, 
 
   * ``flecsi::make_future``
 
-* ``exec/prolog.hh:``
+* ``exec/params.hh``
 
-  * ``flecsi::exec::task_prologue``
+  * ``flecsi::exec::task_prolog``
+
+  * ``flecsi::exec::bind_accessors``
 
 * ``execution.hh``
 

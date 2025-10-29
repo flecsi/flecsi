@@ -10,8 +10,8 @@ Between any two tasks, field data may be relocated to another memory space.
 Any pointer (or reference) that is or points to (any subobject of) a field element is thereby invalidated.
 A field might instead contain an index to select a value from a data structure pointed to by a task parameter.
 
-Even a ``toc`` task executes on the host, but its accessors are references to field data stored on the device.
-Those accessors are copied into the kernels launched by the task (with ``forall`` or similar), which run on the device and can thus use them.
+Even an ``exec::gpu`` task executes on the host, but its accessors are references to field data stored on the device.
+Those accessors are copied into the kernels launched by the task (with ``forall`` or similar), which do run on the nominal execution space and can thus use them.
 Certain topology information useful for launching the kernels is copied to the host automatically.
 
 Parallelism
@@ -19,14 +19,14 @@ Parallelism
 Whether or not the MPI backend is in use, a FleCSI application is an MPI program, perhaps running many times in parallel (although there is no requirement in general that that number be the same as the number of colors in any particular topology).
 The control model actions run serially on each process and must perform the same sequence of collective calls into FleCSI with the same arguments.
 (In certain cases, it is the identity rather than the value of the arguments that matters; for example, a mesh coloring might be distributed (rather than replicated) over multiple processes, but that distributed object is the same object for the purpose of initializing a topology.)
-Tasks, however, are asynchronous: ``flecsi::execute`` may return before they complete and point tasks from multiple task launches may run out of order or in parallel.
+Tasks, however, are asynchronous: ``scheduler::execute`` may return before they complete and point tasks from multiple task launches may run out of order or in parallel.
 
 The threads necessary to implement this impose the ordinary responsibility of thread safety among tasks as well as between them and the actions.
 Because the threads may be pooled, they provide only the `parallel forward progress guarantee <https://en.cppreference.com/w/cpp/language/memory_model#Parallel_forward_progress>`_ (invalidating certain collective operations).
 Because they may be implemented in user space, blocking operations provided by FleCSI (*e.g.*, ``flecsi::future::get``) may degrade the caller to be weakly parallel, with forward progress delegation provided only by other such blocking operations.
 Furthermore, thread-local storage (whose utility is already limited by the pooling) may be invalidated by such an operation.
 
-The ``flecsi::exec::parallel_`` operations (including the ``forall`` and ``reduceall`` macros) are asynchronous, but each waits on the previous such that values written by one may be read by another in the same task.
+The ``flecsi::exec::executor`` operations (including the ``forall`` and ``reduceall`` macros) are asynchronous, but each waits on the previous such that values written by one may be read by another in the same task.
 
 MPI Tasks
 +++++++++

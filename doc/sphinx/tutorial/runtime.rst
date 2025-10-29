@@ -401,9 +401,6 @@ To create a new tag, we use the flog::tag type:
   :start-at: // Create some tags to control output.
   :end-at: log::tag tag2("tag2");
 
-Tags take a single std::string argument that is used in the help message
-to identify available tags.
-
 .. important::
 
   FLOG tags must be declared at namespace scope.
