@@ -97,9 +97,9 @@ Again, execution is straightforward:
 Example 2: Index Tasks
 ++++++++++++++++++++++
 An index task launch calls a given function a number of times asynchronously, typically distributed over multiple processes; each is called a `point task`.
-The usual purpose is operating on different parts of a distributed data structure (different `colors` of a `topology`) in parallel.
+The usual purpose is operating on different parts of a distributed data structure (different `colors` of a `topology`) in parallel: if a task uses a field or topology accessor (presented later), it runs with one point task for each of the colors of the topology used.
 
-In this example we explicitly ask to call ``task`` 4 times via
+For simplicity, in this example we explicitly ask to call ``task`` 4 times via
 the ``launch_domain`` argument; the task must declare a parameter for it, but it need not be named or used.
 To receive information about the task launch, a task can declare an `execution space` parameter; the task launch provides the dummy value ``exec::on`` to initialize it.
 An execution space parameter also controls where the task runs; ``exec::cpu`` is the default, but others will be used later.
@@ -108,16 +108,6 @@ An execution space parameter also controls where the task runs; ``exec::cpu`` is
   :language: cpp
   :start-at: // Task with special arguments.
   :end-at: // advance()
-
-Launch Domains
-^^^^^^^^^^^^^^
-
-Launch domain (``exec::launch_domain``) is used to define how many index
-points an index task should have. If no ``launch_domain`` is passed to the
-``execute`` method, the default will be used.
-If the task uses a field or topology accessor, the default is the number of colors of the topology used.
-If no argument indicates a number, the default is to launch a single task.
-
 
 Example 3: MPI Tasks
 ++++++++++++++++++++
