@@ -26,6 +26,9 @@ is natural to use the ``data::single`` layout.
 To create a topology instance, declare a variable of type ``topology`` initialized with a scheduler and an argument appropriate to the topology called a `coloring`.
 In general, a coloring describes the structure of a topology and its distribution among colors.
 The global topology is a special case that does not actually use colors; its "coloring" is simply a count of values for each field.
+
+One can access the field inside of the FleCSI task by passing
+topology and field accessors with `access permissions` (wo/rw/ro).  
 Writing to a global field requires a single task launch.
 
 .. literalinclude:: ../../../tutorial/4-data/1-global.cc
@@ -58,8 +61,6 @@ this example we allocate a ``pressure`` field on the ``cells`` index space of th
   :start-at: const field<double>::definition<canon, canon::cells> pressure;
   :end-at: const field<double>::definition<canon, canon::cells> pressure;
 
-One can access the field inside of the FleCSI task by passing
-topology and field accessors with `access permissions` (wo/rw/ro).  
 The ``canonical`` topology is a very simple specialization of the ``unstructured`` topology category without ghost copy support.
 (Privileges for fields with ghosts are specified as :samp:`<{owned}, {ghost}>` or :samp:`<{exclusive}, {shared}, {ghost}>`, depending on the topology.)
 It illustrates the use of the ``mpi_coloring`` type, which applies a specialization-defined rule for specifying a coloring.
