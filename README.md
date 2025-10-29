@@ -8,8 +8,7 @@ general set of infrastructure design patterns that can be specialized
 and extended to suit the needs of a broad variety of solver and data
 requirements. FleCSI currently supports multi-dimensional mesh topology,
 geometry, and adjacency information, as well as n-dimensional
-hashed-tree data structures, graph partitioning interfaces, and
-dependency closures.
+hashed-tree data structures.
 
 FleCSI introduces a functional programming model with control,
 execution, and data abstractions that are consistent both with MPI and
@@ -25,9 +24,9 @@ to future architectures and runtimes.
 
 FleCSI's control and execution models provide formal nomenclature
 for describing poorly defined concepts such as kernels and tasks.
-FleCSI's data model provides a low-buy-in approach that makes it an
-attractive option for many application projects, as developers are
-not locked into particular layouts or data structure representations.
+FleCSI's data model supports extensible sets of physical fields using
+several data structures with automatic data movement between neighbors
+and to and from GPUs.
 
 # Documentation
 
