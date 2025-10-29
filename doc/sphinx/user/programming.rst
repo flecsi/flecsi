@@ -32,9 +32,12 @@ MPI Tasks
 +++++++++
 The execution of ``mpi`` tasks (regardless of backend) is more predictable than that of normal tasks:
 
-#. Because they always run one point task in each process, with access to the color corresponding to its MPI rank, no data relocation is needed between two MPI tasks.
+#. Because they always run one point task in each process, it is meaningful for different callers to provide different argument values.
+#. Because each point task has access to the color corresponding to its MPI rank, no data relocation is needed between two MPI tasks.
    Therefore, fields used *only* by MPI tasks may use non-trivial data types (although resizing the field can still invalidate pointers).
 #. Because they additionally run synchronously, their parameters may be references or pointers to non-const objects.
 #. Because additionally no other point tasks are executed concurrently with them, they can access global data without race conditions.
 #. The resulting concurrent forward progress guarantee makes it valid for them to perform MPI communication (including via ``MPI_COMM_WORLD``).
    (Their field data is stored on the host and thus may be accessed directly by MPI.)
+
+However, their return values are processed in the normal fashion and must be trivially relocatable.
