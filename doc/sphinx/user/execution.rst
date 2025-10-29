@@ -100,14 +100,19 @@ This asynchronous behavior allows for flexible execution ordering.
 
    int toto() noexcept { return 10; }
    // ...
-   auto future = s.execute<toto>();
+   flecsi::future<int> future = s.execute<toto>();
    int value = future.get();
 
 The ``get`` function blocks until the associated task completes and returns the resolved value of the future.
 Another function, ``wait``, can be used to pause execution until the future is resolved.
+Note that these can involve communication: ``toto`` is launched as a single task, but its return value is (and must be) accessed by the caller for every processes.
 
-.. warning::
-   The incorrect usage of futures can create some :doc:`performance` bottlenecks.
+Having an action wait on a future's value can cause :doc:`performance` problems; the alternative is declare a task parameter as a future.
+The task then runs only when the future provided as an argument is ready (so ``get`` but not ``wait`` is useful inside a task).
+An index launch produces an `index future` which can also be passed to a task that accepts a normal future, in which case each point task receives the value returned by one point task in the prior launch.
+
+Many tasks return ``void`` because their purpose is to compute new field values.
+Their futures can simply be discarded: tasks that use those field values will automatically be scheduled to run only afterwards.
 
 FleCSI supports reductions through the ``reduce`` function, which combines results from multiple point tasks into a single value. For instance:
 
