@@ -25,7 +25,7 @@ Most entry points are defined in files named ``policy.hh`` in a backend-specific
 
 A backend is selected at CMake configuration time by providing a value for the ``FLECSI_BACKEND`` option.
 It must be one of ``legion``, ``hpx``, or ``mpi``.
-FleCSI will define the preprocessor macro ``FLECSI_BACKEND`` as an integer ``FLECSI_BACKEND_``\ *backend* (e.g., ``FLECSI_BACKEND_legion``), which can be tested against to delineate backend-specific code.
+FleCSI will define the preprocessor macro ``FLECSI_BACKEND`` as an integer :samp:`FLECSI_BACKEND_{backend}` (e.g., ``FLECSI_BACKEND_legion``), which can be tested against to delineate backend-specific code.
 
 The reference backend uses Legion for these purposes, which imposes `stringent requirements <https://legion.stanford.edu/tutorial/hybrid.html>`_ on the application because of its implicit operation across processors and memory spaces.
 The conceit is that code (in FleCSI and its clients) that is compatible with Legion will also work with most other backends.
@@ -282,7 +282,7 @@ Its unit tests also provide examples of specializations.
 Subcomponents
 ^^^^^^^^^^^^^
 
-For constructing complex, user-facing topologies, a number of simple topologies are defined for use as subtopologies (typically as data members of type ``sub::topology``).
+For constructing complex, user-facing topologies, a number of simple topologies are defined for use as subtopologies (typically as data members of type :samp:`{sub}::topology`).
 Some of these are so trivial as to merely inherit from the appropriate specialization of ``specialization`` with an empty class body.
 The most fundamental of these is ``resize``, which holds the sizes needed to construct a nontrivial ``partition``.
 It is defined in ``size.hh`` in terms of the even lower-level ``color`` and ``column`` machinery (from ``color.hh``) that define fields with a fixed number (1 for ``column``) of values per color.

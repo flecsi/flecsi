@@ -68,7 +68,8 @@ documentation system for your own projects.
    It takes two parameters: the target name and ``GITHUB_PAGES_REPO``
    which is a Git repository URL. Running the target checks out the
    ``gh-pages`` branch of that repository, clears it and puts the
-   result of all documentation targets into it.  Files are only added,
+   result of all documentation targets into it.
+   Files are added
    but **not** committed or pushed. These are left as manual steps.
 
 ``FleCSI/sphinx``
@@ -171,12 +172,13 @@ CMake files to allow using it in your own applications.
                      ARGUMENTS  arg1 arg2 ... argN       # command arguments
                      TESTLABELS label1 label2 ... labelN # labels added to test target
                      PROCS nprocs1 nprocs2 ... nprocsN   # number(s) of MPI processes
-                     LAUNCHER app                        # launcher application for entire command-line
+                     LAUNCHER app                        # launcher application for entire command line
                      LAUNCHER_ARGUMENTS arg1 ... argN    # arguments passed to launcher
 	   )
 
   ``flecsi_add_test`` will take the sources files in ``SOURCES`` and
-  compile them together with a predefined ``main()`` function. It will
+  compile them together with a predefined ``main`` function.
+  It will
   link to FleCSI and any specified ``LIBRARIES``, and add ``DEFINES``
   as compile definitions.
 
@@ -187,14 +189,14 @@ CMake files to allow using it in your own applications.
 
   You can also control the number of MPI processes with ``PROCS``. If you
   provide more than one value in ``PROCS``, this will define one
-  test per value with a name ``<test-name>_<value>``.
+  test per value with a name :samp:`{test-name}_{value}`.
 
   .. note::
 
      Tests added with ``flecsi_add_test`` will be run with GPU
      support if appropriate.
 
-  The final command-line of each test is assembled from these arguments into the following format:
+  The final command line of each test is assembled from these arguments into the following format:
 
   .. code-block:: shell
 
@@ -204,12 +206,12 @@ CMake files to allow using it in your own applications.
   `FindMPI module <https://cmake.org/cmake/help/latest/module/FindMPI.html#usage-of-mpiexec>`_,
   while ``BACKEND_ARGUMENTS`` are defaults provided for each FleCSI backend.
 
-  In some cases you may wish to pass this entire command-line to a launcher
+  In some cases you may wish to pass this entire command line to a launcher
   command along with some launcher specific arguments. A typical application of
-  this is a wrapper that executes the command-line, captures relevant
+  this is a wrapper that executes the command line, captures relevant
   information and presents some analysis result. This can be achieved via the
   ``LAUNCHER`` and ``LAUNCHER_ARGUMENTS`` options and turns the complete test
-  command-line into:
+  command line into:
 
   .. code-block:: shell
 
@@ -244,7 +246,7 @@ CMake files to allow using it in your own applications.
                             ARGUMENTS  arg1 arg2 ... argN       # command arguments
                             TESTLABELS label1 label2 ... labelN # labels added to test target
                             PROCS nprocs1 nprocs2 ... nprocsN   # number(s) of MPI processes
-                            LAUNCHER app                        # launcher application for entire command-line
+                            LAUNCHER app                        # launcher application for entire command line
                             LAUNCHER_ARGUMENTS arg1 ... argN    # arguments passed to launcher
 	   )
 
@@ -342,7 +344,7 @@ FleCSI uses itself. External libraries used by FleCSI are added via
 their own CMake file and the macros they define.
 
 The general structure in these files is that they add a
-``flecsi_enable_<PACKAGE>`` macro, which adds the necessary defines,
+:samp:`flecsi_enable_{package}` macro, which adds the necessary defines,
 include folders and libraries to a given target.
 
 * ``FleCSI/hdf5``

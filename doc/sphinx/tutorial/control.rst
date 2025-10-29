@@ -61,7 +61,7 @@ these, we use an enumeration. Consider the following from
   :start-at: // Enumeration defining the control point identifiers
   :end-at: enum class cp {
 
-The name of the enumeration (*cp*) is arbitrary.
+The name of the enumeration (``cp``) is arbitrary.
 However, it is useful to make it concise because it will be used in the
 application code.
 
@@ -74,13 +74,12 @@ In addition to the enumeration itself, we also overload the ``*`` operator:
 
 Perhaps this looks complicated, but really all it does is to return a
 string literal given one of the control point enumeration values defined
-in *cp*.
+in ``cp``.
 This approach is used by FleCSI because it is safer than defining a
 static array of string literals.
 The labels are used to create visualizations of the control model.
 
-The following defines the actual control policy (We will discuss the
-individual parts.):
+The following defines the actual control policy:
 
 .. literalinclude:: ../../../tutorial/2-control/1-simple.hh
   :language: cpp
@@ -98,7 +97,7 @@ This type is used in the control interface for declaring actions:
 
 The actual control points are defined as a list of the typeified
 integer-valued control points enumeration.
-The templated *point* definition is a convenience interface for
+The templated ``point`` definition is a convenience interface for
 typeifying the control points:
 
 .. literalinclude:: ../../../tutorial/2-control/1-simple.hh
@@ -106,7 +105,7 @@ typeifying the control points:
   :start-at: // The control_points list defines
   :end-at: // struct control_policy
 
-In the above *control_points* list definition, the order is important,
+In the above ``control_points`` list definition, the order is important,
 as it is the order in which the control points will be sorted and thus
 executed.
 
@@ -145,7 +144,7 @@ control points.
 
 As stated, actions are nothing more than C/C++ functions.
 For this example, there are three actions, which all have the same form.
-We list only the *initialize* function here:
+We list only the ``initialize`` function here:
 
 .. literalinclude:: ../../../tutorial/2-control/1-simple.cc
    :language: cpp
@@ -160,8 +159,7 @@ action:
    :start-at: // Register the initialize action under
    :end-at: control::action<initialize, cp::initialize>
 
-The template parameters to *control::action* are the function pointer
-*initialize* and the control point *cp::initialize* (which is why it can be expedient to use a concise enumeration type name).
+The template parameters to ``control::action`` are the function pointer ``initialize`` and the control point ``cp::initialize`` (which is why it can be expedient to use a concise enumeration type name).
 
 Running this example prints the output of each of the three functions.
 
@@ -197,7 +195,7 @@ Starting from the previous example, we add the analyze control point:
    :start-at: enum class cp { initialize, advance, analyze, finalize };
    :end-before: struct control_policy
 
-We will use *cp::advance* and *cp::analyze* to define the cycle from the
+We will use ``cp::advance`` and ``cp::analyze`` to define the cycle from the
 core FleCSI cycle type:
 
 .. literalinclude:: ../../../tutorial/2-control/2-cycle.hh
@@ -205,7 +203,7 @@ core FleCSI cycle type:
    :start-at: // A cycle type. Cycles are similar
    :end-at: cycle<cycle_control
 
-Cycles are similar to the *control_points* list, with the addition of a
+Cycles are similar to the ``control_points`` list, with the addition of a
 predicate function that controls termination of the cycle:
 
 .. literalinclude:: ../../../tutorial/2-control/2-cycle.hh
@@ -217,15 +215,15 @@ For this example, the control function simply iterates for five cycles.
 In a real application, the control function could be arbitrarily
 complex, e.g., invoking a reduction to compute a variable time step.
 
-Notice that the *cycle_control* function (is static and) accepts the control object as a parameter.
-In this case, we use it to access the *step_* data member that keeps
+Notice that the ``cycle_control`` function (is static and) accepts the control object as a parameter.
+In this case, we use it to access the ``step_`` data member that keeps
 track of which simulation step we are on:
 
 Although this example is simple, in general we can use this design
 pattern to access simulation control state variables.
 
 The last piece needed to add the cycle is the actual definition of the
-*control_points* list type:
+``control_points`` list type:
 
 .. literalinclude:: ../../../tutorial/2-control/2-cycle.hh
    :language: cpp
@@ -283,7 +281,7 @@ Additionally, several dependencies are defined in the same file:
    :start-at: // Add dependencies a -> b, b -> d, and a -> d, i.e.,
    :end-at: const auto dep_gf = package_g_action.add(package_f_action);
 
-Finally, the additional dependencies from c to a and from d to c are
+Finally, the additional dependencies from ``c`` to ``a`` and from ``d`` to ``c`` are
 added in the *3-dependencies.cc* file:
 
 .. literalinclude:: ../../../tutorial/2-control/3-dependencies.cc
@@ -291,7 +289,7 @@ added in the *3-dependencies.cc* file:
    :start-at: // Add dependencies a -> c, and c -> d.
    :end-at: const auto dep_dc = package_d_action.add(package_c_action);
 
-The point of defining the dependencies involving c in a different file
+The point of defining the dependencies involving ``c`` in a different file
 is to demonstrate that dependencies do not need to be collocated,
 provided that they honor normal C++ declaration rules.
 

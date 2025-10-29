@@ -1,16 +1,16 @@
 include(CMakeDependentOption)
 
-option(ENABLE_FLOG "Enable FleCSI Logging Utility (FLOG)" ON)
+option(ENABLE_FLOG "Enable FleCSI Logging utility (Flog)" ON)
 
 cmake_dependent_option(FLOG_ENABLE_COLOR_OUTPUT
-  "Enable colorized flog logging" ON "ENABLE_FLOG" OFF)
+  "Enable colorized Flog logging" ON "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_COLOR_OUTPUT)
 
-cmake_dependent_option(FLOG_ENABLE_MPI "Enable flog MPI support" ON
+cmake_dependent_option(FLOG_ENABLE_MPI "Enable Flog MPI support" ON
   "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_MPI)
 
-cmake_dependent_option(FLOG_ENABLE_DEBUG "Enable flog debug mode" OFF
+cmake_dependent_option(FLOG_ENABLE_DEBUG "Enable Flog debug mode" OFF
   "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_DEBUG)
 
@@ -26,7 +26,7 @@ if(ENABLE_FLOG)
   endif()
 
   set(FLOG_STRIP_LEVEL ${FLOG_STRIP_LEVEL} CACHE STRING
-    "Set the flog strip level (0-4)")
+    "Set the Flog strip level (0-4)")
   mark_as_advanced(FLOG_STRIP_LEVEL)
 
   set_property(CACHE FLOG_STRIP_LEVEL PROPERTY STRINGS ${FLOG_STRIP_LEVELS})

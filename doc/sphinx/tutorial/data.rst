@@ -28,7 +28,7 @@ In general, a coloring describes the structure of a topology and its distributio
 The global topology is a special case that does not actually use colors; its "coloring" is simply a count of values for each field.
 
 One can access the field inside of the FleCSI task by passing
-topology and field accessors with `access permissions` (wo/rw/ro).  
+topology and field accessors with `access permissions` (``wo``/``rw``/``ro``).
 Writing to a global field requires a single task launch.
 
 .. literalinclude:: ../../../tutorial/4-data/1-global.cc
@@ -65,7 +65,7 @@ The ``canonical`` topology is a very simple specialization of the ``unstructured
 (Privileges for fields with ghosts are specified as :samp:`<{owned}, {ghost}>` or :samp:`<{exclusive}, {shared}, {ghost}>`, depending on the topology.)
 It illustrates the use of the ``mpi_coloring`` type, which applies a specialization-defined rule for specifying a coloring.
 Here, a file is the source of the mesh (for purposes of illustration).
-The resulting coloring is used to initialize two meshes ``canonical`` and ``cp``, and the ``copy`` task operates on both of them at once using a low-level accessor.
+The resulting coloring is used to initialize two meshes ``canonical`` and ``cp``, and the ``copy`` task operates on both of them at once using field accessors.
 The ``init`` and ``print`` tasks, by contrast, use a `topology accessor` as a parameter that provides access to the structure of the mesh via the ``entities`` function.
 
 .. literalinclude:: ../../../tutorial/4-data/3-dense.cc

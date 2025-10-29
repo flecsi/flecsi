@@ -148,9 +148,8 @@ approach, you could declare each component independently as
 
 .. code-block:: cpp
 
-  const flecsi::field<double>::definition<topo_t, topo_t::cells> momentum0_field;
-  const flecsi::field<double>::definition<topo_t, topo_t::cells> momentum1_field;
-  const flecsi::field<double>::definition<topo_t, topo_t::cells> momentum2_field;
+  const flecsi::field<double>::definition<topo_t, topo_t::cells>
+    momentum0_field, momentum1_field, momentum2_field;
 
 or you could simply declare
 

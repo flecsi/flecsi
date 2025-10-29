@@ -86,7 +86,6 @@ The prolog traverses the arguments of the scheduled task to perform the followin
 
     This procedure extends the dependency DAG, ensuring that the current task will block on the completion of all tasks with conflicting access to the fields the current task declares it will access.
 
-
 A noteworthy aspect of ``flecsi::exec::task_prolog_base``\ 's implementation is that a task can run *concurrently* with the installation of its future on the fields.
 While this ordering may seem unsafe, it is legitimized by the fact that task launches are serialized.
 As a result, the vulnerable state between dependencies being derived and the task's future being installed is in fact unobservable by a FleCSI program.
@@ -99,7 +98,6 @@ As a result, the vulnerable state between dependencies being derived and the tas
 This class defines overloads of ``operator()`` that perform HPX data serialization.
 ``hpx::serialization::serialize_buffer<R>`` is a special zero-copy-enable serialization type integrated with the HPX serialization infrastructure.
 It enables wrapping arrays of any type ``R`` to prevent copy operations from being performed on those arrays during serialization.
-
 
 .. _hpx-data-mod:
 

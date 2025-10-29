@@ -14,7 +14,7 @@ The ``deploy-docs`` Make target sets up a repository to update it by pushing to 
 +++++++++++
 __ https://www.doxygen.nl/manual/
 
-The API reference is organized exclusively using the groups feature; none of the files and namespaces are documented, since they have little relevance to the user.
+The API reference is organized exclusively using the groups feature; the files and namespaces are not documented, since they have little relevance to the user.
 Note that members of namespaces enclosed by the ``\{`` and ``\}`` of a grouping command are not included in the group.
 
 The developers' version of the API reference includes a selection of internal interfaces for core developers (who of course must nonetheless consult the source in general).

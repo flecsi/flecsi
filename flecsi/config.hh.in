@@ -59,7 +59,7 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 #define FLECSI_GID_TYPE @FLECSI_GID_TYPE@
 
 //----------------------------------------------------------------------------//
-// FLOG
+// Flog
 //----------------------------------------------------------------------------//
 
 /// Defined if Flog is enabled via the CMake option of the same name.

@@ -13,13 +13,11 @@ Tasks
 Kernels
   Kernels operate on data in a single address space but require
   explicit barriers to ensure consistency. This is generally referred to
-  as a relaxed-consistency memory model. The kernel interface in
-  FleCSI is defined by two parallel operations: *forall* and *reduceall*.
+  as a relaxed-consistency memory model.
+  The :doc:`kernel interface <parallel>` in FleCSI is defined by two parallel operations: ``forall`` and ``reduceall``.
   Each of these is a fine-grained, data-parallel operation.
   The use of the `kernel` nomenclature is derived from CUDA and OpenCL
-  and is conceptually consistent with those models. Please see the
-  example of using *forall* kernels in the *parallel* section of the
-  tutorial. 
+  and is conceptually consistent with those models.
 
 Tasks are launched by `schedulers`.
 
@@ -122,7 +120,7 @@ The ``launch`` information provided is equivalent to ``process`` and ``processes
 
 .. literalinclude:: ../../../tutorial/3-execution/3-mpi-task.cc
   :language: cpp
-  :start-at: // Task with no arguments.
+  :start-at: void
   :end-at: // advance()
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

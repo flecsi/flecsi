@@ -227,7 +227,7 @@ Fixed
 * Utilities
 
   * CTAD for ``mdcolex`` works with any integer type.
-  * ``utilities.hh`` works with FLOG disabled.
+  * ``utilities.hh`` works with Flog disabled.
 
 Changes in v2.3.1 (February 3 2025)
 +++++++++++++++++++++++++++++++++++
@@ -388,7 +388,7 @@ New features
 
 * Logging
 
-  * ``flog::config`` is the collection of FLOG options that can be changed at runtime.
+  * ``flog::config`` is the collection of Flog options that can be changed at runtime.
   * ``flog::tags`` returns the names of all defined tags.
 
 Fixed
@@ -438,7 +438,7 @@ Fixed
 
   * Special options like ``--control-model`` and ``--help`` work reliably.
     (This was documented but not actually implemented in 2.2.1.)
-  * FLOG messages are now variable size and are no longer truncated.
+  * Flog messages are now variable size and are no longer truncated.
 
 Changes in v2.2.1 (July 12 2023)
 ++++++++++++++++++++++++++++++++

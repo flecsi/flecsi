@@ -158,13 +158,13 @@
     - if [ -f /usr/bin/nvidia-smi ] ; then nvidia-smi || true; fi
     - spack env activate ${SPACK_ENVIRONMENT}
     - *darwin_setup_hip
-    - section start build_noflog "Build without FLOG"
+    - section start build_noflog "Build without Flog"
     - *darwin_print_build_info
     - spack python tools/spack_cmake -B ${CI_PROJECT_DIR}/state/build -S . -i flecsi -- -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install -DENABLE_FLOG=OFF ${CMAKE_OPTIONS}
     - cd ${CI_PROJECT_DIR}/state/build
     - cmake --build . -j $(nproc)
     - section end build_noflog
-    - section start build "Build with FLOG"
+    - section start build "Build with Flog"
     - cmake -DENABLE_FLOG=ON -DENABLE_UNIT_TESTS=ON .
     - cmake --build . -j $(nproc)
     - section end build

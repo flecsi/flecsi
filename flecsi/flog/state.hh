@@ -58,7 +58,7 @@ public:
     : verb(cfg.verbose), serialization_interval_(cfg.serialization_interval),
       color_output_(cfg.color), strip_level_(cfg.strip_level) {
 #if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: initializing runtime"
+    std::cerr << FLOG_COLOR_LTGRAY << "Flog: initializing runtime"
               << FLOG_COLOR_PLAIN << std::endl;
 #endif
 
@@ -74,7 +74,7 @@ public:
 
     for(auto & tag : cfg.tags) {
 #ifdef FLOG_ENABLE_DEBUG
-      std::cerr << "FLOG: active tag " << std::quoted(tag) << '\n';
+      std::cerr << "Flog: active tag " << std::quoted(tag) << '\n';
 #endif
       if(tag == "all")
         tag_bitset_.set();
@@ -91,7 +91,7 @@ public:
 #if defined(FLOG_ENABLE_MPI)
 
 #if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: initializing mpi state"
+    std::cerr << FLOG_COLOR_LTGRAY << "Flog: initializing mpi state"
               << FLOG_COLOR_PLAIN << std::endl;
 #endif
 
@@ -114,7 +114,7 @@ public:
 
   ~state() {
 #if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: state destructor" << std::endl;
+    std::cerr << FLOG_COLOR_LTGRAY << "Flog: state destructor" << std::endl;
 #endif
 #if defined(FLOG_ENABLE_MPI)
     send_to_one(true);
@@ -188,7 +188,7 @@ public:
     const size_t id = tag_names.size();
     assert(id < tag_bits && "Tag bits overflow! Increase state::tag_bits");
 #if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: registering tag " << tag << ": "
+    std::cerr << FLOG_COLOR_LTGRAY << "Flog: registering tag " << tag << ": "
               << id << FLOG_COLOR_PLAIN << std::endl;
 #endif
     tag_map_[tag] = id;
@@ -223,7 +223,7 @@ public:
     const bool ret = instance().tag_bitset_.test(t);
 
 #if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: tag " << t << " is "
+    std::cerr << FLOG_COLOR_LTGRAY << "Flog: tag " << t << " is "
               << (ret ? "true" : "false") << FLOG_COLOR_PLAIN << std::endl;
 #endif
     return ret;

@@ -43,7 +43,7 @@ The topology accessor used by application tasks is based on an interface defined
 This class template inherits from a core topology interface and provides a set of member functions implemented in terms of ``protected`` members of that base class to present topology information to the application in a suitable form.
 That suitability is in part derived from using domain-specific terminology that cannot be used in the internal interface.
 
-Common interfaces include producing ranges of all index points or those of a particular kind (those on the boundary, those exclusive to the current color, `etc.`) as well as queries about a specific index point (its neighbors, its global id, `etc.`).
+Common interfaces include producing ranges of all index points or those of a particular kind (those on the boundary, those exclusive to the current color, *etc.*) as well as queries about a specific index point (its neighbors, its global id, *etc.*).
 
 Utilities
 +++++++++

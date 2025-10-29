@@ -74,7 +74,7 @@ struct region_impl : std::enable_shared_from_this<region_impl> {
       if(f->fid == fid)
         return f;
     }
-    throw std::runtime_error("can not find field");
+    throw std::runtime_error("no such field");
   }
 
 private:

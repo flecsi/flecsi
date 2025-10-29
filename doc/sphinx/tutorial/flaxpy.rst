@@ -289,7 +289,7 @@ of *Y* by initiating a global reduction.  Because they represent a
 global reduction, the ``reduce_y_task`` tasks are spawned using
 ``flecsi::reduce`` instead of ``flecsi::execute`` as in the preceding
 two actions.  ``finalize_action`` uses the FleCSI logging facility,
-FLOG, to output the sum.  Finally, the function deallocates the memory
+Flog, to output the sum.  Finally, the function deallocates the memory
 previously allocated by ``initialize_action``.
 
 .. literalinclude:: ../../../tutorial/standalone/flaxpy/flaxpy.cc

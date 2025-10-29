@@ -146,7 +146,7 @@ reduce_internal(Args &&... args) {
       "HPX backend supports only per-process index launches");
 
     if constexpr(!std::is_void_v<Reduction>) {
-      static_assert(!std::is_void_v<R>, "can not reduce results of void task");
+      static_assert(!std::is_void_v<R>, "cannot reduce void results");
 
       return delay([](run::communicator & comm, auto && params) {
         using namespace ::hpx::collectives;

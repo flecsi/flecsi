@@ -15,7 +15,7 @@ profiling log file(s).
 
 .. code-block:: console
 
-   $ ./flecsi/run/cycle --backend-args="-lg:prof 1 -lg:prof_logfile prof_%.gz"
+   $ flecsi/run/cycle --backend-args="-lg:prof 1 -lg:prof_logfile prof_%.gz"
 
 After the application completes, the generated profiling log files need to be
 passed on to ``legion_prof.py``:
@@ -52,7 +52,7 @@ on how to use the GUI.
 
 .. note::
 
-   FleCSI shortens the registered task names to ``function_name # <HASH>`` when
+   FleCSI shortens the registered task names to :samp:`function_name # {hash}` when
    passing them to Legion.  The matching full function signatures can be obtained
    from ``flecsi::task_names()``, which returns a mapping of the shortened function
    signature to its full signature.

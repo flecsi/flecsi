@@ -1,7 +1,6 @@
 On-node Parallelism
 *******************
 
-
 FleCSI tasks can launch `kernels` to exploit fine-grained, on-node parallelism.
 These kernels operate inside the task body and are typically mapped to hardware threads by Kokkos.
 

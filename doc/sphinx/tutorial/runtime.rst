@@ -36,18 +36,17 @@ Example 2: Program Options
 FleCSI supports a program options capability based on `Boost Program
 Options`__ to simplify the creation and management of user-defined
 command-line options. The basic syntax for adding and accessing program
-options is semantically similar to the Boost interface (You can find
-documentation using the above link.) However, there are some notable
+options is semantically similar to the Boost interface, but there are some notable
 differences:
 
-* FleCSI internally manages the boost::program_options::value variables
-  for you, using boost::optional.
+* FleCSI internally manages the ``boost::program_options::value`` variables
+  for you, using ``boost::optional``.
 
 * Positional options are the mechanism that should be used for
   *required* options.
 
 * Default, implicit, zero, and multi value attributes are specified in
-  the flecsi::program_option constructor as an std::initializer_list.
+  the ``flecsi::program_option`` constructor as a ``std::initializer_list``.
 
 This section of the tutorial provides examples of how to use FleCSI's
 program option capability.
@@ -57,9 +56,8 @@ __ https://www.boost.org/doc/libs/release/doc/html/program_options.html
 Example Program
 ^^^^^^^^^^^^^^^
 
-In this example, imagine that you have a program that takes information
-about a taxi service (The options are silly and synthetic. However they
-demonstrate the basic usage of the flecsi::program_option type.) The
+In this example, imagine that you have a program that takes information about a taxi service (the options are silly and synthetic, but they demonstrate the basic usage of ``flecsi::program_option``).
+The
 command-line options and arguments for the program allow specification
 of the following: trim level, transmission, child seat, purpose
 (personal or business), light speed, and a passenger list. The first two
@@ -96,7 +94,8 @@ Declaring Options
   FleCSI program options must be created before calling ``flecsi::initialize`` (and must survive through all uses of their value).
   It is often convenient to declare them in a namespace in a header file (in which case, they must also be declared ``inline``).
 
-Let's consider the first *Car Options* option: ``--level``. To declare
+Let's consider the first *Car Options* option, ``--level``.
+To declare
 this option, we use the following declaration:
 
 .. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
@@ -105,37 +104,36 @@ this option, we use the following declaration:
   :end-before: // Add a string-valued command-line option with a default value
 
 First, notice that the flecsi::program_option type is templated on the
-underlying option type *int*. In general, this can be any valid C++
-type.
+underlying option type ``int``.
 
-This constructor to flecsi::program_option takes the following
+This constructor to ``flecsi::program_option`` takes the following
 parameters:
 
-* *section ("Car Options")*: |br|
+* ``section`` (``"Car Options"``): |br|
   Identifies the section. Sections are generated automatically, simply
   by referencing them in a program option.
 
-* *flag ("level,l")*: |br|
+* ``flag`` (``"level,l"``): |br|
   The long and short forms of the option. If the string contains a
   comma, it is split into *long name,short name*. If there is no comma,
   the string is used as the long name with no short name.
 
-* *help ("Specify...")* |br|
+* ``help`` (``"Specify..."``) |br|
   The help description that will be displayed when the usage message
   is printed.
 
-* *values ({{flecsi::option_default, ...}})* |br|
+* ``values`` (``{{flecsi::option_default, ...}}``) |br|
   This is a
-  std::initializer_list<flecsi::program_option::initializer_value<int>>.
-  The possible values are flecsi::option_default,
-  flecsi::option_implicit, flecsi::option_zero, and
-  flecsi::option_multi. The default value is used if the option is not
+  ``std::initializer_list<flecsi::program_option::initializer_value>``.
+  The possible values are ``flecsi::option_default``,
+  ``flecsi::option_implicit``, ``flecsi::option_zero``, and
+  ``flecsi::option_multi``. The default value is used if the option is not
   passed at invocation. The implicit value is used if the option is
   passed without a value. If zero is specified, the option does not take
   an argument, and an implicit value must be provided. If multi is
   specified, the option takes multiple values.
 
-* *check ([](int, std::stringstream & ss) {...})* |br|
+* ``check`` (``[](int, std::stringstream & ss) {...}``) |br|
   An optional, user-defined predicate to validate the value passed by
   the user.
   The first argument is of the option's type.
@@ -149,10 +147,10 @@ value type:
   :end-before: // Add an option that defines an implicit value.
 
 The only real difference is that (because the underlying type is
-std::string) the default value is also a string.
+``std::string``) the default value is also a string.
 
 The last option in the "Car Options" section ``--child-seat``
-demonstrates the use of flecsi::option_implicit:
+demonstrates the use of ``flecsi::option_implicit``:
 
 .. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
@@ -212,7 +210,7 @@ Checking & Using Options
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 FleCSI option variables are implemented using an *optional* C++ type.
-The utility of this implementation is that *optional* already captures
+That type captures
 the behavior that we want from an option (i.e., it either has a value or does not).
 If the option has a value, the specific value depends on
 whether or not the user explicitly passed the option on the command
@@ -225,11 +223,10 @@ Options that have a default value defined do not need to be tested:
   :start-at: // Add cost for trim level.
   :end-before: // Add cost for lightspeed.
 
-Here, we simply need to access the value of the option using the
-*value()* method.
+Here, we simply need to access the value of the option using ``value()``.
 
 For options with no default value, we can check whether or not the
-option has a value using the *has_value()* method:
+option has a value using ``has_value()``:
 
 .. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
@@ -237,7 +234,7 @@ option has a value using the *has_value()* method:
   :end-before: // Do something with the positional argument.
 
 Our one positional option works like the defaulted options (because it
-is required) and can be accessed using the *value()* method:
+is required) and can be accessed using ``value()``:
 
 .. literalinclude:: ../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
@@ -251,20 +248,19 @@ Here is the full source for this tutorial example:
 
 ----
 
-Example 3: FLOG (FleCSI Logging Utility)
+Example 3: Flog (FleCSI Logging Utility)
 ++++++++++++++++++++++++++++++++++++++++
 
-FLOG provides users with a mechanism to print logging information to
-various stream buffers, similar to the C++ objects std::cout, std::cerr,
-and std::clog.
+Flog provides users with a mechanism to print logging information to
+various stream buffers, similar to the C++ objects ``std::cout``, ``std::cerr``, and ``std::clog``.
 Multiple streams can be used simultaneously, so that information about
 the running state of a program can be captured and displayed at the same
 time.
-In this example, we show how FLOG can be configured to stream output to
+In this example, we show how Flog can be configured to stream output to
 a file buffer and the ``std::clog`` stream buffer.
 
 Before attempting this example, you should make sure that you have
-configured and built FleCSI with ENABLE_FLOG=ON.
+configured and built FleCSI with ``ENABLE_FLOG=ON``.
 
 .. important::
 
@@ -272,14 +268,14 @@ configured and built FleCSI with ENABLE_FLOG=ON.
   is that output written to the console often collide because multiple
   threads of execution are all writing to the same descriptor
   concurrently.
-  FLOG fixes this by collecting output from different threads and
+  Flog fixes this by collecting output from different threads and
   serializing it.
-  This is an important and useful feature of FLOG.
+  This is an important and useful feature of Flog.
 
 Buffer Configuration
 ^^^^^^^^^^^^^^^^^^^^
 
-By default, FLOG does not produce any output (even when enabled).
+By default, Flog does not produce any output (even when enabled).
 In order to see or capture output, your application must add at least
 one output stream.
 This should be done after a ``flecsi::runtime`` has been created and before calling ``control`` on it.
@@ -296,49 +292,51 @@ __ https://en.cppreference.com/w/cpp/io/clog
 
 .. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :start-at: // Add the standard log descriptor to FLOG's buffers.
+  :start-at: // Add the standard log descriptor to Flog's buffers.
   :end-at: log::add_output_stream("clog", std::clog, true);
 
-The arguments to add_output_stream are:
+The arguments to ``add_output_stream`` are:
 
-* *label ("clog")*: |br|
+* ``label`` (``"clog"``): |br|
   This is an arbitrary label that may be used in future versions to
   enable or disable output. The label should be unique.
 
-* *stream buffer (std::clog)*: |br|
-  A std::ostream object.
+* ``stream buffer`` (``std::clog``): |br|
+  A ``std::ostream`` object.
 
-* *colorize (true)*: |br|
+* ``colorize`` (``true``): |br|
   A boolean indicating whether or not output to this stream buffer
   should be colorized. It is useful to turn off colorization for
-  non-interactive output. The default is *false*.
+  non-interactive output.
+  The default is ``false``.
 
 To add an output stream to a file, we can do the following:
 
 .. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :start-at: // Add an output file to FLOG's buffers.
+  :start-at: // Add an output file to Flog's buffers.
   :end-at: log::add_output_stream("log file", log_file);
 
 .. important::
 
   Note that the ``std::ofstream`` is created (though not opened) before the ``flecsi::runtime`` object so that it is destroyed only after all logging is completed.
 
-That's it! For this example, FLOG is now configured to write output to
-std::clog, and to *output.txt*. Next, we will see how to actually write
+That's it! For this example, Flog is now configured to write output to
+``std::clog``, and to *output.txt*.
+Next, we will see how to actually write
 output to these stream buffers.
 
 Writing to Buffers
 ^^^^^^^^^^^^^^^^^^
 
-Output with FLOG is similar to std::cout. Consider the FLOG *info*
+Output with Flog is similar to ``std::cout``. Consider the Flog *info*
 object:
 
 .. code-block:: cpp
 
   flog(info) << "The value is " << value << std::endl;
 
-This works just like any of the C++ output objects. FLOG provides four
+This works just like any of the C++ output objects. Flog provides four
 basic output objects: *trace*, *info*, *warn*, and *error*. These
 provide different color decorations for easy identification in terminal
 output and can be controlled using `strip levels` (discussed in the next
@@ -358,14 +356,14 @@ Controlling Output - Strip Levels
 
 .. important::
 
-  If FleCSI is configured with ENABLE_FLOG=OFF, all FLOG calls are
+  If FleCSI is configured with ``ENABLE_FLOG=OFF``, all Flog calls are
   compiled out: i.e., there is no runtime overhead.
 
 The strip level is a runtime configuration option set via
 ``flog::config::strip_level``.
 
 Valid strip levels are *[0-4]*. The default strip level is *0* (most
-verbose). Depending on the strip level, FLOG limits the type of messages
+verbose). Depending on the strip level, Flog limits the type of messages
 that are output.
 
 * *trace* |br|
@@ -388,13 +386,13 @@ Controlling Output - Tag Groups
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Tag groups provide a mechanism to control the runtime output generated
-by FLOG. The main idea here is that developers can use FLOG to output
+by Flog. The main idea here is that developers can use Flog to output
 information that is useful in developing or debugging a program and
 leave it in the code. Then, specific groups of messages can be enabled
 or disabled to only output useful information for the current
 development focus.
 
-To create a new tag, we use the flog::tag type:
+To create a new tag, we use the ``flog::tag`` type:
 
 .. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
@@ -403,10 +401,11 @@ To create a new tag, we use the flog::tag type:
 
 .. important::
 
-  FLOG tags must be declared at namespace scope.
+  Flog tags must be declared at namespace scope.
 
 Once you have declared a tag, it can be used to limit output to one or
-more *scoped* regions. The following code defines a guarded section of
+more scoped regions.
+The following code defines a guarded section of
 output that will only be generated if *tag1* is enabled:
 
 .. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
@@ -444,20 +443,20 @@ The selected tag is included in the configuration for the ``runtime`` object, di
 
 You can use ``flog::tags`` to discover all declared tags (as for displaying help).
 
-FLOG Options
+Flog Options
 ^^^^^^^^^^^^
 
-Defaults for the FLOG options have been chosen in an attempt to most
+Defaults for the Flog options have been chosen in an attempt to most
 closely model the behavior one would expect from the execution and
 output of a standard MPI program.
 However, because of the asynchronous nature of FleCSI's execution model,
-it is important to understand the options that control FLOG's behavior,
+it is important to understand the options that control Flog's behavior,
 as it can sometimes be counter-intuitive.
 
-As stated in the preceding sections, FLOG buffers and serializes output
+As stated in the preceding sections, Flog buffers and serializes output
 to avoid collisions from different threads.
 FleCSI's default settings flush these buffers periodically for interactivity and case of process failure.
-The FLOG runtime configuration option ``serialization_interval``  defines
+The Flog runtime configuration option ``serialization_interval``  defines
 this behavior:
 
 * ``flog::config::serialization_interval`` |br|
@@ -466,7 +465,7 @@ this behavior:
 
 .. caution::
 
-  It is important to understand and tune FLOG serialization to your
+  It is important to understand and tune Flog serialization to your
   application.
   Serialization inhibits task asynchrony.
   When balanced, the performance effects should be very minimal.
@@ -478,12 +477,12 @@ this behavior:
 
 For many applications, there is a natural serialization interval that
 implicitly starts at the beginning of the simulation time evolution.
-FleCSI provides a function ``flecsi::flog::flush()`` that can be used to
+FleCSI provides a function ``flecsi::flog::flush`` that can be used to
 force FleCSI to serialize and flush output.
 
 .. tip::
 
-  Best practice for FLOG serialization is to leave the default settings
+  Best practice for Flog serialization is to leave the default settings
   for ``serialization_interval`` and to use ``flecsi::flog::flush()``
   at an appropriate point in your application to force output.
 
@@ -508,7 +507,7 @@ Other parts of ``flog::config`` filter Flog output:
 
 .. caution::
 
-  By default, FLOG only writes output from process ``0``.
+  By default, Flog only writes output from process ``0``.
   Set ``process=-1`` to enable output from all processes.
 
 .. tip::
@@ -519,10 +518,10 @@ Other parts of ``flog::config`` filter Flog output:
   You will not see the messages from that task in the logging output.
   This is not an error.
   In general, some experimentation is necessary to achieve the desired
-  level of output with FLOG and FleCSI.
+  level of output with Flog and FleCSI.
 
 Finally, the ``flog::config::color`` runtime configuration option controls
-whether coloring is enabled for FLOG messages.
+whether coloring is enabled for Flog messages.
 
 Example 4: Caliper Annotations
 ++++++++++++++++++++++++++++++
@@ -533,17 +532,17 @@ This enables users to investigate runtime overhead and application performance
 with Caliper.  Users can also use this interface to add additional annotations
 to performance sensitive regions of their applications.
 
-To CMake variable *CALIPER_DETAIL* is used to disable or control the
+The CMake variable ``CALIPER_DETAIL`` is used to disable or control the
 level of detail in included Caliper annotations.  The currently available
 options are:
 
-* *CALIPER_DETAIL=none* |br|
+* ``CALIPER_DETAIL=none`` |br|
   Caliper annotations are disabled
-* *CALIPER_DETAIL=low* |br|
+* ``CALIPER_DETAIL=low`` |br|
   Annotations marked with low severity detail are included
-* *CALIPER_DETAIL=medium* |br|
+* ``CALIPER_DETAIL=medium`` |br|
   Annotations marked with low and medium severity detail are included
-* *CALIPER_DETAIL=high* |br|
+* ``CALIPER_DETAIL=high`` |br|
   All annotations are included
 
 .. caution::
@@ -562,7 +561,8 @@ can be used to add annotations to applications.  This allows users to instrument
 their code and use Caliper to collect timing data.  An annotation for a code
 region must specify a detail level, context, and name.  The detail level is used
 to selectively control the inclusion of an annotation using the cmake variable
-*CALIPER_DETAIL*.  The context for an annotation is used as a named
+``CALIPER_DETAIL``.
+The context for an annotation is used as a named
 grouping for annotations.  In caliper, this can be used to filter and aggregate
 annotations using the `caliper query language <http://software.llnl.gov/Caliper/calql.html>`_.
 
@@ -583,7 +583,7 @@ A scope guard is used to annotate the ``control`` call:
 
 For this region, the FleCSI execution context ``annotation::execution`` is
 specified along with a detail level of ``annnotation::detail::low``.
-To avoid hard coding strings throughout an application, annotation regions can be
+To avoid hard-coding strings throughout an application, annotation regions can be
 specified using structs that inherit from ``annotation::region``:
 
 .. literalinclude:: ../../../tutorial/1-runtime/4-caliper.cc
@@ -610,8 +610,8 @@ The main and sleeper functions are then annotated using region-based scope guard
 Generating Reports
 ^^^^^^^^^^^^^^^^^^
 `Caliper configuration files
-<http://software.llnl.gov/Caliper/configuration.html>`_ can be used to generate
-configure caliper to generate reports for annotated regions of the code.  For
+<http://software.llnl.gov/Caliper/configuration.html>`_ can be used to configure Caliper to generate reports for annotated regions of the code.
+For
 example, consider the following caliper configuration file:
 
 .. literalinclude:: ../../../tutorial/1-runtime/caliper.config

@@ -6,18 +6,18 @@ This section provides insights into performance concerns in FleCSI applications.
 Futures
 +++++++
 
-As explained in the :ref:`future` section, performance can be negatively impacted when `get()` or `wait()` is called outside of a task.
+As explained in the :ref:`future` section, performance can be negatively impacted when ``get`` or ``wait`` is called outside of a task.
 Doing so introduces a synchronization point that blocks the execution flow until the future is resolved, effectively serializing the runtime.
 
 This issue becomes particularly significant in scalable iterative algorithms.
 For example, the following weak scaling plot shows the performance of a Red-Black Gauss-Seidel iteration for solving Poisson’s equation in 2D.
-The green squares represent runs where `get()` is used outside of tasks.
+The green squares represent runs where ``get`` is used outside of tasks.
 Already at fifty nodes, performance drops by a factor of 30.
-The solution time with `get()` scales roughly as :math:`(\texttt{nodes})^{0.7}`.
+The solution time with ``get`` scales roughly as :math:`(\texttt{nodes})^{0.7}`.
 
 .. image:: blocking/blocked_vs_nonblocking.png
 
-The following example illustrates this bottleneck, where `get()` is called outside a task:
+The following example illustrates this bottleneck, where ``get`` is called outside a task:
 
 .. code-block:: c++
   :caption: Forced bulk-synchronous anti-pattern
@@ -28,11 +28,11 @@ The following example illustrates this bottleneck, where `get()` is called outsi
   err = std::sqrt(residual.get());
   flog(info) << "residual: " << err << std::endl;
 
-A more efficient pattern is to defer the call to `get()` into a task itself.
+A more efficient pattern is to defer the call to ``get`` into a task itself.
 This keeps the control flow non-blocking and allows the runtime to overlap communication and computation:
 
 .. code-block:: c++
-  :caption: Red-Black Gauss-Seidel non-blocking, traced
+  :caption: Red-Black Gauss-Seidel non-blocking
 
   using namespace flecsi;
 
@@ -46,7 +46,7 @@ This keeps the control flow non-blocking and allows the runtime to overlap commu
     std::cout << "residual: " << err << std::endl;
   }
 
-The key takeaway is to avoid calling `get()` outside of tasks during iterative execution.
+The key takeaway is to avoid calling ``get`` outside of tasks during iterative execution.
 While such blocking may be acceptable during initialization or finalization, it should be avoided in performance-critical loops.
 
 Tracing
@@ -57,7 +57,7 @@ This is particularly important when tasks are launched on the same fields in reg
 
 The following weak scaling plot compares traced and untraced execution of Red-Black Gauss-Seidel in 2D.
 The blue circles show the performance without tracing, while the green squares represent traced runs.
-At fifty nodes, tracing yields a 20X improvement.
+At fifty nodes, tracing yields a 20× improvement.
 The untraced solution time scales approximately as :math:`(\texttt{nodes})^{0.7}`, and this performance gap increases with scale.
 
 .. image:: tracing/tracing_vs_no_tracing.png

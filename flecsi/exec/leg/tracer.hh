@@ -66,7 +66,7 @@ private:
         Legion::Runtime::get_context(), *tracing);
       tracing->rewind();
       tracing = nullptr;
-      // invalidate the current trace ID, if the resizing can not be skipped
+      // Invalidate current trace ID if resizing cannot be skipped:
       if(enact_tracing_epilog())
         *this = {};
     }

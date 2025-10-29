@@ -98,7 +98,7 @@ getopt::getopt(run::config * init) : init(init) {
           ->implicit_value(1)
           ->default_value(0),
         "Enable verbose output. Passing '-1' will strip any additional"
-        " decorations added by flog and will only output the user's message."
+        " decorations added by Flog and will only output the user's message."
       )
       (
         "flog-process",
@@ -230,7 +230,7 @@ getopt::usage(std::string_view p) const {
     auto const & tm = flog::state::tag_map();
 
     if(tm.size()) {
-      ret << "Available FLOG Tags (FleCSI Logging Utility):\n";
+      ret << "Tags for Flog (FleCSI Logging):\n";
     } // if
 
     for(auto t : tm) {
@@ -286,7 +286,7 @@ initialize(int argc, const char * const * argv, bool dependent) {
   {
     const Color p = flog::state::instance().source_process();
     if(p != flog::state::all_processes && p >= ctx.processes()) {
-      cerr << argv0 << ": flog process " << p << " does not exist with "
+      cerr << argv0 << ": Flog process " << p << " does not exist with "
            << ctx.processes() << " processes\n";
       ret = run::command_line_error;
     }

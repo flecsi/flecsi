@@ -1,7 +1,5 @@
 Execution Model
 ***************
-
-This section describes the FleCSI execution model.
 FleCSI expresses parallelism via tasks, which are coarse-grained and can be distributed, and kernels, which are fine-grained and utilize shared memory.
 These are the lower levels of execution in the figure already seen:
 
@@ -20,8 +18,8 @@ Schedulers are obtained from the control-model object provided to an action:
 .. code-block:: c++
 
    void action(control_policy &cp) {
-     flecsi::scheduler s = cp.scheduler();
-     s.execute<task>(...);
+     flecsi::scheduler &s = cp.scheduler();
+     s.execute<task>(/* ... */);
    }
 
 Tasks
@@ -40,7 +38,7 @@ Callee Side
 ^^^^^^^^^^^
 
 A task is a function that can accept certain special parameter types.
-For instance, the task ``foo`` may be defined as:
+For instance, the task ``foo`` may be defined as
 
 .. code-block:: c++
 
@@ -92,7 +90,7 @@ Futures and Reductions
 ++++++++++++++++++++++
 
 In FleCSI, tasks can return values through `futures`.
-A future represents the result of a task that might not yet be completed.
+A future represents the result of a task that might not yet have completed.
 The value is available only after the task is actually executed.
 This asynchronous behavior allows for flexible execution ordering.
 
@@ -118,12 +116,12 @@ FleCSI supports reductions through the ``reduce`` function, which combines resul
 
 .. code-block:: c++
 
-   auto result = s.reduce<exec::fold::sum>( /* ... */ );
+   auto future1 = s.reduce<task, exec::fold::sum>( /* ... */ );
 
 .. _reduction-folds:
 
 The future provides the sum of the values returned by all point tasks.
-FleCSI provides several built-in reduction folds, including `min`, `max`, `sum`, and `product`.
+FleCSI provides several built-in reduction operators, including `min`, `max`, `sum`, and `product`.
 Users can define custom folds by implementing `a structure <../api/user/structflecsi_1_1exec_1_1fold_1_1reduce.html>`_ with ``combine`` and ``identity`` methods.
 The reduction types can use a specific type or provide a function template.
 
@@ -195,7 +193,7 @@ MPI tasks are invoked as follows:
 
 .. code-block:: c++
 
-   flecsi::execute<qux, flecsi::mpi>(flecsi::exec::on, fr1, fr2);
+   flecsi::execute<quux, flecsi::mpi>(flecsi::exec::on, fr1, fr2);
 
 .. note::
    Unlike standard tasks, MPI tasks are invoked using the ``flecsi::`` namespace rather than a scheduler object with ``s.execute``.
@@ -226,11 +224,11 @@ Here is an example of tracing in use:
      s.execute<task2>();
    }
 
-In this example, the `trace` object ``t`` can be used on several regions.
-The call to ``make_guard()`` creates a scope in which tasks and data movement will be recorded.
+In this example, the ``trace`` object ``t`` can be used on several regions.
+The call ``make_guard()`` identifies a scope in which tasks and data movement will be recorded.
 On subsequent executions of the loop, Legion reuses this trace to optimize performance.
 
 It is important to note that during the first iteration of a loop, the communication and task execution patterns may differ from later iterations because of ghost copies.
-This will lead to an error at runtime, due to an inconsistent trace.
-To address this, FleCSI provides a ``skip()`` function, which tells the tracing mechanism to ignore the first iteration and begin tracing on the second.
+This will lead to an error at runtime due to an inconsistent trace.
+To address this, FleCSI provides the ``trace::skip`` function, which tells the tracing mechanism to ignore the first iteration and begin tracing on the second.
 This ensures that the recorded pattern reflects the steady-state behavior of the loop.

@@ -26,7 +26,11 @@ These keys are then used to create the tree data structure while keeping data lo
   :width: 70%
 
   Two dimensional N-Tree construction based on keys using Morton ordering.
-  On the left figure we can see that the space is divided in quadrants (for two dimensions). If multiple particles are in the same quadrant, we divide it in four, using the Morton ordering (also called the Z-order). These quadrants are labeled `0`, `1`, `2`, and `3` for the `top left`, `top right`, `bottom left`, and `bottom right` respectively (forming a "Z" shape in space). Each time a quadrant is divided, these indices are concatenated to form a ``key``. We can find the same decomposition in the N-Tree on the right figure.
+  On the left figure we can see that the space is divided in quadrants (for two dimensions).
+  If multiple particles are in the same quadrant, we divide it in four, using the Morton ordering (also called the Z-order).
+  These quadrants are labeled *0*, *1*, *2*, and *3* for the *top left*, *top right*, *bottom left*, and *bottom right* respectively (forming a "Z" shape in space).
+  Each time a quadrant is divided, these indices are concatenated to form a ``key``.
+  We can find the same decomposition in the N-Tree on the right figure.
 
 The implementation is based on four files:
 

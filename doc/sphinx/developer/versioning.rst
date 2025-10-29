@@ -55,13 +55,13 @@ develop branch
   ``develop``
 
 feature branch
-  ``f<major>``
+  :samp:`f{major}`
 
 release branch
-  ``r<major>.<minor>``
+  :samp:`r{major}.{minor}`
 
 tagged release
-  ``v<major>.<minor>.<patch>``
+  :samp:`v{major}.{minor}.{patch}`
 
 
 FleCSI uses the information in ``.version`` to define
@@ -69,7 +69,7 @@ FleCSI uses the information in ``.version`` to define
 encodes the major, minor and patch version of FleCSI in a single
 integer value.
 
-For **tagged releases** (``v<major>.<minor>.<patch>``) it is defined
+For **tagged releases** (:samp:`v{major}.{minor}.{patch}`) it is defined
 as ``(major << 16) | (minor << 8) | patch``.
 
 On **release branches** both major and minor version components are
