@@ -10,7 +10,7 @@ They do not mention every component of the interface as does the :doc:`api`, nor
   user/data
   user/topologies
   user/execution
-  user/kernels
+  user/parallel
   user/specializations
   user/utilities
   user/cmake

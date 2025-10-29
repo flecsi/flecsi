@@ -1,13 +1,7 @@
 Shared-memory parallelism
 *************************
 
-FleCSI provides two different levels of parallelism: distributed memory
-parallelism and shared memory parallelism.
-
-Distributed memory parallelism is provided through topology coloring and
-distribution of the data between different processes (shards). 
-FleCSI provides macros *forall* and *reduceall* for shared memory
-parallelism. Currently, it uses Kokkos programing model.
+Beyond the distributed memory parallelism of topology coloring and distribution of the data across processes, FleCSI can provide parallelism within a point task.
 
 ----
 
@@ -16,6 +10,7 @@ Example 1: forall
 This example is a modification of the data-dense tutorial example that replaces the data copy with a ``modify`` task that supports Kokkos.
 The ``accelerator`` is an execution space that uses Kokkos parallelism on a GPU or via OpenMP if available.
 Every execution space has an ``executor`` that implements its parallelism (if any) via a ``forall`` macro that can be used as a member function.
+Note the trailing semicolon, since the parallel loop is not actually a control structure.
 
 .. note::
 
