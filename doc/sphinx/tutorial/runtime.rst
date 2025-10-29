@@ -456,8 +456,7 @@ as it can sometimes be counter-intuitive.
 
 As stated in the preceding sections, FLOG buffers and serializes output
 to avoid collisions from different threads.
-As a safeguard, FleCSI's default settings flush these buffers
-periodically, so as to avoid memory capacity issues.
+FleCSI's default settings flush these buffers periodically for interactivity and case of process failure.
 The FLOG runtime configuration option ``serialization_interval``  defines
 this behavior:
 
