@@ -202,32 +202,16 @@ struct context_t : local::context {
 
   int start(const std::function<int()> &, bool);
 
-  Color process() const {
-    return process_;
-  }
-
-  Color processes() const {
-    return processes_;
-  }
-
-  Color threads_per_process() const {
-    return threads_per_process_;
-  }
-
-  Color threads() const {
-    return threads_;
-  }
-
   static int task_depth() {
     return 0;
   } // task_depth
 
   Color color() const {
-    return process_;
+    return process();
   }
 
   Color colors() const {
-    return processes_;
+    return processes();
   }
 
   using p2p = ::hpx::collectives::channel_communicator;

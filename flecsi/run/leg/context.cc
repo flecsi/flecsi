@@ -98,13 +98,13 @@ context_t::start(const std::function<int()> & action, bool check_args) {
     Configure interoperability layer.
    */
 
-  Legion::Runtime::configure_MPI_interoperability(context::process_);
+  Legion::Runtime::configure_MPI_interoperability(process());
 
   context::start();
 
   // FIXME: This needs to be gotten from Legion
   context::threads_per_process_ = 1;
-  context::threads_ = context::processes_ * context::threads_per_process_;
+  threads_ = processes() * threads_per_process_;
 
   Runtime::start(argv.size(), pointers(argv).data(), true, true, true);
 #ifdef GASNET_CONDUIT_MPI
