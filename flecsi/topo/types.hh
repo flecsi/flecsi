@@ -126,11 +126,12 @@ lists_send(F && f,
     }(),
     ...);
 }
+/// \endcond
 
-// A "strong typedef" for T that supports overload resolution, template
-// argument deduction, and limited arithmetic.
-// The first parameter differentiates topologies/index spaces.
-template<auto, class T = util::id>
+/// A "strong typedef" with affine arithmetic.
+/// \tparam S index space, for differentiating types
+/// \tparam T underlying type
+template<auto S, class T = util::id>
 struct id {
   using difference_type = std::make_signed_t<T>;
 
@@ -207,7 +208,6 @@ struct id {
 private:
   T t;
 };
-/// \endcond
 
 /// Specify an iteration over \c id objects.
 /// \gpu{function}

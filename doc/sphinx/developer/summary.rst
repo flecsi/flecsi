@@ -298,7 +298,7 @@ With several such permutations, an arbitrary many-to-many mapping can be express
 Topology accessors are supported with a system of wrapper classes that emulate the underlying topology instance, including support for all its index spaces, ragged fields, and other topology-specific details.
 
 Several templates are defined in ``utility_types.hh`` to assist in defining topologies.
-In particular, ``topo::id`` serves to distinguish in user-facing interfaces the indices for different index spaces.
+In particular, ``topo::id`` serves to distinguish in user-facing interfaces the indices for different index spaces (and allowing the index space to be deduced).
 
 Predefined
 ^^^^^^^^^^
