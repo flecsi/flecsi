@@ -13,4 +13,3 @@ doc/sphinx/src/user-guide/tikz/*.log
 doc/sphinx/src/user-guide/tikz/*.pdf
 doc/sphinx/src/user-guide/tikz/*.aux
 doc/sphinx/src/user-guide/tikz/*.png
-doc/sphinx/src/user-guide/tikz/.#standalone.sty
