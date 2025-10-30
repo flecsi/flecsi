@@ -60,7 +60,8 @@ this example we allocate a ``pressure`` field on the ``cells`` index space of th
 
 One can access the field inside of the FleCSI task by passing
 topology and field accessors with `access permissions` (wo/rw/ro).  
-The ``canonical`` topology is a very simple specialization of the ``unstructured`` topology category.
+The ``canonical`` topology is a very simple specialization of the ``unstructured`` topology category without ghost copy support.
+(Privileges for fields with ghosts are specified as :samp:`<{owned}, {ghost}>` or :samp:`<{exclusive}, {shared}, {ghost}>`, depending on the topology.)
 It illustrates the use of the ``mpi_coloring`` type, which applies a specialization-defined rule for specifying a coloring.
 Here, a file is the source of the mesh (for purposes of illustration).
 The resulting coloring is used to initialize two meshes ``canonical`` and ``cp``, and the ``copy`` task operates on both of them at once using a low-level accessor.
