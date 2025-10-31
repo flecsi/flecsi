@@ -32,6 +32,7 @@ struct reset_guard { // Clang 17.0.6 warns about this as a local class
   }
   T & t;
 };
+} // namespace detail
 
 template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
@@ -41,7 +42,7 @@ reduce_internal(Args &&... args) {
   using P = typename Traits::arguments_type;
 
   constexpr auto processor_type = mask_to_processor_type(Attributes);
-  constexpr bool mpi_task = processor_type == processor::mpi;
+  static constexpr bool mpi_task = processor_type == processor::mpi;
   static_assert(processor_type == processor::toc ||
                   processor_type == processor::loc ||
                   processor_type == processor::omp || mpi_task,
@@ -83,7 +84,7 @@ reduce_internal(Args &&... args) {
         params = std::optional(std::forward<decltype(params)>(params))](
         auto & regions_partitions, run::communicator * comm) mutable noexcept {
         // Destroy parameters (especially mutators) deterministically:
-        reset_guard<decltype(params)> g{params};
+        detail::reset_guard<decltype(params)> g{params};
 
         // The bind_parameters constructor will possibly schedule additional
         // steps to run during destruction that require execution after the task
@@ -100,12 +101,15 @@ reduce_internal(Args &&... args) {
       };
     if(need_comm)
       bound_params.request_comm();
-    return std::make_from_tuple<future<std::remove_cv_t<R>,
+    auto ret = std::make_from_tuple<future<std::remove_cv_t<R>,
       std::is_void_v<Reduction> && !single ? launch_type_t::index
                                            : launch_type_t::single>>(
       std::move(bound_params)
         .template delay_execution<R>(
           util::symbol<F>(), std::move(apply_delayed_prolog)));
+    if(mpi_task)
+      ret.wait();
+    return ret;
   };
 
   constexpr auto delayed_apply = [](auto && params) {
@@ -160,23 +164,6 @@ reduce_internal(Args &&... args) {
     else
       return delay(delayed_apply);
   }
-}
-
-} // namespace detail
-
-template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
-auto
-reduce_internal(Args &&... args) {
-
-  auto result = detail::reduce_internal<F, Reduction, Attributes>(
-    std::forward<Args>(args)...);
-
-  if constexpr(mask_to_processor_type(Attributes) == exec::processor::mpi) {
-    // MPI tasks are always synchronous
-    result.wait();
-  }
-
-  return result;
 }
 
 } // namespace exec

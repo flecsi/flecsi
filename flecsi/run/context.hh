@@ -447,8 +447,10 @@ protected:
   /*--------------------------------------------------------------------------*
     Basic runtime data members.
    *--------------------------------------------------------------------------*/
+  Color threads_per_process_, threads_;
 
-  Color process_, processes_, threads_per_process_, threads_;
+private:
+  Color process_, processes_;
   std::map<std::string, std::string> task_names_;
 
   /*--------------------------------------------------------------------------*

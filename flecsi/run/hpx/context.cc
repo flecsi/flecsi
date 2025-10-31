@@ -55,14 +55,14 @@ context_t::start(std::function<int()> const & action, bool) {
 
       context::start();
 
-      flog_assert(::hpx::get_locality_id() == process_,
+      flog_assert(::hpx::get_locality_id() == process(),
         "HPX locality " << ::hpx::get_locality_id() << " != MPI rank "
-                        << process_);
-      flog_assert(::hpx::get_num_localities(::hpx::launch::sync) == processes_,
+                        << process());
+      flog_assert(::hpx::get_num_localities(::hpx::launch::sync) == processes(),
         "HPX locality count " << ::hpx::get_num_localities(::hpx::launch::sync)
-                              << " != MPI size " << processes_);
+                              << " != MPI size " << processes());
       context::threads_per_process_ = ::hpx::get_num_worker_threads();
-      context::threads_ = context::processes_;
+      threads_ = processes();
       channel = ::hpx::collectives::create_channel_communicator(
         ::hpx::launch::sync, "/flecsi/p2p_comm");
       world_comms = comms::make();
@@ -87,8 +87,8 @@ context_t::world_comm() {
   using namespace ::hpx::collectives;
   return std::make_unique<communicator>(
     create_communicator("/flecsi/world_comm/",
-      num_sites_arg(processes_),
-      this_site_arg(process_),
+      num_sites_arg(processes()),
+      this_site_arg(process()),
       generation_arg(world++)));
 }
 

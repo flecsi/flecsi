@@ -45,7 +45,7 @@ struct future_impl : future_base {
 
   future_impl() = default;
 
-  future_impl(::hpx::shared_future<R> f, run::comms::ptr c) noexcept
+  future_impl(::hpx::shared_future<R> f, run::comms::ptr c = {}) noexcept
     : future_base(std::move(c)), future_(std::move(f)) {}
 
   ::hpx::shared_future<void> depend() {
@@ -74,9 +74,8 @@ struct future<R> : detail::future_impl<R> {
   using base_type = typename future::future_impl;
   using base_type::base_type;
 
-  // TODO: default once other clients are updated
   explicit future(R result)
-    : base_type(::hpx::make_ready_future(std::move(result)), nullptr) {}
+    : base_type(::hpx::make_ready_future(std::move(result))) {}
 
   future & operator=(R result) {
     return *this = future(std::move(result));
@@ -88,7 +87,7 @@ struct future<void> : detail::future_impl<void> {
   using base_type = typename future::future_impl;
   using base_type::base_type;
 
-  future() : base_type(::hpx::make_ready_future(), nullptr) {}
+  future() : base_type(::hpx::make_ready_future()) {}
 };
 
 namespace detail {

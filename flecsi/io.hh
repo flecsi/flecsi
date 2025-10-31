@@ -23,12 +23,12 @@ struct io_interface {
 // index spaces have been registered manually first
 // TODO:  add automatic registration
 void
-checkpoint_all_fields(const std::string & file_name, int num_files) {
-  io_interface(num_files).checkpoint_all_fields(file_name);
+checkpoint_all_fields(const std::string & file_name, int procs_per_file) {
+  io_interface(procs_per_file).checkpoint_all_fields(file_name);
 }
 void
-recover_all_fields(const std::string & file_name, int num_files) {
-  io_interface(num_files).recover_all_fields(file_name);
+recover_all_fields(const std::string & file_name, int procs_per_file) {
+  io_interface(procs_per_file).recover_all_fields(file_name);
 }
 
 /// \}
