@@ -127,7 +127,7 @@ if(ENABLE_LIBRARY)
   enable_language(C)
 
   set(CXX_STANDARD_REQUIRED ON)
-  set(CMAKE_CXX_STANDARD "17" CACHE STRING "C++ standard")
+  set(CMAKE_CXX_STANDARD "20" CACHE STRING "C++ standard")
   set(CMAKE_CXX_EXTENSIONS OFF)
 
   include(GNUInstallDirs)
