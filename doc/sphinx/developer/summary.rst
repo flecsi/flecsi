@@ -198,7 +198,7 @@ The core of FleCSI is the analysis of task arguments and parameters, not only to
 This analysis proceeds in several stages, each of which involves various partial specializations or overloads that consider each task parameter (type) in turn, often along with its argument:
 
 #. ``task_param::replace`` constructs (empty) parameter objects from arguments; ``must_convert`` identifies which arguments require this attention.
-#. ``launch::get`` determines how many point tasks to launch, including the special case of single launches.
+#. ``launch::get`` determines how many task instances to launch, including the special, static case of single launches.
 #. ``prolog::visit`` identifies the dependencies of and resources needed for a task.
 #. ``bind_parameters::visit`` fills in the parameter objects with the recruited resources (without access to the arguments); ``must_bind`` again identifies the relevant types.
 
@@ -213,7 +213,7 @@ Both of these are defined in ``launch.hh``, with a few specializations defined e
 ``prolog`` implements another decomposition that eventually reaches the ``task_prolog`` entry point to recruit backend-specific resources.
 For fields, this involves identifying the responsible ``partition`` from the topology on the caller side.
 (For Legion, its associated Legion handles are then identified as resources needed for the task launch, controlling data movement and parallelism discovery.)
-The `global topology` (described further below) is a special case: it uses a ``region`` directly, so all point tasks use the same field values.
+The `global topology` (described further below) is a special case: it uses a ``region`` directly, so all task instances use the same field values.
 A task that writes to a global topology instance must therefore be a single launch or use a reduction accessor, which combines values from all point tasks using a reduction operation (see below).
 
 ``bind_parameters``, on the task side, delegates to the ``bind_accessors`` entry point, which consults the recruited resources to obtain values for the contained ``span`` (and ``Legion::Future``) objects.

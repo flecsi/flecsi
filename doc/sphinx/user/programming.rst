@@ -19,7 +19,7 @@ Parallelism
 Whether or not the MPI backend is in use, a FleCSI application is an MPI program, perhaps running many times in parallel (although there is no requirement in general that that number be the same as the number of colors in any particular topology).
 The control model actions run serially on each process and must perform the same sequence of collective calls into FleCSI with the same arguments.
 (In certain cases, it is the identity rather than the value of the arguments that matters; for example, a mesh coloring might be distributed (rather than replicated) over multiple processes, but that distributed object is the same object for the purpose of initializing a topology.)
-Tasks, however, are asynchronous: ``scheduler::execute`` may return before they complete and point tasks from multiple task launches may run out of order or in parallel.
+Tasks, however, are asynchronous: ``scheduler::execute`` may return before they complete and task instances from multiple task launches may run out of order or in parallel.
 
 The threads necessary to implement this impose the ordinary responsibility of thread safety among tasks as well as between them and the actions.
 Because the threads may be pooled, they provide only the `parallel forward progress guarantee <https://en.cppreference.com/w/cpp/language/memory_model#Parallel_forward_progress>`_ (invalidating certain collective operations).

@@ -403,10 +403,10 @@ struct agent : executor_base<agent<S>> {
 
 /// An execution space.
 struct space_base : data::bind_tag, data::convert_tag {
-  /// Information about an index launch.
+  /// Information about a task launch.
   struct tasks {
-    Color size, ///< Number of point tasks launched.
-      index; ///< Current point task.
+    Color size, ///< Number of task instances.
+      index; ///< Current task instance (or point task) number.
   };
   /// Describe the tasks launched.
   const tasks & launch() const {
