@@ -213,7 +213,7 @@ Each field has one of several pre-defined layouts, which specifies how field ele
   but you want the same index to always refer to the same material.
 
 * The ``particle`` layout stores an unordered set of ``T`` for each
-  color; the index points are simply arbitrary ids for the particles.
+  color; the index points merely serve to distinguish the objects present at any particular time.
 
 The field registration examples above use the ``dense`` layout by default.
 Other layouts are chosen with syntax like ``flecsi::field<double, flecsi::data::ragged>``.
