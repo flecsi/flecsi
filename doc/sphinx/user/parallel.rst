@@ -50,6 +50,6 @@ Some of these specify optional, composable behavior for a kernel launch:
    }
 
 In this example, ``named("named forall")`` attaches a label to the kernel which can be used by Kokkos Tools for profiling and debugging.
-``threads<64, 1>()`` specifies the number of threads and blocks for the construct, here one block of 64 threads.
+``threads<64, 1>()`` specifies limits on the number of threads and blocks used to execute the construct.
 ``for_each`` is a function template equivalent of ``forall`` that directly accepts a function object.
 ``reduce`` is the equivalent for ``reduceall``; function objects used with these must be declared with ``FLECSI_INLINE_TARGET`` for compatibility with typical GPU compilers.
