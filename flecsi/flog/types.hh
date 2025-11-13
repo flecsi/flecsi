@@ -34,7 +34,7 @@ struct config {
   unsigned serialization_interval = FLOG_SERIALIZATION_INTERVAL;
   /// Enable color output.
   bool color = FLOG_ENABLE_COLOR_OUTPUT;
-  /// FLOG strip level (0-4).
+  /// Flog strip level (0-4).
   int strip_level = FLOG_STRIP_LEVEL;
 };
 

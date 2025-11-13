@@ -212,8 +212,7 @@ protected:
     flog::state::reset_instance();
 #endif
 #if defined(REALM_USE_GASNETEX)
-    // ensure all MPI calls have completed on all ranks, prior to letting the
-    // runtime shutdown on any rank when using GASNET
+    // Don't shut down GASNet while any process might be using MPI:
     util::mpi::test(MPI_Barrier(MPI_COMM_WORLD));
 #endif
   }

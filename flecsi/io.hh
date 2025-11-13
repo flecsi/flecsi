@@ -12,7 +12,7 @@ namespace flecsi::io {
 
 #ifdef DOXYGEN // implemented per-backend
 struct io_interface {
-  explicit io_interface(Color max_ranks_per_file);
+  explicit io_interface(Color procs_per_file);
 
   void checkpoint_all_fields(const std::string & name);
   void recover_all_fields(const std::string & name);

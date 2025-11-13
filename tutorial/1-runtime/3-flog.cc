@@ -13,7 +13,7 @@ flog::tag tag2("tag2");
 
 flecsi::program_option<std::string> tag("Logging",
   "flog",
-  "Specify the flog tag to enable.",
+  "Specify the Flog tag to enable.",
   {{flecsi::option_default, "all"}});
 
 int
@@ -55,22 +55,22 @@ main(int argc, char ** argv) {
   std::ofstream log_file; // to outlive runtime
   flecsi::getopt()(argc, argv);
   const run::dependencies_guard dg;
-  // If FLECSI_ENABLE_FLOG is enabled, FLOG will automatically be initialized
+  // If FLECSI_ENABLE_FLOG is enabled, Flog will automatically be initialized
   // when the runtime is created.
   run::config cfg;
   cfg.flog.tags = {tag};
   runtime run(cfg);
 
-  // In order to see or capture any output from FLOG, the user must add at least
+  // In order to see or capture any output from Flog, the user must add at least
   // one output stream. The function flog::add_output_stream provides an
-  // interface for adding output streams to FLOG. The FleCSI runtime must have
+  // interface for adding output streams to Flog. The FleCSI runtime must have
   // been initialized before this function can be invoked.
 
-  // Add the standard log descriptor to FLOG's buffers.
+  // Add the standard log descriptor to Flog's buffers.
 
   flog::add_output_stream("clog", std::clog, true);
 
-  // Add an output file to FLOG's buffers.
+  // Add an output file to Flog's buffers.
 
   log_file.open("output.txt");
   flog::add_output_stream("log file", log_file);

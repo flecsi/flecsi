@@ -16,7 +16,7 @@ namespace flecsi {
 namespace flog {
 
 /*!
-  Explicitly flush buffered flog output.
+  Explicitly flush buffered Flog output.
   \code#include "flecsi/execution.hh"\endcode
 
   The inclusion of \ref runtime "flecsi/runtime.hh" by this header is
@@ -226,7 +226,7 @@ struct trace::guard {
   }
 
   // Destroy a guard by stopping the tracing.
-  // The flog count is merged and triggered if needed.
+  // The Flog count is merged and triggered if needed.
   ~guard() {
     t.stop();
     flecsi::run::context::instance().flog_task_count() +=

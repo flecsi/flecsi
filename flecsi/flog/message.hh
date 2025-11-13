@@ -28,7 +28,7 @@ struct message {
 
   message(const char * file, int line) : file_(file), line_(line) {
 #if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: log_message_t constructor " << file
+    std::cerr << FLOG_COLOR_LTGRAY << "Flog: log_message_t constructor " << file
               << " " << line << FLOG_COLOR_PLAIN << std::endl;
 #endif
     if(!state::instance().active_process())
@@ -42,7 +42,7 @@ struct message {
     } // if
 
 #if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: log_message_t destructor "
+    std::cerr << FLOG_COLOR_LTGRAY << "Flog: log_message_t destructor "
               << FLOG_COLOR_PLAIN << std::endl;
 #endif
 

@@ -55,12 +55,7 @@ private:
       tracing = dat.get();
       // Call Legion tracing tool
       Legion::Runtime::get_runtime()->begin_trace(
-        Legion::Runtime::get_context(),
-        *tracing,
-        false, // logical_only = false
-        false, // static_trace  = false
-        NULL // std::set<RegionTreeID> *managed = NULL
-      );
+        Legion::Runtime::get_context(), *tracing);
     }
   }
 
@@ -71,7 +66,7 @@ private:
         Legion::Runtime::get_context(), *tracing);
       tracing->rewind();
       tracing = nullptr;
-      // invalidate the current trace ID, if the resizing can not be skipped
+      // Invalidate current trace ID if resizing cannot be skipped:
       if(enact_tracing_epilog())
         *this = {};
     }

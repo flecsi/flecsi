@@ -5,8 +5,6 @@
 
 using namespace flecsi;
 
-// Task with no arguments.
-
 void
 task(exec::cpu s) {
   flog(info) << "Hello World from process: " << s.launch().index << std::endl;

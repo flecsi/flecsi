@@ -128,9 +128,6 @@ reduce_internal(Args &&... args) {
     }
     else {
       return delay([root](run::communicator & comm, auto && params) {
-        // Broadcast the result from root to the rest of ranks return future<R,
-        // launch_type::single> where clients on every rank will get the same
-        // value when calling .get().
         using namespace ::hpx::collectives;
         if(root) {
           return broadcast_to(comm.comm(),
@@ -146,11 +143,10 @@ reduce_internal(Args &&... args) {
   }
   else {
     flog_assert(ds == run::context::instance().processes(),
-      "HPX backend supports only per-rank index launches");
+      "HPX backend supports only per-process index launches");
 
-    // index launch (including "mpi task"), invoke the user task on all ranks.
     if constexpr(!std::is_void_v<Reduction>) {
-      static_assert(!std::is_void_v<R>, "can not reduce results of void task");
+      static_assert(!std::is_void_v<R>, "cannot reduce void results");
 
       return delay([](run::communicator & comm, auto && params) {
         using namespace ::hpx::collectives;

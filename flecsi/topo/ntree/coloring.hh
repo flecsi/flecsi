@@ -32,7 +32,7 @@ struct ntree_base : base {
     // accessors.
     top_tree_nodes,
     // Buffer for the color/id. It contains the local
-    // entities that other ranks will use to find
+    // entities used elsewhere to find
     // neighbors during the share_ghosts phase. This is
     // used to perform an AllToAllv. We are using the
     // entities index space as the receiving buffer of

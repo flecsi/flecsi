@@ -71,9 +71,8 @@ reduce_internal(Args &&... args) {
   std::optional<leg::parameters<param_tuple>> mpi_params;
   std::vector<std::byte> buf;
   if constexpr(mpi_task) {
-    // MPI tasks must be invoked collectively from one task on each rank.
-    // We therefore can transmit merely a pointer to a tuple of the arguments.
-    // The TaskArgument must be identical on every shard, so use the context.
+    // We can own the parameters for a synchronous launch, but we can't store
+    // the various pointers to them in the one TaskArgument.
     flecsi_context.mpi_params = &mpi_params.emplace(std::move(params));
   }
   else {
