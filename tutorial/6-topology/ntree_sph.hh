@@ -202,7 +202,7 @@ struct sph_ntree_t
   using ttype_t = flecsi::topo::ntree_base::ttype_t; // Tree traversal types
 
   // Compute local center of masses
-  // They will then be sent to other ranks to compute
+  // They will then be shared to compute
   // the whole tree information
   template<bool local = false>
   static void compute_centroid(

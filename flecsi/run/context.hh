@@ -212,8 +212,7 @@ protected:
     flog::state::reset_instance();
 #endif
 #if defined(REALM_USE_GASNETEX)
-    // ensure all MPI calls have completed on all ranks, prior to letting the
-    // runtime shutdown on any rank when using GASNET
+    // Don't shut down GASNet while any process might be using MPI:
     util::mpi::test(MPI_Barrier(MPI_COMM_WORLD));
 #endif
   }
@@ -447,8 +446,10 @@ protected:
   /*--------------------------------------------------------------------------*
     Basic runtime data members.
    *--------------------------------------------------------------------------*/
+  Color threads_per_process_, threads_;
 
-  Color process_, processes_, threads_per_process_, threads_;
+private:
+  Color process_, processes_;
   std::map<std::string, std::string> task_names_;
 
   /*--------------------------------------------------------------------------*

@@ -8,7 +8,6 @@
 #include "flecsi/topo/index.hh"
 #include "flecsi/topo/types.hh"
 #include "flecsi/util/color_map.hh"
-#include "flecsi/util/mpi.hh"
 #include "flecsi/util/serialize.hh"
 
 #include <algorithm>
@@ -383,6 +382,11 @@ struct axis_definition {
   /// \showinitializer
   bool auxiliary = false;
 
+  void check_halo() const {
+    if(periodic && bdepth != hdepth)
+      flog_fatal("periodic boundary depth must match halo depth");
+  }
+
   bool extra() const {
     return auxiliary && !periodic;
   }
@@ -450,37 +454,13 @@ struct index_definition {
     return nc;
   }
 
-  std::vector<narray_impl::colors> process_colors(
-    MPI_Comm comm = MPI_COMM_WORLD) const {
-    // Check boundary and halo depth compatibility for periodic axes.
-    for(const auto & axis : axes) {
-      if(axis.periodic && axis.bdepth != axis.hdepth)
-        flog_fatal("periodic boundary depth must match halo depth");
+  auto color_indices(Color i) const {
+    narray_impl::colors ret;
+    for(const auto & ax : axes) {
+      const auto n = ax.colormap.size();
+      ret.push_back(i % n);
+      i /= n;
     }
-
-    auto [rank, size] = util::mpi::info(comm);
-
-    /*
-      Create a color map for the total number of colors (product of axis
-      colors) to the number of processes.
-     */
-    const util::equal_map cm(colors(), size);
-
-    std::vector<narray_impl::colors> ret;
-    for(const Color c : cm[rank]) {
-      /*
-        Get the indices representation of our color.
-       */
-      auto & color_indices = ret.emplace_back();
-      {
-        Color i = c;
-        for(const auto & ax : axes) {
-          auto & axcm = ax.colormap;
-          color_indices.push_back(i % axcm.size());
-          i /= axcm.size();
-        }
-      }
-    } // for
     return ret;
   }
 
@@ -617,45 +597,6 @@ struct narray_base : base {
     const auto & colors = distribute(num_colors, indices);
     return make_axes(colors, indices);
   } // make_axes
-
-  // for make_copy_plan
-  static void set_dests(
-    data::multi<field<data::intervals::Value>::accessor<wo>> aa,
-    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> const &
-      intervals) {
-    std::size_t ci = 0;
-    for(auto [c, a] : aa.components()) {
-      auto & iv = intervals[ci++];
-      flog_assert(a.span().size() == iv.size(),
-        "interval size mismatch a.span ("
-          << a.span().size() << ") != intervals (" << iv.size() << ")");
-      std::size_t i{0};
-      for(auto & it : iv) {
-        a[i++] = data::intervals::make({it.first, it.second}, c);
-      } // for
-    }
-  }
-
-  // for make_copy_plan
-  template<PrivilegeCount N>
-  static void set_ptrs(
-    data::multi<
-      field<data::copy_engine::Point>::accessor1<privilege_repeat<wo, N>>> aa,
-    std::vector<std::map<Color,
-      std::vector<std::pair<std::size_t, std::size_t>>>> const & points) {
-    std::size_t ci = 0;
-    for(auto & a : aa.accessors()) {
-      for(auto const & si : points[ci++]) {
-        for(auto p : si.second) {
-          // si.first: owner
-          // p.first: local ghost offset
-          // p.second: remote shared offset
-          a[p.first] = data::copy_engine::point(si.first, p.second);
-        } // for
-      } // for
-    }
-  }
-
 }; // struct narray_base
 
 /// \}

@@ -54,7 +54,7 @@ function(flecsi_add_test name)
   endif()
 
   if(NOT FleCSI_ENABLE_FLOG)
-    message(FATAL_ERROR "Unit tests require FleCSI with FLOG enabled")
+    message(FATAL_ERROR "Unit tests require FleCSI with Flog enabled")
   endif()
 
   if(NOT TARGET flecsi-unit-main)

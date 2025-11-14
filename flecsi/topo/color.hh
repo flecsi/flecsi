@@ -2,8 +2,7 @@
 // All rights reserved.
 
 // The most basic topologies, used to represent per-color metadata.
-// For convenience, they are allowed to be movable (no topology accessors are
-// needed anyway).
+// For convenience, they are allowed to be movable.
 
 #ifndef FLECSI_TOPO_COLOR_HH
 #define FLECSI_TOPO_COLOR_HH

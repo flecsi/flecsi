@@ -11,7 +11,7 @@ init_pressure(fixed_mesh::accessor<ro, ro, ro> m,
   field<int>::accessor<wo, wo, wo> p) noexcept {
   for(auto c : m.cells()) {
     static_assert(std::is_same_v<decltype(c), topo::id<fixed_mesh::cells>>);
-    p[c] = -1;
+    p[+c] = -1;
   }
 }
 

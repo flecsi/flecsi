@@ -114,7 +114,7 @@ struct copy_engine : local::copy_base {
               auto const it = remote_shared_entities.find(r);
               return it == remote_shared_entities.end() ? empty : it->second;
             },
-            run::context::instance().world0);
+            run::context::instance().world_comms->get());
         })) {}
 
   template<exec::processor>

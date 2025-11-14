@@ -50,7 +50,7 @@ private:
 };
 
 struct region_impl : std::enable_shared_from_this<region_impl> {
-  // s.first is never used (anything used must match the count of ranks).
+  // s.first is never used (anything used must match processes()).
   // s.second is sometimes the placeholder logical_size.
   region_impl(size2 s, const fields & fs) : s(std::move(s)), fs(fs) {
     for(const auto & f : fs) {
@@ -74,7 +74,7 @@ struct region_impl : std::enable_shared_from_this<region_impl> {
       if(f->fid == fid)
         return f;
     }
-    throw std::runtime_error("can not find field");
+    throw std::runtime_error("no such field");
   }
 
 private:
@@ -149,8 +149,7 @@ struct partition {
 
 private:
   region_impl * r;
-  // number of elements in this partition on this particular rank.
-  size_t nelems = 0;
+  size_t nelems = 0; // for this process
 };
 
 using storages = std::vector<field>;

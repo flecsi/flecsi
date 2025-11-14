@@ -55,9 +55,7 @@ inline constexpr Legion::MappingTagID
 
 using task_idx = std::size_t;
 
-class param_locker;
-
-// The number of point tasks for a process to execute may become known only
+// The number of task instances for a process to execute may become known only
 // after several task launches that share it (via tracing).
 struct task_count {
   using type = Color;

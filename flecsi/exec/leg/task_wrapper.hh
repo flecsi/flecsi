@@ -129,7 +129,7 @@ struct parameters {
     : params(std::move(q.params)), which(std::move(q.which)) {}
 
   P params;
-  Indices which;
+  bindings which;
 };
 
 template<class... PP>
@@ -153,7 +153,8 @@ struct task_wrapper {
 
   using Traits = util::function_t<F>;
   using RETURN = typename Traits::return_type;
-  static constexpr processor LegionProcessor = P;
+  static constexpr processor LegionProcessor =
+    P == processor::mpi ? processor::loc : P;
 
   /*!
     Execution wrapper method for user tasks.
@@ -163,65 +164,49 @@ struct task_wrapper {
     const std::vector<Legion::PhysicalRegion> & regions,
     Legion::Context context,
     Legion::Runtime * runtime) noexcept {
+    static constexpr bool mpi = P == processor::mpi;
 
-    // Unpack task arguments
-    auto & flecsi_context = run::context::instance();
-    const auto params_idx = run::get1<std::size_t>(*task);
-    const auto access = flecsi_context.params.at(params_idx);
-    const auto & any_args = access.get<
-      parameters<util::decay_tuple_t<typename Traits::arguments_type>>>();
-
-    // There is a optimization opportunity here to move
-    // the elements instead of copying the last time.
-    auto task_args = bind_tuple(any_args.params);
-    namespace ann = util::annotation;
-    auto tname = util::symbol<F>();
-    (ann::rguard<ann::execute_task_bind>(tname),
-      bind_parameters<P>(
-        task_args, runtime, context, regions, any_args.which, task->futures));
-    return ann::rguard<ann::execute_task_user>(tname),
-           run::task_local_base::guard(), apply(F, std::move(task_args));
-  } // execute_user_task
-
-}; // struct task_wrapper
-
-template<auto & F>
-struct task_wrapper<F, processor::mpi> {
-  using Traits = util::function_t<F>;
-  using RETURN = typename Traits::return_type;
-
-  static constexpr auto LegionProcessor = processor::loc;
-
-  static RETURN execute(const Legion::Task * task,
-    const std::vector<Legion::PhysicalRegion> & regions,
-    Legion::Context context,
-    Legion::Runtime * runtime) noexcept {
-
-    flog_assert(!task->arglen, "unexpected task arguments");
     auto & c = run::context::instance();
-    auto & p =
-      *static_cast<parameters<typename Traits::arguments_type> *>(c.mpi_params);
 
-    namespace ann = util::annotation;
-    auto tname = util::symbol<F>();
-    (ann::rguard<ann::execute_task_bind>(tname)),
-      bind_parameters<LegionProcessor>(
-        p.params, runtime, context, regions, p.which, task->futures);
+    const auto call = [&](auto && ours, const bindings & which) {
+      namespace ann = util::annotation;
+      auto tname = util::symbol<F>();
+      (ann::rguard<ann::execute_task_bind>(tname),
+        bind_parameters<P>(
+          ours, runtime, context, regions, task->futures, which));
+      if constexpr(mpi) {
+        if constexpr(std::is_void_v<RETURN>) {
+          (ann::rguard<ann::execute_task_user>(tname)),
+            c.mpi_call([&] { apply(F, std::move(ours)); });
+        }
+        else {
+          std::optional<RETURN> result;
+          (ann::rguard<ann::execute_task_user>(tname)),
+            c.mpi_call([&] { result.emplace(std::apply(F, std::move(ours))); });
+          return std::move(*result);
+        }
+      }
+      else
+        return ann::rguard<ann::execute_task_user>(tname),
+               run::task_local_base::guard(), apply(F, std::move(ours));
+    };
 
-    // Set the MPI function and make the runtime active.
-    if constexpr(std::is_void_v<RETURN>) {
-      (ann::rguard<ann::execute_task_user>(tname)),
-        c.mpi_call([&] { apply(F, std::move(p.params)); });
+    if constexpr(mpi) {
+      flog_assert(!task->arglen, "unexpected task arguments");
+      auto & p = *static_cast<parameters<typename Traits::arguments_type> *>(
+        c.mpi_params);
+      return call(p.params, p.which);
     }
     else {
-      std::optional<RETURN> result;
-      (ann::rguard<ann::execute_task_user>(tname)),
-        c.mpi_call([&] { result.emplace(std::apply(F, std::move(p.params))); });
-      return std::move(*result);
+      // There is a optimization opportunity here to move
+      // the elements instead of copying the last time.
+      const auto access = c.params.at(run::get1<std::size_t>(*task));
+      const auto & p = access.get<
+        parameters<util::decay_tuple_t<typename Traits::arguments_type>>>();
+      return call(bind_tuple(p.params), p.which);
     }
-
-  } // execute
-}; // task_wrapper
+  }
+}; // struct task_wrapper
 
 /// \}
 } // namespace flecsi::exec::leg

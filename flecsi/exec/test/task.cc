@@ -71,8 +71,8 @@ seq(const T & s, F f) noexcept {
 }
 
 void
-mpi(int * p) {
-  *p = 1;
+mpi(int * p, const short & s, int i) {
+  *p = s == i; // check argument conversions
 }
 
 } // namespace hydro
@@ -248,7 +248,7 @@ task_driver(scheduler & s) {
       V{"It's Elementary", "Dear, Dear Data"}, d);
 
     int x = 0;
-    execute<hydro::mpi, mpi>(&x);
+    execute<hydro::mpi, mpi>(&x, 1, 1);
     EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
 
     s.execute<vb>(std::vector<bool>(1));
