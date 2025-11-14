@@ -55,14 +55,6 @@ reduce_internal(Args &&... args) {
     "Unknown launch type");
   const auto domain_size = launch_size<Attributes, param_tuple>(args...);
 
-  // We do not generate a separate task_wrapper specialization for each set of
-  // argument types, so we construct a tuple whose type is independent of the
-  // those types.  Since an MPI task can use references to the
-  // original arguments, we have to provide references, which in turn requires
-  // separate storage for any objects created by argument conversions (absent
-  // excessive variadic aggregate gymnastics to create lifetime-extended
-  // temporaries).
-
   run::any any;
   auto & params = any.emplace(leg::parameters(
     make_parameters<mpi_task, param_tuple>(std::forward<Args>(args)...)));

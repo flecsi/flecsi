@@ -226,7 +226,7 @@ replace_argument(T && t) {
 }
 
 namespace detail {
-template<bool M, bool R, class P, class A>
+template<bool M, class P, class A>
 decltype(auto)
 make_parameter(A && a) {
   using PD = std::decay_t<P>;
@@ -239,8 +239,6 @@ make_parameter(A && a) {
                     std::is_const_v<std::remove_pointer_t<P>> ||
                     std::is_function_v<std::remove_pointer_t<P>>,
       "only MPI tasks can accept non-const pointers");
-    static_assert(std::is_move_constructible_v<PD>,
-      "only MPI tasks can accept (references to) non-movable parameters");
     static_assert(std::is_copy_constructible_v<P>,
       "only MPI tasks can accept non-copyable parameters by value");
   }
@@ -249,23 +247,36 @@ make_parameter(A && a) {
   const auto f = [&a]() -> decltype(auto) {
     return exec::replace_argument<P>(std::forward<A>(a));
   };
-  if constexpr(R)
+  // Our Legion task wrapper does not depend on argument types, so even for an
+  // MPI task we must eagerly create parameters and objects for any references
+  // that require a conversion.  We apply this approximation of C++23's
+  // std::reference_converts_from_temporary for all backends.
+  static_assert(
+    std::is_move_constructible_v<P>, "task parameters must be movable");
+  if constexpr(M && !(std::is_reference_v<P> &&
+                      std::is_const_v<std::remove_reference_t<P>> &&
+                      !std::is_convertible_v<std::add_pointer_t<decltype(f())>,
+                        std::add_pointer_t<P>>))
     return f();
-  else
+  else {
+    static_assert(std::is_move_constructible_v<PD>,
+      "only MPI tasks can accept references to non-movable types; "
+      "they must bind directly");
     return [&f]() -> PD { return f(); }();
+  }
 }
 
-template<bool M, bool R, class... PP, class... AA>
+template<bool M, class... PP, class... AA>
 auto
 make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
-  return std::tuple<decltype(make_parameter<M, R, PP>(std::forward<AA>(
-    aa)))...>(make_parameter<M, R, PP>(std::forward<AA>(aa))...);
+  return std::tuple<decltype(make_parameter<M, PP>(std::forward<AA>(aa)))...>(
+    make_parameter<M, PP>(std::forward<AA>(aa))...);
 }
 } // namespace detail
-template<bool M, class P, bool R = M, class... AA>
+template<bool M, class P, class... AA>
 auto
 make_parameters(AA &&... aa) {
-  return detail::make_parameters<M, R>(
+  return detail::make_parameters<M>(
     static_cast<P *>(nullptr), std::forward<AA>(aa)...);
 }
 

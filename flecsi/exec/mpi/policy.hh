@@ -34,8 +34,8 @@ reduce_internal(Args &&... args) {
   constexpr auto proc = mask_to_processor_type(Attributes);
 
   // replace arguments in args, for example, field_reference -> accessor.
-  auto params = make_parameters<proc == processor::mpi, P, true>(
-    std::forward<Args>(args)...);
+  auto params =
+    make_parameters<proc == processor::mpi, P>(std::forward<Args>(args)...);
 
   auto task_name = util::symbol<F>();
 

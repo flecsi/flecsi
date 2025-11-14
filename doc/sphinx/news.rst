@@ -26,6 +26,11 @@ Deprecated
 
 Fixed
 ^^^^^
+* Legion backend
+
+  * MPI tasks with reference parameters support more argument conversions.
+    (Part of this was a regression in 2.4.1.)
+
 * HPX backend
 
   * The performance of reduction tasks and certain kinds of single tasks is significantly improved.
