@@ -177,9 +177,7 @@ struct task_wrapper {
     const auto call = [&](auto && ours, const bindings & which) {
       namespace ann = util::annotation;
       auto tname = util::symbol<F>();
-      (ann::rguard<ann::execute_task_bind>(tname),
-        bind_parameters<P>(
-          ours, runtime, context, regions, task->futures, which));
+      bind_parameters<P>(ours, runtime, context, regions, task->futures, which);
       if constexpr(mpi) {
         if constexpr(std::is_void_v<RETURN>) {
           (ann::rguard<ann::execute_task_user>(tname)),
