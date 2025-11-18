@@ -204,7 +204,7 @@ This analysis proceeds in several stages, each of which involves various partial
 
 All of these proceed by recursive decomposition of each parameter/argument pair; more detail about each follows.
 
-In general, task parameters must be movable and if they are not references they must be copyable.
+In general, task parameters must be of copyable object type or be references to movable types (though it would be possible to relax the latter requirement by using conversion functions to defer the construction of their referents).
 ``replace_argument`` performs the special conversions for arguments that identify backend resources.
 However, the results are incomplete: special parameter objects do not point to any actual data, and other arguments are left alone (and might need ordinary C++ conversions later).
 ``launch_size`` similarly recognizes special task arguments (guided by the parameter type), checking for consistency among their indicated sizes.
@@ -257,7 +257,8 @@ There is some degree of variability across FleCSI backends in how binding operat
 Explicit parallelism
 ^^^^^^^^^^^^^^^^^^^^
 
-However, return values must follow the ordinary rules (so as to support futures and reductions).
+We require movable parameter types even for an MPI task so that the Legion backend can forget the argument types rather than decay-copying them like ``std::thread``.
+Moreover, their return values must follow the ordinary rules (so as to support futures and reductions).
 
 FleCSI also provides, in ``launch.hh`` and ``kernel.hh``, a wrapper interface for simple Kokkos parallel loops and reductions, including macros ``forall`` and ``reduceall`` that are followed by a lambda body (and a semicolon, since the lambda is an expression).
 The same reduction types as for index launches are supported.
