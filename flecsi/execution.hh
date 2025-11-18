@@ -53,26 +53,32 @@ struct task_local
 template<class V, class R, class... AA>
 auto
 scheduler::reduce(AA &&... aa) {
+  static constexpr bool sync = exec::synchronous_task<V>;
   if constexpr(exec::has_variant_v<V, void>)
-    return reduce<V::task, R>(std::forward<AA>(aa)...);
+    return reduce<V::task, R, sync>(std::forward<AA>(aa)...);
   else {
     static_assert(exec::consistent_task<V, exec::cpu, exec::gpu, exec::omp>,
       "inconsistent parameter types for variants");
     using space = exec::task_variant<V>;
-    static constexpr auto & f = V::template task<space>;
-    static_assert(util::function_t<f>::nonthrowing, "tasks must be noexcept");
-    return flecsi::reduce<f, R, as_mask(space::proc)>(std::forward<AA>(aa)...);
+    return reduce<V::template task<space>, R, space::proc, sync>(
+      std::forward<AA>(aa)...);
   }
 }
-template<auto & F, class R, class... AA>
+template<auto & F, class R, bool S, class... AA>
 auto
 scheduler::reduce(AA &&... aa) {
-  using ft = util::function_t<F>;
-  static_assert(ft::nonthrowing, "tasks must be noexcept");
-  using ps = typename exec::param_space<typename ft::arguments_type>::type;
-  return flecsi::reduce<F,
+  using ps = typename exec::param_space<
+    typename util::function_t<F>::arguments_type>::type;
+  return reduce<F,
     R,
-    as_mask(std::conditional_t<std::is_void_v<ps>, exec::cpu, ps>::proc)>(
+    std::conditional_t<std::is_void_v<ps>, exec::cpu, ps>::proc,
+    S>(std::forward<AA>(aa)...);
+}
+template<auto & F, class R, exec::processor P, bool S, class... AA>
+auto
+scheduler::reduce(AA &&... aa) {
+  static_assert(util::function_t<F>::nonthrowing, "tasks must be noexcept");
+  return flecsi::reduce<F, R, as_mask(P) | (S ? +synchronous_impl : 0)>(
     std::forward<AA>(aa)...);
 }
 template<auto & F, class... AA>

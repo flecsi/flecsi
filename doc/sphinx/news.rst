@@ -38,6 +38,7 @@ New features
 * Execution
 
   * A task parameter can be a ``std::optional`` of, or a ``std::variant`` that includes, a FleCSI type such as an accessor.
+  * A task class can specify that launches of it should be ``synchronous``.
   * ``comm`` holds an MPI communicator for use in a task: in this version, only duplicates of ``MPI_COMM_WORLD``.
   * ``exec::group`` specifies processes to use for a task: in this version, all processes only.
   * ``exec::point_mutex`` serializes per-point-task access to non-field resources.

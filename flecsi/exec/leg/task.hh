@@ -169,9 +169,9 @@ task_wrapper(const Legion::Task * task,
       return run::task_local_base::guard(), f();
   };
 
-  if constexpr(L::mpi) {
+  if constexpr(L::sync) {
     flog_assert(!task->arglen, "unexpected task arguments");
-    return call(*static_cast<parameters<Params> *>(c.mpi_params));
+    return call(*static_cast<parameters<Params> *>(c.sync_params));
   }
   else
     // There is a optimization opportunity here to move

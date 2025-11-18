@@ -47,12 +47,12 @@ reduce_internal(Args &&... args) {
     any.emplace(leg::parameters(launch::params(std::forward<Args>(args)...)));
   prolog<launch::proc> pro(params.params, args...);
   params.which = std::move(pro).bindings();
-  std::optional<leg::parameters<typename launch::Params>> mpi_params;
+  std::optional<leg::parameters<typename launch::Params>> sync_params;
   std::vector<std::byte> buf;
-  if constexpr(launch::mpi) {
+  if constexpr(launch::sync) {
     // We can own the parameters for a synchronous launch, but we can't store
     // the various pointers to them in the one TaskArgument.
-    flecsi_context.mpi_params = &mpi_params.emplace(std::move(params));
+    flecsi_context.sync_params = &sync_params.emplace(std::move(params));
   }
   else {
     const auto t = trace::current();
@@ -116,7 +116,7 @@ reduce_internal(Args &&... args) {
     }
   }();
   pro.set_future(ret.depend());
-  if(launch::mpi)
+  if(launch::sync)
     ret.wait();
   return ret;
 } // reduce_internal

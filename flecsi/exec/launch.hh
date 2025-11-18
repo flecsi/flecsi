@@ -371,7 +371,8 @@ struct sync_storage {
   static_assert(!std::conditional_t<temporary, // avoid unneeded instantiation
                   sync_storage<std::remove_cvref_t<P>, A, D>,
                   sync_storage>::temporary,
-    "MPI tasks cannot accept references that require nested conversions");
+    "synchronous tasks cannot accept references that require nested "
+    "conversions");
   using type = typename std::
     conditional_t<temporary, std::remove_cvref<P>, replaced<P, A>>::type;
 };
@@ -492,7 +493,7 @@ make_tuple(FF... ff) { // use -> decltype(auto)
 template<bool S, class P>
 struct param_helper {
   static_assert(S || std::is_move_constructible_v<P>,
-    "only MPI tasks can accept (references to) non-movable types");
+    "only synchronous tasks can accept (references to) non-movable types");
   // This is not used when S, but the assertions are:
   using type = P;
 };
@@ -507,11 +508,12 @@ struct protocol {
   template<class P>
   struct param_storage<P &> : param_storage<P> {
     static_assert((M && S) || std::is_const_v<P>,
-      "only MPI tasks can accept non-const references");
+      "only synchronous per-process tasks can accept non-const references");
   };
   template<class P>
   struct param_storage<P &&> : param_storage<P> {
-    static_assert(M && S, "only MPI tasks can accept rvalue references");
+    static_assert(M && S,
+      "only synchronous per-process tasks can accept rvalue references");
   };
   template<class P>
   struct param_storage<P *> : param_helper<S, P *> {
@@ -601,8 +603,9 @@ struct launch {
                         concurrent =
                           detail::has_param<Params, detail::is_concurrent>,
                         comm =
-                          mpi || detail::has_param<Params, detail::is_comm>;
-  using protocol = detail::protocol<matched, mpi>;
+                          mpi || detail::has_param<Params, detail::is_comm>,
+                        sync = mpi || A & synchronous_impl;
+  using protocol = detail::protocol<matched, sync>;
 
   template<class... AA>
   static auto params(AA &&... aa) {
@@ -939,6 +942,12 @@ struct on_t : data::convert_tag {};
 /// Placeholder argument that corresponds to an execution-\ref space task
 /// parameter.
 inline constexpr on_t on;
+
+template<class>
+constexpr bool synchronous_task = false;
+template<class V>
+  requires requires { V::synchronous; }
+constexpr bool synchronous_task<V> = V::synchronous;
 
 /// \cond core
 /// A simple version of C++20's \c bind_front.

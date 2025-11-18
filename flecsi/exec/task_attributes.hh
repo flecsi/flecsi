@@ -24,6 +24,7 @@ enum task_attributes_mask_t : TaskAttributes {
   /// Ignored.
   /// \deprecated No effect.
   idempotent [[deprecated("has no effect")]] = 0x10,
+  synchronous_impl = 0x20, // implied by mpi
   loc = 0, ///< Run on a Latency-Optimized Core (a CPU).
   /// Run on a Throughput-Optimized Core (a GPU).
   /// The task function itself still runs on the host, but a GPU is reserved

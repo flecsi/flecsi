@@ -137,6 +137,11 @@ mpi(int * p, const short & s, int i, exec::point_mutex::lease) {
 } // namespace hydro
 
 namespace {
+struct synch {
+  static void task(const std::atomic<int> &) noexcept {} // immovable
+  static constexpr bool synchronous = true;
+};
+
 void
 pm(exec::point_mutex::lease) noexcept {}
 int
@@ -344,6 +349,7 @@ task_driver(scheduler & s) {
     s.execute<pm>(mut); // size inherited from mpi
     EXPECT_EQ(
       s.test<half_mpi>(exec::on, comm::world(), exec::launch_domain{np}), 0);
+    s.execute<synch>(std::atomic<int>());
 
     s.execute<vb>(std::vector<bool>(1), std::vector<int>());
 

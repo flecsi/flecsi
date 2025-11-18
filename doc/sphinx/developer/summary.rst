@@ -257,7 +257,7 @@ There is some degree of variability across FleCSI backends in how binding operat
 Explicit parallelism
 ^^^^^^^^^^^^^^^^^^^^
 
-We require movable parameter types even for an MPI task so that the Legion backend can forget the argument types rather than decay-copying them like ``std::thread``.
+We require movable parameter types even for a synchronous task so that the Legion backend can forget the argument types rather than decay-copying them like ``std::thread``.
 Moreover, their return values must follow the ordinary rules (so as to support futures and reductions).
 
 FleCSI also provides, in ``launch.hh`` and ``kernel.hh``, a wrapper interface for simple Kokkos parallel loops and reductions, including macros ``forall`` and ``reduceall`` that are followed by a lambda body (and a semicolon, since the lambda is an expression).

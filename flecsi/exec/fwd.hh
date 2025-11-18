@@ -127,8 +127,10 @@ struct scheduler {
   /// \tparam R reduction operation
   /// \return a \ref future providing the reduced return value
   /// \see \c execute about parameter and argument types.
-  template<auto &, class R, class... AA>
-  [[nodiscard]] auto reduce(AA &&...);
+  template<auto & F, class R, class... AA>
+  [[nodiscard]] auto reduce(AA &&... aa) {
+    return reduce<F, R, false>(std::forward<AA>(aa)...);
+  }
   /// Launch a task.
   template<auto & F, class... AA>
   auto execute(AA &&... aa) {
@@ -162,6 +164,11 @@ struct scheduler {
   }
 
 private:
+  template<auto &, class, bool, class... AA>
+  auto reduce(AA &&...);
+  template<auto &, class, exec::processor, bool, class... AA>
+  auto reduce(AA &&...);
+
   flecsi::runtime & r;
 };
 inline std::optional<scheduler> scheduler::instance;
@@ -182,6 +189,14 @@ struct task_class {
   /// \param s only allowed signature variation among specializations
   template<class S>
   static void task(S s) noexcept;
+
+  /// A task can be executed synchronously.
+  /// Its parameters that are (const) references are bound directly to its
+  /// arguments (which then need not be movable).  It runs concurrently with
+  /// other tasks already launched; executing it returns a \c future that is
+  /// already ready.
+  /// \note If this member does not exist, it is taken to be \c false.
+  static constexpr bool synchronous = true;
 };
 #endif
 
