@@ -18,29 +18,6 @@
 #include <variant> // monostate
 
 namespace flecsi {
-namespace data {
-/// \addtogroup data
-/// \{
-
-/// \cond core
-
-/// Task parameters of types that inherit from bind_tag must be specially
-/// initialized by the backend after the task has been launched.
-struct bind_tag {};
-
-/// Classes that inherit from send_tag can decompose themselves into simpler
-/// parameters via a send member function template.  This function template
-/// accepts a callback that is used to process the subcomponents and which
-/// itself accepts a callback that, on the caller side only, is used to
-/// transform the task arguments.  Those task arguments may include
-/// topo::borrow versions of the underlying topologies and field references
-/// to such versions.
-struct send_tag {};
-/// \endcond
-
-/// \}
-} // namespace data
-
 namespace exec {
 /// \addtogroup execution
 /// \{

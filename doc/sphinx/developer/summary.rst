@@ -133,7 +133,7 @@ Higher-level layouts are implemented in terms of it:
 * ``particle`` stores a set of ``T`` objects bounded by the size of the index space.
   The implementation augments ``T`` with a "skip field" that allows efficient iteration, insertion, and deletion.
 
-This enumeration is defined in ``layout.hh``.
+This enumeration is defined in ``tags.hh``.
 
 Definition
 ^^^^^^^^^^

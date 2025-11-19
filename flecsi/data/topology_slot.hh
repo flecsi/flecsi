@@ -4,6 +4,7 @@
 #ifndef FLECSI_DATA_TOPOLOGY_SLOT_HH
 #define FLECSI_DATA_TOPOLOGY_SLOT_HH
 
+#include "flecsi/data/tags.hh"
 #include "flecsi/exec/fwd.hh" // scheduler
 #include "flecsi/flog.hh"
 #include "flecsi/util/types.hh" // Color
@@ -14,8 +15,6 @@ namespace flecsi {
 namespace data {
 /// \addtogroup data
 /// \{
-
-struct convert_tag {}; // must be recognized as a task argument
 
 /// A movable slot that holds a topology, constructed upon request.
 /// Declare a task parameter as a \c topology_accessor to use the topology.
