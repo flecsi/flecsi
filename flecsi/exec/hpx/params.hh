@@ -12,7 +12,7 @@
 #include "flecsi/data/hpx/copy.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"
-#include "flecsi/exec/hpx/future.hh"
+#include "flecsi/exec/future.hh"
 #include "flecsi/exec/hpx/reduction_wrapper.hh"
 #include "flecsi/exec/local/params.hh"
 #include "flecsi/flog.hh"

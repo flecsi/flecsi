@@ -5,6 +5,7 @@
 #define FLECSI_EXEC_LAUNCH_HH
 
 #include "flecsi/data/field.hh"
+#include "flecsi/exec/future.hh"
 #include "flecsi/exec/kernel.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/util/annotation.hh"
@@ -280,8 +281,6 @@ struct launch {
            apply(F, std::forward<P>(params));
   }
 };
-
-enum class launch_type_t : size_t { single, index };
 
 /// An explicit launch domain size.
 struct launch_domain {
@@ -600,23 +599,6 @@ template<auto & F, class... AA>
 make_partial(AA &&... aa) {
   return {std::forward<AA>(aa)...};
 }
-
-/*!
-  \link future<Return> Single\endlink or \link
-  future<Return,exec::launch_type_t::index> multiple\endlink future.
-
-  A single future can be a task argument and parameter; the task runs only
-  when the value is ready.
-  A multi-valued future may be passed to a task expecting a single one
-  (which is then executed once with each value).
-
-  @tparam Return The return type of the task.
-  @tparam Launch FleCSI launch type: single/index.
-  \ns.
-*/
-template<typename Return,
-  exec::launch_type_t Launch = exec::launch_type_t::single>
-struct future;
 
 namespace exec::detail {
 template<>

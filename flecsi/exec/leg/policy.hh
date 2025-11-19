@@ -5,8 +5,8 @@
 #define FLECSI_EXEC_LEG_POLICY_HH
 
 #include "flecsi/config.hh"
+#include "flecsi/exec/future.hh"
 #include "flecsi/exec/launch.hh"
-#include "flecsi/exec/leg/future.hh"
 #include "flecsi/exec/leg/reduction_wrapper.hh"
 #include "flecsi/exec/leg/task_wrapper.hh"
 #include "flecsi/exec/leg/tracer.hh"

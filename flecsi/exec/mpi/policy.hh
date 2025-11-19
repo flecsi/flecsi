@@ -4,8 +4,8 @@
 #ifndef FLECSI_EXEC_MPI_POLICY_HH
 #define FLECSI_EXEC_MPI_POLICY_HH
 
+#include "flecsi/exec/future.hh"
 #include "flecsi/exec/launch.hh"
-#include "flecsi/exec/mpi/future.hh"
 #include "flecsi/exec/mpi/reduction_wrapper.hh"
 #include "flecsi/exec/params.hh"
 #include "flecsi/exec/tracer.hh"
