@@ -38,19 +38,16 @@ struct wrap {
 
   wrap(T & t) : v(&t) {} // like the built-in reducers
 
-  FLECSI_INLINE_TARGET
-  static void join(T & a, const T & b) {
+  FLECSI_INLINE_TARGET static void join(T & a, const T & b) {
     a = R::combine(a, b);
   }
 
-  FLECSI_INLINE_TARGET
-  static void init(T & v) {
+  FLECSI_INLINE_TARGET static void init(T & v) {
     new(&v) T(detail::identity_traits<R>::template value<T>);
   }
 
   // Kokkos doesn't actually use 'reference' from ReducerConcept.
-  FLECSI_INLINE_TARGET
-  result_view_type view() const {
+  FLECSI_INLINE_TARGET result_view_type view() const {
     return v;
   }
 
@@ -108,8 +105,8 @@ void
 parallel_for(const std::string & n, const P & p, C && c, F && f) {
   Kokkos::parallel_for(n,
     p,
-    [c = std::forward<C>(c), f = std::forward<F>(f)] FLECSI_TARGET(
-      util::id i) { f(c.begin()[i]); });
+    [c = std::forward<C>(c), f = std::forward<F>(f)]
+    FLECSI_TARGET(util::id i) { f(c.begin()[i]); });
 }
 template<class R, class T, class P, class C, class F>
 [[nodiscard]] T
@@ -119,8 +116,8 @@ parallel_reduce(const std::string & n, const P & p, C && c, F && f) {
   Kokkos::parallel_reduce(
     n,
     p,
-    [c = std::forward<C>(c), f = std::forward<F>(f)] FLECSI_TARGET(
-      util::id i, T & t) { f(c.begin()[i], ref{t}); },
+    [c = std::forward<C>(c), f = std::forward<F>(f)]
+    FLECSI_TARGET(util::id i, T & t) { f(c.begin()[i], ref{t}); },
     ref{ret}.kokkos());
   return ret;
 }

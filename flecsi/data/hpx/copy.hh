@@ -149,8 +149,7 @@ struct copy_engine : local::copy_base {
           ops.reserve(p->ghost_entities.size() + p->shared_entities.size());
           for(auto const & entry : p->ghost_entities) {
             auto src_rank = entry.first;
-            ops.push_back(
-              get<data_type>(comm, that_site_arg(src_rank), p2p)
+            ops.push_back(get<data_type>(comm, that_site_arg(src_rank), p2p)
                 .then(::hpx::launch::sync, [&, &src = entry.second](auto && f) {
                   auto && data = f.get();
                   for(std::size_t i = 0, n = src.size(); i < n; ++i)

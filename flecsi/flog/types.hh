@@ -43,8 +43,7 @@ struct config {
   multiple targets.
  */
 
-class tee_buffer_t : public std::streambuf
-{
+class tee_buffer_t : public std::streambuf {
 public:
   /*!
     The buffer_data_t type is used to hold state and the actual low-level

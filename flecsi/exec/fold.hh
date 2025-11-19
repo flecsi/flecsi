@@ -48,8 +48,8 @@ private:
 
 public:
   template<class T>
-  static constexpr T identity = lim<T>::has_infinity ? lim<T>::infinity()
-                                                     : lim<T>::max();
+  static constexpr T identity =
+    lim<T>::has_infinity ? lim<T>::infinity() : lim<T>::max();
 }; // struct min
 
 /*!
@@ -67,8 +67,8 @@ private:
 
 public:
   template<class T>
-  static constexpr T identity = lim<T>::has_infinity ? -lim<T>::infinity()
-                                                     : lim<T>::lowest();
+  static constexpr T identity =
+    lim<T>::has_infinity ? -lim<T>::infinity() : lim<T>::lowest();
 }; // struct max
 
 /*!

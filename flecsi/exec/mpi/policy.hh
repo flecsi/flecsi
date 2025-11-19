@@ -35,7 +35,7 @@ reduce_internal(Args &&... args) {
 
   // replace arguments in args, for example, field_reference -> accessor.
   auto params =
-    make_parameters<proc == processor::mpi, P>(std::forward<Args>(args)...);
+    make_parameters<(proc == processor::mpi), P>(std::forward<Args>(args)...);
 
   auto task_name = util::symbol<F>();
 

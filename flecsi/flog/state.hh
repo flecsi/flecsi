@@ -48,8 +48,7 @@ namespace flog {
   in the future.
  */
 
-class state
-{
+class state {
 public:
   static constexpr std::size_t tag_bits = 1024;
   static constexpr Color all_processes = -1;

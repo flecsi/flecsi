@@ -55,7 +55,9 @@ interface(exec::cpu s) {
 
 int
 color_map(scheduler &) {
-  UNIT() { EXPECT_EQ((test<interface, mpi>(exec::on)), 0); };
+  UNIT() {
+    EXPECT_EQ((test<interface, mpi>(exec::on)), 0);
+  };
 }
 
 util::unit::driver<color_map> color_map_driver;

@@ -125,7 +125,7 @@ struct traverse {
 
     iterator & operator++() {
       for(Dimension d = 0; ++m[d] == ubnds[d] && ++d < D;
-          m[d - 1] = lbnds[d - 1]) {
+        m[d - 1] = lbnds[d - 1]) {
       }
       return *this;
     }
@@ -187,9 +187,9 @@ struct axis_layout {
     util::id unused, // ghosts, because of diagonal position
     bool lo,
     bool hi)
-    : bdy{lo ? bdepth : 0, hi ? bdepth : unused}, gh{lo ? 0 : halo_up,
-                                                    hi ? 0 : halo_down},
-      log(log), shr{lo ? 0 : halo_down, hi ? 0 : halo_up} {}
+    : bdy{lo ? bdepth : 0, hi ? bdepth : unused},
+      gh{lo ? 0 : halo_up, hi ? 0 : halo_down}, log(log),
+      shr{lo ? 0 : halo_down, hi ? 0 : halo_up} {}
 
   /// The local extent of this color. This is the full size including
   /// boundary depth, and ghosts. The "extent" coordinate implicitly

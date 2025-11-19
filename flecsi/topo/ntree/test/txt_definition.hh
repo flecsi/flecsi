@@ -38,8 +38,7 @@ operator<<(std::ostream & os, const sort_entity<DIM, T, KEY> & e) {
 }
 
 template<typename KEY, int DIM>
-class txt_definition
-{
+class txt_definition {
 public:
   static constexpr int dim = DIM;
   using key_t = KEY;

@@ -78,7 +78,7 @@ private:
   static int destroy(MPI_Comm, int, void * attr, void *) {
     int e = MPI_SUCCESS;
     for(auto & v = static_cast<guard *>(attr)->v;
-        !v.empty() && e == MPI_SUCCESS;) {
+      !v.empty() && e == MPI_SUCCESS;) {
       e = MPI_Type_free(&v.back());
       v.pop_back();
     }

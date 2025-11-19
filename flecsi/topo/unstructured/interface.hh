@@ -337,9 +337,9 @@ struct topology<Policy, topo::unstructured_base>::access {
       f(a, [&i](auto & u) { return topo::resize::field(u.get_sizes(i++)); });
 
     connect_send(f, connect_, topology::connect_);
-    lists_send(
-      f, special_, special_field, [
-      ](auto & u) -> auto & { return u.special_; });
+    lists_send(f, special_, special_field, [](auto & u) -> auto & {
+      return u.special_;
+    });
   }
 
 protected:

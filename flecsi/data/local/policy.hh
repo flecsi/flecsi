@@ -248,7 +248,7 @@ struct intervals {
     if(auto iter = std::max_element(ghost_ranges.begin(),
          ghost_ranges.end(),
          [](Value x, Value y) { return x.second < y.second; });
-       iter != ghost_ranges.end()) {
+      iter != ghost_ranges.end()) {
       max_end = iter->second;
     }
   }
