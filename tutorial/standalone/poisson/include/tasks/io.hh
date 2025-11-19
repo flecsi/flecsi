@@ -11,7 +11,7 @@ namespace task {
 void io(flecsi::exec::cpu,
   mesh::accessor<ro> m,
   field<double>::accessor<ro, na> ua,
-  std::string filebase);
+  const std::string & filebase) noexcept;
 
 } // namespace task
 } // namespace poisson

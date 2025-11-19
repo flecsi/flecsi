@@ -9,7 +9,7 @@ void
 poisson::task::io(exec::cpu s,
   mesh::accessor<ro> m,
   field<double>::accessor<ro, na> ua,
-  std::string filebase) {
+  const std::string & filebase) noexcept {
   auto u = m.mdspan<mesh::vertices>(ua);
 
   std::stringstream ss;
@@ -18,7 +18,7 @@ poisson::task::io(exec::cpu s,
     ss << ".dat";
   }
   else {
-    ss << "-" << s.launch().size << ".dat";
+    ss << "-" << s.launch().index << ".dat";
   } // if
 
   std::ofstream solution(ss.str(), std::ofstream::out);
