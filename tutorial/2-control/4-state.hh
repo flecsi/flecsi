@@ -12,8 +12,7 @@ namespace placeholder {
 // or FleCSI-aware.  Think of custom as a std::vector or some
 // Trilinos data structure, for example.
 template<typename T>
-class custom
-{
+class custom {
 private:
   std::unique_ptr<T[]> data;
 

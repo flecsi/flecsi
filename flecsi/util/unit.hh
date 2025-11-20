@@ -66,8 +66,7 @@ using control = flecsi::run::control<control_policy>;
 
 using target_type = int (&)(scheduler &);
 template<target_type F, test_control_points cp>
-class action
-{
+class action {
 private:
   static void wrap(control_policy & p) {
     p.status |= F(p.scheduler());

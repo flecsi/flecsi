@@ -28,8 +28,7 @@ namespace util {
  The bounding box type that is used by KDTree as input.
  */
 template<Dimension DIM>
-class BBox
-{
+class BBox {
 public:
   /// Geometric point to represent coordinates
   using point_t = util::point<double, DIM>;

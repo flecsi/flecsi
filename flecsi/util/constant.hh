@@ -62,8 +62,8 @@ public:
   // Find the index of (the last appearance of) V in the sequence VV.
   // V must be comparable to each of VV.
   template<auto V>
-  static constexpr std::size_t index = find<V>(
-    std::make_index_sequence<size>());
+  static constexpr std::size_t index =
+    find<V>(std::make_index_sequence<size>());
 };
 
 namespace detail {

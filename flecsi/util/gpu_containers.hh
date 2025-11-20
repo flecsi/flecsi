@@ -16,8 +16,7 @@ namespace flecsi::util {
 /// A simple queue implementation based on a std::array
 /// \gpu.
 template<typename T, std::size_t SIZE>
-class queue
-{
+class queue {
   using value_type = T;
   std::array<value_type, SIZE> data;
   size_t head = 0, back = 0;
@@ -51,8 +50,7 @@ public:
 /// A small implementation of std::inplace_vector as proposed for C++26.
 /// \gpu.
 template<typename T, std::size_t SIZE>
-class inplace_vector
-{
+class inplace_vector {
   using value_type = T;
   std::array<value_type, SIZE> data_;
   std::size_t size_ = 0;

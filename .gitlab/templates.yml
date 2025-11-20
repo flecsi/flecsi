@@ -51,7 +51,7 @@
 
 .darwin_clang_format_init:
   script: &darwin_clang_format_init
-    - module load clang/13.0.0
+    - module load clang/20.1.8-offload
 
 .darwin_env_create:
   script: &darwin_env_create

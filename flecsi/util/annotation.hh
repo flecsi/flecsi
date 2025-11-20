@@ -260,8 +260,7 @@ end() {
  * \tparam severity detail level to use for code region.
  */
 template<class ctx, detail severity>
-class guard
-{
+class guard {
 public:
   /// Create a guard.
   /// \param a region name as a \c std::string or `const char*`
@@ -284,8 +283,7 @@ public:
  * \tparam reg code region to tag (type inherits from annotation::region)
  */
 template<class reg>
-class rguard
-{
+class rguard {
 public:
   /// Create a guard.
   /// \param a an optional task name as a \c std::string_view

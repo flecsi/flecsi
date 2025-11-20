@@ -115,8 +115,7 @@ private:
   std::unique_ptr<any_base> p;
 };
 
-class param_locker
-{
+class param_locker {
   struct task {
     task(task_count::ptr tc, any && p)
       : tc(std::move(tc)), params(std::move(p)) {}
@@ -135,8 +134,7 @@ class param_locker
     return std::unique_lock(lock);
   }
 
-  class guard
-  {
+  class guard {
     param_locker & lk;
     Map::iterator it;
 

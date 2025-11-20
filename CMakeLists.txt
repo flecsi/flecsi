@@ -40,7 +40,7 @@ mark_as_advanced(ENABLE_FORMAT)
 if(ENABLE_FORMAT)
   include(FleCSI/format)
 
-  set(CLANG_FORMAT_VERSION "13...<14" CACHE STRING
+  set(CLANG_FORMAT_VERSION "20...<21" CACHE STRING
       "Set the required version (major[.minor[.patch]]) of clang-format")
   mark_as_advanced(CLANG_FORMAT_VERSION)
 

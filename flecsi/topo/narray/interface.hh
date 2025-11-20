@@ -666,9 +666,8 @@ protected:
    \deprecated Use \c axis_color::low and \c axis_color::high.
   */
   template<index_space S, Axis A>
-  [[deprecated(
-    "use axis_color::low and axis_color::high")]] FLECSI_INLINE_TARGET bool
-  is_interior() const {
+  [[deprecated("use axis_color::low and axis_color::high")]]
+  FLECSI_INLINE_TARGET bool is_interior() const {
     return !is_low<S, A>() && !is_high<S, A>();
   }
 
@@ -679,9 +678,8 @@ protected:
      \deprecated Use \c axis_color::low and \c axis_color::high.
   */
   template<index_space S, Axis A>
-  [[deprecated(
-    "use axis_color::low and axis_color::high")]] FLECSI_INLINE_TARGET bool
-  is_degenerate() const {
+  [[deprecated("use axis_color::low and axis_color::high")]]
+  FLECSI_INLINE_TARGET bool is_degenerate() const {
     return is_low<S, A>() && is_high<S, A>();
   }
 

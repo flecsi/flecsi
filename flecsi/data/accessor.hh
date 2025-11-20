@@ -175,8 +175,7 @@ struct reduction_accessor : bind_tag {
 
   /// Prepare to update en element.
   /// \return a callable that merges its \p T argument into the field element
-  FLECSI_INLINE_TARGET
-  auto operator[](size_type index) const {
+  FLECSI_INLINE_TARGET auto operator[](size_type index) const {
     return [&v = s[index]](const T & r) { v = R::combine(v, r); };
   }
 

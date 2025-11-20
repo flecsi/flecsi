@@ -391,11 +391,9 @@ struct topology<P, borrow_base>
   /// \param f whether this is the first of a set of several borrowings used
   ///   together for many-to-many access
   topology(Base & t, const data::borrow & b, bool f)
-    : topology::borrow_ragged_partition(t, b, f), topology::borrow_ragged(t,
-                                                    b,
-                                                    f),
-      topology::borrow_meta(t, b, f), topology::borrow_extra(t, b, f), base(&t),
-      proj(&b), first(f) {}
+    : topology::borrow_ragged_partition(t, b, f),
+      topology::borrow_ragged(t, b, f), topology::borrow_meta(t, b, f),
+      topology::borrow_extra(t, b, f), base(&t), proj(&b), first(f) {}
 
   Color colors() const {
     return proj->size();
