@@ -497,7 +497,7 @@ docs_and_format:
   only:
     - merge_requests
   variables:
-    FORMAT_VERSION: 13.0.0
+    FORMAT_VERSION: 20.1.8
     JOB_CONSTRAINTS: ""
   allow_failure: true
 

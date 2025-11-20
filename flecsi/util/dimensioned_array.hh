@@ -32,8 +32,7 @@ using convertible_type =
 //----------------------------------------------------------------------------//
 
 template<typename TYPE, Dimension DIMENSION, std::size_t NAMESPACE>
-class dimensioned_array : public std::array<TYPE, DIMENSION>
-{
+class dimensioned_array : public std::array<TYPE, DIMENSION> {
 public:
   using base = typename dimensioned_array::array;
   dimensioned_array() = default;

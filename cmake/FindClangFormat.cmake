@@ -8,7 +8,7 @@
 # ClangFormat_FOUND        - True if the clang-format executable was found.
 # ClangFormat_VERSION      - The version of clang-format found
 #
-set(ClangFormat_VERSIONS 18 17 16 15 14 13)
+set(ClangFormat_VERSIONS 20 19 18 17 16 15 14 13)
 list(TRANSFORM ClangFormat_VERSIONS PREPEND "clang-format-")
 
 find_program(ClangFormat_EXECUTABLE

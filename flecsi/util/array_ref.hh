@@ -56,73 +56,60 @@ struct span {
       T (*)[]>>>
   FLECSI_INLINE_TARGET constexpr span(C && c)
     : span(std::data(c), std::size(c)) {}
-  FLECSI_INLINE_TARGET
-  constexpr iterator begin() const noexcept {
+  FLECSI_INLINE_TARGET constexpr iterator begin() const noexcept {
     return p;
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr iterator end() const noexcept {
+  FLECSI_INLINE_TARGET constexpr iterator end() const noexcept {
     return q;
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr reverse_iterator rbegin() const noexcept {
+  FLECSI_INLINE_TARGET constexpr reverse_iterator rbegin() const noexcept {
     return reverse_iterator(end());
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr reverse_iterator rend() const noexcept {
+  FLECSI_INLINE_TARGET constexpr reverse_iterator rend() const noexcept {
     return reverse_iterator(begin());
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr reference front() const {
+  FLECSI_INLINE_TARGET constexpr reference front() const {
     return *begin();
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr reference back() const {
+  FLECSI_INLINE_TARGET constexpr reference back() const {
     return end()[-1];
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr reference operator[](size_type i) const {
+  FLECSI_INLINE_TARGET constexpr reference operator[](size_type i) const {
     return begin()[i];
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr pointer data() const noexcept {
+  FLECSI_INLINE_TARGET constexpr pointer data() const noexcept {
     return begin();
   }
 
   // FIXME: Spurious overflow for extremely large ranges
-  FLECSI_INLINE_TARGET
-  constexpr size_type size() const noexcept {
+  FLECSI_INLINE_TARGET constexpr size_type size() const noexcept {
     return end() - begin();
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr size_type size_bytes() const noexcept {
+  FLECSI_INLINE_TARGET constexpr size_type size_bytes() const noexcept {
     return sizeof(element_type) * size();
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr bool empty() const noexcept {
+  FLECSI_INLINE_TARGET constexpr bool empty() const noexcept {
     return begin() == end();
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr span first(size_type n) const {
+  FLECSI_INLINE_TARGET constexpr span first(size_type n) const {
     return {begin(), n};
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr span last(size_type n) const {
+  FLECSI_INLINE_TARGET constexpr span last(size_type n) const {
     return {end() - n, n};
   }
-  FLECSI_INLINE_TARGET
-  constexpr span subspan(size_type i, size_type n = -1) const {
+  FLECSI_INLINE_TARGET constexpr span subspan(size_type i,
+    size_type n = -1) const {
     return {begin() + i, n == size_type(-1) ? size() - i : n};
   }
 
@@ -191,8 +178,8 @@ struct mdbase {
 
 protected:
   // The plain pointer can copy most data from a higher-dimensional object.
-  FLECSI_INLINE_TARGET
-  constexpr mdbase(T * p, const size_type * s) noexcept : p(p), strides() {
+  FLECSI_INLINE_TARGET constexpr mdbase(T * p, const size_type * s) noexcept
+    : p(p), strides() {
     for(int d = 0; d < D; d++)
       strides[d] = s[d];
   }
@@ -243,8 +230,8 @@ struct mdspan : detail::mdbase<T, D> {
   /// Select a subset of the view.
   /// \param i index (must be smaller than `length(D-1)`)
   /// \return `mdspan<T,D-1>` or `T&` if `D` is 1
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) operator[](size_type i) const noexcept {
+  FLECSI_INLINE_TARGET constexpr decltype(auto) operator[](
+    size_type i) const noexcept {
     assert(i < this->length(D - 1));
     const auto q = this->p + i * this->step(D - 1);
     if constexpr(D > 1)
@@ -361,41 +348,33 @@ struct iota_view {
 
   iota_view() = default;
   constexpr iota_view(I b, I e) : b(b), e(e) {}
-  FLECSI_INLINE_TARGET
-  constexpr iterator begin() const noexcept {
+  FLECSI_INLINE_TARGET constexpr iterator begin() const noexcept {
     return b;
   }
-  FLECSI_INLINE_TARGET
-  constexpr iterator end() const noexcept {
+  FLECSI_INLINE_TARGET constexpr iterator end() const noexcept {
     return e;
   }
-  FLECSI_INLINE_TARGET
-  constexpr bool empty() const {
+  FLECSI_INLINE_TARGET constexpr bool empty() const {
     return b == e;
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr explicit operator bool() const {
+  FLECSI_INLINE_TARGET constexpr explicit operator bool() const {
     return !empty();
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr auto size() const {
+  FLECSI_INLINE_TARGET constexpr auto size() const {
     return e - b;
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) front() const {
+  FLECSI_INLINE_TARGET constexpr decltype(auto) front() const {
     return *begin();
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) back() const {
+  FLECSI_INLINE_TARGET constexpr decltype(auto) back() const {
     return *--end();
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) operator[](I i) const {
+  FLECSI_INLINE_TARGET constexpr decltype(auto) operator[](I i) const {
     return begin()[i];
   }
 
@@ -506,20 +485,17 @@ template<class D> // CRTP, but D might be const
 struct with_index_iterator {
   using iterator = index_iterator<D>;
 
-  FLECSI_INLINE_TARGET
-  iterator begin() const noexcept {
+  FLECSI_INLINE_TARGET iterator begin() const noexcept {
     return {derived(), 0};
   }
 
-  FLECSI_INLINE_TARGET
-  iterator end() const noexcept {
+  FLECSI_INLINE_TARGET iterator end() const noexcept {
     const auto * p = derived();
     return {p, p->size()};
   }
 
 private:
-  FLECSI_INLINE_TARGET
-  D * derived() const noexcept {
+  FLECSI_INLINE_TARGET D * derived() const noexcept {
     return static_cast<D *>(this);
   }
 };
@@ -623,16 +599,15 @@ public:
       return !(*this < i);
     }
 
-    FLECSI_INLINE_TARGET
-    constexpr reference operator*() const {
+    FLECSI_INLINE_TARGET constexpr reference operator*() const {
       if constexpr(std::is_member_pointer_v<F>)
         return std::invoke(*f, *p); // not constexpr until C++20
       else
         return (*f)(*p);
     }
     // operator-> makes sense only for a true 'reference'
-    FLECSI_INLINE_TARGET
-    constexpr reference operator[](difference_type n) const {
+    FLECSI_INLINE_TARGET constexpr reference operator[](
+      difference_type n) const {
       return *(*this + n);
     }
 
@@ -644,62 +619,49 @@ public:
   /// Wrap a container.
   constexpr transform_view(C c, F f = {}) : c(std::move(c)), f(std::move(f)) {}
 
-  FLECSI_INLINE_TARGET
-  constexpr iterator<false> begin() noexcept {
+  FLECSI_INLINE_TARGET constexpr iterator<false> begin() noexcept {
     return {std::begin(c), &f};
   }
-  FLECSI_INLINE_TARGET
-  constexpr iterator<true> begin() const noexcept {
+  FLECSI_INLINE_TARGET constexpr iterator<true> begin() const noexcept {
     return {std::begin(c), &f};
   }
-  FLECSI_INLINE_TARGET
-  constexpr iterator<false> end() noexcept {
+  FLECSI_INLINE_TARGET constexpr iterator<false> end() noexcept {
     return {std::end(c), &f};
   }
-  FLECSI_INLINE_TARGET
-  constexpr iterator<true> end() const noexcept {
+  FLECSI_INLINE_TARGET constexpr iterator<true> end() const noexcept {
     return {std::end(c), &f};
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr bool empty() const {
+  FLECSI_INLINE_TARGET constexpr bool empty() const {
     return std::begin(c) == std::end(c);
   }
-  FLECSI_INLINE_TARGET
-  constexpr explicit operator bool() const {
+  FLECSI_INLINE_TARGET constexpr explicit operator bool() const {
     return !empty();
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr auto size() const {
+  FLECSI_INLINE_TARGET constexpr auto size() const {
     return std::distance(std::begin(c), std::end(c));
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) front() {
+  FLECSI_INLINE_TARGET constexpr decltype(auto) front() {
     return *begin();
   }
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) front() const {
+  FLECSI_INLINE_TARGET constexpr decltype(auto) front() const {
     return *begin();
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) back() {
+  FLECSI_INLINE_TARGET constexpr decltype(auto) back() {
     return *--end();
   }
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) back() const {
+  FLECSI_INLINE_TARGET constexpr decltype(auto) back() const {
     return *--end();
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) operator[](
+  FLECSI_INLINE_TARGET constexpr decltype(auto) operator[](
     typename iterator<false>::difference_type i) {
     return begin()[i];
   }
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) operator[](
+  FLECSI_INLINE_TARGET constexpr decltype(auto) operator[](
     typename iterator<true>::difference_type i) const {
     return begin()[i];
   }
@@ -742,40 +704,34 @@ struct substring_view {
   constexpr substring_view(R r, difference_type i, difference_type n)
     : alive(std::move(r)), b(std::next(std::begin(alive), i)), n(n) {}
 
-  FLECSI_INLINE_TARGET
-  constexpr iterator begin() const {
+  FLECSI_INLINE_TARGET constexpr iterator begin() const {
     return b;
   }
-  FLECSI_INLINE_TARGET
-  constexpr iterator end() const {
+  FLECSI_INLINE_TARGET constexpr iterator end() const {
     return std::next(b, n);
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr bool empty() const {
+  FLECSI_INLINE_TARGET constexpr bool empty() const {
     return !n;
   }
-  FLECSI_INLINE_TARGET
-  constexpr explicit operator bool() const {
+  FLECSI_INLINE_TARGET constexpr explicit operator bool() const {
     return n;
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr std::make_unsigned_t<difference_type> size() const {
+  FLECSI_INLINE_TARGET constexpr std::make_unsigned_t<difference_type>
+  size() const {
     return n;
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) front() const {
+  FLECSI_INLINE_TARGET constexpr decltype(auto) front() const {
     return *b;
   }
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) back() const {
+  FLECSI_INLINE_TARGET constexpr decltype(auto) back() const {
     return b[n - 1];
   }
 
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) operator[](difference_type i) const {
+  FLECSI_INLINE_TARGET constexpr decltype(auto) operator[](
+    difference_type i) const {
     return b[i];
   }
 
