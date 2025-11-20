@@ -27,12 +27,12 @@ const auto hsize_mpi_type = util::mpi::static_type<hsize_t>();
 
 struct io_interface {
 
-  explicit io_interface(Color ranks_per_file = 1)
+  explicit io_interface(Color procs_per_file)
     : new_color([] {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         return rank;
-      }() / ranks_per_file),
+      }() / procs_per_file),
       hcomm(util::mpi::comm::split(MPI_COMM_WORLD, new_color)) {
     MPI_Comm_rank(hcomm.c, &new_rank);
   }

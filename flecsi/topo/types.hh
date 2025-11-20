@@ -126,11 +126,12 @@ lists_send(F && f,
     }(),
     ...);
 }
+/// \endcond
 
-// A "strong typedef" for T that supports overload resolution, template
-// argument deduction, and limited arithmetic.
-// The first parameter differentiates topologies/index spaces.
-template<auto, class T = util::id>
+/// A "strong typedef" with affine arithmetic.
+/// \tparam S index space, for differentiating types
+/// \tparam T underlying type
+template<auto S, class T = util::id>
 struct id {
   using difference_type = std::make_signed_t<T>;
 
@@ -139,11 +140,6 @@ struct id {
   explicit id(T t) : t(t) {}
 
   id(const id &) = default;
-
-  FLECSI_INLINE_TARGET
-  T operator+() const {
-    return t;
-  }
 
   FLECSI_INLINE_TARGET
   operator T() const {
@@ -212,7 +208,6 @@ struct id {
 private:
   T t;
 };
-/// \endcond
 
 /// Specify an iteration over \c id objects.
 /// \gpu{function}
@@ -224,17 +219,6 @@ FLECSI_INLINE_TARGET auto
 make_ids(C && c) {
   return util::transform_view(
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
-}
-
-template<class T>
-void
-concatenate(std::vector<T> & v, Color total, MPI_Comm comm) {
-  auto g = util::mpi::all_gatherv(v, comm);
-  v.clear();
-  v.reserve(total);
-  for(auto & g1 : g)
-    for(auto & t : g1)
-      v.push_back(std::move(t));
 }
 
 // Describe a sorted range of integers as a union of intervals

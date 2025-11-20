@@ -29,10 +29,18 @@ context_t::start(std::function<int()> const & action, bool) {
 
   ::hpx::init_params params;
   // HPX doesn't know its own options for some reason, so we have to use a !:
-  params.cfg = {// allocate at least two cores
+  params.cfg = {
+    // Instruct the HPX runtime to occupy at least two cores for scheduling
+    // FleCSI tasks.  This setting has to be taken into account when
+    // running more than one HPX locality (process) on the same node.  Any
+    // single node should not run more than `N` localities, where `N ==
+    // num_cores / 2`.
     "hpx.force_min_os_threads!=2",
+    // Disable installing HPX signal handlers as FleCSI is a library
+    // and therefore should not consume signals itself.
     "hpx.handle_signals!=0",
-    // call the below on every process
+    // Instruct HPX to schedule the initial task (the lambda passed to
+    // `hpx::init`) on all localities.
     "hpx.run_hpx_main!=1"};
   params.cfg.insert(params.cfg.end(),
     std::move_iterator(cfg.begin()),
@@ -47,23 +55,23 @@ context_t::start(std::function<int()> const & action, bool) {
 
       context::start();
 
-      flog_assert(::hpx::get_locality_id() == process_,
+      flog_assert(::hpx::get_locality_id() == process(),
         "HPX locality " << ::hpx::get_locality_id() << " != MPI rank "
-                        << process_);
-      flog_assert(::hpx::get_num_localities(::hpx::launch::sync) == processes_,
+                        << process());
+      flog_assert(::hpx::get_num_localities(::hpx::launch::sync) == processes(),
         "HPX locality count " << ::hpx::get_num_localities(::hpx::launch::sync)
-                              << " != MPI size " << processes_);
+                              << " != MPI size " << processes());
       context::threads_per_process_ = ::hpx::get_num_worker_threads();
-      context::threads_ = context::processes_;
+      threads_ = processes();
       channel = ::hpx::collectives::create_channel_communicator(
         ::hpx::launch::sync, "/flecsi/p2p_comm");
-      world0 = world_comm();
+      world_comms = comms::make();
 
       struct guard {
         context_t & c;
         ~guard() {
           c.channel = {};
-          c.world0 = {};
+          c.world_comms = {};
           ::hpx::finalize();
         }
       } g{*this};
@@ -74,13 +82,14 @@ context_t::start(std::function<int()> const & action, bool) {
     params);
 }
 
-communicator
+communicator::ptr
 context_t::world_comm() {
   using namespace ::hpx::collectives;
-  return create_communicator("/flecsi/world_comm/",
-    num_sites_arg(processes_),
-    this_site_arg(process_),
-    generation_arg(world++));
+  return std::make_unique<communicator>(
+    create_communicator("/flecsi/world_comm/",
+      num_sites_arg(processes()),
+      this_site_arg(process()),
+      generation_arg(world++)));
 }
 
 void

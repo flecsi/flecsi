@@ -78,15 +78,18 @@ protected:
   using prolog::visit;
 
   template<typename R>
-  void visit(future<R> &, future<R> & f) {
+  void visit(future<R> & p, future<R> & f) {
     dependencies(f.depend());
+    futures.push_back(f.get_comms());
+    p.silence();
   }
   template<typename R>
   void visit(future<R, exec::launch_type_t::single> & single,
     future<R, exec::launch_type_t::index> & index) {
     auto f = index.mine();
     dependencies(f);
-    single = std::move(f);
+    futures.push_back(index.get_comms());
+    single = {std::move(f), nullptr};
   }
 
 public:
@@ -96,12 +99,13 @@ public:
 
   // Delay the execution of the given task until all dependencies have been
   // satisfied (if any).
-  template<typename R, typename Params, typename Task>
-  ::hpx::shared_future<R>
-  delay_execution(Params && params, std::string task_name, Task && task) && {
-    data::hold future;
-    if(!read.empty() || !write.empty())
-      future = data::hold::make();
+  template<typename R, typename Task>
+  std::pair<::hpx::shared_future<R>, run::comms::ptr>
+  delay_execution(std::string task_name, Task && task) && {
+    auto comms = run::comms::make();
+    // First dependency has lowest priority:
+    comms->depend(run::context::instance().world_comms);
+    auto future = data::hold::make(comms);
     for(auto r : read)
       r->do_read([&](data::hold & d) {
         dependencies(future.depend(d));
@@ -113,19 +117,17 @@ public:
           dependencies(future.depend(std::move(r)));
         return future;
       });
-    // In the rare case where we do not have anywhere to store a future, we
-    // create our own single-use communicator.
-    data::comms::comm own;
-    if(need_comm && !future)
-      own = data::comms::make_comm();
+    for(auto & f : futures)
+      comms->depend(std::move(f));
     auto f = ::hpx::dataflow(
       [out = run::context::instance().outstanding(),
         regions_partitions = detach(),
         task = std::forward<Task>(task),
-        params = std::optional(std::forward<Params>(params)),
         task_name = std::move(task_name),
-        comm = need_comm && future ? &future.comm() : own.get(),
-        own = std::move(own)](data::dependencies::type deps) mutable {
+        comm = need_comm ? &comms->get() : nullptr,
+        // Keep comm alive if the hold can't:
+        own = need_comm && read.empty() && write.empty() ? comms : nullptr](
+        data::dependencies::type deps) mutable {
         const auto done = out(); // HPX doesn't destroy functors promptly
         // manage task_local variables for this task
         run::task_local_base::guard tlg;
@@ -133,27 +135,18 @@ public:
         // annotate new HPX thread
         ::hpx::scoped_annotation _(task_name);
 
-        // Destroy parameters (especially mutators) deterministically:
-        struct guard {
-          ~guard() {
-            p.reset();
-          }
-          decltype(params) & p;
-        } g{params};
-
         // rethrow exceptions propagated from dependencies
         for(auto && f : std::forward<decltype(deps)>(deps))
           f.get();
 
-        return task(regions_partitions, comm, std::move(*params));
+        return task(regions_partitions, comm);
       },
       dependencies.detach())
                .share();
     // Publish to the fields used.  There is no race with the task, since
     // tasks never access any field futures.
-    if(future)
-      future.send(f);
-    return f;
+    future.send(f);
+    return {std::move(f), std::move(comms)};
   }
 
 private:
@@ -162,6 +155,7 @@ private:
   data::dependencies dependencies;
   // Dependencies on fields are computed after scheduling ghost copies.
   std::vector<data::backend_storage *> read, write;
+  std::vector<run::comms::ptr> futures;
   bool need_comm = false;
 };
 

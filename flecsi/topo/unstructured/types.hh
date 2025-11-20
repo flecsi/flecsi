@@ -283,7 +283,7 @@ struct unstructured_base : base {
 
   static void set_dests(
     data::multi<field<data::intervals::Value>::accessor<wo>> aa,
-    std::vector<std::vector<data::subrow>> const & intervals) {
+    const destination_intervals & intervals) {
     std::size_t ci = 0;
     for(auto [c, a] : aa.components()) {
       auto & iv = intervals[ci++];
@@ -301,8 +301,7 @@ struct unstructured_base : base {
   static void set_ptrs(
     data::multi<
       field<data::copy_engine::Point>::accessor1<privilege_repeat<wo, N>>> aa,
-    std::vector<std::map<Color,
-      std::vector<std::pair<util::id, util::id>>>> const & points) {
+    const source_pointers & points) {
     std::size_t ci = 0;
     for(auto & a : aa.accessors()) {
       for(auto const & [owner, ghosts] : points[ci++]) {

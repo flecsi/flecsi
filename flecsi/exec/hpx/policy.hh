@@ -25,6 +25,14 @@
 namespace flecsi {
 namespace exec {
 namespace detail {
+template<class T>
+struct reset_guard { // Clang 17.0.6 warns about this as a local class
+  ~reset_guard() {
+    t.reset();
+  }
+  T & t;
+};
+} // namespace detail
 
 template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
@@ -34,7 +42,7 @@ reduce_internal(Args &&... args) {
   using P = typename Traits::arguments_type;
 
   constexpr auto processor_type = mask_to_processor_type(Attributes);
-  constexpr bool mpi_task = processor_type == processor::mpi;
+  static constexpr bool mpi_task = processor_type == processor::mpi;
   static_assert(processor_type == processor::toc ||
                   processor_type == processor::loc ||
                   processor_type == processor::omp || mpi_task,
@@ -51,6 +59,8 @@ reduce_internal(Args &&... args) {
   // prolog<> instances below.
 
   const auto ds = exec::launch_size<Attributes, P>(args...);
+  static constexpr bool single =
+    std::is_same_v<decltype(ds), const std::monostate>;
   util::annotation::rguard<util::annotation::execute_task_user> ann{task_name};
 
   // The prolog will calculate dependencies between tasks based on the
@@ -69,53 +79,55 @@ reduce_internal(Args &&... args) {
       !std::is_invocable_v<decltype(f), decltype(params) &&>;
     // The apply_delayed_prolog is run after all dependencies for the embedded
     // task f have been satisfied.
-    auto apply_delayed_prolog = [f = std::forward<decltype(f)>(f)](
-                                  auto & regions_partitions,
-                                  run::communicator * comm,
-                                  auto && params) mutable noexcept {
-      // The bind_parameters constructor will possibly schedule additional steps
-      // to run during destruction that require execution after the task
-      // finished running (reduction operations).
-      bind_parameters<processor_type> provide_storage(
-        params, comm, regions_partitions);
+    auto apply_delayed_prolog =
+      [f = std::forward<decltype(f)>(f),
+        params = std::optional(std::forward<decltype(params)>(params))](
+        auto & regions_partitions, run::communicator * comm) mutable noexcept {
+        // Destroy parameters (especially mutators) deterministically:
+        detail::reset_guard<decltype(params)> g{params};
 
-      if(mpi_task) // after possibly creating a communicator
-        ::hpx::distributed::barrier::synchronize();
-      if constexpr(need_comm)
-        return std::forward<decltype(f)>(f)(
-          *comm, std::forward<decltype(params)>(params));
-      else
-        return std::forward<decltype(f)>(f)(
-          std::forward<decltype(params)>(params));
-    };
+        // The bind_parameters constructor will possibly schedule additional
+        // steps to run during destruction that require execution after the task
+        // finished running (reduction operations).
+        bind_parameters<processor_type> provide_storage(
+          *params, comm, regions_partitions);
+
+        if(mpi_task) // after possibly creating a communicator
+          ::hpx::distributed::barrier::synchronize();
+        if constexpr(need_comm)
+          return std::forward<decltype(f)>(f)(*comm, std::move(*params));
+        else
+          return std::forward<decltype(f)>(f)(std::move(*params));
+      };
     if(need_comm)
       bound_params.request_comm();
-    return std::move(bound_params)
-      .template delay_execution<R>(
-        std::move(params), util::symbol<F>(), std::move(apply_delayed_prolog));
+    auto ret = std::make_from_tuple<future<std::remove_cv_t<R>,
+      std::is_void_v<Reduction> && !single ? launch_type_t::index
+                                           : launch_type_t::single>>(
+      std::move(bound_params)
+        .template delay_execution<R>(
+          util::symbol<F>(), std::move(apply_delayed_prolog)));
+    if(mpi_task)
+      ret.wait();
+    return ret;
   };
 
   constexpr auto delayed_apply = [](auto && params) {
     return std::apply(F, std::forward<decltype(params)>(params));
   };
 
-  if constexpr(std::is_same_v<decltype(ds), const std::monostate>) {
+  if constexpr(single) {
     const bool root = flecsi::run::context::instance().process() == 0;
-
-    // single launch, only invoke the user task on the Root.
     if constexpr(std::is_void_v<R>) {
       if(root) {
-        return future<void>{delay(delayed_apply)};
+        return delay(delayed_apply);
       }
       else {
-        return future<void>{delay([](auto &&) {})};
+        return delay([](auto &&) {});
       }
     }
     else {
-      return future<R>{delay([root](run::communicator & comm, auto && params) {
-        // Broadcast the result from root to the rest of ranks return future<R,
-        // launch_type::single> where clients on every rank will get the same
-        // value when calling .get().
+      return delay([root](run::communicator & comm, auto && params) {
         using namespace ::hpx::collectives;
         if(root) {
           return broadcast_to(comm.comm(),
@@ -126,51 +138,28 @@ reduce_internal(Args &&... args) {
         else {
           return broadcast_from<R>(comm.comm(), comm.gen()).get();
         }
-      })};
+      });
     }
   }
   else {
     flog_assert(ds == run::context::instance().processes(),
-      "HPX backend supports only per-rank index launches");
+      "HPX backend supports only per-process index launches");
 
-    // index launch (including "mpi task"), invoke the user task on all ranks.
     if constexpr(!std::is_void_v<Reduction>) {
-      static_assert(!std::is_void_v<R>, "can not reduce results of void task");
+      static_assert(!std::is_void_v<R>, "cannot reduce void results");
 
-      return future<R>{delay([](run::communicator & comm, auto && params) {
+      return delay([](run::communicator & comm, auto && params) {
         using namespace ::hpx::collectives;
         return all_reduce(comm.comm(),
           std::apply(F, std::forward<decltype(params)>(params)),
           exec::fold::wrap<Reduction>{},
           comm.gen())
           .get();
-      })};
+      });
     }
-    else if constexpr(!std::is_void_v<R>) {
-      return future<R, exec::launch_type_t::index>{delay(delayed_apply)};
-    }
-    else {
-      // index launch of void functions, e.g. printf("hello world");
-      return future<void, exec::launch_type_t::index>{delay(delayed_apply)};
-    }
+    else
+      return delay(delayed_apply);
   }
-}
-
-} // namespace detail
-
-template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
-auto
-reduce_internal(Args &&... args) {
-
-  auto result = detail::reduce_internal<F, Reduction, Attributes>(
-    std::forward<Args>(args)...);
-
-  if constexpr(mask_to_processor_type(Attributes) == exec::processor::mpi) {
-    // MPI tasks are always synchronous
-    result.wait();
-  }
-
-  return result;
 }
 
 } // namespace exec

@@ -380,7 +380,7 @@ public:
         if(!copy_src_req.is_restricted())
           create_copy_instance<true /*is src*/>(
             ctx, copy, copy_src_req, output_src);
-        // else: do nothing (if restricted we can not create a new instance)
+        // else: do nothing (if restricted we cannot create a new instance)
       }
       // Do a virtual mapping instead of creating new instances
       // We can use this optimization only for copies without indirections

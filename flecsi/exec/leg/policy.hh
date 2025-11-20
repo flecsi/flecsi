@@ -55,25 +55,16 @@ reduce_internal(Args &&... args) {
     "Unknown launch type");
   const auto domain_size = launch_size<Attributes, param_tuple>(args...);
 
-  // We do not generate a separate task_wrapper specialization for each set of
-  // argument types, so we construct a tuple whose type is independent of the
-  // those types.  Since an MPI task can use references to the
-  // original arguments, we have to provide references, which in turn requires
-  // separate storage for any objects created by argument conversions (absent
-  // excessive variadic aggregate gymnastics to create lifetime-extended
-  // temporaries).
-
   run::any any;
   auto & params = any.emplace(leg::parameters(
     make_parameters<mpi_task, param_tuple>(std::forward<Args>(args)...)));
   prolog<mask_to_processor_type(Attributes)> pro(params.params, args...);
-  params.which = std::move(pro).region_indices();
+  params.which = std::move(pro).bindings();
   std::optional<leg::parameters<param_tuple>> mpi_params;
   std::vector<std::byte> buf;
   if constexpr(mpi_task) {
-    // MPI tasks must be invoked collectively from one task on each rank.
-    // We therefore can transmit merely a pointer to a tuple of the arguments.
-    // The TaskArgument must be identical on every shard, so use the context.
+    // We can own the parameters for a synchronous launch, but we can't store
+    // the various pointers to them in the one TaskArgument.
     flecsi_context.mpi_params = &mpi_params.emplace(std::move(params));
   }
   else {
@@ -125,23 +116,19 @@ reduce_internal(Args &&... args) {
       legion_runtime->issue_execution_fence(legion_context);
     }
 
-    if constexpr(!std::is_void_v<Reduction>) {
-      auto ret = future<return_t, launch_type_t::single>{{},
-        legion_runtime->execute_index_space(
-          legion_context, launcher, fold::wrap<Reduction, return_t>::REDOP_ID)};
-      if(mpi_task)
-        ret.wait();
-      return ret;
-    }
-    else {
-      auto ret = future<return_t, launch_type_t::index>{
-        legion_runtime->execute_index_space(legion_context, launcher)};
-      if(mpi_task)
-        ret.wait();
-
-      return ret;
-    } // if reduction
-
+    auto ret = [&] {
+      if constexpr(!std::is_void_v<Reduction>)
+        return future<return_t>{{},
+          legion_runtime->execute_index_space(legion_context,
+            launcher,
+            fold::wrap<Reduction, return_t>::REDOP_ID)};
+      else
+        return future<return_t, launch_type_t::index>{
+          legion_runtime->execute_index_space(legion_context, launcher)};
+    }();
+    if(mpi_task)
+      ret.wait();
+    return ret;
   } // if constexpr
 
 } // reduce_internal

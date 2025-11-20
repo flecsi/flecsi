@@ -244,27 +244,6 @@ struct consistent_variants
       S2> {};
 } // namespace detail
 
-template<bool M, class... PP>
-void
-check_parameters() {
-  if constexpr(!M) {
-    static_assert((!std::is_rvalue_reference_v<PP> && ...),
-      "only MPI tasks can accept rvalue references");
-    static_assert((std::is_const_v<std::remove_reference_t<const PP>> && ...),
-      "only MPI tasks can accept non-const references");
-    static_assert(
-      ((!std::is_pointer_v<PP> || std::is_const_v<std::remove_pointer_t<PP>> ||
-        std::is_function_v<std::remove_pointer_t<PP>>)&&...),
-      "only MPI tasks can accept non-const pointers");
-    static_assert((std::is_move_constructible_v<std::decay_t<PP>> && ...),
-      "only MPI tasks can accept non-movable parameters");
-    static_assert((std::is_copy_constructible_v<PP> && ...),
-      "only MPI tasks can accept non-copyable parameters by value");
-  }
-  static_assert((!detail::bad_accessor<M, std::decay_t<PP>> && ...),
-    "only MPI tasks without ghosts can accept non-portable field accessors");
-}
-
 // Replaces certain task arguments before conversion to the parameter type.
 template<class P, class T>
 decltype(auto)
@@ -274,19 +253,57 @@ replace_argument(T && t) {
 }
 
 namespace detail {
-template<bool M, bool R, class... PP, class... AA>
+template<bool M, class P, class A>
+decltype(auto)
+make_parameter(A && a) {
+  using PD = std::decay_t<P>;
+  if constexpr(!M) {
+    static_assert(!std::is_rvalue_reference_v<P>,
+      "only MPI tasks can accept rvalue references");
+    static_assert(std::is_const_v<std::remove_reference_t<const P>>,
+      "only MPI tasks can accept non-const references");
+    static_assert(!std::is_pointer_v<P> ||
+                    std::is_const_v<std::remove_pointer_t<P>> ||
+                    std::is_function_v<std::remove_pointer_t<P>>,
+      "only MPI tasks can accept non-const pointers");
+    static_assert(std::is_copy_constructible_v<P>,
+      "only MPI tasks can accept non-copyable parameters by value");
+  }
+  static_assert(!detail::bad_accessor<M, PD>,
+    "only MPI tasks without ghosts can accept non-portable field accessors");
+  const auto f = [&a]() -> decltype(auto) {
+    return exec::replace_argument<P>(std::forward<A>(a));
+  };
+  // Our Legion task wrapper does not depend on argument types, so even for an
+  // MPI task we must eagerly create parameters and objects for any references
+  // that require a conversion.  We apply this approximation of C++23's
+  // std::reference_converts_from_temporary for all backends.
+  static_assert(
+    std::is_move_constructible_v<P>, "task parameters must be movable");
+  if constexpr(M && !(std::is_reference_v<P> &&
+                      std::is_const_v<std::remove_reference_t<P>> &&
+                      !std::is_convertible_v<std::add_pointer_t<decltype(f())>,
+                        std::add_pointer_t<P>>))
+    return f();
+  else {
+    static_assert(std::is_move_constructible_v<PD>,
+      "only MPI tasks can accept references to non-movable types; "
+      "they must bind directly");
+    return [&f]() -> PD { return f(); }();
+  }
+}
+
+template<bool M, class... PP, class... AA>
 auto
 make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
-  check_parameters<M, PP...>();
-  return std::tuple<std::conditional_t<R,
-    decltype(exec::replace_argument<PP>(std::forward<AA>(aa))),
-    std::decay_t<PP>>...>(exec::replace_argument<PP>(std::forward<AA>(aa))...);
+  return std::tuple<decltype(make_parameter<M, PP>(std::forward<AA>(aa)))...>(
+    make_parameter<M, PP>(std::forward<AA>(aa))...);
 }
 } // namespace detail
-template<bool M, class P, bool R = M, class... AA>
+template<bool M, class P, class... AA>
 auto
 make_parameters(AA &&... aa) {
-  return detail::make_parameters<M, R>(
+  return detail::make_parameters<M>(
     static_cast<P *>(nullptr), std::forward<AA>(aa)...);
 }
 
@@ -424,10 +441,10 @@ struct agent : executor_base<agent<S>> {
 
 /// An execution space.
 struct space_base : data::bind_tag, data::convert_tag {
-  /// Information about an index launch.
+  /// Information about a task launch.
   struct tasks {
-    Color size, ///< Number of point tasks launched.
-      index; ///< Current point task.
+    Color size, ///< Number of task instances.
+      index; ///< Current task instance (or point task) number.
   };
   /// Describe the tasks launched.
   const tasks & launch() const {

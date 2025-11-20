@@ -392,16 +392,14 @@ using value_type = std::decay_t<decltype(*std::declval<R>().begin())>;
   One-to-All (variable) communication pattern.
 
   This function uses the FleCSI serialization interface to communicate data
-  from the root rank (0) to all
-  other ranks.
+  from the root (rank 0) to all other processes.
 
   \param r range or functor with signature (rank) or (\b deprecated) (rank,
-    size), read/invoked only on rank 0 and in recipient order
+    size), read/invoked only on the root and in recipient order
   @param comm An MPI communicator.
 
-  \return the value from \a r for the current rank
+  \return the value from \a r for this process
  */
-
 template<typename R>
 inline auto
 one_to_allv(R && r, MPI_Comm comm = MPI_COMM_WORLD) {
@@ -546,11 +544,11 @@ private:
 };
 } // namespace detail
 
-/// Send data from rank 0 to all others, controlling memory usage.
+/// Send data from root (rank 0) to all others, controlling memory usage.
 /// No messages are constructed while data in transit exceeds \a mem
 /// (transmission occurs, at least serially, even if it is 0).
 /// \param r range or functor with signature (rank) or (\b deprecated) (rank,
-///   size), read/invoked only on rank 0 and in recipient order
+///   size), read/invoked only on root and in recipient order
 /// \param mem bytes of memory to use before waiting
 template<class R>
 auto
@@ -624,13 +622,13 @@ one_to_alli(R && r, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
   All-to-All (variable) communication pattern.
 
   This function uses the FleCSI serialization interface with a packing
-  callable object to communicate data from all ranks to all other ranks.
+  callable object to communicate data from each process to every other.
 
   \param r range or functor with signature (rank) or (\b deprecated) (rank,
     size), read/invoked in recipient order
   @param comm An MPI communicator.
 
-  \return a \c std::vector of the values for the current rank from each rank's
+  \return a \c std::vector of the values for this process from each source
     \a r
  */
 
@@ -717,17 +715,16 @@ all_to_allv(R && r, MPI_Comm comm = MPI_COMM_WORLD) {
   function is convenient for passing more complicated types. Otherwise,
   it may make more sense to use MPI_Allgather directly.
 
-  This function uses the FleCSI serialization interface to copy data from all
-  ranks to all other ranks.
+  This function uses the FleCSI serialization interface to copy data from
+  every process to every other.
 
   @tparam T serializable data type
 
   @param t object to send
   @param comm An MPI communicator.
 
-  @return the values from each rank
+  \return all \a t values
  */
-
 template<typename T>
 std::vector<T>
 all_gatherv(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {

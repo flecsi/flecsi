@@ -20,12 +20,33 @@
 namespace flecsi {
 namespace detail {
 
+struct future_base {
+  run::comms::ptr get_comms() const {
+    return comms;
+  }
+
+  void silence() { // for task parameters, where waiting isn't interesting
+    comms = {};
+  }
+
+protected:
+  future_base(run::comms::ptr c = {}) : comms(std::move(c)) {}
+
+  void wait() {
+    run::context::instance().depend(std::move(comms));
+  }
+
+private:
+  run::comms::ptr comms;
+};
+
 template<typename R>
-struct future_impl {
+struct future_impl : future_base {
 
   future_impl() = default;
 
-  future_impl(::hpx::shared_future<R> f) noexcept : future_(std::move(f)) {}
+  future_impl(::hpx::shared_future<R> f, run::comms::ptr c = {}) noexcept
+    : future_base(std::move(c)), future_(std::move(f)) {}
 
   ::hpx::shared_future<void> depend() {
     return future_;
@@ -33,10 +54,12 @@ struct future_impl {
 
   void wait() {
     flog_assert(future_.valid(), "future must be valid");
+    future_base::wait();
     future_.wait();
   }
   R get(bool = false) {
     flog_assert(future_.valid(), "future must be valid");
+    future_base::wait();
     return future_.get();
   }
 
@@ -70,10 +93,11 @@ struct future<void> : detail::future_impl<void> {
 namespace detail {
 
 template<typename R>
-struct future_index {
+struct future_index : future_base {
   using future = ::hpx::shared_future<R>;
 
-  explicit future_index(future f) noexcept : future_(std::move(f)) {}
+  explicit future_index(future f, run::comms::ptr c) noexcept
+    : future_base(std::move(c)), future_(std::move(f)) {}
 
   auto mine() {
     return future_;
@@ -81,12 +105,14 @@ struct future_index {
 
   void wait(bool = false) {
     flog_assert(future_.valid(), "future must be valid");
+    future_base::wait();
     future_.wait();
     ::hpx::distributed::barrier::synchronize();
   }
 
   R get() {
     flog_assert(future_.valid(), "future must be valid");
+    // No future_base::wait(): this isn't reliably called on all processes.
     return future_.get();
   }
 
@@ -107,18 +133,20 @@ struct future<R, exec::launch_type_t::index> : detail::future_index<R> {
 
   R get(Color index = 0, bool = false) {
     auto & c = run::context::instance();
+    auto & comm = c.world_comms->get();
     if(index == c.process()) {
       R ret = base_type::get();
-      ::hpx::collectives::broadcast_to(c.world0.comm(), ret, c.world0.gen());
+      ::hpx::collectives::broadcast_to(comm.comm(), ret, comm.gen());
       return ret;
     }
-    return ::hpx::collectives::broadcast_from<R>(
-      c.world0.comm(), c.world0.gen())
-      .get();
+    return ::hpx::collectives::broadcast_from<R>(comm.comm(), comm.gen()).get();
   }
   std::vector<R> all() {
-    auto & c = run::context::instance().world0;
-    return ::hpx::collectives::all_gather(c.comm(), base_type::get(), c.gen())
+    // c might be used by the task, so we can call gen only after get returns.
+    auto r = base_type::get();
+    this->future_base::wait();
+    auto & c = run::context::instance().world_comms->get();
+    return ::hpx::collectives::all_gather(c.comm(), std::move(r), c.gen())
       .get();
   }
 };

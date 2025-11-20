@@ -56,8 +56,9 @@ struct copy_engine : local::copy_engine {
             requests()));
         }
 
+        // template keyword added as workaround for GCC 12.3
         if(write && P != exec::processor::toc)
-          (*destination)[data_fid].storage().prefer<P>(true);
+          (*destination)[data_fid].storage().template prefer<P>(true);
         // NB: source and destination typically alias.
         const auto [cpu, gpu] = (*source)[data_fid].storage().data2();
 
@@ -128,8 +129,8 @@ struct copy_engine : local::copy_engine {
     auto recv_buffer = recv_buffers.begin();
     for(auto & [data_fid, write] : ff) {
       auto & d = (*destination)[data_fid].storage();
-      if(write)
-        d.prefer<P>(); // has effect only for toc
+      if(write) // template keyword added as workaround for GCC 12.3
+        d.template prefer<P>(); // has effect only for toc
 
       auto type_size = source->get_field_info(data_fid)->type_size;
       const auto [cpu, gpu] = d.data2();

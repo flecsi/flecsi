@@ -34,11 +34,11 @@ struct context_t : local::context {
   } // task_depth
 
   Color color() const {
-    return process_;
+    return process();
   }
 
   Color colors() const {
-    return processes_;
+    return processes();
   }
 
   static inline int depth;

@@ -213,7 +213,7 @@ struct guard {
   /// Create a guard to enable a \c tag.
   guard(const tag & t) : prev(std::exchange(state::active_tag(), +t)) {
 #if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: activating tag " << tag
+    std::cerr << FLOG_COLOR_LTGRAY << "Flog: activating tag " << tag
               << FLOG_COLOR_PLAIN << std::endl;
 #endif
   }
@@ -236,14 +236,14 @@ tags() {
 }
 
 /*!
-  Add an output stream to FLOG.
+  Add an output stream to Flog.
 
   @param label    An identifier for the stream. This can be used to access or
                   update an output stream after it has been added.
   @param stream   The output stream to add.
   @param colorize Indicates whether the output to this stream should be
                   colorized. It is useful to turn colorization off for
-                  non-interactive output (default).
+                  non-interactive output.
  */
 
 inline void
@@ -442,6 +442,7 @@ to_string(T const & t) {
 
 /*!
   Alias for severity level warn.
+  \deprecated Use `flog(warn)`.
  */
 
 #define fixme() flog(warn)
@@ -481,7 +482,7 @@ inline constexpr bool can_dumpstack =
 } // namespace flecsi
 
 /*!
-  Throw a runtime exception with the provided message.
+  Abort the process with the provided message.
   If \c FLECSI_BACKTRACE is set in the environment and \c NDEBUG is not
   defined, produce a backtrace.
 
@@ -526,23 +527,23 @@ inline constexpr bool can_dumpstack =
   } /* scope */
 
 /*!
-  Flog assertion interface. Assertions allow the developer to catch
-  invalid program state. This call will invoke flog_fatal if the test
+  Assertion with stream support.  If \c NDEBUG is defined, do nothing;
+  otherwise invoke \c flog_fatal if the test
   condition is false.
 
   @param test    The test condition.
   @param message The stream message to be printed.
 
   @note Failed assertions are not disabled by tags or
-        by the ENABLE_FLOG or FLOG_STRIP_LEVEL build options, i.e.,
-        they are always active.
+        by the \c ENABLE_FLOG or \c FLOG_STRIP_LEVEL build options, but only
+        by \c NDEBUG.
 
   @b Usage
   @code
-  int value{20};
+  int value = 19;
 
   // Print the value and exit
-  flog_assert(value == 20, "invalid value");
+  flog_assert(value == 20, "invalid value: " << value);
   @endcode
  */
 

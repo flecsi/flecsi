@@ -25,9 +25,13 @@ namespace exec {
 /// \{
 
 namespace leg {
-using Indices = std::vector<
-  std::pair<std::vector<Legion::RegionRequirement>::size_type, field_id_t>>;
-}
+struct bindings {
+  std::vector<
+    std::pair<std::vector<Legion::RegionRequirement>::size_type, field_id_t>>
+    fields;
+  std::vector<bool> index_future;
+};
+} // namespace leg
 
 namespace detail {
 template<class T = void>
@@ -49,7 +53,7 @@ struct task_prolog_impl : prolog_base {
     return std::move(region_reqs_);
   } // region_requirements
 
-  auto && region_indices() && {
+  auto && bindings() && {
     return std::move(which);
   }
 
@@ -97,7 +101,7 @@ private:
       topo_req.try_emplace({&s, b, m}, region_reqs_.size());
     if(add)
       std::forward<A>(a)();
-    auto & r = region_reqs_[which.emplace_back(it->second, f).first];
+    auto & r = region_reqs_[which.fields.emplace_back(it->second, f).first];
     if(!r.privilege_fields.count(f))
       r.add_field(f);
     if(rsz)
@@ -164,11 +168,13 @@ protected:
   template<class P, class T>
   void visit(P &, const future<T> & f) {
     futures_.push_back(f.legion_future_);
+    which.index_future.push_back(false);
   }
 
   template<class P, class T>
   void visit(P &, const future<T, exec::launch_type_t::index> & f) {
     future_maps_.push_back(f.legion_future_);
+    which.index_future.push_back(true);
   }
   /*--------------------------------------------------------------------------*
    Epilog
@@ -190,7 +196,7 @@ private:
              Legion::PrivilegeMode>,
     decltype(region_reqs_.size())>
     topo_req;
-  leg::Indices which;
+  leg::bindings which;
   std::vector<Legion::Future> futures_;
   std::vector<Legion::FutureMap> future_maps_;
 };
@@ -212,12 +218,19 @@ struct bind_accessors {
   bind_accessors(Legion::Runtime * legion_runtime,
     Legion::Context & legion_context,
     std::vector<Legion::PhysicalRegion> const & regions,
-    const leg::Indices & which,
-    std::vector<Legion::Future> const & futures)
+    std::vector<Legion::Future> const & futures,
+    const leg::bindings & which)
     : legion_runtime_(legion_runtime), legion_context_(legion_context),
-      regions_(regions), which(which), futures_(futures) {}
+      regions_(regions), futures_(futures), which(which),
+      index_future(futures.size() - std::reduce(which.index_future.begin(),
+                                      which.index_future.end(),
+                                      decltype(index_future)())) {
+    flog_assert(
+      which.index_future.size() == futures.size(), "future count mismatch");
+  }
   ~bind_accessors() {
-    flog_assert(region == which.size(), "not enough parameters");
+    flog_assert(region == which.fields.size(), "not enough accessors");
+    flog_assert(future_id == futures_.size(), "not enough futures");
   }
 
 protected:
@@ -258,8 +271,8 @@ protected:
 
 private:
   std::pair<const Legion::PhysicalRegion &, field_id_t> next() {
-    flog_assert(region < which.size(), "too many parameters");
-    const auto & [w, f] = which[region++];
+    flog_assert(region < which.fields.size(), "too many parameters");
+    const auto & [w, f] = which.fields[region++];
     return {regions_[w], f};
   }
 
@@ -280,7 +293,9 @@ protected:
    *--------------------------------------------------------------------------*/
   template<typename D>
   void visit(future<D> & f) {
-    f.legion_future_ = futures_[future_id++];
+    flog_assert(future_id < futures_.size(), "too many futures");
+    f.legion_future_ = futures_[(
+      which.index_future[future_id++] ? index_future : single_future)++];
   }
 
 private:
@@ -288,10 +303,10 @@ private:
   Legion::Context & legion_context_;
   size_t region = 0;
   const std::vector<Legion::PhysicalRegion> & regions_;
-  const leg::Indices & which;
   size_t future_id = 0;
   const std::vector<Legion::Future> & futures_;
-
+  const leg::bindings & which;
+  std::vector<Legion::Future>::size_type single_future = 0, index_future;
 }; // struct bind_accessors
 
 /// \}
