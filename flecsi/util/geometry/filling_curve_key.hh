@@ -23,8 +23,7 @@ namespace flecsi::util {
 /// is used as a bit-field.
 /// \tparam DERIVED derived class (see below for requirements)
 template<Dimension DIM, typename T, class DERIVED>
-class filling_curve_key
-{
+class filling_curve_key {
   // Dimension of the curve, 1D, 2D or 3D
   static constexpr Dimension dimension = DIM;
 
@@ -178,8 +177,7 @@ struct my_key : filling_curve_key<DIM, T, my_key<DIM, T>> {
 
 /// Point on a Hilbert-Peano space filling curve.
 template<Dimension DIM, typename T>
-class hilbert_key : public filling_curve_key<DIM, T, hilbert_key<DIM, T>>
-{
+class hilbert_key : public filling_curve_key<DIM, T, hilbert_key<DIM, T>> {
 public:
   using typename hilbert_key::filling_curve_key::int_t;
   /// Point type to represent coordinates.
@@ -394,8 +392,7 @@ private:
 
 /// Point on a Morton space filling curve.
 template<Dimension DIM, typename T>
-class morton_key : public filling_curve_key<DIM, T, morton_key<DIM, T>>
-{
+class morton_key : public filling_curve_key<DIM, T, morton_key<DIM, T>> {
 
 public:
   using typename morton_key::filling_curve_key::int_t;

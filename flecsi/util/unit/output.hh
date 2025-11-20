@@ -13,8 +13,7 @@ namespace flecsi::util::unit {
 /// \{
 
 // Captures unit test output so that it may be compared to a file.
-class test_output_t
-{
+class test_output_t {
 public:
   static task_local<test_output_t> current_output;
 

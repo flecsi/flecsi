@@ -65,7 +65,7 @@ print_field(typename mesh<D>::template accessor<ro> m,
   else {
     for(int k = m.template axis<mesh3d::axis::z_axis>().layout.extent(); k--;) {
       for(int j = m.template axis<mesh3d::axis::y_axis>().layout.extent();
-          j--;) {
+        j--;) {
         for(auto i : m.template axis<mesh3d::axis::x_axis>().layout.all()) {
           ss << c[k][j][i] << "   ";
         } // for

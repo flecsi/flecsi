@@ -154,7 +154,7 @@ getopt::parse(int argc, const char * const * argv) const {
 #ifdef FLECSI_ENABLE_FLOG
   if(init)
     if(const auto flog_tags_ = vm["flog-tags"].as<std::string>();
-       flog_tags_ != "none") {
+      flog_tags_ != "none") {
       std::istringstream is(flog_tags_);
       std::string tag;
       while(std::getline(is, tag, ','))

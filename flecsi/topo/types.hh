@@ -136,21 +136,18 @@ struct id {
   using difference_type = std::make_signed_t<T>;
 
   id() = default; // allow trivial default initialization
-  FLECSI_INLINE_TARGET
-  explicit id(T t) : t(t) {}
+  FLECSI_INLINE_TARGET explicit id(T t) : t(t) {}
 
   id(const id &) = default;
 
-  FLECSI_INLINE_TARGET
-  operator T() const {
+  FLECSI_INLINE_TARGET operator T() const {
     return t;
   }
 
   // Prevent assigning to transform_view results:
   id & operator=(const id &) & = default;
 
-  FLECSI_INLINE_TARGET
-  id & operator++() & {
+  FLECSI_INLINE_TARGET id & operator++() & {
     ++t;
     return *this;
   }
@@ -159,8 +156,7 @@ struct id {
     ++*this;
     return ret;
   }
-  FLECSI_INLINE_TARGET
-  id & operator--() & {
+  FLECSI_INLINE_TARGET id & operator--() & {
     --t;
     return *this;
   }
@@ -198,8 +194,7 @@ struct id {
     id c = *this;
     return c -= d;
   }
-  FLECSI_INLINE_TARGET
-  difference_type operator-(id i) const {
+  FLECSI_INLINE_TARGET difference_type operator-(id i) const {
     return difference_type(t) - difference_type(i.t);
   }
   template<typename D>

@@ -21,8 +21,7 @@ namespace run {
   FleCSI's mapper, named for its support for rank-matching for MPI tasks.
   \ns::run.
 */
-class mpi_mapper_t : public Legion::Mapping::DefaultMapper
-{
+class mpi_mapper_t : public Legion::Mapping::DefaultMapper {
 public:
   /// See \c DefaultMapper for parameter meanings.
   mpi_mapper_t(Legion::Machine machine,
@@ -326,8 +325,8 @@ public:
           Legion::Machine::ProcessorQuery(machine).only_kind(
             Legion::Processor::LOC_PROC);
         for(Legion::Machine::ProcessorQuery::iterator it = pq.begin();
-            it != pq.end();
-            ++it) {
+          it != pq.end();
+          ++it) {
           Legion::Processor p = *it;
           if(p.address_space() == me) {
             auto & out = output.slices.emplace_back();
@@ -617,8 +616,8 @@ mapper_registration(Legion::Machine machine,
   Legion::Runtime * rt,
   const std::set<Legion::Processor> & local_procs) {
   for(std::set<Legion::Processor>::const_iterator it = local_procs.begin();
-      it != local_procs.end();
-      it++) {
+    it != local_procs.end();
+    it++) {
     rt->replace_default_mapper(new mpi_mapper_t(machine, rt, *it), *it);
   }
 }

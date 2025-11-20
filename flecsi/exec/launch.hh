@@ -312,7 +312,7 @@ make_parameters(AA &&... aa) {
 template<TaskAttributes A, class P, class... AA>
 auto
 launch_size(const AA &... aa) {
-  return detail::launch_size<P, mask_to_processor_type(A) == processor::mpi>(
+  return detail::launch_size<P, (mask_to_processor_type(A) == processor::mpi)>(
     aa...)
     .get();
 }
@@ -567,10 +567,10 @@ using task_variant = std::conditional_t<use_variant_v<V, gpu>,
   std::conditional_t<use_variant_v<V, omp>, omp, cpu>>;
 
 template<class V, class... SS>
-constexpr bool
-  consistent_task = (std::disjunction_v<std::negation<has_variant<V, SS>>,
-                       detail::consistent_variants<V, task_variant<V>, SS>> &&
-                     ...);
+constexpr bool consistent_task =
+  (std::disjunction_v<std::negation<has_variant<V, SS>>,
+     detail::consistent_variants<V, task_variant<V>, SS>> &&
+    ...);
 
 struct on_t : data::convert_tag {};
 /// Placeholder argument that corresponds to an execution-\ref space task

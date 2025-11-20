@@ -24,8 +24,7 @@ namespace util {
 inline constexpr int ag_create = 1, ag_access = 0;
 
 /// Class for creating Graphviz trees.
-class graphviz
-{
+class graphviz {
   static auto cc(const char * s) {
     return const_cast<char *>(s);
   }

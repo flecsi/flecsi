@@ -172,8 +172,7 @@ const field<flecsi::util::id>::definition<sph_ntree_t,
   sph_ntree_t::base::entities>
   id_check;
 
-FLECSI_INLINE_TARGET
-ngb_array_t::iterator
+FLECSI_INLINE_TARGET ngb_array_t::iterator
 find(ngb_array_t::iterator it,
   ngb_array_t::iterator end,
   const std::pair<util::id, bool> & v) {
@@ -184,8 +183,7 @@ find(ngb_array_t::iterator it,
   return it;
 }
 
-FLECSI_INLINE_TARGET
-bool
+FLECSI_INLINE_TARGET bool
 verify_neighbors(flecsi::topo::id<flecsi::topo::ntree_base::entities> e,
   sph_ntree_t::accessor<rw, ro> t) {
 

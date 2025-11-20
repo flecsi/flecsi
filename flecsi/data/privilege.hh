@@ -158,9 +158,9 @@ privilege_discard(Privileges pack) noexcept {
 
 // privilege_pack<P,P,...> (N times)
 template<privilege P, PrivilegeCount N>
-inline constexpr Privileges
-  privilege_repeat = privilege_empty<N> |
-                     (privilege_empty<N> - 1) / ((1 << privilege_bits) - 1) * P;
+inline constexpr Privileges privilege_repeat =
+  privilege_empty<N> |
+  (privilege_empty<N> - 1) / ((1 << privilege_bits) - 1) * P;
 template<Privileges A, Privileges B>
 inline constexpr Privileges privilege_cat = [] {
   // Check for overflow:

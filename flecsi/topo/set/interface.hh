@@ -46,17 +46,15 @@ struct topology<Policy, set_base> : set_base {
 
     template<class F>
     void send(F && f) {
-      f(
-        mesh, [](auto && ts) -> auto & { return *ts->p; });
+      f(mesh, [](auto && ts) -> auto & { return *ts->p; });
     }
   };
 
   topology(scheduler & s, coloring x)
-    : p{static_cast<mesh *>(x.ptr)}, part{make_repartitioned<Policy>(
-                                       x.counts.size(),
-                                       s,
-                                       [a = x.counts](
-                                         std::size_t c) { return a[c]; })} {}
+    : p{static_cast<mesh *>(x.ptr)},
+      part{make_repartitioned<Policy>(x.counts.size(),
+        s,
+        [a = x.counts](std::size_t c) { return a[c]; })} {}
 
   Color colors() const {
 

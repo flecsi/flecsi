@@ -15,8 +15,7 @@ namespace topo {
 /// Base type for an entry in the hashtable
 /// This type can point to either a node or an entity in the ntree.
 template<Dimension DIM, typename T, class KEY>
-class hcell_base_t
-{
+class hcell_base_t {
 
   const static Dimension dimension = DIM;
   static constexpr int nchildren_ = 1 << dimension;
@@ -194,8 +193,7 @@ operator<<(std::ostream & os, const hcell_base_t<D, T, K> & hb) {
 }
 
 template<Dimension, typename T, class KEY>
-class node
-{
+class node {
   node() = default;
 };
 /// \}

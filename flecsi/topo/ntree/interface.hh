@@ -1024,13 +1024,14 @@ public:
       comms_field(*this),
       *(buf),
       share_ghosts_cid_comm_field(*this));
-    while(s.reduce<xfer_entities_req, exec::fold::sum>(e_i(*this),
-             meta_field(this->meta),
-             comms_field(*this),
-             *(buf),
-             share_ghosts_cid_comm_field(*this),
-             e_colors(*this))
-            .get()) {
+    while(
+      s.reduce<xfer_entities_req, exec::fold::sum>(e_i(*this),
+         meta_field(this->meta),
+         comms_field(*this),
+         *(buf),
+         share_ghosts_cid_comm_field(*this),
+         e_colors(*this))
+        .get()) {
     } // while
 
     // Count all sizes for each color, use special field
@@ -1057,13 +1058,14 @@ public:
     // Perform buffered copy
     s.execute<xfer_entities_cp_start>(
       comms_field(*this), *(buf), share_ghosts_buffer_comm_field(*this));
-    while(s.reduce<xfer_entities_cp, exec::fold::sum>(
-             share_ghosts_distant_buffer_comm_field(*this),
-             meta_field(this->meta),
-             comms_field(*this),
-             *(buf),
-             share_ghosts_buffer_comm_field(*this))
-            .get())
+    while(
+      s.reduce<xfer_entities_cp, exec::fold::sum>(
+         share_ghosts_distant_buffer_comm_field(*this),
+         meta_field(this->meta),
+         comms_field(*this),
+         *(buf),
+         share_ghosts_buffer_comm_field(*this))
+        .get())
       ;
 
     // Load entities sent here:
@@ -1404,8 +1406,8 @@ public:
 
   /// Get entities interacting with an entity.
   /// This function uses the interaction functions featured in the policy.
-  FLECSI_INLINE_TARGET
-  auto neighbors(const id<index_space::entities> & ent_id) const {
+  FLECSI_INLINE_TARGET auto neighbors(
+    const id<index_space::entities> & ent_id) const {
     auto hmap = map();
     vector_type ids;
     // Perform tree traversal to find neighbors
@@ -1569,13 +1571,9 @@ public:
   void graphviz_draw(const std::string & tag) const {
     util::graphviz gv("G");
     static constexpr std::pair<const char *, const char *> completeness[] = {
-      {"complete", "octagon"},
-      { "incomplete",
-        "doubleoctagon" }};
+      {"complete", "octagon"}, {"incomplete", "doubleoctagon"}};
     static constexpr std::pair<const char *, const char *> locality[] = {
-      {"non_local", "red"},
-      { "local",
-        "blue" }};
+      {"non_local", "red"}, {"local", "blue"}};
 
     // Print a legend
     for(bool i : {true, false}) {

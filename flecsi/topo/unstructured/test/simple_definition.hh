@@ -17,8 +17,7 @@ namespace flecsi {
 namespace topo {
 namespace unstructured_impl {
 
-class simple_definition
-{
+class simple_definition {
   template<typename T>
   T read(std::ifstream & in) {
     T val;
