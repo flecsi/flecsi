@@ -245,11 +245,18 @@ make_parameter(A && a) {
   }
 }
 
+template<class... FF>
+auto
+make_tuple(FF... ff) { // use -> decltype(auto)
+  return std::tuple<decltype(std::move(ff)())...>(std::move(ff)()...);
+}
+
 template<bool M, class... PP, class... AA>
 auto
 make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
-  return std::tuple<decltype(make_parameter<M, PP>(std::forward<AA>(aa)))...>(
-    make_parameter<M, PP>(std::forward<AA>(aa))...);
+  return make_tuple([&]() -> decltype(auto) {
+    return make_parameter<M, PP>(std::forward<AA>(aa));
+  }...);
 }
 } // namespace detail
 
