@@ -670,17 +670,16 @@ struct must_bind<std::vector<T>> : must_bind<T> {};
 
 template<class... PP>
 struct task_param<std::tuple<PP...>> {
-  // Deduplicating with an alias template fails in Clang (#17042) and MSVC.
-  template<class... AA>
-  static std::enable_if_t<(replace_argument<PP, const AA &>::special || ...),
-    std::tuple<PP...>>
-  replace(const std::tuple<AA...> & t) {
+  template<class... AA,
+    class = std::enable_if_t<(
+      replace_argument<std::decay_t<PP>, const AA &>::special || ...)>>
+  static auto replace(const std::tuple<AA...> & t) {
     return make(t);
   }
-  template<class... AA>
-  static std::enable_if_t<(replace_argument<PP, const AA &>::special || ...),
-    std::tuple<PP...>>
-  replace(std::tuple<AA...> && t) {
+  template<class... AA,
+    class = std::enable_if_t<(
+      replace_argument<std::decay_t<PP>, AA &&>::special || ...)>>
+  static auto replace(std::tuple<AA...> && t) {
     return make(std::move(t));
   }
 
@@ -688,15 +687,17 @@ private:
   template<class T>
   static auto make(T && t) {
     return std::apply(
-      [](auto &&... xx) -> std::tuple<PP...> {
-        return {exec::replace_argument<PP>(std::forward<decltype(xx)>(xx))...};
+      [](auto &&... xx) {
+        return make_tuple([&]() -> decltype(auto) {
+          return exec::replace_argument<PP>(std::forward<decltype(xx)>(xx));
+        }...);
       },
-      t);
+      std::forward<T>(t));
   }
 };
 template<class... TT>
-struct must_convert<std::tuple<TT...>> : std::disjunction<must_convert<TT>...> {
-};
+struct must_convert<std::tuple<TT...>>
+  : std::disjunction<must_convert<std::decay_t<TT>>...> {};
 template<class... PP, class... AA>
 struct launch<std::tuple<PP...>, std::tuple<AA...>> {
   static auto get(const std::tuple<AA...> & t) {
