@@ -13,7 +13,6 @@
 #include "flecsi/exec/params.hh"
 #include "flecsi/exec/tracer.hh"
 #include "flecsi/flog.hh"
-#include "flecsi/util/function_traits.hh"
 
 #include <cstddef>
 #include <string>
@@ -37,40 +36,29 @@ struct reset_guard { // Clang 17.0.6 warns about this as a local class
 template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
-  using Traits = util::function_t<F>;
-  using R = typename Traits::return_type;
-  using P = typename Traits::arguments_type;
-
-  constexpr auto processor_type = mask_to_processor_type(Attributes);
-  static constexpr bool mpi_task = processor_type == processor::mpi;
-  static_assert(processor_type == processor::toc ||
-                  processor_type == processor::loc ||
-                  processor_type == processor::omp || mpi_task,
-    "Unknown launch type");
+  using launch = exec::launch<F, Attributes>;
+  using R = typename launch::Return;
 
   // replace arguments in args, for example, field_reference -> accessor.
-  auto params = exec::make_parameters<mpi_task, P>(std::forward<Args>(args)...);
-
-  auto task_name = util::symbol<F>();
+  auto params = launch::params(std::forward<Args>(args)...);
 
   // Now we have accessors, we need to bind the accessor to real memory for the
   // data field. We also need to patch up default conversion from args to
   // params, especially for the future<>. This is being achieved by creating the
   // prolog<> instances below.
 
-  const auto ds = exec::launch_size<Attributes, P>(args...);
+  const auto ds = launch::size(args...);
   static constexpr bool single =
     std::is_same_v<decltype(ds), const std::monostate>;
-  util::annotation::rguard<util::annotation::execute_task_user> ann{task_name};
 
   // The prolog will calculate dependencies between tasks based on the
   // attributes associated with the arguments.
-  prolog<processor_type> bound_params(params, args...);
+  prolog<launch::proc> bound_params(params, args...);
 
   // Drain all current tasks before scheduling a flecsi::mpi task (the prolog
   // handling may schedule additional tasks, like ghost-copy operations that
   // should finish running as well).
-  if constexpr(mpi_task) {
+  if constexpr(launch::mpi) {
     flecsi::run::context::instance().termination_detection();
   }
 
@@ -89,10 +77,10 @@ reduce_internal(Args &&... args) {
         // The bind_parameters constructor will possibly schedule additional
         // steps to run during destruction that require execution after the task
         // finished running (reduction operations).
-        bind_parameters<processor_type> provide_storage(
+        bind_parameters<launch::proc> provide_storage(
           *params, comm, regions_partitions);
 
-        if(mpi_task) // after possibly creating a communicator
+        if(launch::mpi) // after possibly creating a communicator
           ::hpx::distributed::barrier::synchronize();
         if constexpr(need_comm)
           return std::forward<decltype(f)>(f)(*comm, std::move(*params));
@@ -101,19 +89,19 @@ reduce_internal(Args &&... args) {
       };
     if(need_comm)
       bound_params.request_comm();
-    auto ret = std::make_from_tuple<future<std::remove_cv_t<R>,
+    auto ret = std::make_from_tuple<future<R,
       std::is_void_v<Reduction> && !single ? launch_type_t::index
                                            : launch_type_t::single>>(
       std::move(bound_params)
         .template delay_execution<R>(
           util::symbol<F>(), std::move(apply_delayed_prolog)));
-    if(mpi_task)
+    if(launch::mpi)
       ret.wait();
     return ret;
   };
 
   constexpr auto delayed_apply = [](auto && params) {
-    return std::apply(F, std::forward<decltype(params)>(params));
+    return launch::call(std::forward<decltype(params)>(params));
   };
 
   if constexpr(single) {
@@ -131,7 +119,7 @@ reduce_internal(Args &&... args) {
         using namespace ::hpx::collectives;
         if(root) {
           return broadcast_to(comm.comm(),
-            std::apply(F, std::forward<decltype(params)>(params)),
+            launch::call(std::forward<decltype(params)>(params)),
             comm.gen())
             .get();
         }
@@ -151,7 +139,7 @@ reduce_internal(Args &&... args) {
       return delay([](run::communicator & comm, auto && params) {
         using namespace ::hpx::collectives;
         return all_reduce(comm.comm(),
-          std::apply(F, std::forward<decltype(params)>(params)),
+          launch::call(std::forward<decltype(params)>(params)),
           exec::fold::wrap<Reduction>{},
           comm.gen())
           .get();

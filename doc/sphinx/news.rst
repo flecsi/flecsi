@@ -26,6 +26,10 @@ Deprecated
 
 Fixed
 ^^^^^
+* Execution
+
+  * Top-level *cv*-qualifiers are ignored in task return types.
+
 * Legion backend
 
   * MPI tasks with reference parameters support more argument conversions.

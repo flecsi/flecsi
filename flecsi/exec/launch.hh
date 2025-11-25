@@ -7,6 +7,7 @@
 #include "flecsi/data/field.hh"
 #include "flecsi/exec/kernel.hh"
 #include "flecsi/exec/task_attributes.hh"
+#include "flecsi/util/annotation.hh"
 #include "flecsi/util/function_traits.hh"
 
 #include <cstddef>
@@ -273,22 +274,35 @@ make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
     make_parameter<M, PP>(std::forward<AA>(aa))...);
 }
 } // namespace detail
-template<bool M, class P, class... AA>
-auto
-make_parameters(AA &&... aa) {
-  return detail::make_parameters<M>(
-    static_cast<P *>(nullptr), std::forward<AA>(aa)...);
-}
 
-// Return the number of task invocations for the given parameter tuple and
-// arguments, or std::monostate() if a single launch is appropriate.
-template<TaskAttributes A, class P, class... AA>
-auto
-launch_size(const AA &... aa) {
-  return detail::launch_size<(mask_to_processor_type(A) == processor::mpi)>(
-    static_cast<P *>(nullptr), aa...)
-    .get();
-}
+template<auto & F, TaskAttributes A>
+struct launch {
+  using function = util::function_t<F>;
+  using Params = typename function::arguments_type;
+  using Return = std::remove_cv_t<typename function::return_type>;
+  static constexpr auto proc = mask_to_processor_type(A);
+  static constexpr bool mpi = proc == processor::mpi;
+
+  template<class... AA>
+  static auto params(AA &&... aa) {
+    return detail::make_parameters<mpi>(
+      static_cast<Params *>(nullptr), std::forward<AA>(aa)...);
+  }
+  // Return the number of point tasks for the given arguments, or
+  // std::monostate() if a single launch is appropriate.
+  template<class... AA>
+  static auto size(const AA &... aa) {
+    return detail::launch_size<mpi>(static_cast<Params *>(nullptr), aa...)
+      .get();
+  }
+
+  template<class P>
+  static auto call(P && params) noexcept {
+    return util::annotation::rguard<util::annotation::execute_task_user>(
+             util::symbol<F>()),
+           apply(F, std::forward<P>(params));
+  }
+};
 
 enum class launch_type_t : size_t { single, index };
 
