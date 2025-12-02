@@ -28,6 +28,7 @@ Fixed
 ^^^^^
 * Execution
 
+  * Implicit conversions are applied to elements of ``std::vector`` task arguments (as well as FleCSI-specific transformations for, say, field accessors).
   * Top-level *cv*-qualifiers are ignored in task return types.
 
 * Legion backend

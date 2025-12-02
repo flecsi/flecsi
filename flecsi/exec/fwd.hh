@@ -77,9 +77,10 @@ template<auto & Task,
     Certain FleCSI-defined parameter types accept particular, different
     argument types that serve as selectors for information stored by the
     backend; each type involved documents the correspondence.
-    Additionally, a parameter may be a \c std::vector of such a type or a \c
-    std::tuple that includes such a type; it accepts a \c std::vector of or a
-    \c std::tuple including the corresponding argument type.
+    If a parameter and its argument are each a (reference to a) \c std::vector
+    or a \c std::tuple (of the same size), their elements are treated as
+    separate parameters/arguments (with the unusual corollary that a
+    `std::vector<int>` matches a parameter of type `std::vector<long>`).
   \return a \ref future providing the value(s) returned from the task
 
   \ns.

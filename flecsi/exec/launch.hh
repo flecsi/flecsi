@@ -205,6 +205,43 @@ replace_argument(T && t) {
 }
 
 namespace detail {
+template<class>
+struct is_tuple : std::false_type {};
+template<class... TT>
+struct is_tuple<std::tuple<TT...>> : std::true_type {};
+template<class>
+struct is_vector : std::false_type {};
+template<class T>
+struct is_vector<std::vector<T>> : std::true_type {};
+
+template<class T, class U>
+T convert(U && u);
+template<class... TT, class... UU>
+std::tuple<TT...>
+convert_tuple(std::tuple<TT...> *, UU &&... uu) {
+  return {convert<TT>(std::forward<UU>(uu))...};
+}
+
+template<class T, class U>
+T
+convert(U && u) { // deep implicit conversions
+  if constexpr(is_tuple<T>::value) // not references
+    return apply(
+      [](auto &&... xx) {
+        return convert_tuple(
+          static_cast<T *>(nullptr), std::forward<decltype(xx)>(xx)...);
+      },
+      std::forward<U>(u));
+  else if constexpr(is_vector<T>::value) {
+    util::transform_view(u, [](auto && x) {
+      return convert<typename T::value_type>(std::forward<decltype(x)>(x));
+    });
+    return {u.begin(), u.end()};
+  }
+  else
+    return std::forward<U>(u);
+}
+
 template<bool M, class P, class A>
 decltype(auto)
 make_parameter(A && a) {
@@ -232,16 +269,17 @@ make_parameter(A && a) {
   // std::reference_converts_from_temporary for all backends.
   static_assert(
     std::is_move_constructible_v<P>, "task parameters must be movable");
-  if constexpr(M && !(std::is_reference_v<P> &&
-                      std::is_const_v<std::remove_reference_t<P>> &&
-                      !std::is_convertible_v<std::add_pointer_t<decltype(f())>,
-                        std::add_pointer_t<P>>))
+  if constexpr(M && std::is_convertible_v<decltype(f()), P> &&
+               !(std::is_reference_v<P> &&
+                 std::is_const_v<std::remove_reference_t<P>> &&
+                 !std::is_convertible_v<std::add_pointer_t<decltype(f())>,
+                   std::add_pointer_t<P>>))
     return f();
   else {
     static_assert(std::is_move_constructible_v<PD>,
       "only MPI tasks can accept references to non-movable types; "
       "they must bind directly");
-    return [&f]() -> PD { return f(); }();
+    return convert<PD>(f());
   }
 }
 
@@ -257,6 +295,14 @@ make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
   return make_tuple([&]() -> decltype(auto) {
     return make_parameter<M, PP>(std::forward<AA>(aa));
   }...);
+}
+
+template<class... PP, class... BB>
+auto
+convert_parameters(std::tuple<PP...> *, std::tuple<BB...> && bound) {
+  return convert<std::tuple<std::conditional_t<std::is_convertible_v<BB &&, PP>,
+    BB &&,
+    std::decay_t<PP>>...>>(std::move(bound));
 }
 } // namespace detail
 
@@ -285,7 +331,9 @@ struct launch {
   static auto call(P && params) noexcept {
     return util::annotation::rguard<util::annotation::execute_task_user>(
              util::symbol<F>()),
-           apply(F, std::forward<P>(params));
+           apply(F,
+             detail::convert_parameters(
+               static_cast<Params *>(nullptr), std::forward<P>(params)));
   }
 };
 
@@ -644,12 +692,11 @@ struct launch<P, future<T, launch_type_t::index>> {
 
 template<class P>
 struct task_param<std::vector<P>> {
-  template<class A>
-  static std::enable_if_t<replace_argument<P, const A &>::special,
-    std::vector<P>>
-  replace(const std::vector<A> & v) {
+  template<class A,
+    class = std::enable_if_t<replace_argument<P, const A &>::special>>
+  static auto replace(const std::vector<A> & v) {
     const util::transform_view t(v, exec::replace_argument<P, const A &>);
-    return {t.begin(), t.end()};
+    return std::vector(t.begin(), t.end());
   }
 };
 template<class T>
