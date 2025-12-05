@@ -70,10 +70,10 @@ reduce_internal(Args &&... args) {
     l.futures = std::move(pro).futures();
     switch(launch::proc) {
       case processor::toc:
-        l.tag = run::mapper::prefer_gpu;
+        l.tag = run::mapper::gpu;
         break;
       case processor::omp:
-        l.tag = run::mapper::prefer_omp;
+        l.tag = run::mapper::omp;
         break;
       // Null default is added to suppress warning for other enumerators that
       // do nothing

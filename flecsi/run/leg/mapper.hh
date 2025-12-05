@@ -185,7 +185,7 @@ public:
       get_instance(ctx, name(task), target_mem, layout_constraints, {r}));
   } // create_instance
 
-  /// Implement \c prefer_gpu and \c prefer_omp tags and reuse or create
+  /// Implement \c gpu and \c omp tags and reuse or create
   /// appropriate SoA instances.
   virtual void map_task(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
@@ -196,28 +196,28 @@ public:
     using namespace Legion::Mapping;
     using namespace mapper;
 
-    if(task.tag == prefer_gpu && !local_gpus.empty()) {
-      output.chosen_variant = find_variant(
-        ctx, task.task_id, gpu_variants, Legion::Processor::TOC_PROC);
-      output.target_procs.push_back(task.target_proc);
-    }
-    else if(task.tag == prefer_omp && !local_omps.empty()) {
-      output.chosen_variant = find_variant(
-        ctx, task.task_id, omp_variants, Legion::Processor::OMP_PROC);
-      output.target_procs = local_omps;
-    }
-    else {
-      output.chosen_variant = find_variant(
-        ctx, task.task_id, cpu_variants, Legion::Processor::LOC_PROC);
-      output.target_procs.resize(1, local_proc);
+    switch(task.tag & proc_mask) {
+      case gpu:
+        output.chosen_variant = find_variant(
+          ctx, task.task_id, gpu_variants, Legion::Processor::TOC_PROC);
+        output.target_procs.push_back(task.target_proc);
+        break;
+      case omp:
+        output.chosen_variant = find_variant(
+          ctx, task.task_id, omp_variants, Legion::Processor::OMP_PROC);
+        output.target_procs = local_omps;
+        break;
+      default:
+        output.chosen_variant = find_variant(
+          ctx, task.task_id, cpu_variants, Legion::Processor::LOC_PROC);
+        output.target_procs.resize(1, local_proc);
     }
 
     output.chosen_instances.resize(task.regions.size());
 
     if(task.regions.size() > 0) {
       const Legion::Memory target_mem =
-        task.tag == prefer_gpu && !local_gpus.empty() ? local_framebuffer
-                                                      : local_sysmem;
+        (task.tag & proc_mask) == gpu ? local_framebuffer : local_sysmem;
       std::vector<std::set<Legion::FieldID>> missing_fields(
         task.regions.size());
       runtime->filter_instances(ctx,
@@ -248,7 +248,7 @@ public:
 
         if(missing_fields[indx].empty()) {
 #if 0 // this block is only used for compacted instances
-          if(task.regions[indx].tag == mapper::exclusive_lr){
+          if(task.regions[indx].tag & mapper::exclusive_lr){
             for(size_t j = 1; j < 3; j++)
               output.chosen_instances[indx + j] = valid_instances; 
             indx = indx + 2;
@@ -266,7 +266,7 @@ public:
         }
 
 #if 0 // this block is only used for compacted instances
-        if(task.regions[indx].tag == mapper::exclusive_lr) {
+        if(task.regions[indx].tag & mapper::exclusive_lr) {
             std::vector<Legion::FieldID> all_fields;
             for(auto fid : task.regions[indx].privilege_fields) {
               all_fields.push_back(fid);
@@ -297,59 +297,56 @@ public:
     using namespace Legion;
     using namespace mapper;
 
-    switch(task.tag) {
 #if 0 // this is not supported in FleCSI yet
       // when we launch subtasks
       // this tag is used to map nested tasks
-      case subrank_launch:
+      if(task.tag & subrank_launch) {
         // expect a 1-D index domain
         assert(input.domain.get_dim() == 1);
         // send the whole domain to our local processor
         output.slices.resize(1);
         output.slices[0].domain = input.domain;
         output.slices[0].proc = task.target_proc;
-        break;
+      } else
 #endif
-      case force_rank_match: /* MPI tasks or tasks that need 1-to-1 matching
-                                with MPI ranks*/
-      {
-        // Control replication has already subdivided the launch domain:
-        assert(input.domain.get_dim() == 1);
-        const Legion::Rect<1> r = input.domain;
-        const auto me = r.lo[0];
-        assert(r.hi[0] == me);
+    if(task.tag & force_rank_match) {
+      // Control replication has already subdivided the launch domain:
+      assert(input.domain.get_dim() == 1);
+      const Legion::Rect<1> r = input.domain;
+      const auto me = r.lo[0];
+      assert(r.hi[0] == me);
 
-        output.slices.clear();
-        // Find the CPU with the desired address space:
-        Legion::Machine::ProcessorQuery pq =
-          Legion::Machine::ProcessorQuery(machine).only_kind(
-            Legion::Processor::LOC_PROC);
-        for(Legion::Machine::ProcessorQuery::iterator it = pq.begin();
-          it != pq.end();
-          ++it) {
-          Legion::Processor p = *it;
-          if(p.address_space() == me) {
-            auto & out = output.slices.emplace_back();
-            out.domain = r;
-            out.proc = p;
-            break;
-          }
+      output.slices.clear();
+      // Find the CPU with the desired address space:
+      Legion::Machine::ProcessorQuery pq =
+        Legion::Machine::ProcessorQuery(machine).only_kind(
+          Legion::Processor::LOC_PROC);
+      for(Legion::Machine::ProcessorQuery::iterator it = pq.begin();
+        it != pq.end();
+        ++it) {
+        Legion::Processor p = *it;
+        if(p.address_space() == me) {
+          auto & out = output.slices.emplace_back();
+          out.domain = r;
+          out.proc = p;
+          break;
         }
-        assert(!output.slices.empty());
-        break;
       }
-
-      // general leaf tasks
-      default:
-        // We've already been control replicated, so just divide our points
-        // over the local processors, depending on which kind we prefer
-        if(task.tag == prefer_gpu && !local_gpus.empty())
-          distribute_index_points_across_local_procs(input, output, local_gpus);
-        else if(task.tag == prefer_omp && !local_omps.empty())
-          distribute_index_points_across_local_procs(input, output, local_omps);
-        else
-          distribute_index_points_across_local_procs(input, output, local_cpus);
+      assert(!output.slices.empty());
     }
+    else
+      // We've already been control replicated, so just divide our points
+      // over the appropriate local processors
+      switch(task.tag & proc_mask) {
+        case gpu:
+          distribute_index_points_across_local_procs(input, output, local_gpus);
+          break;
+        case omp:
+          distribute_index_points_across_local_procs(input, output, local_omps);
+          break;
+        default:
+          distribute_index_points_across_local_procs(input, output, local_cpus);
+      }
 
   } // slice_task
 
