@@ -229,9 +229,6 @@ public:
   } // tag_enabled
 
 #if defined(FLOG_ENABLE_MPI)
-  using clock = std::chrono::system_clock;
-  using packet_t = std::pair<std::chrono::time_point<clock>, std::string>;
-
   bool active_process() const {
     return source_process_ == all_processes || source_process_ == process_;
   }
@@ -253,19 +250,7 @@ public:
     packets_.emplace_back(clock::now(), std::move(message));
   }
 
-  std::vector<packet_t> & packets() {
-    return packets_;
-  }
-
-  void flush_packets();
-
-  // Can be used as MPI tasks:
-
-  /// Return number of buffered packets.
-  static std::size_t log_size(const state & s) {
-    return s.packets_.size();
-  }
-  /// Gather log output on the root.
+  /// Gather log output on the root.  Launch as an MPI task.
   static void gather(state & s) {
     s.send_to_one(false);
   }
@@ -299,6 +284,11 @@ private:
   static inline std::vector<std::string> tag_names;
 
 #if defined(FLOG_ENABLE_MPI)
+  using clock = std::chrono::system_clock;
+  using packet_t = std::pair<std::chrono::time_point<clock>, std::string>;
+
+  void flush_packets();
+
   void send_to_one(bool last);
 
   Color source_process_, process_, processes_;
