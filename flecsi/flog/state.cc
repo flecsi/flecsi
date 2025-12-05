@@ -16,6 +16,15 @@ state::active_tag() {
 }
 
 void
+state::flush() {
+  if(!source_process_ || processes_ == 1)
+    gather(*this); // no MPI communication needed
+  else
+    exec::reduce_internal<gather, void, flecsi::mpi>(*this);
+  tasks = 0;
+}
+
+void
 state::send_to_one(bool last) {
   using util::mpi::test;
 

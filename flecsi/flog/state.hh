@@ -121,10 +121,6 @@ public:
     return verb;
   }
 
-  unsigned & serialization_interval() {
-    return serialization_interval_;
-  }
-
   /*!
     Return \c true if ANSI color support for messages was requested.  Note
     that this is a \c static method.  If the (singleton) \ref state has not
@@ -242,9 +238,13 @@ public:
     packets_.emplace_back(clock::now(), std::move(message));
   }
 
-  /// Gather log output on the root.  Launch as an MPI task.
-  static void gather(state & s) {
-    s.send_to_one(false);
+  void flush();
+  void count_tasks(unsigned n) {
+    if((tasks += n) >= serialization_interval_)
+      flush();
+  }
+  [[nodiscard]] unsigned restart_count() {
+    return std::exchange(tasks, 0);
   }
 
   static state & instance() {
@@ -261,7 +261,7 @@ public:
 
 private:
   int verb;
-  unsigned serialization_interval_;
+  unsigned serialization_interval_, tasks = 0;
   bool color_output_;
   int strip_level_;
 
@@ -278,7 +278,9 @@ private:
   using packet_t = std::pair<std::chrono::time_point<clock>, std::string>;
 
   void flush_packets();
-
+  static void gather(state & s) {
+    s.send_to_one(false);
+  }
   void send_to_one(bool last);
 
   Color source_process_, process_, processes_;
