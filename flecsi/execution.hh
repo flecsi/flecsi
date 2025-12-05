@@ -19,9 +19,6 @@ namespace flog {
   Explicitly flush buffered Flog output.
   \code#include "flecsi/execution.hh"\endcode
 
-  The inclusion of \ref runtime "flecsi/runtime.hh" by this header is
-  \b deprecated.
-
   @ingroup flog
  */
 
@@ -58,6 +55,10 @@ maybe_flush() {
 ///
 /// \ns{exec}.
 /// \code#include "flecsi/execution.hh"\endcode
+///
+/// The inclusion of \ref runtime "flecsi/runtime.hh" by this header is
+/// \b deprecated.
+///
 /// \{
 
 /// A global variable with a task-specific value.
