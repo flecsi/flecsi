@@ -196,20 +196,16 @@ public:
     using namespace Legion::Mapping;
     using namespace mapper;
 
+    output.chosen_variant =
+      find_variant(ctx, task.task_id, processor_kind(task.tag));
     switch(task.tag & proc_mask) {
       case gpu:
-        output.chosen_variant = find_variant(
-          ctx, task.task_id, gpu_variants, Legion::Processor::TOC_PROC);
         output.target_procs.push_back(task.target_proc);
         break;
       case omp:
-        output.chosen_variant = find_variant(
-          ctx, task.task_id, omp_variants, Legion::Processor::OMP_PROC);
         output.target_procs = local_omps;
         break;
       default:
-        output.chosen_variant = find_variant(
-          ctx, task.task_id, cpu_variants, Legion::Processor::LOC_PROC);
         output.target_procs.resize(1, local_proc);
     }
 
@@ -450,6 +446,19 @@ private:
     return s.str();
   }
 
+  static Legion::Processor::Kind processor_kind(Legion::MappingTagID t) {
+    using namespace mapper;
+    using P = Legion::Processor;
+    switch(t & proc_mask) {
+      case gpu:
+        return P::TOC_PROC;
+      case omp:
+        return P::OMP_PROC;
+      default:
+        return P::LOC_PROC;
+    }
+  }
+
   static Legion::LayoutConstraintSet constraints(Legion::FieldID f_id) {
     using namespace Legion;
     LayoutConstraintSet ret;
@@ -546,16 +555,14 @@ private:
 
   Legion::VariantID find_variant(const Legion::Mapping::MapperContext ctx,
     Legion::TaskID task_id,
-    std::map<Legion::TaskID, Legion::VariantID> & variant,
     Legion::Processor::Kind processor_kind) {
-
-    std::map<Legion::TaskID, Legion::VariantID>::const_iterator finder =
-      variant.find(task_id);
-    if(finder != variant.end())
-      return finder->second;
-    std::vector<Legion::VariantID> variants;
-    runtime->find_valid_variants(ctx, task_id, variants, processor_kind);
-    return variant[task_id] = variants.at(0);
+    return variant
+      .try_emplace({task_id, processor_kind}, util::convert{[&] {
+        std::vector<Legion::VariantID> variants;
+        runtime->find_valid_variants(ctx, task_id, variants, processor_kind);
+        return variants.at(0);
+      }})
+      .first->second;
   }
 
   Legion::Mapping::PhysicalInstance get_instance(
@@ -585,10 +592,9 @@ private:
 
   Realm::Machine machine;
 
-protected:
-  std::map<Legion::TaskID, Legion::VariantID> cpu_variants;
-  std::map<Legion::TaskID, Legion::VariantID> gpu_variants;
-  std::map<Legion::TaskID, Legion::VariantID> omp_variants;
+  std::map<std::pair<Legion::TaskID, Legion::Processor::Kind>,
+    Legion::VariantID>
+    variant;
 
   Legion::Memory local_sysmem, local_zerocopy, local_framebuffer;
 
