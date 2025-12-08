@@ -239,7 +239,8 @@ private:
       if(predicate(b.second)) {
         for(auto bc : test_buffer_) {
           const int w = b.second.buffer->sputc(bc);
-          eof = (eof == EOF) ? eof : w;
+          if(eof != EOF)
+            eof = w;
         } // for
       } // if
     } // for
