@@ -117,7 +117,7 @@ public:
     } // if
   } // finalize
 
-  int verbose() {
+  int verbose() const {
     return verb;
   }
 
