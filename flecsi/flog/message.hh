@@ -59,7 +59,6 @@ struct message {
       }
     } // if
 
-    assert(state::instance);
     state::instance().buffer_output(std::move(ss_).str());
   }
 
