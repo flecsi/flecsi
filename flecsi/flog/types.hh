@@ -16,7 +16,6 @@
 #include <unordered_map>
 #include <vector>
 
-/// \cond core
 namespace flecsi {
 namespace flog {
 /// \addtogroup flog
@@ -25,18 +24,26 @@ namespace flog {
 /// Specification for Flog operation.
 struct config {
   /// Tags to enable (perhaps including "all").
+  /// \showinitializer
   std::vector<std::string> tags{"all"};
   /// Verbosity level (suppresses decorations if negative).
+  /// \showinitializer
   int verbose = 0,
       /// Process from which to produce output, or -1 for all.
+      /// \showinitializer
     process = 0;
   /// Frequency of message serialization in number of tasks.
+  /// \showinitializer
   unsigned serialization_interval = FLOG_SERIALIZATION_INTERVAL;
   /// Enable color output.
+  /// \showinitializer
   bool color = FLOG_ENABLE_COLOR_OUTPUT;
   /// Flog strip level (0-4).
+  /// \showinitializer
   int strip_level = FLOG_STRIP_LEVEL;
 };
+
+/// \cond core
 
 /*!
   The tee_buffer_t type provides a stream buffer that allows output to
@@ -299,10 +306,10 @@ private:
 
 }; // struct tee_stream_t
 
+/// \endcond
 /// \}
 } // namespace flog
 } // namespace flecsi
-/// \endcond
 
 #endif // FLECSI_ENABLE_FLOG
 
