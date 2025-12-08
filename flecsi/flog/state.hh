@@ -11,6 +11,7 @@
 #include "flecsi/data/field_info.hh"
 #include "flecsi/flog/types.hh"
 #include "flecsi/flog/utils.hh"
+#include "flecsi/util/common.hh" // convert
 
 #include <bitset>
 #include <cassert>
@@ -75,8 +76,8 @@ public:
 #endif
       if(tag == "all")
         tag_bitset_.set();
-      else if(tag_map_.find(tag) != tag_map_.end()) {
-        tag_bitset_.set(tag_map_[tag]);
+      else if(const auto it = tag_map_.find(tag); it != tag_map_.end()) {
+        tag_bitset_.set(it->second);
       }
       else {
         std::cerr << "FLOG WARNING: tag " << tag
@@ -169,20 +170,19 @@ public:
   static std::size_t register_tag(const char * tag) {
     // If the tag is already registered, just return the previously
     // assigned id. This allows tags to be registered in headers.
-    if(tag_map_.find(tag) != tag_map_.end()) {
-      return tag_map_[tag];
-    } // if
-
-    const size_t id = tag_names.size();
-    assert(id < tag_bits && "Tag bits overflow! Increase state::tag_bits");
+    return tag_map_
+      .try_emplace(tag, util::convert{[&] {
+        const size_t id = tag_names.size();
+        assert(id < tag_bits && "Tag bits overflow! Increase state::tag_bits");
 #if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "Flog: registering tag " << tag << ": "
-              << id << FLOG_COLOR_PLAIN << std::endl;
+        std::cerr << FLOG_COLOR_LTGRAY << "Flog: registering tag " << tag
+                  << ": " << id << FLOG_COLOR_PLAIN << std::endl;
 #endif
-    tag_map_[tag] = id;
-    tag_names.push_back(tag);
-    return id;
-  } // next_tag
+        tag_names.push_back(tag);
+        return id;
+      }})
+      .first->second;
+  }
 
   /*!
     Return a reference to the active tag.
