@@ -431,7 +431,6 @@ struct container {
 
 namespace flecsi::flog {
 /// Flush buffered Flog output.
-/// \code#include "flecsi/execution.hh"\endcode
 /// \ingroup flog
 inline void
 flush() {

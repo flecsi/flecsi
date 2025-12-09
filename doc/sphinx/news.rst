@@ -25,6 +25,10 @@ New features
   * ``params_tag`` is a base class for user-defined classes that are a composition of task-parameter types (like field accessors).
   * ``arg_tag`` is a base class for user-defined classes that specifiy custom handling as a task argument.
 
+* Logging
+
+  * ``flog::flush`` is available in ``flog.hh``.
+
 Changes in v2.4.2
 +++++++++++++++++
 
