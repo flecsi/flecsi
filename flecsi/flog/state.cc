@@ -15,8 +15,6 @@ state::active_tag() {
   return *cur_tag;
 }
 
-#if defined(FLOG_ENABLE_MPI)
-
 void
 state::send_to_one(bool last) {
   using util::mpi::test;
@@ -126,8 +124,6 @@ state::flush_packets() {
     work.clear();
   } // while
 } // flush_packets
-
-#endif // FLOG_ENABLE_MPI
 
 } // namespace flog
 } // namespace flecsi

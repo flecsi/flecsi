@@ -23,9 +23,7 @@
 #include <thread>
 #include <unordered_map>
 
-#if defined(FLOG_ENABLE_MPI)
 #include <mpi.h>
-#endif
 
 /// \cond core
 namespace flecsi {
@@ -87,8 +85,6 @@ public:
       }
     }
 
-#if defined(FLOG_ENABLE_MPI)
-
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "Flog: initializing mpi state"
               << FLOG_COLOR_PLAIN << std::endl;
@@ -107,7 +103,6 @@ public:
     if(process_ == 0) {
       flusher_thread_ = std::thread(&state::flush_packets, std::ref(*this));
     } // if
-#endif // FLOG_ENABLE_MPI
   }
   state(state &&) = delete; // address is known to the thread
 
@@ -115,13 +110,11 @@ public:
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "Flog: state destructor" << std::endl;
 #endif
-#if defined(FLOG_ENABLE_MPI)
     send_to_one(true);
 
     if(process_ == 0) {
       flusher_thread_.join();
     } // if
-#endif // FLOG_ENABLE_MPI
   } // finalize
 
   int verbose() {
@@ -228,7 +221,6 @@ public:
     return ret;
   } // tag_enabled
 
-#if defined(FLOG_ENABLE_MPI)
   bool active_process() const {
     return source_process_ == all_processes || source_process_ == process_;
   }
@@ -254,7 +246,6 @@ public:
   static void gather(state & s) {
     s.send_to_one(false);
   }
-#endif
 
   static state & instance() {
     return instance_.value();
@@ -283,7 +274,6 @@ private:
   static inline std::unordered_map<std::string, size_t> tag_map_;
   static inline std::vector<std::string> tag_names;
 
-#if defined(FLOG_ENABLE_MPI)
   using clock = std::chrono::system_clock;
   using packet_t = std::pair<std::chrono::time_point<clock>, std::string>;
 
@@ -297,8 +287,6 @@ private:
   std::condition_variable avail;
   std::vector<packet_t> packets_;
   bool stop = false;
-#endif
-
 }; // class state
 inline std::optional<state> state::instance_;
 

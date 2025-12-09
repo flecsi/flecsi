@@ -24,7 +24,7 @@ namespace flog {
 
 inline void
 flush() {
-#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
+#ifdef FLECSI_ENABLE_FLOG
   auto & s = flog::state::instance();
   if(s.source_process() == 0 || (s.active_process() && s.processes() == 1)) {
     flog::state::gather(s); // no MPI communication needed
@@ -38,7 +38,7 @@ flush() {
 
 inline void
 maybe_flush() {
-#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
+#ifdef FLECSI_ENABLE_FLOG
   auto & flecsi_context = run::context::instance();
   unsigned & flog_task_count = flecsi_context.flog_task_count();
   if(flog_task_count >= flog::state::instance().serialization_interval())
