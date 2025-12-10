@@ -94,7 +94,7 @@ These experiments simply used 10ms sleeps in every task and passed varying numbe
 Without tracing, the asymptotic overhead time per task is approximately :math:`(560 ps)f^{2}w + (97 µs)f + (190 µs)` where f is the number of fields passed and w is legion's `window size`__.
 This represents an upper bound on the cost of Legion's dependency analysis; note that with the default *w* the first term is the smallest for :math:`f<174`, so reducing *w* is likely to produce more inefficiency from stalls than it avoids from redundant checks.
 
-__ https://legion.stanford.edu/profiling/index.html
+__ https://legion.stanford.edu/profiling/#legion-runtime-performance-flags
 
 Creating a trace in this case took 642 µs per field, and using it adds 50 µs (20%) to a task launch, but it reduces the task overhead per field by a factor of 32 to 3 µs.
 It is thus a net improvement for even one field after 15 task launches and after 7 or 8 task launches for at least 4 fields.
