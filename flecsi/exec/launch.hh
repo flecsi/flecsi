@@ -635,6 +635,12 @@ struct task_param<future<R>> {
 };
 template<class R>
 struct must_convert<future<R, launch_type_t::index>> : std::true_type {};
+template<class P, class T>
+struct launch<P, future<T, launch_type_t::index>> {
+  static Index get(const future<T, launch_type_t::index> & f) {
+    return f.size();
+  }
+};
 
 template<class P>
 struct task_param<std::vector<P>> {
@@ -709,12 +715,6 @@ template<class P>
 struct launch<P, launch_domain> {
   static Index get(const launch_domain & d) {
     return d.size_;
-  }
-};
-template<class P, class T>
-struct launch<P, future<T, launch_type_t::index>> {
-  static Index get(const future<T, launch_type_t::index> & f) {
-    return f.size();
   }
 };
 } // namespace exec::detail
