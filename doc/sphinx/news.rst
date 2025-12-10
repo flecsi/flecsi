@@ -666,7 +666,7 @@ Other incompatibilities
   * ``flecsi_execute_task`` |mdash| now ``execute``
   * ``flecsi_execute_mpi_task``, ``flecsi_execute_mpi_task_simple`` |mdash| pass ``mpi`` to ``execute``
   * ``flecsi_execute_reduction_task`` |mdash| now ``reduce``
-  * ``flecsi_color()``, ``flecsi_colors()`` |mdash| now ``color()`` and ``colors()``
+  * ``flecsi_color``, ``flecsi_colors`` |mdash| now ``color`` and ``colors``
   * ``flecsi_register_function``, ``flecsi_execute_function``, ``flecsi_function_handle``, ``flecsi_define_function_type`` |mdash| now ``exec::make_partial``
   * ``execution::flecsi_future`` |mdash| now ``future``, with a simpler interface
 

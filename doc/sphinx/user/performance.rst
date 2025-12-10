@@ -17,7 +17,7 @@ Note that in addition to the standard generic tools (*e.g.*, ``perf`` for CPU co
 
    FleCSI shortens the registered task names to :samp:`function_name # {hash}` when
    passing them to Legion.  The matching full function signatures can be obtained
-   from ``flecsi::task_names()``, which returns a mapping of the shortened function
+   via ``flecsi::task_names``, which returns a mapping of the shortened function
    signature to its full signature.
 
 Futures
