@@ -902,20 +902,6 @@ struct launch<P, future<T, launch_type_t::index>> {
 };
 
 template<class P>
-struct task_param<P, std::enable_if_t<std::is_base_of_v<data::params_tag, P>>> {
-  template<class A>
-  static std::enable_if_t< // process arg_tag first if both are in use
-    !std::is_base_of_v<data::arg_tag, std::remove_reference_t<A>>,
-    P>
-  replace(A && t) {
-    // The template argument is a tuple of references that are decayed later.
-    return std::make_from_tuple<P>(
-      exec::replace_argument<decltype(std::declval<P &>().flecsi_params())>(
-        std::forward<A>(t)));
-  }
-};
-
-template<class P>
 struct task_param<std::vector<P>> {
   // Copy (breaking non-const reference parameters) only if necessary:
   template<class A,
@@ -994,6 +980,8 @@ struct launch<std::tuple<PP...>, std::tuple<AA...>> {
       .value();
   }
 };
+template<class... TT>
+struct must_bind<std::tuple<TT...>> : std::disjunction<must_bind<TT>...> {};
 
 template<class... PP>
 struct task_param<std::variant<PP...>> {
@@ -1087,6 +1075,19 @@ struct launch<std::optional<P>, std::optional<A>> {
 template<class T>
 struct must_bind<std::optional<T>> : must_bind<T> {};
 
+template<class P>
+struct task_param<P, std::enable_if_t<std::is_base_of_v<data::params_tag, P>>> {
+  template<class A>
+  static std::enable_if_t< // process arg_tag first if both are in use
+    !std::is_base_of_v<data::arg_tag, std::remove_reference_t<A>>,
+    P>
+  replace(A && t) {
+    // The template argument is a tuple of references that are decayed later.
+    return std::make_from_tuple<P>(
+      exec::replace_argument<decltype(std::declval<P &>().flecsi_params())>(
+        std::forward<A>(t)));
+  }
+};
 template<class P, class... AA>
 struct launch<P,
   std::tuple<AA...>,
@@ -1103,9 +1104,6 @@ struct launch<P, A, std::enable_if_t<std::is_base_of_v<data::arg_tag, A>>> {
     return launch_size_single<P>(a.flecsi_arg());
   }
 };
-
-template<class... TT>
-struct must_bind<std::tuple<TT...>> : std::disjunction<must_bind<TT>...> {};
 
 template<class P>
 struct launch<P, launch_domain> {
