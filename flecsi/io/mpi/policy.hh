@@ -28,14 +28,8 @@ const auto hsize_mpi_type = util::mpi::static_type<hsize_t>();
 struct io_interface {
 
   explicit io_interface(Color procs_per_file)
-    : new_color([] {
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        return rank;
-      }() / procs_per_file),
-      hcomm(util::mpi::comm::split(MPI_COMM_WORLD, new_color)) {
-    MPI_Comm_rank(hcomm.c, &new_rank);
-  }
+    : new_color(util::mpi::rank() / procs_per_file),
+      hcomm(util::mpi::comm::split(MPI_COMM_WORLD, new_color)) {}
 
   template<bool W>
   using buffer_ptr = std::conditional_t<W, const void, void> *;
@@ -88,10 +82,8 @@ struct io_interface {
       checkpoint_file.create_dataset(field_name.data(), sum_nitems, item_size);
     }
 
-    hsize_t displ;
+    hsize_t displ = 0;
     MPI_Exscan(&nitems, &displ, 1, hsize_mpi_type, MPI_SUM, hcomm.c);
-    if(new_rank == 0)
-      displ = 0;
 
     hid_t hdf5_file_id = (hid_t)checkpoint_file.hdf5_file_id;
     checkpoint_field_data<W>(
@@ -137,7 +129,6 @@ struct io_interface {
   } // recover_data
 
 private:
-  int new_rank;
   int new_color;
 
   util::mpi::comm hcomm;
