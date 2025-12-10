@@ -67,6 +67,7 @@ maybe_flush() {
 /// any task has the lifetime of the control model execution.
 /// Each is value-initialized.
 /// \note Thread-local variables do not function correctly in all backends.
+/// \ns.
 template<class T>
 struct task_local
 #ifdef DOXYGEN // implemented per-backend
