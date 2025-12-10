@@ -44,7 +44,7 @@ struct send_tag {};
 /// \endcond
 
 /// A class that inherits from params_tag is a composite task parameter.
-/// The interface requires that the class provide a flecsi_params() member
+/// The interface requires that the class provide a \c flecsi_params member
 /// function that returns a std::tie of all members. The class must be
 /// constructible from the element types of the tuple returned by flecsi_params.
 /// The corresponding argument is a tuple of task arguments for each element
@@ -52,8 +52,9 @@ struct send_tag {};
 struct params_tag : bind_tag {};
 
 /// A class that inherits from arg_tag is a custom task argument.
-/// The interface requires that the class provide a flecsi_arg() member
+/// The interface requires that the class provide a \c flecsi_arg member
 /// function that returns a substitute task argument.
+/// Only the replacement is matched against the corresponding parameter.
 /// \warning \c flecsi_arg may be called multiple times on one task argument
 ///   as an rvalue or an lvalue (even after a call as an rvalue).
 struct arg_tag : convert_tag {};

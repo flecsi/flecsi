@@ -26,10 +26,13 @@ Deprecated
 
 New features
 ^^^^^^^^^^^^
-* Execution
+* Data
 
   * ``params_tag`` is a base class for user-defined classes that are a composition of task-parameter types (like field accessors).
   * ``arg_tag`` is a base class for user-defined classes that specifiy custom handling as a task argument.
+
+* Execution
+
   * ``future_kind`` is an alias for the type of the second ``future`` template parameter.
 
 * Logging
