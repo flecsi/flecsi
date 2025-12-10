@@ -3,6 +3,23 @@ Performance
 
 This section provides insights into performance concerns in FleCSI applications.
 
+Profiling
++++++++++
+
+Before attempting to improve performance it must be analyzed.
+Note that in addition to the standard generic tools (*e.g.*, ``perf`` for CPU code), Legion provides a `built-in profiler <https://legion.stanford.edu/profiling/>`_ (enabled via ``run::config::legion`` or ``LEGION_DEFAULT_ARGS`` in the environment).
+
+.. figure:: images/cycle_legion_prof.png
+
+   Screenshot of Legion Prof GUI for cycle test
+
+.. note::
+
+   FleCSI shortens the registered task names to :samp:`function_name # {hash}` when
+   passing them to Legion.  The matching full function signatures can be obtained
+   from ``flecsi::task_names()``, which returns a mapping of the shortened function
+   signature to its full signature.
+
 Futures
 +++++++
 

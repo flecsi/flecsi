@@ -379,7 +379,7 @@ New features
 
 * Legion backend
 
-  * Task names are now shortened for better usability in Legion profiling tools. See :doc:`user/profiling` for details.
+  * Task names are now shortened for better usability in Legion profiling tools.
 
 * Utilities
 
