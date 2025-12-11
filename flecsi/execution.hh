@@ -19,9 +19,6 @@ namespace flog {
   Explicitly flush buffered Flog output.
   \code#include "flecsi/execution.hh"\endcode
 
-  The inclusion of \ref runtime "flecsi/runtime.hh" by this header is
-  \b deprecated.
-
   @ingroup flog
  */
 
@@ -58,6 +55,10 @@ maybe_flush() {
 ///
 /// \ns{exec}.
 /// \code#include "flecsi/execution.hh"\endcode
+///
+/// The inclusion of \ref runtime "flecsi/runtime.hh" by this header is
+/// \b deprecated.
+///
 /// \{
 
 /// A global variable with a task-specific value.
@@ -66,6 +67,7 @@ maybe_flush() {
 /// any task has the lifetime of the control model execution.
 /// Each is value-initialized.
 /// \note Thread-local variables do not function correctly in all backends.
+/// \ns.
 template<class T>
 struct task_local
 #ifdef DOXYGEN // implemented per-backend

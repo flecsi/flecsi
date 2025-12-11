@@ -621,6 +621,7 @@ make_partial(AA &&... aa) {
 
   @tparam Return The return type of the task.
   @tparam Launch FleCSI launch type: single/index.
+  \ns.
 */
 template<typename Return,
   exec::launch_type_t Launch = exec::launch_type_t::single>

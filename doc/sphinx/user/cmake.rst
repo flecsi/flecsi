@@ -64,7 +64,7 @@ documentation system for your own projects.
    either ``flecsi_add_doxygen_target`` or
    ``flecsi_add_sphinx_target``.
 
-   This file also adds the ``flecsi_add_doc_deployment()`` function.
+   This file also adds the ``flecsi_add_doc_deployment`` function.
    It takes two parameters: the target name and ``GITHUB_PAGES_REPO``
    which is a Git repository URL. Running the target checks out the
    ``gh-pages`` branch of that repository, clears it and puts the

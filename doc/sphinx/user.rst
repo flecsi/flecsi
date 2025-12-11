@@ -16,4 +16,3 @@ They do not mention every component of the interface as does the :doc:`api`, nor
   user/cmake
   user/programming
   user/performance
-  user/profiling

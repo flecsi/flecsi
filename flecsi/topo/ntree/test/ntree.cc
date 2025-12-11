@@ -86,7 +86,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   static void initialize(flecsi::scheduler & s,
     sph_ntree_t::topology & nt,
     const coloring &,
-    std::optional<freader> & hd) {
+    std::optional<freader> & hd) { // for syntactic convenience
     auto lm = data::launch::make(s, nt);
     flecsi::execute<init_fields, flecsi::mpi>(lm, *hd);
   }
