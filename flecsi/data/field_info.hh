@@ -38,17 +38,9 @@ using fields = std::vector<std::shared_ptr<field_info_t>>;
 /// \addtogroup data
 /// \{
 
-//----------------------------------------------------------------------------//
-// This value is used by the Legion backend to automatically
-// assign field ids. The current maximum value that is allowed
-// in legion_config.h is 1<<20.
-//
-// We are reserving 4096 places for internal use.
-//----------------------------------------------------------------------------//
-
 #if !defined(FLECSI_GENERATED_ID_MAX)
-// 1044480 = (1<<20) - 4096
-#define FLECSI_GENERATED_ID_MAX 1044480
+// Reserve a few before those reserved by Legion:
+#define FLECSI_GENERATED_ID_MAX ((1 << 20) - (1 << 12))
 #endif
 
 /*!
