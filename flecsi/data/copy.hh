@@ -6,6 +6,7 @@
 #ifndef FLECSI_DATA_COPY_HH
 #define FLECSI_DATA_COPY_HH
 
+#include "flecsi/config.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/exec/task_attributes.hh" // processor
 

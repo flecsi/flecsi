@@ -4,7 +4,6 @@
 #ifndef FLECSI_EXEC_LEG_PARAMS_HH
 #define FLECSI_EXEC_LEG_PARAMS_HH
 
-#include "flecsi/config.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"

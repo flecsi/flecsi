@@ -8,10 +8,10 @@
 
 #if defined(FLECSI_ENABLE_FLOG)
 
-#include "flecsi/data/field_info.hh"
 #include "flecsi/flog/types.hh"
 #include "flecsi/flog/utils.hh"
 #include "flecsi/util/common.hh" // convert
+#include "flecsi/util/types.hh" // Color
 
 #include <bitset>
 #include <cassert>

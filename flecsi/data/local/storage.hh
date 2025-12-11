@@ -6,8 +6,6 @@
 
 #include "flecsi/data/privilege.hh"
 #include "flecsi/exec/task_attributes.hh"
-#include "flecsi/run/backend.hh"
-#include "flecsi/util/mpi.hh"
 
 #include <Kokkos_Core.hpp>
 

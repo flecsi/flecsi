@@ -5,7 +5,6 @@
 #define FLECSI_RUN_LEG_MAPPER_HH
 
 #include "../backend.hh"
-#include "flecsi/config.hh"
 
 #include <legion.h>
 #include <mappers/default_mapper.h>

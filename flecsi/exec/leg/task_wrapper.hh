@@ -4,8 +4,6 @@
 #ifndef FLECSI_EXEC_LEG_TASK_WRAPPER_HH
 #define FLECSI_EXEC_LEG_TASK_WRAPPER_HH
 
-#include "flecsi/config.hh"
-
 #include "flecsi/exec/params.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/run/backend.hh"

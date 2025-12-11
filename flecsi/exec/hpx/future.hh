@@ -7,11 +7,9 @@
 #include <hpx/modules/collectives.hpp>
 #include <hpx/modules/futures.hpp>
 
-#include "flecsi/config.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/run/backend.hh"
 
-#include <string>
 #include <utility>
 
 namespace flecsi {

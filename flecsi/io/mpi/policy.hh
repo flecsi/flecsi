@@ -6,7 +6,6 @@
 
 #include <cstddef>
 #include <hdf5.h>
-#include <mpi.h>
 #include <ostream>
 #include <string>
 
@@ -14,7 +13,6 @@
 #error H5_HAVE_PARALLEL not defined! This file depends on parallel HDF5!
 #endif
 
-#include "flecsi/config.hh"
 #include "flecsi/data/mpi/policy.hh"
 #include "flecsi/io/hdf5.hh"
 #include "flecsi/run/context.hh"

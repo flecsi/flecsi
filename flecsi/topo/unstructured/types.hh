@@ -13,7 +13,6 @@
 #include "flecsi/util/common.hh"
 #include "flecsi/util/crs.hh"
 #include "flecsi/util/geometry/kdtree.hh"
-#include "flecsi/util/mpi.hh"
 
 #include <algorithm>
 #include <cstddef>

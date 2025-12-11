@@ -8,7 +8,6 @@
 #include <hpx/modules/concurrency.hpp>
 #include <hpx/modules/serialization.hpp>
 
-#include "flecsi/config.hh"
 #include "flecsi/data/hpx/copy.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"

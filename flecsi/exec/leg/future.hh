@@ -4,8 +4,6 @@
 #ifndef FLECSI_EXEC_LEG_FUTURE_HH
 #define FLECSI_EXEC_LEG_FUTURE_HH
 
-#include "flecsi/config.hh"
-
 #include <legion.h>
 
 namespace flecsi {

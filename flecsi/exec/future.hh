@@ -4,6 +4,7 @@
 #ifndef FLECSI_EXEC_FUTURE_HH
 #define FLECSI_EXEC_FUTURE_HH
 
+#include "flecsi/config.hh"
 #include "flecsi/data/tags.hh"
 #include "flecsi/util/types.hh" // Color
 

@@ -1,4 +1,5 @@
 #include "cycle.hh"
+#include "flecsi/config.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/unit.hh"
 

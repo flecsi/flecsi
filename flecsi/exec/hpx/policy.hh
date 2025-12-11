@@ -6,7 +6,6 @@
 
 #include <hpx/modules/collectives.hpp>
 
-#include "flecsi/config.hh"
 #include "flecsi/exec/future.hh"
 #include "flecsi/exec/hpx/reduction_wrapper.hh"
 #include "flecsi/exec/launch.hh"
