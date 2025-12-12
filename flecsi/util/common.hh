@@ -46,6 +46,9 @@ struct identity {
 
 /// \cond core
 
+template<bool Const, class T>
+using maybe_const = std::conditional_t<Const, const T, T>;
+
 // Defer a functor call until a conversion to its return type is needed.
 template<class F>
 struct convert {

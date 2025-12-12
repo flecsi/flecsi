@@ -78,7 +78,7 @@ destroy(const field_reference<T, L, Topo, S> & r) {
     portable_v<T> ? loc | leaf : flecsi::mpi>(r);
 }
 template<class T, Privileges P>
-using element_t = std::conditional_t<privilege_write(P), T, const T>;
+using element_t = util::maybe_const<!privilege_write(P), T>;
 
 struct Bool {
   Bool(bool b = false) noexcept : b(b) {}
