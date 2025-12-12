@@ -282,7 +282,7 @@ initialize(int argc, const char * const * argv, bool dependent) {
   }
   make(run::time, cfg);
   auto & ctx = *run::context::ctx;
-#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
+#ifdef FLECSI_ENABLE_FLOG
   {
     const Color p = flog::state::instance().source_process();
     if(p != flog::state::all_processes && p >= ctx.processes()) {

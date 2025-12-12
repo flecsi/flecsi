@@ -4,12 +4,9 @@
 #ifndef FLECSI_EXEC_LEG_TASK_WRAPPER_HH
 #define FLECSI_EXEC_LEG_TASK_WRAPPER_HH
 
-#include "flecsi/config.hh"
-
 #include "flecsi/exec/params.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/run/backend.hh"
-#include "flecsi/util/annotation.hh"
 #include "flecsi/util/common.hh"
 #include "flecsi/util/function_traits.hh"
 #include <flecsi/flog.hh>
@@ -55,9 +52,9 @@ detail::register_task() {
   std::string name = util::symbol<*TASK>();
 
   // extract wrapped task
-  constexpr char wrapper_prefix[] = "flecsi::exec::leg::task_wrapper<";
+  constexpr char wrapper_prefix[] = "flecsi::exec::launch<";
   if(name.rfind(wrapper_prefix, 0) == 0) {
-    auto wrap_end = name.rfind(", (flecsi::exec::processor)");
+    auto wrap_end = name.rfind(',', name.rfind("u>::Return flecsi::exec::leg"));
     name = name.substr(
       sizeof(wrapper_prefix) - 1, wrap_end - sizeof(wrapper_prefix) + 1);
   }
@@ -146,73 +143,46 @@ bind_tuple(const std::tuple<PP...> & tup) { // to deduce a pack
     std::conditional_t<exec::detail::must_bind_v<PP>, PP, const PP &>...>(tup);
 }
 
-/*!
- The task_wrapper type provides execution
- functions for user and MPI tasks.
+template<class L> // an exec::launch specialization
+typename L::Return
+task_wrapper(const Legion::Task * task,
+  const std::vector<Legion::PhysicalRegion> & regions,
+  Legion::Context context,
+  Legion::Runtime * runtime) noexcept {
+  using Params = typename L::Params;
+  auto & c = run::context::instance();
 
- \tparam F the user task
- \tparam P the target processor type
- */
-
-template<auto & F, processor P>
-struct task_wrapper {
-
-  using Traits = util::function_t<F>;
-  using RETURN = typename Traits::return_type;
-  static constexpr processor LegionProcessor =
-    P == processor::mpi ? processor::loc : P;
-
-  /*!
-    Execution wrapper method for user tasks.
-   */
-
-  static RETURN execute(const Legion::Task * task,
-    const std::vector<Legion::PhysicalRegion> & regions,
-    Legion::Context context,
-    Legion::Runtime * runtime) noexcept {
-    static constexpr bool mpi = P == processor::mpi;
-
-    auto & c = run::context::instance();
-
-    const auto call = [&](auto && ours, const bindings & which) {
-      namespace ann = util::annotation;
-      auto tname = util::symbol<F>();
-      (ann::rguard<ann::execute_task_bind>(tname),
-        bind_parameters<P>(
-          ours, runtime, context, regions, task->futures, which));
-      if constexpr(mpi) {
-        if constexpr(std::is_void_v<RETURN>) {
-          (ann::rguard<ann::execute_task_user>(tname)),
-            c.mpi_call([&] { apply(F, std::move(ours)); });
-        }
-        else {
-          std::optional<RETURN> result;
-          (ann::rguard<ann::execute_task_user>(tname)),
-            c.mpi_call([&] { result.emplace(std::apply(F, std::move(ours))); });
-          return std::move(*result);
-        }
+  const auto call = [&](auto && ours, const bindings & which) {
+    bind_parameters<L::proc>(
+      ours, runtime, context, regions, task->futures, which);
+    const auto f = [&] { return L::call(std::move(ours)); };
+    if constexpr(L::mpi) {
+      if constexpr(std::is_void_v<typename L::Return>)
+        c.mpi_call(f);
+      else {
+        std::optional<typename L::Return> result;
+        c.mpi_call([&] { result.emplace(f()); });
+        return std::move(*result);
       }
-      else
-        return ann::rguard<ann::execute_task_user>(tname),
-               run::task_local_base::guard(), apply(F, std::move(ours));
-    };
+    }
+    else
+      return run::task_local_base::guard(), f();
+  };
 
-    if constexpr(mpi) {
-      flog_assert(!task->arglen, "unexpected task arguments");
-      auto & p = *static_cast<parameters<typename Traits::arguments_type> *>(
-        c.mpi_params);
-      return call(p.params, p.which);
-    }
-    else {
-      // There is a optimization opportunity here to move
-      // the elements instead of copying the last time.
-      const auto access = c.params.at(run::get1<std::size_t>(*task));
-      const auto & p = access.get<parameters<
-        typename decay_tuple<typename Traits::arguments_type>::type>>();
-      return call(bind_tuple(p.params), p.which);
-    }
+  if constexpr(L::mpi) {
+    flog_assert(!task->arglen, "unexpected task arguments");
+    auto & p = *static_cast<parameters<Params> *>(c.mpi_params);
+    return call(p.params, p.which);
   }
-}; // struct task_wrapper
+  else {
+    // There is a optimization opportunity here to move
+    // the elements instead of copying the last time.
+    const auto access = c.params.at(run::get1<std::size_t>(*task));
+    const auto & p =
+      access.get<parameters<typename decay_tuple<Params>::type>>();
+    return call(bind_tuple(p.params), p.which);
+  }
+}
 
 /// \}
 } // namespace flecsi::exec::leg

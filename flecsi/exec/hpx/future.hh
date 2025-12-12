@@ -7,15 +7,10 @@
 #include <hpx/modules/collectives.hpp>
 #include <hpx/modules/futures.hpp>
 
-#include "flecsi/config.hh"
-#include "flecsi/exec/launch.hh"
 #include "flecsi/flog.hh"
-#include "flecsi/run/context.hh"
+#include "flecsi/run/backend.hh"
 
-#include <string>
-#include <type_traits>
 #include <utility>
-#include <vector>
 
 namespace flecsi {
 namespace detail {

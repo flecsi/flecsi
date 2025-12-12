@@ -4,8 +4,8 @@
 #ifndef FLECSI_EXEC_MPI_POLICY_HH
 #define FLECSI_EXEC_MPI_POLICY_HH
 
+#include "flecsi/exec/future.hh"
 #include "flecsi/exec/launch.hh"
-#include "flecsi/exec/mpi/future.hh"
 #include "flecsi/exec/mpi/reduction_wrapper.hh"
 #include "flecsi/exec/params.hh"
 #include "flecsi/exec/tracer.hh"
@@ -28,28 +28,20 @@ template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
   using util::mpi::test;
-  using Traits = util::function_t<F>;
-  using R = typename Traits::return_type;
-  using P = typename Traits::arguments_type;
-  constexpr auto proc = mask_to_processor_type(Attributes);
+  using launch = exec::launch<F, Attributes>;
+  using R = typename launch::Return;
 
   // replace arguments in args, for example, field_reference -> accessor.
-  auto params =
-    make_parameters<(proc == processor::mpi), P>(std::forward<Args>(args)...);
+  auto params = launch::params(std::forward<Args>(args)...);
 
-  auto task_name = util::symbol<F>();
-
-  auto storage = prolog<proc>(params, args...).detach();
-  bind_parameters<proc> bp(params, storage);
+  auto storage = prolog<launch::proc>(params, args...).detach();
+  bind_parameters<launch::proc> bp(params, storage);
 
   run::context_t::depth_guard rg;
   run::task_local_base::guard tlg;
 
-  const auto ds = launch_size<Attributes, P>(args...);
-  const auto task = [&params]() noexcept {
-    return std::apply(F, std::move(params));
-  };
-  util::annotation::rguard<util::annotation::execute_task_user> ann{task_name};
+  const auto ds = launch::size(args...);
+  const auto task = [&params] { return launch::call(std::move(params)); };
   if constexpr(std::is_same_v<decltype(ds), const std::monostate>) {
     const bool root = !flecsi::run::context::instance().process();
     // single launch, only invoke the user task on the Root.

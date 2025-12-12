@@ -4,8 +4,6 @@
 #ifndef FLECSI_UTIL_TARGET_HH
 #define FLECSI_UTIL_TARGET_HH
 
-#include "flecsi/config.hh"
-
 /// \addtogroup utils
 /// \{
 

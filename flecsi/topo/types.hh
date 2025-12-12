@@ -9,7 +9,6 @@
 #include "flecsi/topo/index.hh"
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/constant.hh"
-#include "flecsi/util/mpi.hh"
 
 #include <type_traits>
 

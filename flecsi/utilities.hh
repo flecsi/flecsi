@@ -26,6 +26,7 @@
 /// - \ref unit "flecsi/util/unit.hh"
 
 #include "flecsi/config.hh"
+
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/color_map.hh"

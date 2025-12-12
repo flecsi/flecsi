@@ -172,7 +172,7 @@ struct bind_parameters : bind_accessors<Proc> {
   template<class A, class... Args>
   explicit bind_parameters(A & a, Args &&... args)
     : bind_accessors<Proc>(std::forward<Args>(args)...) {
-    util::annotation::rguard<util::annotation::execute_bind_parameters> ann;
+    util::annotation::rguard<util::annotation::execute_task_bind> ann;
     std::apply([&](auto &... aa) { (visit(aa), ...); }, a);
   }
 

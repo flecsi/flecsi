@@ -6,10 +6,6 @@ cmake_dependent_option(FLOG_ENABLE_COLOR_OUTPUT
   "Enable colorized Flog logging" ON "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_COLOR_OUTPUT)
 
-cmake_dependent_option(FLOG_ENABLE_MPI "Enable Flog MPI support" ON
-  "ENABLE_FLOG" OFF)
-mark_as_advanced(FLOG_ENABLE_MPI)
-
 cmake_dependent_option(FLOG_ENABLE_DEBUG "Enable Flog debug mode" OFF
   "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_DEBUG)
@@ -30,9 +26,4 @@ if(ENABLE_FLOG)
   mark_as_advanced(FLOG_STRIP_LEVEL)
 
   set_property(CACHE FLOG_STRIP_LEVEL PROPERTY STRINGS ${FLOG_STRIP_LEVELS})
-endif()
-
-if(FLOG_ENABLE_MPI)
-  find_package(Threads)
-  target_link_libraries(FleCSI PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 endif()

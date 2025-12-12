@@ -7,7 +7,6 @@
 #include <hpx/modules/collectives.hpp>
 #include <hpx/modules/synchronization.hpp>
 
-#include "flecsi/config.hh"
 #include "flecsi/run/local/context.hh"
 
 #include <cstddef>

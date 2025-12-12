@@ -5,8 +5,8 @@
 #define FLECSI_DATA_TOPOLOGY_HH
 
 #include "flecsi/data/backend.hh"
-#include "flecsi/data/layout.hh"
 #include "flecsi/data/privilege.hh"
+#include "flecsi/data/tags.hh"
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/demangle.hh"
 

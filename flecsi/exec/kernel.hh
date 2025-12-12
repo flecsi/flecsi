@@ -6,6 +6,7 @@
 
 #include <numeric>
 
+#include "flecsi/config.hh"
 #include "flecsi/exec/fold.hh"
 #include "flecsi/util/array_ref.hh"
 

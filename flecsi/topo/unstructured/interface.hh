@@ -4,7 +4,6 @@
 #ifndef FLECSI_TOPO_UNSTRUCTURED_INTERFACE_HH
 #define FLECSI_TOPO_UNSTRUCTURED_INTERFACE_HH
 
-#include "flecsi/data/layout.hh"
 #include "flecsi/data/map.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/flog.hh"

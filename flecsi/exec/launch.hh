@@ -5,8 +5,10 @@
 #define FLECSI_EXEC_LAUNCH_HH
 
 #include "flecsi/data/field.hh"
+#include "flecsi/exec/future.hh"
 #include "flecsi/exec/kernel.hh"
 #include "flecsi/exec/task_attributes.hh"
+#include "flecsi/util/annotation.hh"
 #include "flecsi/util/function_traits.hh"
 
 #include <cstddef>
@@ -17,29 +19,6 @@
 #include <variant> // monostate
 
 namespace flecsi {
-namespace data {
-/// \addtogroup data
-/// \{
-
-/// \cond core
-
-/// Task parameters of types that inherit from bind_tag must be specially
-/// initialized by the backend after the task has been launched.
-struct bind_tag {};
-
-/// Classes that inherit from send_tag can decompose themselves into simpler
-/// parameters via a send member function template.  This function template
-/// accepts a callback that is used to process the subcomponents and which
-/// itself accepts a callback that, on the caller side only, is used to
-/// transform the task arguments.  Those task arguments may include
-/// topo::borrow versions of the underlying topologies and field references
-/// to such versions.
-struct send_tag {};
-/// \endcond
-
-/// \}
-} // namespace data
-
 namespace exec {
 /// \addtogroup execution
 /// \{
@@ -266,31 +245,49 @@ make_parameter(A && a) {
   }
 }
 
+template<class... FF>
+auto
+make_tuple(FF... ff) { // use -> decltype(auto)
+  return std::tuple<decltype(std::move(ff)())...>(std::move(ff)()...);
+}
+
 template<bool M, class... PP, class... AA>
 auto
 make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
-  return std::tuple<decltype(make_parameter<M, PP>(std::forward<AA>(aa)))...>(
-    make_parameter<M, PP>(std::forward<AA>(aa))...);
+  return make_tuple([&]() -> decltype(auto) {
+    return make_parameter<M, PP>(std::forward<AA>(aa));
+  }...);
 }
 } // namespace detail
-template<bool M, class P, class... AA>
-auto
-make_parameters(AA &&... aa) {
-  return detail::make_parameters<M>(
-    static_cast<P *>(nullptr), std::forward<AA>(aa)...);
-}
 
-// Return the number of task invocations for the given parameter tuple and
-// arguments, or std::monostate() if a single launch is appropriate.
-template<TaskAttributes A, class P, class... AA>
-auto
-launch_size(const AA &... aa) {
-  return detail::launch_size<(mask_to_processor_type(A) == processor::mpi)>(
-    static_cast<P *>(nullptr), aa...)
-    .get();
-}
+template<auto & F, TaskAttributes A>
+struct launch {
+  using function = util::function_t<F>;
+  using Params = typename function::arguments_type;
+  using Return = std::remove_cv_t<typename function::return_type>;
+  static constexpr auto proc = mask_to_processor_type(A);
+  static constexpr bool mpi = proc == processor::mpi;
 
-enum class launch_type_t : size_t { single, index };
+  template<class... AA>
+  static auto params(AA &&... aa) {
+    return detail::make_parameters<mpi>(
+      static_cast<Params *>(nullptr), std::forward<AA>(aa)...);
+  }
+  // Return the number of point tasks for the given arguments, or
+  // std::monostate() if a single launch is appropriate.
+  template<class... AA>
+  static auto size(const AA &... aa) {
+    return detail::launch_size<mpi>(static_cast<Params *>(nullptr), aa...)
+      .get();
+  }
+
+  template<class P>
+  static auto call(P && params) noexcept {
+    return util::annotation::rguard<util::annotation::execute_task_user>(
+             util::symbol<F>()),
+           apply(F, std::forward<P>(params));
+  }
+};
 
 /// An explicit launch domain size.
 struct launch_domain {
@@ -610,23 +607,6 @@ make_partial(AA &&... aa) {
   return {std::forward<AA>(aa)...};
 }
 
-/*!
-  \link future<Return> Single\endlink or \link
-  future<Return,exec::launch_type_t::index> multiple\endlink future.
-
-  A single future can be a task argument and parameter; the task runs only
-  when the value is ready.
-  A multi-valued future may be passed to a task expecting a single one
-  (which is then executed once with each value).
-
-  @tparam Return The return type of the task.
-  @tparam Launch FleCSI launch type: single/index.
-  \ns.
-*/
-template<typename Return,
-  exec::launch_type_t Launch = exec::launch_type_t::single>
-struct future;
-
 namespace exec::detail {
 template<>
 struct task_param<cpu> {
@@ -655,6 +635,12 @@ struct task_param<future<R>> {
 };
 template<class R>
 struct must_convert<future<R, launch_type_t::index>> : std::true_type {};
+template<class P, class T>
+struct launch<P, future<T, launch_type_t::index>> {
+  static Index get(const future<T, launch_type_t::index> & f) {
+    return f.size();
+  }
+};
 
 template<class P>
 struct task_param<std::vector<P>> {
@@ -729,12 +715,6 @@ template<class P>
 struct launch<P, launch_domain> {
   static Index get(const launch_domain & d) {
     return d.size_;
-  }
-};
-template<class P, class T>
-struct launch<P, future<T, launch_type_t::index>> {
-  static Index get(const future<T, launch_type_t::index> & f) {
-    return f.size();
   }
 };
 } // namespace exec::detail
