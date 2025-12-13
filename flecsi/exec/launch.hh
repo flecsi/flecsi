@@ -23,15 +23,6 @@ namespace exec {
 /// \addtogroup execution
 /// \{
 namespace detail {
-template<bool M, class T>
-constexpr bool bad_accessor = false;
-// Allow ghosts that aren't read, in case an index space is being reused:
-template<bool M, data::layout L, class T, Privileges P>
-constexpr bool bad_accessor<M, data::accessor<L, T, P>> =
-  (!M || (privilege_count(P) > 1 &&
-           privilege_read(get_privilege(privilege_count(P) - 1, P)))) &&
-  !data::portable_v<T>;
-
 // We care about value category, so we want to use perfect forwarding.
 // However, such a template is a better match for some arguments than any
 // single non-template overload, so we use SFINAE to detect that we have
@@ -59,7 +50,7 @@ struct replace_argument<P,
   A,
   std::enable_if_t<!must_convert<std::decay_t<A>>::value>> {
   static constexpr bool special = false;
-  static A replace(A a) {
+  static A replace(A a) { // NB: not P
     return static_cast<A>(a);
   }
 };
@@ -205,6 +196,128 @@ replace_argument(T && t) {
 }
 
 namespace detail {
+// Since our Legion task wrapper does not depend on argument types, even for
+// an MPI task we must eagerly create parameters and objects for any
+// references that require a conversion.  The following progression from task
+// argument to task parameter results:
+// 1. argument, with the reference introduced by any forwarding function
+// 2. the result of replace_argument
+// 3. the result of make_parameter (with convert applied for vectors)
+// 4. mpi_params, or the result of bind_tuple
+// 5. actual task parameter, without cv-qualification (with convert again)
+// We derive #2 from #5 and #1.  For non-MPI tasks, we derive #3 from
+// #5 and #4 from #3.  For MPI tasks, #3 is #2 unless we need a
+// "temporary" to which to bind a reference, in which case it is the type of
+// that temporary.  That situation can arise for an element type of a vector
+// or tuple, in which case #3 is a vector/tuple of the result(s).
+
+template<bool M, class P>
+struct param_helper {
+  static_assert(M || std::is_move_constructible_v<P>,
+    "only MPI tasks can accept (references to) non-movable types");
+  // This is not used when M, but the assertions are:
+  using type = P;
+};
+template<bool M>
+struct task {
+  template<class P, class = void>
+  struct param_storage : param_helper<M, P> {};
+  template<class P>
+  using param_storage_t = typename param_storage<P>::type;
+  template<class P>
+  struct param_storage<const P> : param_storage<P> {};
+  template<class P>
+  struct param_storage<P &> : param_storage<P> {
+    static_assert(M || std::is_const_v<P>,
+      "only MPI tasks can accept non-const references");
+  };
+  template<class P>
+  struct param_storage<P &&> : param_storage<P> {
+    static_assert(M, "only MPI tasks can accept rvalue references");
+  };
+  template<class P>
+  struct param_storage<P *> : param_helper<M, P *> {
+    static_assert(M || std::is_const_v<P> || std::is_function_v<P>,
+      "only MPI tasks can accept non-const pointers");
+  };
+  template<data::layout L, class T, Privileges P>
+  struct param_storage<data::accessor<L, T, P>>
+    : param_helper<M, data::accessor<L, T, P>> {
+    static_assert(
+      data::portable_v<T> ||
+        (M && (privilege_count(P) <= 1 ||
+                !privilege_read(get_privilege(privilege_count(P) - 1, P)))),
+      "only MPI tasks can accept non-portable field accessors; "
+      "they must not access ghosts");
+  };
+  // NB: this recursion happens regardless of must_convert.
+  template<class... PP>
+  struct param_storage<std::tuple<PP...>> {
+    using type = std::tuple<param_storage_t<PP>...>;
+  };
+  template<class P>
+  struct param_storage<std::vector<P>> {
+    using type = std::vector<param_storage_t<P>>;
+  };
+};
+template<bool M, class P>
+using param_storage_t = typename task<M>::template param_storage_t<P>;
+
+template<class P, class A>
+struct replaced {
+  using type = decltype(exec::replace_argument<P>(std::declval<A>()));
+};
+
+// An approximation of C++23's std::reference_converts_from_temporary:
+template<class P, class A>
+constexpr bool temporary_v =
+  ((std::is_lvalue_reference_v<P> &&
+     std::is_const_v<std::remove_reference_t<P>>) ||
+    std::is_rvalue_reference_v<P>) &&
+  !std::is_convertible_v<std::add_pointer_t<typename replaced<P, A>::type>,
+    std::add_pointer_t<P>>;
+
+template<class R, class T>
+using same_ref_t = std::conditional_t<std::is_lvalue_reference_v<R>, T &, T &&>;
+template<class C, class T> // similar to std::forward_like
+using element_t = same_ref_t<C,
+  util::maybe_const<std::is_const_v<std::remove_reference_t<C>>, T>>;
+template<class T>
+struct type_identity { // from C++20
+  using type = T;
+};
+
+template<class P, class A, class D = std::decay_t<A>>
+struct sync_storage {
+  static constexpr bool temporary = temporary_v<P, A>;
+  static_assert(
+    !temporary || std::is_move_constructible_v<std::remove_reference_t<P>>,
+    "references to non-movable types must bind directly");
+  static_assert(!std::conditional_t<temporary, // avoid unneeded instantiation
+                  sync_storage<std::decay_t<P>, A, D>,
+                  sync_storage>::temporary,
+    "MPI tasks cannot accept references that require nested conversions");
+  using type =
+    typename std::conditional_t<temporary, std::decay<P>, replaced<P, A>>::type;
+};
+template<class P, class A>
+using sync_storage_t = typename sync_storage<P, A>::type;
+template<class... PP, class T, class... AA>
+struct sync_storage<std::tuple<PP...>, T, std::tuple<AA...>> {
+  static constexpr bool temporary =
+    (sync_storage<PP, element_t<T, AA>>::temporary || ...);
+  using type = typename std::conditional_t<temporary,
+    type_identity<std::tuple<sync_storage_t<PP, element_t<T, AA>>...>>,
+    replaced<std::tuple<PP...>, T>>::type; // instantiated only if needed
+};
+template<class P, class V, class A>
+struct sync_storage<std::vector<P>, V, std::vector<A>> {
+  static constexpr bool temporary = sync_storage<P, element_t<V, A>>::temporary;
+  using type = typename std::conditional_t<temporary,
+    type_identity<std::vector<sync_storage_t<P, element_t<V, A>>>>,
+    replaced<std::vector<P>, V>>::type;
+};
+
 template<class>
 struct is_tuple : std::false_type {};
 template<class... TT>
@@ -245,42 +358,13 @@ convert(U && u) { // deep implicit conversions
 template<bool M, class P, class A>
 decltype(auto)
 make_parameter(A && a) {
-  using PD = std::decay_t<P>;
-  if constexpr(!M) {
-    static_assert(!std::is_rvalue_reference_v<P>,
-      "only MPI tasks can accept rvalue references");
-    static_assert(std::is_const_v<std::remove_reference_t<const P>>,
-      "only MPI tasks can accept non-const references");
-    static_assert(!std::is_pointer_v<P> ||
-                    std::is_const_v<std::remove_pointer_t<P>> ||
-                    std::is_function_v<std::remove_pointer_t<P>>,
-      "only MPI tasks can accept non-const pointers");
+  if constexpr(!M)
     static_assert(std::is_copy_constructible_v<P>,
       "only MPI tasks can accept non-copyable parameters by value");
-  }
-  static_assert(!detail::bad_accessor<M, PD>,
-    "only MPI tasks without ghosts can accept non-portable field accessors");
-  const auto f = [&a]() -> decltype(auto) {
-    return exec::replace_argument<P>(std::forward<A>(a));
-  };
-  // Our Legion task wrapper does not depend on argument types, so even for an
-  // MPI task we must eagerly create parameters and objects for any references
-  // that require a conversion.  We apply this approximation of C++23's
-  // std::reference_converts_from_temporary for all backends.
-  static_assert(
-    std::is_move_constructible_v<P>, "task parameters must be movable");
-  if constexpr(M && std::is_convertible_v<decltype(f()), P> &&
-               !(std::is_reference_v<P> &&
-                 std::is_const_v<std::remove_reference_t<P>> &&
-                 !std::is_convertible_v<std::add_pointer_t<decltype(f())>,
-                   std::add_pointer_t<P>>))
-    return f();
-  else {
-    static_assert(std::is_move_constructible_v<PD>,
-      "only MPI tasks can accept references to non-movable types; "
-      "they must bind directly");
-    return convert<PD>(f());
-  }
+  return convert<typename std::conditional_t<M,
+    sync_storage<P, A &&>,
+    type_identity<param_storage_t<M, P>>>::type // always instantiated
+    >(exec::replace_argument<P>(std::forward<A>(a)));
 }
 
 template<class... FF>
@@ -692,6 +776,7 @@ struct launch<P, future<T, launch_type_t::index>> {
 
 template<class P>
 struct task_param<std::vector<P>> {
+  // Copy (breaking non-const reference parameters) only if necessary:
   template<class A,
     class = std::enable_if_t<replace_argument<P, const A &>::special>>
   static auto replace(const std::vector<A> & v) {

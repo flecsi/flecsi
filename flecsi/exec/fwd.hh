@@ -70,7 +70,9 @@ template<auto & Task,
   @tparam TASK          The user task.
     Its parameters must be copyable or a reference to a const, movable type.
     Any that is a pointer must be to a const type or to a function.
-    If \a ATTRIBUTES specifies an MPI task, parameters need merely be movable.
+    If \a ATTRIBUTES specifies an MPI task, parameters need merely be movable,
+    though the temporary objects to which any references bind must be movable
+    and must not themselves bind references to temporaries.
   @tparam ATTRIBUTES    The task attributes mask.
   @tparam ARGS The user-specified task arguments, implicitly converted to the
     parameter types for \a TASK.
