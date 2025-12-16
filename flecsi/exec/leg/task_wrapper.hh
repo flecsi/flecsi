@@ -128,13 +128,6 @@ struct parameters {
   bindings which;
 };
 
-template<class>
-struct decay_tuple {};
-template<class... TT>
-struct decay_tuple<std::tuple<TT...>> {
-  using type = std::tuple<std::decay_t<TT>...>;
-};
-
 template<class... PP>
 auto
 bind_tuple(const std::tuple<PP...> & tup) { // to deduce a pack
@@ -179,7 +172,7 @@ task_wrapper(const Legion::Task * task,
     // the elements instead of copying the last time.
     const auto access = c.params.at(run::get1<std::size_t>(*task));
     const auto & p =
-      access.get<parameters<typename decay_tuple<Params>::type>>();
+      access.get<parameters<exec::detail::param_storage_t<L::mpi, Params>>>();
     return call(bind_tuple(p.params), p.which);
   }
 }

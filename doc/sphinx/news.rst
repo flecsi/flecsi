@@ -28,6 +28,8 @@ Fixed
 ^^^^^
 * Execution
 
+  * ``std::tuple`` task parameters with elements that are references or ``std::vector`` specializations are supported properly.
+  * Implicit conversions are applied to elements of ``std::vector`` task arguments (as well as FleCSI-specific transformations for, say, field accessors).
   * Top-level *cv*-qualifiers are ignored in task return types.
 
 * Legion backend

@@ -6,6 +6,7 @@
 
 #include "flecsi/data/privilege.hh"
 #include "flecsi/exec/task_attributes.hh"
+#include "util/common.hh" // maybe_const
 
 #include <Kokkos_Core.hpp>
 
@@ -119,7 +120,8 @@ struct storage : detail::storage<> {
     privilege Priv = ro,
     exec::processor Proc = exec::processor::loc>
   auto as(std::size_t nelems) {
-    using return_type = flecsi::util::span<privilege_const<T, Priv>>;
+    using return_type =
+      util::span<util::maybe_const<!privilege_write(Priv), T>>;
 
     std::size_t nbytes = nelems * sizeof(T);
     if(nbytes > size()) {

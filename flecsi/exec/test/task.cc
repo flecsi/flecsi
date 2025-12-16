@@ -34,6 +34,50 @@ static_assert(priv<wo, rw>());
 static_assert(priv<ro, wo, rw>());
 static_assert(priv<na, ro, wo, rw>());
 
+template<bool M, class P, class A, class T>
+constexpr bool good = std::
+  is_same_v<decltype(exec::detail::make_parameter<M, P>(std::declval<A>())), T>;
+using future_arg = future<int, exec::launch_type_t::index>;
+
+static_assert(good<false, long, const int &, long>);
+static_assert(good<false, const int &, int &, int>);
+static_assert(good<true, int *, int *&, int *&>);
+static_assert(good<false, const future<int> &, future_arg &&, future<int>>);
+static_assert(
+  good<false, std::tuple<const int &>, std::tuple<int &> &, std::tuple<int>>);
+static_assert(good<false,
+  std::tuple<const int, future<int>>,
+  std::tuple<int, future_arg> &&,
+  std::tuple<int, future<int>>>);
+static_assert(good<false,
+  std::vector<std::tuple<const int &>>,
+  std::vector<std::tuple<int &>> &&,
+  std::vector<std::tuple<int>>>);
+
+static_assert(good<true, int &&, int &&, int &&>);
+static_assert(
+  good<true, const std::exception &, std::logic_error &, std::logic_error &>);
+static_assert(good<true, const int &, int &, int &>);
+static_assert(good<true, long, const int &, const int &>);
+static_assert(good<true, const long &, const int &, long>);
+static_assert(good<true, const future<int> &, future_arg &&, future<int>>);
+static_assert(good<true,
+  std::tuple<const int, future<int>>,
+  std::tuple<int, future_arg> &&,
+  std::tuple<int &&, future<int>>>);
+static_assert(good<true,
+  std::tuple<int, const long &>,
+  std::tuple<int, int> &&,
+  std::tuple<int &&, long>>);
+static_assert(good<true,
+  std::vector<std::tuple<const int &>>,
+  std::vector<std::tuple<int &>> &&,
+  std::vector<std::tuple<int &>> &&>);
+static_assert(good<true,
+  const std::vector<std::tuple<const int &>> &,
+  std::vector<std::tuple<int &>> &&,
+  std::vector<std::tuple<const int &>>>);
+
 // ---------------
 namespace hydro {
 
@@ -79,7 +123,7 @@ mpi(int * p, const short & s, int i) {
 
 namespace {
 void
-vb(const std::vector<bool> &) noexcept {}
+vb(const std::vector<bool> &, const std::vector<long> &) noexcept {}
 
 int
 index_task(const flecsi::runtime * r, exec::launch_domain) noexcept {
@@ -102,10 +146,11 @@ index_task(const flecsi::runtime * r, exec::launch_domain) noexcept {
 
 void
 init_array(exec::cpu s,
-  std::vector<field<reduction_type>::accessor<wo>> v) noexcept {
+  std::vector<std::tuple<const field<reduction_type>::accessor<wo> &>>
+    v) noexcept {
   flog_assert(v.size() == 1, "wrong accessor count");
   int i = 0;
-  for(auto & vv : v.front().span()) {
+  for(auto & vv : std::get<0>(v.front()).span()) {
     vv = s.launch().index + i++;
   }
 }
@@ -126,7 +171,7 @@ check(field<reduction_type>::accessor<ro> v, const int np) noexcept {
   };
 }
 void
-reduction(std::tuple<field<reduction_type>::accessor<ro>,
+reduction(std::tuple<const field<reduction_type>::accessor<ro>,
   field<reduction_type>::reduction<flecsi::exec::fold::sum>> t) noexcept {
   auto & [v, r] = t;
   assert(v.span().size() == r.span().size());
@@ -179,7 +224,7 @@ task_driver(scheduler & s) {
     execute<hydro::mpi, mpi>(&x, 1, 1);
     EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
 
-    s.execute<vb>(std::vector<bool>(1));
+    s.execute<vb>(std::vector<bool>(1), std::vector<int>());
 
     constexpr bool add_four = (FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
                               (FLECSI_BACKEND != FLECSI_BACKEND_hpx);
@@ -193,7 +238,7 @@ task_driver(scheduler & s) {
     // Array of initial values per color
     arr::topology arr_s(s, arr::coloring(np, vpp));
     auto arr_vals = arr_f(arr_s);
-    s.execute<init_array>(exec::on, std::vector{arr_vals});
+    s.execute<init_array>(exec::on, std::vector{std::tuple{arr_vals}});
     // Reduction
     topo::global::topology gl_arr_s(s, vpp);
     auto vals = gl_arr_f(gl_arr_s);
