@@ -144,10 +144,6 @@ struct execute_task_prolog : execute_task<execute_task_prolog> {
   static constexpr const char * tag = "prolog";
   static constexpr detail detail_level = detail::high;
 };
-struct execute_bind_parameters : execute_task<execute_bind_parameters> {
-  static constexpr const char * tag = "bind_parameters";
-  static constexpr detail detail_level = detail::high;
-};
 struct execute_task_user : execute_task<execute_task_user> {
   static constexpr const char * tag = "user";
 };

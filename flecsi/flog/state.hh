@@ -8,9 +8,10 @@
 
 #if defined(FLECSI_ENABLE_FLOG)
 
-#include "flecsi/data/field_info.hh"
 #include "flecsi/flog/types.hh"
 #include "flecsi/flog/utils.hh"
+#include "flecsi/util/common.hh" // convert
+#include "flecsi/util/types.hh" // Color
 
 #include <bitset>
 #include <cassert>
@@ -23,9 +24,7 @@
 #include <thread>
 #include <unordered_map>
 
-#if defined(FLOG_ENABLE_MPI)
 #include <mpi.h>
-#endif
 
 /// \cond core
 namespace flecsi {
@@ -77,8 +76,8 @@ public:
 #endif
       if(tag == "all")
         tag_bitset_.set();
-      else if(tag_map_.find(tag) != tag_map_.end()) {
-        tag_bitset_.set(tag_map_[tag]);
+      else if(const auto it = tag_map_.find(tag); it != tag_map_.end()) {
+        tag_bitset_.set(it->second);
       }
       else {
         std::cerr << "FLOG WARNING: tag " << tag
@@ -86,8 +85,6 @@ public:
                   << std::endl;
       }
     }
-
-#if defined(FLOG_ENABLE_MPI)
 
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "Flog: initializing mpi state"
@@ -107,7 +104,6 @@ public:
     if(process_ == 0) {
       flusher_thread_ = std::thread(&state::flush_packets, std::ref(*this));
     } // if
-#endif // FLOG_ENABLE_MPI
   }
   state(state &&) = delete; // address is known to the thread
 
@@ -115,21 +111,15 @@ public:
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "Flog: state destructor" << std::endl;
 #endif
-#if defined(FLOG_ENABLE_MPI)
     send_to_one(true);
 
     if(process_ == 0) {
       flusher_thread_.join();
     } // if
-#endif // FLOG_ENABLE_MPI
   } // finalize
 
-  int verbose() {
+  int verbose() const {
     return verb;
-  }
-
-  unsigned & serialization_interval() {
-    return serialization_interval_;
   }
 
   /*!
@@ -180,20 +170,19 @@ public:
   static std::size_t register_tag(const char * tag) {
     // If the tag is already registered, just return the previously
     // assigned id. This allows tags to be registered in headers.
-    if(tag_map_.find(tag) != tag_map_.end()) {
-      return tag_map_[tag];
-    } // if
-
-    const size_t id = tag_names.size();
-    assert(id < tag_bits && "Tag bits overflow! Increase state::tag_bits");
+    return tag_map_
+      .try_emplace(tag, util::convert{[&] {
+        const size_t id = tag_names.size();
+        assert(id < tag_bits && "Tag bits overflow! Increase state::tag_bits");
 #if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "Flog: registering tag " << tag << ": "
-              << id << FLOG_COLOR_PLAIN << std::endl;
+        std::cerr << FLOG_COLOR_LTGRAY << "Flog: registering tag " << tag
+                  << ": " << id << FLOG_COLOR_PLAIN << std::endl;
 #endif
-    tag_map_[tag] = id;
-    tag_names.push_back(tag);
-    return id;
-  } // next_tag
+        tag_names.push_back(tag);
+        return id;
+      }})
+      .first->second;
+  }
 
   /*!
     Return a reference to the active tag.
@@ -228,10 +217,6 @@ public:
     return ret;
   } // tag_enabled
 
-#if defined(FLOG_ENABLE_MPI)
-  using clock = std::chrono::system_clock;
-  using packet_t = std::pair<std::chrono::time_point<clock>, std::string>;
-
   bool active_process() const {
     return source_process_ == all_processes || source_process_ == process_;
   }
@@ -253,23 +238,14 @@ public:
     packets_.emplace_back(clock::now(), std::move(message));
   }
 
-  std::vector<packet_t> & packets() {
-    return packets_;
+  void flush();
+  void count_tasks(unsigned n) {
+    if((tasks += n) >= serialization_interval_)
+      flush();
   }
-
-  void flush_packets();
-
-  // Can be used as MPI tasks:
-
-  /// Return number of buffered packets.
-  static std::size_t log_size(const state & s) {
-    return s.packets_.size();
+  [[nodiscard]] unsigned restart_count() {
+    return std::exchange(tasks, 0);
   }
-  /// Gather log output on the root.
-  static void gather(state & s) {
-    s.send_to_one(false);
-  }
-#endif
 
   static state & instance() {
     return instance_.value();
@@ -285,7 +261,7 @@ public:
 
 private:
   int verb;
-  unsigned serialization_interval_;
+  unsigned serialization_interval_, tasks = 0;
   bool color_output_;
   int strip_level_;
 
@@ -298,7 +274,13 @@ private:
   static inline std::unordered_map<std::string, size_t> tag_map_;
   static inline std::vector<std::string> tag_names;
 
-#if defined(FLOG_ENABLE_MPI)
+  using clock = std::chrono::system_clock;
+  using packet_t = std::pair<std::chrono::time_point<clock>, std::string>;
+
+  void flush_packets();
+  static void gather(state & s) {
+    s.send_to_one(false);
+  }
   void send_to_one(bool last);
 
   Color source_process_, process_, processes_;
@@ -307,8 +289,6 @@ private:
   std::condition_variable avail;
   std::vector<packet_t> packets_;
   bool stop = false;
-#endif
-
 }; // class state
 inline std::optional<state> state::instance_;
 

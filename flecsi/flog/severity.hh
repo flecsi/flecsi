@@ -4,7 +4,6 @@
 #ifndef FLECSI_LOG_SEVERITY_HH
 #define FLECSI_LOG_SEVERITY_HH
 
-#include "flecsi/config.hh"
 #include "flecsi/flog/utils.hh"
 
 #include <sstream>
@@ -22,12 +21,7 @@ verbose(const char * file, int line) {
   return std::move(ss).str();
 }
 
-#if defined(FLOG_ENABLE_MPI)
 #define process_stamp " p" << state::instance().process()
-#else
-#define process_stamp ""
-#endif
-
 #define thread_stamp " t" << std::this_thread::get_id()
 
 // Displays messages without decoration.

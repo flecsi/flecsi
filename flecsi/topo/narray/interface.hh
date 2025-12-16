@@ -6,7 +6,6 @@
 
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
-#include "flecsi/data/layout.hh"
 #include "flecsi/data/map.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/flog.hh"

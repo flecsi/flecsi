@@ -9,6 +9,7 @@
 #include <string>
 
 #include "flecsi/util/demangle.hh"
+#include "flecsi/util/target.hh"
 #include "flecsi/util/unit/output.hh"
 #include <flecsi/flog.hh>
 

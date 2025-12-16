@@ -14,8 +14,8 @@ poisson::action::problem(control_policy & cp) {
   auto & s = cp.scheduler();
   s.execute<task::eggcarton>(
     exec::on, *cp.m, ud(*cp.m), fd(*cp.m), sd(*cp.m), Aud(*cp.m));
-  execute<task::io, flecsi::mpi>(exec::on, *cp.m, ud(*cp.m), "init");
-  execute<task::io, flecsi::mpi>(exec::on, *cp.m, sd(*cp.m), "actual");
+  s.execute<task::io>(exec::on, *cp.m, ud(*cp.m), "init");
+  s.execute<task::io>(exec::on, *cp.m, sd(*cp.m), "actual");
 
   flog::flush();
 } // problem

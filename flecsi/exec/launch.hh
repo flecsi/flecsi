@@ -5,9 +5,10 @@
 #define FLECSI_EXEC_LAUNCH_HH
 
 #include "flecsi/data/field.hh"
+#include "flecsi/exec/future.hh"
 #include "flecsi/exec/kernel.hh"
 #include "flecsi/exec/task_attributes.hh"
-#include "flecsi/util/constant.hh"
+#include "flecsi/util/annotation.hh"
 #include "flecsi/util/function_traits.hh"
 
 #include <cstddef>
@@ -18,57 +19,10 @@
 #include <variant> // monostate
 
 namespace flecsi {
-namespace data {
-/// \addtogroup data
-/// \{
-
-/// \cond core
-
-/// Task parameters of types that inherit from bind_tag must be specially
-/// initialized by the backend after the task has been launched.
-struct bind_tag {};
-
-/// Classes that inherit from send_tag can decompose themselves into simpler
-/// parameters via a send member function template.  This function template
-/// accepts a callback that is used to process the subcomponents and which
-/// itself accepts a callback that, on the caller side only, is used to
-/// transform the task arguments.  Those task arguments may include
-/// topo::borrow versions of the underlying topologies and field references
-/// to such versions.
-struct send_tag {};
-/// \endcond
-
-/// A class that inherits from params_tag is a composite task parameter.
-/// The interface requires that the class provide a flecsi_params() member
-/// function that returns a std::tie of all members. The class must be
-/// constructible from the element types of the tuple returned by flecsi_params.
-/// The corresponding argument is a tuple of task arguments for each element
-/// type.
-struct params_tag : bind_tag {};
-
-/// A class that inherits from arg_tag is a custom task argument.
-/// The interface requires that the class provide a flecsi_arg() member
-/// function that returns a substitute task argument.
-/// \warning \c flecsi_arg may be called multiple times on one task argument
-///   as an rvalue or an lvalue (even after a call as an rvalue).
-struct arg_tag : convert_tag {};
-
-/// \}
-} // namespace data
-
 namespace exec {
 /// \addtogroup execution
 /// \{
 namespace detail {
-template<bool M, class T>
-constexpr bool bad_accessor = false;
-// Allow ghosts that aren't read, in case an index space is being reused:
-template<bool M, data::layout L, class T, Privileges P>
-constexpr bool bad_accessor<M, data::accessor<L, T, P>> =
-  (!M || (privilege_count(P) > 1 &&
-           privilege_read(get_privilege(privilege_count(P) - 1, P)))) &&
-  !data::portable_v<T>;
-
 // We care about value category, so we want to use perfect forwarding.
 // However, such a template is a better match for some arguments than any
 // single non-template overload, so we use SFINAE to detect that we have
@@ -96,7 +50,7 @@ struct replace_argument<P,
   A,
   std::enable_if_t<!must_convert<std::decay_t<A>>::value>> {
   static constexpr bool special = false;
-  static A replace(A a) {
+  static A replace(A a) { // NB: not P
     return static_cast<A>(a);
   }
 };
@@ -253,71 +207,239 @@ replace_argument(T && t) {
 }
 
 namespace detail {
-template<bool M, class P, class A>
-decltype(auto)
-make_parameter(A && a) {
-  using PD = std::decay_t<P>;
-  if constexpr(!M) {
-    static_assert(!std::is_rvalue_reference_v<P>,
-      "only MPI tasks can accept rvalue references");
-    static_assert(std::is_const_v<std::remove_reference_t<const P>>,
-      "only MPI tasks can accept non-const references");
-    static_assert(!std::is_pointer_v<P> ||
-                    std::is_const_v<std::remove_pointer_t<P>> ||
-                    std::is_function_v<std::remove_pointer_t<P>>,
-      "only MPI tasks can accept non-const pointers");
-    static_assert(std::is_copy_constructible_v<P>,
-      "only MPI tasks can accept non-copyable parameters by value");
-  }
-  static_assert(!detail::bad_accessor<M, PD>,
-    "only MPI tasks without ghosts can accept non-portable field accessors");
-  const auto f = [&a]() -> decltype(auto) {
-    return exec::replace_argument<P>(std::forward<A>(a));
-  };
-  // Our Legion task wrapper does not depend on argument types, so even for an
-  // MPI task we must eagerly create parameters and objects for any references
-  // that require a conversion.  We apply this approximation of C++23's
-  // std::reference_converts_from_temporary for all backends.
+// Since our Legion task wrapper does not depend on argument types, even for
+// an MPI task we must eagerly create parameters and objects for any
+// references that require a conversion.  The following progression from task
+// argument to task parameter results:
+// 1. argument, with the reference introduced by any forwarding function
+// 2. the result of replace_argument
+// 3. the result of make_parameter (with convert applied for vectors)
+// 4. mpi_params, or the result of bind_tuple
+// 5. actual task parameter, without cv-qualification (with convert again)
+// We derive #2 from #5 and #1.  For non-MPI tasks, we derive #3 from
+// #5 and #4 from #3.  For MPI tasks, #3 is #2 unless we need a
+// "temporary" to which to bind a reference, in which case it is the type of
+// that temporary.  That situation can arise for an element type of a vector
+// or tuple, in which case #3 is a vector/tuple of the result(s).
+
+template<class P, class A>
+struct replaced {
+  using type = decltype(exec::replace_argument<P>(std::declval<A>()));
+};
+
+// An approximation of C++23's std::reference_converts_from_temporary:
+template<class P, class A>
+constexpr bool temporary_v =
+  ((std::is_lvalue_reference_v<P> &&
+     std::is_const_v<std::remove_reference_t<P>>) ||
+    std::is_rvalue_reference_v<P>) &&
+  !std::is_convertible_v<std::add_pointer_t<typename replaced<P, A>::type>,
+    std::add_pointer_t<P>>;
+
+template<class R, class T>
+using same_ref_t = std::conditional_t<std::is_lvalue_reference_v<R>, T &, T &&>;
+template<class C, class T> // similar to std::forward_like
+using element_t = same_ref_t<C,
+  util::maybe_const<std::is_const_v<std::remove_reference_t<C>>, T>>;
+template<class T>
+struct type_identity { // from C++20
+  using type = T;
+};
+
+template<class P, class A, class D = std::decay_t<A>>
+struct sync_storage {
+  static constexpr bool temporary = temporary_v<P, A>;
   static_assert(
-    std::is_move_constructible_v<P>, "task parameters must be movable");
-  if constexpr(M && !(std::is_reference_v<P> &&
-                      std::is_const_v<std::remove_reference_t<P>> &&
-                      !std::is_convertible_v<std::add_pointer_t<decltype(f())>,
-                        std::add_pointer_t<P>>))
-    return f();
-  else {
-    static_assert(std::is_move_constructible_v<PD>,
-      "only MPI tasks can accept references to non-movable types; "
-      "they must bind directly");
-    return [&f]() -> PD { return f(); }();
-  }
+    !temporary || std::is_move_constructible_v<std::remove_reference_t<P>>,
+    "references to non-movable types must bind directly");
+  static_assert(!std::conditional_t<temporary, // avoid unneeded instantiation
+                  sync_storage<std::decay_t<P>, A, D>,
+                  sync_storage>::temporary,
+    "MPI tasks cannot accept references that require nested conversions");
+  using type =
+    typename std::conditional_t<temporary, std::decay<P>, replaced<P, A>>::type;
+};
+template<class P, class A>
+using sync_storage_t = typename sync_storage<P, A>::type;
+template<class... PP, class T, class... AA>
+struct sync_storage<std::tuple<PP...>, T, std::tuple<AA...>> {
+  static constexpr bool temporary =
+    (sync_storage<PP, element_t<T, AA>>::temporary || ...);
+  using type = typename std::conditional_t<temporary,
+    type_identity<std::tuple<sync_storage_t<PP, element_t<T, AA>>...>>,
+    replaced<std::tuple<PP...>, T>>::type; // instantiated only if needed
+};
+template<class P, class V, class A>
+struct sync_storage<std::vector<P>, V, std::vector<A>> {
+  static constexpr bool temporary = sync_storage<P, element_t<V, A>>::temporary;
+  using type = typename std::conditional_t<temporary,
+    type_identity<std::vector<sync_storage_t<P, element_t<V, A>>>>,
+    replaced<std::vector<P>, V>>::type;
+};
+
+template<class>
+struct is_tuple : std::false_type {};
+template<class... TT>
+struct is_tuple<std::tuple<TT...>> : std::true_type {};
+template<class>
+struct is_vector : std::false_type {};
+template<class T>
+struct is_vector<std::vector<T>> : std::true_type {};
+
+template<class T, class U>
+T convert(U && u);
+template<class... TT, class... UU>
+std::tuple<TT...>
+convert_tuple(std::tuple<TT...> *, UU &&... uu) {
+  return {convert<TT>(std::forward<UU>(uu))...};
 }
 
-template<bool M, class... PP, class... AA>
+template<class T, class U>
+T
+convert(U && u) { // deep implicit conversions
+  if constexpr(is_tuple<T>::value) // not references
+    return apply(
+      [](auto &&... xx) {
+        return convert_tuple(
+          static_cast<T *>(nullptr), std::forward<decltype(xx)>(xx)...);
+      },
+      std::forward<U>(u));
+  else if constexpr(is_vector<T>::value) {
+    util::transform_view(u, [](auto && x) {
+      return convert<typename T::value_type>(std::forward<decltype(x)>(x));
+    });
+    return {u.begin(), u.end()};
+  }
+  else
+    return std::forward<U>(u);
+}
+
+template<class... FF>
 auto
-make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
-  return std::tuple<decltype(make_parameter<M, PP>(std::forward<AA>(aa)))...>(
-    make_parameter<M, PP>(std::forward<AA>(aa))...);
+make_tuple(FF... ff) { // use -> decltype(auto)
+  return std::tuple<decltype(std::move(ff)())...>(std::move(ff)()...);
+}
+
+template<bool M, class P>
+struct param_helper {
+  static_assert(M || std::is_move_constructible_v<P>,
+    "only MPI tasks can accept (references to) non-movable types");
+  // This is not used when M, but the assertions are:
+  using type = P;
+};
+template<bool M>
+struct protocol {
+  template<class P, class = void>
+  struct param_storage : param_helper<M, P> {};
+  template<class P>
+  using param_storage_t = typename param_storage<P>::type;
+  template<class P>
+  struct param_storage<const P> : param_storage<P> {};
+  template<class P>
+  struct param_storage<P &> : param_storage<P> {
+    static_assert(M || std::is_const_v<P>,
+      "only MPI tasks can accept non-const references");
+  };
+  template<class P>
+  struct param_storage<P &&> : param_storage<P> {
+    static_assert(M, "only MPI tasks can accept rvalue references");
+  };
+  template<class P>
+  struct param_storage<P *> : param_helper<M, P *> {
+    static_assert(M || std::is_const_v<P> || std::is_function_v<P>,
+      "only MPI tasks can accept non-const pointers");
+  };
+  template<data::layout L, class T, Privileges P>
+  struct param_storage<data::accessor<L, T, P>>
+    : param_helper<M, data::accessor<L, T, P>> {
+    static_assert(
+      data::portable_v<T> ||
+        (M && (privilege_count(P) <= 1 ||
+                !privilege_read(get_privilege(privilege_count(P) - 1, P)))),
+      "only MPI tasks can accept non-portable field accessors; "
+      "they must not access ghosts");
+  };
+  // NB: this recursion happens regardless of must_convert.
+  template<class... PP>
+  struct param_storage<std::tuple<PP...>> {
+    using type = std::tuple<param_storage_t<PP>...>;
+  };
+  template<class P>
+  struct param_storage<std::vector<P>> {
+    using type = std::vector<param_storage_t<P>>;
+  };
+
+  template<class, class...>
+  struct params_helper;
+  template<class P, class... PP>
+  struct params_helper<P, std::tuple<PP &...>>
+    : std::conditional_t<true,
+        param_helper<M, P>, // we can't choose a different storage type
+        std::void_t<param_storage_t<const PP &>...>> {};
+  template<class P>
+  struct param_storage<P,
+    std::enable_if_t<std::is_base_of_v<data::params_tag, P>>>
+    : params_helper<P, decltype(std::declval<P>().flecsi_params())> {};
+
+  template<class P, class A>
+  static decltype(auto) make_parameter(A && a) {
+    if constexpr(!M)
+      static_assert(std::is_copy_constructible_v<P>,
+        "only MPI tasks can accept non-copyable parameters by value");
+    return convert<typename std::conditional_t<M,
+      sync_storage<P, A &&>,
+      type_identity<param_storage_t<P>>>::type // always instantiated
+      >(exec::replace_argument<P>(std::forward<A>(a)));
+  }
+
+  template<class... PP, class... AA>
+  static auto make_parameters(std::tuple<PP...> * /* to deduce PP */,
+    AA &&... aa) {
+    return make_tuple([&]() -> decltype(auto) {
+      return make_parameter<PP>(std::forward<AA>(aa));
+    }...);
+  }
+};
+
+template<class... PP, class... BB>
+auto
+convert_parameters(std::tuple<PP...> *, std::tuple<BB...> && bound) {
+  return convert<std::tuple<std::conditional_t<std::is_convertible_v<BB &&, PP>,
+    BB &&,
+    std::decay_t<PP>>...>>(std::move(bound));
 }
 } // namespace detail
-template<bool M, class P, class... AA>
-auto
-make_parameters(AA &&... aa) {
-  return detail::make_parameters<M>(
-    static_cast<P *>(nullptr), std::forward<AA>(aa)...);
-}
 
-// Return the number of task invocations for the given parameter tuple and
-// arguments, or std::monostate() if a single launch is appropriate.
-template<TaskAttributes A, class P, class... AA>
-auto
-launch_size(const AA &... aa) {
-  return detail::launch_size<P, (mask_to_processor_type(A) == processor::mpi)>(
-    aa...)
-    .get();
-}
+template<auto & F, TaskAttributes A>
+struct launch {
+  using function = util::function_t<F>;
+  using Params = typename function::arguments_type;
+  using Return = std::remove_cv_t<typename function::return_type>;
+  static constexpr auto proc = mask_to_processor_type(A);
+  static constexpr bool mpi = proc == processor::mpi;
+  using protocol = detail::protocol<mpi>;
 
-enum class launch_type_t : size_t { single, index };
+  template<class... AA>
+  static auto params(AA &&... aa) {
+    return protocol::make_parameters(
+      static_cast<Params *>(nullptr), std::forward<AA>(aa)...);
+  }
+  // Return the number of point tasks for the given arguments, or
+  // std::monostate() if a single launch is appropriate.
+  template<class... AA>
+  static auto size(const AA &... aa) {
+    return detail::launch_size<Params, mpi>(aa...).get();
+  }
+
+  template<class P>
+  static auto call(P && params) noexcept {
+    return util::annotation::rguard<util::annotation::execute_task_user>(
+             util::symbol<F>()),
+           apply(F,
+             detail::convert_parameters(
+               static_cast<Params *>(nullptr), std::forward<P>(params)));
+  }
+};
 
 /// An explicit launch domain size.
 struct launch_domain {
@@ -637,22 +759,6 @@ make_partial(AA &&... aa) {
   return {std::forward<AA>(aa)...};
 }
 
-/*!
-  \link future<Return> Single\endlink or \link
-  future<Return,exec::launch_type_t::index> multiple\endlink future.
-
-  A single future can be a task argument and parameter; the task runs only
-  when the value is ready.
-  A multi-valued future may be passed to a task expecting a single one
-  (which is then executed once with each value).
-
-  @tparam Return The return type of the task.
-  @tparam Launch FleCSI launch type: single/index.
-*/
-template<typename Return,
-  exec::launch_type_t Launch = exec::launch_type_t::single>
-struct future;
-
 namespace exec::detail {
 template<class P, class A>
 struct replace_argument<P,
@@ -692,6 +798,12 @@ struct task_param<future<R>> {
 };
 template<class R>
 struct must_convert<future<R, launch_type_t::index>> : std::true_type {};
+template<class P, class T>
+struct launch<P, future<T, launch_type_t::index>> {
+  static Index get(const future<T, launch_type_t::index> & f) {
+    return f.size();
+  }
+};
 
 template<class P>
 struct task_param<P, std::enable_if_t<std::is_base_of_v<data::params_tag, P>>> {
@@ -700,21 +812,21 @@ struct task_param<P, std::enable_if_t<std::is_base_of_v<data::params_tag, P>>> {
     !std::is_base_of_v<data::arg_tag, std::remove_reference_t<A>>,
     P>
   replace(A && t) {
-    using decayed_params_tuple =
-      util::decay_tuple_t<decltype(std::declval<P &>().flecsi_params())>;
+    // The template argument is a tuple of references that are decayed later.
     return std::make_from_tuple<P>(
-      exec::replace_argument<decayed_params_tuple>(std::forward<A>(t)));
+      exec::replace_argument<decltype(std::declval<P &>().flecsi_params())>(
+        std::forward<A>(t)));
   }
 };
 
 template<class P>
 struct task_param<std::vector<P>> {
-  template<class A>
-  static std::enable_if_t<replace_argument<P, const A &>::special,
-    std::vector<P>>
-  replace(const std::vector<A> & v) {
+  // Copy (breaking non-const reference parameters) only if necessary:
+  template<class A,
+    class = std::enable_if_t<replace_argument<P, const A &>::special>>
+  static auto replace(const std::vector<A> & v) {
     const util::transform_view t(v, exec::replace_argument<P, const A &>);
-    return {t.begin(), t.end()};
+    return std::vector(t.begin(), t.end());
   }
 };
 template<class T>
@@ -735,17 +847,16 @@ struct must_bind<std::vector<T>> : must_bind<T> {};
 
 template<class... PP>
 struct task_param<std::tuple<PP...>> {
-  // Deduplicating with an alias template fails in Clang (#17042) and MSVC.
-  template<class... AA>
-  static std::enable_if_t<(replace_argument<PP, const AA &>::special || ...),
-    std::tuple<PP...>>
-  replace(const std::tuple<AA...> & t) {
+  template<class... AA,
+    class = std::enable_if_t<(
+      replace_argument<std::decay_t<PP>, const AA &>::special || ...)>>
+  static auto replace(const std::tuple<AA...> & t) {
     return make(t);
   }
-  template<class... AA>
-  static std::enable_if_t<(replace_argument<PP, const AA &>::special || ...),
-    std::tuple<PP...>>
-  replace(std::tuple<AA...> && t) {
+  template<class... AA,
+    class = std::enable_if_t<(
+      replace_argument<std::decay_t<PP>, AA &&>::special || ...)>>
+  static auto replace(std::tuple<AA...> && t) {
     return make(std::move(t));
   }
 
@@ -753,15 +864,17 @@ private:
   template<class T>
   static auto make(T && t) {
     return std::apply(
-      [](auto &&... xx) -> std::tuple<PP...> {
-        return {exec::replace_argument<PP>(std::forward<decltype(xx)>(xx))...};
+      [](auto &&... xx) {
+        return make_tuple([&]() -> decltype(auto) {
+          return exec::replace_argument<PP>(std::forward<decltype(xx)>(xx));
+        }...);
       },
-      t);
+      std::forward<T>(t));
   }
 };
 template<class... TT>
-struct must_convert<std::tuple<TT...>> : std::disjunction<must_convert<TT>...> {
-};
+struct must_convert<std::tuple<TT...>>
+  : std::disjunction<must_convert<std::decay_t<TT>>...> {};
 template<class... PP, class... AA>
 struct launch<std::tuple<PP...>, std::tuple<AA...>> {
   static auto get(const std::tuple<AA...> & t) {
@@ -776,8 +889,7 @@ struct launch<P,
   std::tuple<AA...>,
   std::enable_if_t<std::is_base_of_v<data::params_tag, P>>> {
   static auto get(const std::tuple<AA...> & t) {
-    return launch<
-      util::decay_tuple_t<decltype(std::declval<P &>().flecsi_params())>,
+    return launch<decltype(std::declval<P &>().flecsi_params()),
       std::tuple<AA...>>::get(t);
   }
 };
@@ -796,12 +908,6 @@ template<class P>
 struct launch<P, launch_domain> {
   static Index get(const launch_domain & d) {
     return d.size_;
-  }
-};
-template<class P, class T>
-struct launch<P, future<T, launch_type_t::index>> {
-  static Index get(const future<T, launch_type_t::index> & f) {
-    return f.size();
   }
 };
 } // namespace exec::detail

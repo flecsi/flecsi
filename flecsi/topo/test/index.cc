@@ -1,3 +1,4 @@
+#include "flecsi/config.hh"
 #include "flecsi/util/demangle.hh"
 #include "flecsi/util/unit.hh"
 #include <flecsi/data.hh>

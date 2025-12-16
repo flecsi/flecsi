@@ -12,45 +12,6 @@
 #include "flecsi/runtime.hh" // for compatibility
 
 namespace flecsi {
-
-namespace flog {
-
-/*!
-  Explicitly flush buffered Flog output.
-  \code#include "flecsi/execution.hh"\endcode
-
-  The inclusion of \ref runtime "flecsi/runtime.hh" by this header is
-  \b deprecated.
-
-  @ingroup flog
- */
-
-inline void
-flush() {
-#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
-  auto & s = flog::state::instance();
-  if(s.source_process() == 0 || (s.active_process() && s.processes() == 1)) {
-    flog::state::gather(s); // no MPI communication needed
-  }
-  else {
-    flecsi::exec::reduce_internal<flog::state::gather, void, flecsi::mpi>(s);
-  }
-  flecsi::run::context::instance().flog_task_count() = 0;
-#endif
-} // flush
-
-inline void
-maybe_flush() {
-#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
-  auto & flecsi_context = run::context::instance();
-  unsigned & flog_task_count = flecsi_context.flog_task_count();
-  if(flog_task_count >= flog::state::instance().serialization_interval())
-    flush();
-#endif
-} // maybe_flush
-
-} // namespace flog
-
 /// \defgroup execution Execution Model
 /// Launching tasks and kernels.  Tasks are coarse-grained and use
 /// distributed-memory with restricted side effects; kernels are fine-grained
@@ -58,6 +19,10 @@ maybe_flush() {
 ///
 /// \ns{exec}.
 /// \code#include "flecsi/execution.hh"\endcode
+///
+/// The inclusion of \ref runtime "flecsi/runtime.hh" by this header is
+/// \b deprecated.
+///
 /// \{
 
 /// A global variable with a task-specific value.
@@ -66,6 +31,7 @@ maybe_flush() {
 /// any task has the lifetime of the control model execution.
 /// Each is value-initialized.
 /// \note Thread-local variables do not function correctly in all backends.
+/// \ns.
 template<class T>
 struct task_local
 #ifdef DOXYGEN // implemented per-backend
@@ -139,9 +105,7 @@ auto
 reduce(Args &&... args) {
   using namespace exec;
 
-  ++run::context::instance().flog_task_count();
   flog::maybe_flush();
-
   return reduce_internal<Task, Reduction, Attributes, Args...>(
     std::forward<Args>(args)...);
 } // reduce
@@ -219,9 +183,7 @@ struct trace::guard {
 
   /// Start a trace.  Required in certain contexts like use of \c
   /// std::optional; otherwise prefer \c trace::make_guard.
-  explicit guard(trace & t_) : t(t_) {
-    current_flog_task_count =
-      std::exchange(flecsi::run::context::instance().flog_task_count(), 0);
+  explicit guard(trace & t) : t(t), current_flog_task_count(flog::unflush()) {
     t.start();
   }
 
@@ -229,9 +191,7 @@ struct trace::guard {
   // The Flog count is merged and triggered if needed.
   ~guard() {
     t.stop();
-    flecsi::run::context::instance().flog_task_count() +=
-      current_flog_task_count;
-    flog::maybe_flush();
+    flog::maybe_flush(current_flog_task_count);
   }
 
 private:

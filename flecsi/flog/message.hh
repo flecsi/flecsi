@@ -59,12 +59,7 @@ struct message {
       }
     } // if
 
-#if defined(FLOG_ENABLE_MPI)
-    assert(state::instance);
     state::instance().buffer_output(std::move(ss_).str());
-#else
-    std::cout << ss_.rdbuf();
-#endif // FLOG_ENABLE_MPI
   }
 
   /*

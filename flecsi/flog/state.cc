@@ -15,7 +15,14 @@ state::active_tag() {
   return *cur_tag;
 }
 
-#if defined(FLOG_ENABLE_MPI)
+void
+state::flush() {
+  if(!source_process_ || processes_ == 1)
+    gather(*this); // no MPI communication needed
+  else
+    exec::reduce_internal<gather, void, flecsi::mpi>(*this);
+  tasks = 0;
+}
 
 void
 state::send_to_one(bool last) {
@@ -126,8 +133,6 @@ state::flush_packets() {
     work.clear();
   } // while
 } // flush_packets
-
-#endif // FLOG_ENABLE_MPI
 
 } // namespace flog
 } // namespace flecsi

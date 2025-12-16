@@ -430,6 +430,32 @@ struct container {
 #endif // FLECSI_ENABLE_FLOG
 
 namespace flecsi::flog {
+/// Flush buffered Flog output.
+/// \code#include "flecsi/execution.hh"\endcode
+/// \ingroup flog
+inline void
+flush() {
+#ifdef FLECSI_ENABLE_FLOG
+  flog::state::instance().flush();
+#endif
+}
+
+inline void
+maybe_flush([[maybe_unused]] unsigned n = 1) {
+#ifdef FLECSI_ENABLE_FLOG
+  flog::state::instance().count_tasks(n);
+#endif
+}
+
+[[nodiscard]] inline unsigned
+unflush() {
+#ifdef FLECSI_ENABLE_FLOG
+  return flog::state::instance().restart_count();
+#else
+  return 0;
+#endif
+}
+
 template<typename T>
 auto
 to_string(T const & t) {

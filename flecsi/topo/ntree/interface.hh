@@ -4,6 +4,7 @@
 #ifndef FLECSI_TOPO_NTREE_INTERFACE_HH
 #define FLECSI_TOPO_NTREE_INTERFACE_HH
 
+#include "flecsi/config.hh"
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/flog.hh"

@@ -68,12 +68,11 @@ context_t::start(const std::function<int()> & action, bool check_args) {
     Setup Legion top-level task.
    */
 
-  const TaskID FLECSI_TOP_LEVEL_TASK_ID = Runtime::generate_static_task_id();
-  Runtime::set_top_level_task_id(FLECSI_TOP_LEVEL_TASK_ID);
+  const TaskID top_id = Runtime::generate_static_task_id();
+  Runtime::set_top_level_task_id(top_id);
 
   {
-    Legion::TaskVariantRegistrar registrar(
-      FLECSI_TOP_LEVEL_TASK_ID, "runtime_driver");
+    Legion::TaskVariantRegistrar registrar(top_id, "runtime_driver");
     registrar.add_constraint(ProcessorConstraint(Processor::LOC_PROC));
     registrar.set_replicable();
     Runtime::preregister_task_variant<top_level_task>(
