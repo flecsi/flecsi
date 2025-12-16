@@ -35,8 +35,10 @@ static_assert(priv<ro, wo, rw>());
 static_assert(priv<na, ro, wo, rw>());
 
 template<bool M, class P, class A, class T>
-constexpr bool good = std::
-  is_same_v<decltype(exec::detail::make_parameter<M, P>(std::declval<A>())), T>;
+constexpr bool good =
+  std::is_same_v<decltype(exec::detail::protocol<M>::template make_parameter<P>(
+                   std::declval<A>())),
+    T>;
 using future_arg = future<int, exec::launch_type_t::index>;
 
 static_assert(good<false, long, const int &, long>);

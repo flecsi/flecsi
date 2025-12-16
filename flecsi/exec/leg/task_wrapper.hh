@@ -171,8 +171,8 @@ task_wrapper(const Legion::Task * task,
     // There is a optimization opportunity here to move
     // the elements instead of copying the last time.
     const auto access = c.params.at(run::get1<std::size_t>(*task));
-    const auto & p =
-      access.get<parameters<exec::detail::param_storage_t<L::mpi, Params>>>();
+    const auto & p = access.get<
+      parameters<typename L::protocol::template param_storage_t<Params>>>();
     return call(bind_tuple(p.params), p.which);
   }
 }
