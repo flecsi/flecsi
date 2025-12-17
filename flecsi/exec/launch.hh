@@ -211,58 +211,6 @@ namespace detail {
 // that temporary.  That situation can arise for an element type of a vector
 // or tuple, in which case #3 is a vector/tuple of the result(s).
 
-template<bool M, class P>
-struct param_helper {
-  static_assert(M || std::is_move_constructible_v<P>,
-    "only MPI tasks can accept (references to) non-movable types");
-  // This is not used when M, but the assertions are:
-  using type = P;
-};
-template<bool M>
-struct task {
-  template<class P, class = void>
-  struct param_storage : param_helper<M, P> {};
-  template<class P>
-  using param_storage_t = typename param_storage<P>::type;
-  template<class P>
-  struct param_storage<const P> : param_storage<P> {};
-  template<class P>
-  struct param_storage<P &> : param_storage<P> {
-    static_assert(M || std::is_const_v<P>,
-      "only MPI tasks can accept non-const references");
-  };
-  template<class P>
-  struct param_storage<P &&> : param_storage<P> {
-    static_assert(M, "only MPI tasks can accept rvalue references");
-  };
-  template<class P>
-  struct param_storage<P *> : param_helper<M, P *> {
-    static_assert(M || std::is_const_v<P> || std::is_function_v<P>,
-      "only MPI tasks can accept non-const pointers");
-  };
-  template<data::layout L, class T, Privileges P>
-  struct param_storage<data::accessor<L, T, P>>
-    : param_helper<M, data::accessor<L, T, P>> {
-    static_assert(
-      data::portable_v<T> ||
-        (M && (privilege_count(P) <= 1 ||
-                !privilege_read(get_privilege(privilege_count(P) - 1, P)))),
-      "only MPI tasks can accept non-portable field accessors; "
-      "they must not access ghosts");
-  };
-  // NB: this recursion happens regardless of must_convert.
-  template<class... PP>
-  struct param_storage<std::tuple<PP...>> {
-    using type = std::tuple<param_storage_t<PP>...>;
-  };
-  template<class P>
-  struct param_storage<std::vector<P>> {
-    using type = std::vector<param_storage_t<P>>;
-  };
-};
-template<bool M, class P>
-using param_storage_t = typename task<M>::template param_storage_t<P>;
-
 template<class P, class A>
 struct replaced {
   using type = decltype(exec::replace_argument<P>(std::declval<A>()));
@@ -355,31 +303,80 @@ convert(U && u) { // deep implicit conversions
     return std::forward<U>(u);
 }
 
-template<bool M, class P, class A>
-decltype(auto)
-make_parameter(A && a) {
-  if constexpr(!M)
-    static_assert(std::is_copy_constructible_v<P>,
-      "only MPI tasks can accept non-copyable parameters by value");
-  return convert<typename std::conditional_t<M,
-    sync_storage<P, A &&>,
-    type_identity<param_storage_t<M, P>>>::type // always instantiated
-    >(exec::replace_argument<P>(std::forward<A>(a)));
-}
-
 template<class... FF>
 auto
 make_tuple(FF... ff) { // use -> decltype(auto)
   return std::tuple<decltype(std::move(ff)())...>(std::move(ff)()...);
 }
 
-template<bool M, class... PP, class... AA>
-auto
-make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
-  return make_tuple([&]() -> decltype(auto) {
-    return make_parameter<M, PP>(std::forward<AA>(aa));
-  }...);
-}
+template<bool M, class P>
+struct param_helper {
+  static_assert(M || std::is_move_constructible_v<P>,
+    "only MPI tasks can accept (references to) non-movable types");
+  // This is not used when M, but the assertions are:
+  using type = P;
+};
+template<bool M>
+struct protocol {
+  template<class P, class = void>
+  struct param_storage : param_helper<M, P> {};
+  template<class P>
+  using param_storage_t = typename param_storage<P>::type;
+  template<class P>
+  struct param_storage<const P> : param_storage<P> {};
+  template<class P>
+  struct param_storage<P &> : param_storage<P> {
+    static_assert(M || std::is_const_v<P>,
+      "only MPI tasks can accept non-const references");
+  };
+  template<class P>
+  struct param_storage<P &&> : param_storage<P> {
+    static_assert(M, "only MPI tasks can accept rvalue references");
+  };
+  template<class P>
+  struct param_storage<P *> : param_helper<M, P *> {
+    static_assert(M || std::is_const_v<P> || std::is_function_v<P>,
+      "only MPI tasks can accept non-const pointers");
+  };
+  template<data::layout L, class T, Privileges P>
+  struct param_storage<data::accessor<L, T, P>>
+    : param_helper<M, data::accessor<L, T, P>> {
+    static_assert(
+      data::portable_v<T> ||
+        (M && (privilege_count(P) <= 1 ||
+                !privilege_read(get_privilege(privilege_count(P) - 1, P)))),
+      "only MPI tasks can accept non-portable field accessors; "
+      "they must not access ghosts");
+  };
+  // NB: this recursion happens regardless of must_convert.
+  template<class... PP>
+  struct param_storage<std::tuple<PP...>> {
+    using type = std::tuple<param_storage_t<PP>...>;
+  };
+  template<class P>
+  struct param_storage<std::vector<P>> {
+    using type = std::vector<param_storage_t<P>>;
+  };
+
+  template<class P, class A>
+  static decltype(auto) make_parameter(A && a) {
+    if constexpr(!M)
+      static_assert(std::is_copy_constructible_v<P>,
+        "only MPI tasks can accept non-copyable parameters by value");
+    return convert<typename std::conditional_t<M,
+      sync_storage<P, A &&>,
+      type_identity<param_storage_t<P>>>::type // always instantiated
+      >(exec::replace_argument<P>(std::forward<A>(a)));
+  }
+
+  template<class... PP, class... AA>
+  static auto make_parameters(std::tuple<PP...> * /* to deduce PP */,
+    AA &&... aa) {
+    return make_tuple([&]() -> decltype(auto) {
+      return make_parameter<PP>(std::forward<AA>(aa));
+    }...);
+  }
+};
 
 template<class... PP, class... BB>
 auto
@@ -397,10 +394,11 @@ struct launch {
   using Return = std::remove_cv_t<typename function::return_type>;
   static constexpr auto proc = mask_to_processor_type(A);
   static constexpr bool mpi = proc == processor::mpi;
+  using protocol = detail::protocol<mpi>;
 
   template<class... AA>
   static auto params(AA &&... aa) {
-    return detail::make_parameters<mpi>(
+    return protocol::make_parameters(
       static_cast<Params *>(nullptr), std::forward<AA>(aa)...);
   }
   // Return the number of point tasks for the given arguments, or
