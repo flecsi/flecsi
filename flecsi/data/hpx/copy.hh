@@ -13,8 +13,6 @@
 #include "flecsi/data/field_info.hh"
 #include "flecsi/data/local/copy.hh"
 #include "flecsi/run/hpx/context.hh"
-#include "flecsi/util/mpi.hh"
-#include "flecsi/util/types.hh"
 
 #include <algorithm>
 #include <cstddef>

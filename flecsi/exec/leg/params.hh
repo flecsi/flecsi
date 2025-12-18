@@ -4,11 +4,10 @@
 #ifndef FLECSI_EXEC_LEG_PARAMS_HH
 #define FLECSI_EXEC_LEG_PARAMS_HH
 
-#include "flecsi/config.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"
-#include "flecsi/exec/leg/future.hh"
+#include "flecsi/exec/future.hh"
 #include "flecsi/exec/leg/tracer.hh"
 #include "flecsi/util/array_ref.hh"
 

@@ -4,9 +4,8 @@
 #ifndef FLECSI_EXEC_LEG_POLICY_HH
 #define FLECSI_EXEC_LEG_POLICY_HH
 
-#include "flecsi/config.hh"
+#include "flecsi/exec/future.hh"
 #include "flecsi/exec/launch.hh"
-#include "flecsi/exec/leg/future.hh"
 #include "flecsi/exec/leg/reduction_wrapper.hh"
 #include "flecsi/exec/leg/task_wrapper.hh"
 #include "flecsi/exec/leg/tracer.hh"
@@ -34,35 +33,23 @@ template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
   using namespace Legion;
-  using traits_t = util::function_t<F>;
-  using return_t = typename traits_t::return_type;
-  using param_tuple = typename traits_t::arguments_type;
+  using launch = exec::launch<F, Attributes>;
+  using return_t = typename launch::Return;
 
-  // Get the FleCSI runtime context
   auto & flecsi_context = run::context::instance();
-
-  // Get the processor type.
-  constexpr auto processor_type = mask_to_processor_type(Attributes);
-
-  // Get the Legion runtime and context from the current task.
   auto legion_runtime = Legion::Runtime::get_runtime();
   auto legion_context = Legion::Runtime::get_context();
 
-  constexpr bool mpi_task = processor_type == processor::mpi;
-  static_assert(processor_type == processor::toc ||
-                  processor_type == processor::loc ||
-                  processor_type == processor::omp || mpi_task,
-    "Unknown launch type");
-  const auto domain_size = launch_size<Attributes, param_tuple>(args...);
+  const auto domain_size = launch::size(args...);
 
   run::any any;
-  auto & params = any.emplace(leg::parameters(
-    make_parameters<mpi_task, param_tuple>(std::forward<Args>(args)...)));
-  prolog<mask_to_processor_type(Attributes)> pro(params.params, args...);
+  auto & params =
+    any.emplace(leg::parameters(launch::params(std::forward<Args>(args)...)));
+  prolog<launch::proc> pro(params.params, args...);
   params.which = std::move(pro).bindings();
-  std::optional<leg::parameters<param_tuple>> mpi_params;
+  std::optional<leg::parameters<typename launch::Params>> mpi_params;
   std::vector<std::byte> buf;
-  if constexpr(mpi_task) {
+  if constexpr(launch::mpi) {
     // We can own the parameters for a synchronous launch, but we can't store
     // the various pointers to them in the one TaskArgument.
     flecsi_context.mpi_params = &mpi_params.emplace(std::move(params));
@@ -73,20 +60,19 @@ reduce_internal(Args &&... args) {
       flecsi_context.params.add(std::move(any), t ? t->next() : nullptr));
   }
 
-  using wrap = leg::task_wrapper<F, processor_type>;
   // Replace the MPI "processor type" with an actual flag:
-  const auto task = leg::task_id<wrap::execute,
-    (Attributes & ~processor_mask) | as_mask(wrap::LegionProcessor)>;
+  const auto task = leg::task_id<leg::task_wrapper<launch>,
+    (launch::mpi ? (Attributes & ~processor_mask) | loc : Attributes)>;
 
   const auto add = [&](auto & l) {
     l.region_requirements = std::move(pro).region_requirements();
     l.futures = std::move(pro).futures();
-    switch(processor_type) {
+    switch(launch::proc) {
       case processor::toc:
-        l.tag = run::mapper::prefer_gpu;
+        l.tag = run::mapper::gpu;
         break;
       case processor::omp:
-        l.tag = run::mapper::prefer_omp;
+        l.tag = run::mapper::omp;
         break;
       // Null default is added to suppress warning for other enumerators that
       // do nothing
@@ -111,7 +97,7 @@ reduce_internal(Args &&... args) {
     launcher.point_futures.assign(
       pro.future_maps().begin(), pro.future_maps().end());
 
-    if(mpi_task) {
+    if(launch::mpi) {
       launcher.tag = run::mapper::force_rank_match;
       legion_runtime->issue_execution_fence(legion_context);
     }
@@ -126,7 +112,7 @@ reduce_internal(Args &&... args) {
         return future<return_t, launch_type_t::index>{
           legion_runtime->execute_index_space(legion_context, launcher)};
     }();
-    if(mpi_task)
+    if(launch::mpi)
       ret.wait();
     return ret;
   } // if constexpr

@@ -4,11 +4,10 @@
 #ifndef FLECSI_UTIL_UNIT_HH
 #define FLECSI_UTIL_UNIT_HH
 
+#include "flecsi/config.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/runtime.hh"
 #include "flecsi/util/unit/types.hh"
-
-#include <tuple>
 
 namespace flecsi::util::unit {
 /// \defgroup unit Unit Testing

@@ -4,8 +4,7 @@
 #ifndef FLECSI_EXEC_MPI_FUTURE_HH
 #define FLECSI_EXEC_MPI_FUTURE_HH
 
-#include "flecsi/exec/launch.hh"
-#include "flecsi/util/function_traits.hh"
+#include "flecsi/run/backend.hh"
 #include "flecsi/util/mpi.hh"
 
 namespace flecsi {

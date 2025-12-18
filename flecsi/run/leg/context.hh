@@ -4,7 +4,6 @@
 #ifndef FLECSI_RUN_LEG_CONTEXT_HH
 #define FLECSI_RUN_LEG_CONTEXT_HH
 
-#include "flecsi/config.hh"
 #include "flecsi/run/context.hh"
 #include "flecsi/util/mpi.hh"
 
@@ -41,14 +40,15 @@ namespace mapper {
 /// \{
 
 inline constexpr Legion::MappingTagID
-  force_rank_match = 0x00001000, ///< Put colors on corresponding MPI ranks.
+  force_rank_match = 0x400, ///< Put colors on corresponding MPI ranks.
 #if 0
-  compacted_storage = 0x00002000, ///< Combine exclusive, shared, and ghosts.
-  subrank_launch = 0x00003000, ///< For nested tasks.
-  exclusive_lr = 0x00004000, ///< Indicate first region in compacted set.
+  compacted_storage = 0x800, ///< Combine exclusive, shared, and ghosts.
+  subrank_launch = 0x1000, ///< For nested tasks.
+  exclusive_lr = 0x100, ///< Indicate first region in compacted set.
 #endif
-  prefer_gpu = 0x11000001, ///< Request GPU execution.
-  prefer_omp = 0x11000002; ///< Request OpenMP execution.
+  proc_mask = 0x300,
+  gpu = 0x100, ///< Select GPU execution.
+  omp = 0x200; ///< Select OpenMP execution.
 /// \}
 /// \}
 } // namespace mapper

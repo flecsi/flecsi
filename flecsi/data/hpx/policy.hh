@@ -7,7 +7,6 @@
 #include <hpx/modules/collectives.hpp>
 #include <hpx/modules/futures.hpp>
 
-#include "flecsi/config.hh"
 #include "flecsi/data/local/storage.hh"
 #include "flecsi/run/hpx/context.hh"
 #include "flecsi/util/types.hh"

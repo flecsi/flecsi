@@ -133,7 +133,7 @@ Higher-level layouts are implemented in terms of it:
 * ``particle`` stores a set of ``T`` objects bounded by the size of the index space.
   The implementation augments ``T`` with a "skip field" that allows efficient iteration, insertion, and deletion.
 
-This enumeration is defined in ``layout.hh``.
+This enumeration is defined in ``tags.hh``.
 
 Definition
 ^^^^^^^^^^
@@ -152,7 +152,7 @@ Using ``specialization::ptr`` allows deferring the initialization of a topology 
 It also provides a second phase of initialization that can be used to launch tasks operating on the new topology object.
 
 Topology objects are constructed from `colorings`, which are descriptions of the computational domain as ordinary C++ data rather than fields.
-For reasons of efficiency and interoperability, these are often constructed by special "MPI tasks" (described below).
+For reasons of efficiency and interoperability, these are often constructed by special `MPI tasks`.
 The class template ``coloring_slot``, defined in ``coloring.hh`` automates invoking such tasks.
 
 Access

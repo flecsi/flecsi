@@ -131,10 +131,6 @@ privilege_write(Privileges pack) noexcept {
   return false;
 }
 
-// Return const qualified T if not writing
-template<typename T, privilege Priv>
-using privilege_const = std::conditional_t<privilege_write(Priv), T, const T>;
-
 // Return whether the privileges destroy any existing data.
 constexpr bool
 privilege_discard(Privileges pack) noexcept {

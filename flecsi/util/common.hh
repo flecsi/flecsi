@@ -46,6 +46,26 @@ struct identity {
 
 /// \cond core
 
+template<bool Const, class T>
+using maybe_const = std::conditional_t<Const, const T, T>;
+
+// Defer a functor call until a conversion to its return type is needed.
+template<class F>
+struct convert {
+  F f;
+  operator decltype(std::declval<const F &>()())() const & {
+    return f();
+  }
+  operator decltype(std::declval<F &>()())() & {
+    return f();
+  }
+  operator decltype(std::declval<F>()())() && {
+    return std::move(f)();
+  }
+};
+template<class F>
+convert(F) -> convert<F>; // automatic in C++20
+
 template<class T>
 constexpr std::enable_if_t<std::is_unsigned_v<T>, T>
 ceil_div(T a, T b) {

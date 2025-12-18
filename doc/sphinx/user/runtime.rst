@@ -17,7 +17,7 @@ Initialization
 The type ``flecsi::runtime`` represents the information and machinery needed to perform parallel computation.
 It provides an interface for configuring that machinery that is mostly independent of the FleCSI backend in use but does include backend-specific options that can be accessed under appropriate preprocessor guards.
 That interface also supports basic logging options, when FleCSI is configured with Flog enabled.
-Separate `functions <../api/user/group__flog.html>` exist to perform further Flog configuration.
+Separate `functions <../api/user/group__flog.html>`_ exist to perform further Flog configuration.
 
 The type ``flecsi::run::dependencies_guard`` performs dependency initialization as appropriate to the backend in use, to further reduce the amount of backend-specific application code required.
 It operates independently of ``flecsi::runtime`` and is entirely optional.

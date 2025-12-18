@@ -36,6 +36,12 @@ Deprecated
 
 Fixed
 ^^^^^
+* Execution
+
+  * ``std::tuple`` task parameters with elements that are references or ``std::vector`` specializations are supported properly.
+  * Implicit conversions are applied to elements of ``std::vector`` task arguments (as well as FleCSI-specific transformations for, say, field accessors).
+  * Top-level *cv*-qualifiers are ignored in task return types.
+
 * Legion backend
 
   * MPI tasks with reference parameters support more argument conversions.
@@ -389,7 +395,7 @@ New features
 
 * Legion backend
 
-  * Task names are now shortened for better usability in Legion profiling tools. See :doc:`user/profiling` for details.
+  * Task names are now shortened for better usability in Legion profiling tools.
 
 * Utilities
 
@@ -676,7 +682,7 @@ Other incompatibilities
   * ``flecsi_execute_task`` |mdash| now ``execute``
   * ``flecsi_execute_mpi_task``, ``flecsi_execute_mpi_task_simple`` |mdash| pass ``mpi`` to ``execute``
   * ``flecsi_execute_reduction_task`` |mdash| now ``reduce``
-  * ``flecsi_color()``, ``flecsi_colors()`` |mdash| now ``color()`` and ``colors()``
+  * ``flecsi_color``, ``flecsi_colors`` |mdash| now ``color`` and ``colors``
   * ``flecsi_register_function``, ``flecsi_execute_function``, ``flecsi_function_handle``, ``flecsi_define_function_type`` |mdash| now ``exec::make_partial``
   * ``execution::flecsi_future`` |mdash| now ``future``, with a simpler interface
 

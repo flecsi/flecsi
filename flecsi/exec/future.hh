@@ -4,6 +4,41 @@
 #ifndef FLECSI_EXEC_FUTURE_HH
 #define FLECSI_EXEC_FUTURE_HH
 
+#include "flecsi/config.hh"
+#include "flecsi/data/tags.hh"
+#include "flecsi/util/types.hh" // Color
+
+#include <type_traits>
+#include <vector>
+
+namespace flecsi {
+/// \addtogroup execution
+/// \{
+
+namespace exec {
+enum class launch_type_t : size_t { single, index };
+}
+
+/*!
+  \link future<Return> Single\endlink or \link
+  future<Return,exec::launch_type_t::index> multiple\endlink future.
+
+  A single future can be a task argument and parameter; the task runs only
+  when the value is ready.
+  A multi-valued future may be passed to a task expecting a single one
+  (which is then executed once with each value).
+
+  @tparam Return The return type of the task.
+  @tparam Launch FleCSI launch type: single/index.
+  \ns.
+*/
+template<typename Return,
+  exec::launch_type_t Launch = exec::launch_type_t::single>
+struct future;
+
+/// \}
+} // namespace flecsi
+
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
 
 #include "flecsi/exec/leg/future.hh"

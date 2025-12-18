@@ -26,6 +26,8 @@
 ///   which may refer back to this document (occasionally even to small,
 ///   specific parts of this section).
 
+#include "flecsi/config.hh"
+
 #include "flecsi/topo/global.hh"
 #include "flecsi/topo/index.hh"
 #include "flecsi/topo/narray/interface.hh"

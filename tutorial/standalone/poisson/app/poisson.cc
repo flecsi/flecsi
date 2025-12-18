@@ -8,6 +8,7 @@
 #include "specialization/control.hh"
 #include "state.hh"
 
+#include <flecsi/config.hh>
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 

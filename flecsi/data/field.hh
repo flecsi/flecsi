@@ -4,10 +4,10 @@
 #ifndef FLECSI_DATA_FIELD_HH
 #define FLECSI_DATA_FIELD_HH
 
+#include "flecsi/data/tags.hh"
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/target.hh"
-#include <flecsi/data/layout.hh>
 #include <flecsi/data/privilege.hh>
 
 namespace flecsi {

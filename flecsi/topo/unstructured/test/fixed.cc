@@ -1,4 +1,5 @@
 #include "flecsi/topo/unstructured/test/fixed.hh"
+#include "flecsi/config.hh"
 #include "flecsi/util/unit.hh"
 
 using namespace flecsi;

@@ -6,9 +6,7 @@
 
 #include "flecsi/exec/fold.hh"
 #include "flecsi/run/backend.hh"
-#include "flecsi/util/demangle.hh"
 #include "flecsi/util/mpi.hh"
-#include <flecsi/flog.hh>
 
 namespace flecsi {
 namespace exec {

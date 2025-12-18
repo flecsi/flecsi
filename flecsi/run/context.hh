@@ -355,22 +355,6 @@ public:
     Task Launch interface.
    *--------------------------------------------------------------------------*/
 
-  /*!
-    Return the count of executed tasks (\c const version).
-   */
-
-  unsigned const & flog_task_count() const {
-    return flog_task_count_;
-  } // flog_task_count
-
-  /*!
-    Return the count of executed tasks.
-   */
-
-  unsigned & flog_task_count() {
-    return flog_task_count_;
-  } // flog_task_count
-
   static std::optional<context_t> ctx;
 
 protected:
@@ -457,12 +441,6 @@ private:
    *--------------------------------------------------------------------------*/
 
   std::vector<index_space_info_t> index_space_info_vector_;
-
-  /*--------------------------------------------------------------------------*
-    Task count.
-   *--------------------------------------------------------------------------*/
-
-  unsigned flog_task_count_ = 0;
 }; // struct context
 
 struct task_local_base {

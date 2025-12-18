@@ -5,9 +5,9 @@ flecsi_headers(
   copy.hh
   field.hh
   field_info.hh
-  layout.hh
   map.hh
   privilege.hh
+  tags.hh
   topology_accessor.hh
   topology_slot.hh
   topology.hh

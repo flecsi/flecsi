@@ -9,8 +9,6 @@
 #include "flecsi/data/field_info.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/run/backend.hh"
-#include "flecsi/util/array_ref.hh"
-#include "flecsi/util/mpi.hh"
 
 #include <cstddef>
 #include <numeric>

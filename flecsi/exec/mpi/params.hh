@@ -4,8 +4,8 @@
 #ifndef FLECSI_EXEC_MPI_PARAMS_HH
 #define FLECSI_EXEC_MPI_PARAMS_HH
 
+#include "flecsi/exec/future.hh"
 #include "flecsi/exec/local/params.hh"
-#include "flecsi/exec/mpi/future.hh"
 #include "flecsi/exec/mpi/reduction_wrapper.hh"
 #include "flecsi/util/mpi.hh"
 

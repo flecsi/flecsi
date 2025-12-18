@@ -160,8 +160,7 @@ struct key_tuple : std::tuple<typename VT::type...> {
   template<template<class> class F>
   using map_type = key_tuple<typename VT::template map<F>...>;
 
-  // std::apply doesn't natively support classes derived from std::tuple.
-  // We could alternatively specialize std::tuple_size for key_tuple.
+  // NB: std::apply doesn't support classes derived from std::tuple.
   template<class F>
   decltype(auto) apply(F && f) & {
     return std::apply(std::forward<F>(f), static_cast<Base &>(*this));
@@ -184,17 +183,6 @@ struct key_tuple : std::tuple<typename VT::type...> {
     return std::get<keys::template index<V>>(*this);
   }
 }; // struct key_tuple
-
-template<class>
-struct decay_tuple {};
-
-template<class... TT>
-struct decay_tuple<std::tuple<TT...>> {
-  using type = std::tuple<std::decay_t<TT>...>;
-};
-
-template<class T>
-using decay_tuple_t = typename decay_tuple<T>::type;
 
 /// \}
 } // namespace util

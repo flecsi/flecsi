@@ -1,5 +1,6 @@
 #include "narray.hh"
 
+#include "flecsi/config.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/unit.hh"
