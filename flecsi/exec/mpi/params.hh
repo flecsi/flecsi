@@ -37,7 +37,7 @@ protected:
   using task_prolog::prolog::visit;
 
   template<typename R>
-  static void visit(future<R, exec::launch_type_t::single> & single,
+  static void visit(future<R> & single,
     const future<R, exec::launch_type_t::index> & index) {
     single = future<R>::make(index.result);
   }

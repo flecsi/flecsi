@@ -16,8 +16,22 @@ namespace flecsi {
 /// \{
 
 namespace exec {
-enum class launch_type_t : size_t { single, index };
-}
+/// Selects a type of \c future.
+/// That it is a type is \b deprecated; it will become a namespace.
+enum class launch_type_t : size_t {
+  /// A future from a reduction or single task.
+  single,
+  /// A future from a non-reduction index task.
+  index
+};
+
+} // namespace exec
+
+/// The type of the second template parameter for \c future.
+/// That it identifies the particular type shown is \b deprecated.
+/// \ns.
+/// \showinitializer
+using future_kind = exec::launch_type_t;
 
 /*!
   \link future<Return> Single\endlink or \link
@@ -32,8 +46,7 @@ enum class launch_type_t : size_t { single, index };
   @tparam Launch FleCSI launch type: single/index.
   \ns.
 */
-template<typename Return,
-  exec::launch_type_t Launch = exec::launch_type_t::single>
+template<typename Return, future_kind Launch = exec::launch_type_t::single>
 struct future;
 
 /// \}

@@ -18,12 +18,26 @@ Release Notes
 Changes in v2.5.0
 +++++++++++++++++
 
+Deprecated
+^^^^^^^^^^
+* Execution
+
+  * ``exec::launch_type_t`` |mdash| use ``future_kind`` as the type (but not for the values)
+
 New features
 ^^^^^^^^^^^^
-* Execution
+* Data
 
   * ``params_tag`` is a base class for user-defined classes that are a composition of task-parameter types (like field accessors).
   * ``arg_tag`` is a base class for user-defined classes that specifiy custom handling as a task argument.
+
+* Execution
+
+  * ``future_kind`` is an alias for the type of the second ``future`` template parameter.
+
+* Logging
+
+  * ``flog::flush`` is available in ``flog.hh``.
 
 Changes in v2.4.2
 +++++++++++++++++

@@ -79,12 +79,12 @@ template<auto & Task,
     Certain FleCSI-defined parameter types accept particular, different
     argument types that serve as selectors for information stored by the
     backend; each type involved documents the correspondence.
+    User-defined classes can extend this mechanism by inheriting from
+    \c params_tag or \c arg_tag.
     If a parameter and its argument are each a (reference to a) \c std::vector
     or a \c std::tuple (of the same size), their elements are treated as
     separate parameters/arguments (with the unusual corollary that a
     `std::vector<int>` matches a parameter of type `std::vector<long>`).
-    Furthermore, a parameter may be a class that inherits from params_tag, and
-    an argument may be a class that inherits from arg_tag.
   \return a \ref future providing the value(s) returned from the task
 
   \ns.

@@ -83,7 +83,7 @@ protected:
     p.silence();
   }
   template<typename R>
-  void visit(future<R, exec::launch_type_t::single> & single,
+  void visit(future<R> & single,
     future<R, exec::launch_type_t::index> & index) {
     auto f = index.mine();
     dependencies(f);
