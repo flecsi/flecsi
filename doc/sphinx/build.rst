@@ -17,6 +17,10 @@ Build requirements
 
 * C++17 compliant compiler
 
+  .. attention::
+
+    Full C++17 standard support is required. In particular, NVIDIA ``nvcc`` provides only partial C++17 support and cannot be used for Kokkos+CUDA builds; for that configuration, Clang should be used instead.
+
 * MPI: must have support for *MPI_THREAD_MULTIPLE*.
 
 * `Boost <https://www.boost.org/>`_ : We require *program_options* and *stacktrace*.
