@@ -140,12 +140,10 @@ namespace {
 void
 pm(exec::point_mutex::lease) noexcept {}
 int
-matched(exec::cpu s,
-  exec::group::match,
-  const runtime * r,
-  exec::launch_domain) noexcept {
+half_mpi(exec::cpu s, comm::ref c, exec::launch_domain) noexcept {
   UNIT() {
-    EXPECT_EQ(s.launch().index, r->process());
+    EXPECT_EQ(util::mpi::size(c), s.launch().size);
+    EXPECT_EQ(util::mpi::rank(c), s.launch().index);
   };
 }
 
@@ -345,9 +343,7 @@ task_driver(scheduler & s) {
 
     s.execute<pm>(mut); // size inherited from mpi
     EXPECT_EQ(
-      s.test<matched>(
-        exec::on, exec::group::world(), &s.runtime(), exec::launch_domain{np}),
-      0);
+      s.test<half_mpi>(exec::on, comm::world(), exec::launch_domain{np}), 0);
 
     s.execute<vb>(std::vector<bool>(1), std::vector<int>());
 

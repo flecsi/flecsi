@@ -139,8 +139,9 @@ struct prolog : task_prolog<Proc> {
 private:
   template<class A>
   auto visitor(A & a) {
-    return
-      [&](auto & p, auto && f) { visit(p, std::forward<decltype(f)>(f)(a)); };
+    return [&](auto & p, auto && f) {
+      visit(p, std::invoke(std::forward<decltype(f)>(f), a));
+    };
   }
 
   using task_prolog<Proc>::visit; // for raw accessors, futures, etc.

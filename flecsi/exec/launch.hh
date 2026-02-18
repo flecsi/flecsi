@@ -10,6 +10,7 @@
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/function_traits.hh"
+#include "flecsi/util/mpi.hh"
 
 #include <cstddef>
 #include <optional>
@@ -220,6 +221,71 @@ struct group : data::convert_tag {
 private:
   group() = default;
 };
+/// \}
+} // namespace exec
+
+/// An MPI communicator usable in a task.
+/// Declare a task parameter as a \c ref to use it.
+/// \note In the current implementation, the usable communicators are only
+///   duplicates of \c MPI_COMM_WORLD.
+///
+/// \ns.
+/// \ingroup execution
+struct comm : data::convert_tag {
+  using ptr = std::shared_ptr<util::mpi::comm>;
+
+  /// A task parameter for using a \c comm.
+  /// Conveys the semantics for \c group::concurrent and \c point_mutex;
+  /// furthermore, the number of point tasks is set to that of processes.
+  /// \see exec::mapping
+  struct ref : data::send_tag, exec::group::concurrent {
+    ref(ptr p) : p(std::move(p)) {}
+
+    /// Use in MPI calls.
+    operator MPI_Comm() const {
+      return p->c;
+    }
+
+    template<class F>
+    void send(F && f) {
+      exec::point_mutex::lease param;
+      std::forward<F>(f)(param, &comm::mut);
+    }
+
+  private:
+    ptr p;
+  };
+
+  /// Holds no communicator.
+  /// Must not be used as a task argument.
+  comm() = default;
+  /// Movable.
+  comm(comm &&) = default;
+  comm & operator=(comm &&) & = default;
+
+  /// Return an object holding a duplicate of \c MPI_COMM_WORLD.
+  static comm world() {
+    auto ret = std::make_shared<util::mpi::comm>();
+    util::mpi::test(MPI_Comm_dup(MPI_COMM_WORLD, &ret->c));
+    return ret;
+  }
+
+  ref use() const {
+    if(!p)
+      flog_fatal("empty comm as task argument");
+    return p;
+  }
+
+private:
+  comm(ptr p) : p(std::move(p)) {}
+
+  ptr p;
+  exec::point_mutex mut;
+};
+
+namespace exec {
+/// \addtogroup execution
+/// \{
 
 // Replaces certain task arguments before conversion to the parameter type.
 template<class P, class T>
@@ -257,7 +323,9 @@ using is_group = std::is_base_of<group::match, T>;
 // would be difficult if not impossible to synchronize among point tasks
 // running on unknown processes.
 template<class T>
-using is_concurrent = std::is_same<T, group::concurrent>;
+using is_concurrent = std::is_base_of<group::concurrent, T>;
+template<class T>
+using is_comm = std::is_same<T, comm::ref>;
 
 // Since our Legion task wrapper does not depend on argument types, even for
 // an MPI task we must eagerly create parameters and objects for any
@@ -531,7 +599,9 @@ struct launch {
                         matched =
                           mpi || detail::has_param<Params, detail::is_group>,
                         concurrent =
-                          detail::has_param<Params, detail::is_concurrent>;
+                          detail::has_param<Params, detail::is_concurrent>,
+                        comm =
+                          mpi || detail::has_param<Params, detail::is_comm>;
   using protocol = detail::protocol<matched, mpi>;
 
   template<class... AA>
@@ -544,7 +614,9 @@ struct launch {
   template<class... AA>
   static auto size(const AA &... aa) {
     return [sz = detail::launch_size<Params>(aa...)] {
-      if constexpr(mpi) {
+      // When we have general communicators, we can treat their sizes as a
+      // secondary information source.
+      if constexpr(comm) {
         return sz | detail::launch_combine(
                       detail::Index(run::context::instance().processes()));
       }
@@ -997,6 +1069,22 @@ struct task_param<group::match> {
 template<>
 struct task_param<group::concurrent> {
   static group::match replace(const group &) {
+    return {};
+  }
+};
+
+template<>
+struct task_param<comm::ref> {
+  static comm::ref replace(comm & c) {
+    return c.use();
+  }
+  static comm::ref replace(comm && c) {
+    return c.use();
+  }
+};
+template<>
+struct launch<comm::ref, comm> {
+  static Index get(const comm &) {
     return {};
   }
 };

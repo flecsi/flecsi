@@ -45,9 +45,12 @@ This control is necessary for interprocess communication but also has ancillary 
 
 Concurrent Tasks
 ^^^^^^^^^^^^^^^^
-If a task accepts a ``group::concurrent`` as (part of) a parameter, the concurrent forward progress guarantee is also applied to it.
+If a task accepts a ``group::concurrent`` or ``comm::ref`` as (part of) a parameter, the concurrent forward progress guarantee is also applied to it.
 (It is known that the HPX backend does not implement the guarantee perfectly and may produce a deadlock in certain situations with numerous concurrent tasks using communicators.)
 This guarantee makes more parallel operations correct in such a task, but it can also impair parallelism among task launches.
+
+The corresponding point tasks in each task to which a given ``comm`` is passed as an argument execute in launch order to avoid incorrectly ordered calls to MPI collectives on the communicator.
+This ordering can also reduce parallelism if the tasks use different fields; tasks that are entirely independent should use separate ``comm`` objects.
 
 MPI Tasks
 ^^^^^^^^^
