@@ -5,6 +5,7 @@
 #define FLECSI_RUN_LEG_MAPPER_HH
 
 #include "../backend.hh"
+#include "flecsi/util/color_map.hh"
 
 #include <legion.h>
 #include <mappers/default_mapper.h>
@@ -77,6 +78,31 @@ public:
                 ? (task.index_domain.get_volume() + total_nodes - 1 - node_id) /
                     total_nodes
                 : node_id == output.initial_proc.address_space());
+  }
+
+  void select_sharding_functor(Legion::Mapping::MapperContext,
+    const Legion::Task &,
+    const SelectShardingFunctorInput &,
+    SelectShardingFunctorOutput & out) override {
+    out.chosen_functor = block_shard;
+  }
+  void select_sharding_functor(Legion::Mapping::MapperContext,
+    const Legion::Copy &,
+    const SelectShardingFunctorInput &,
+    SelectShardingFunctorOutput & out) override {
+    out.chosen_functor = block_shard;
+  }
+  void select_sharding_functor(Legion::Mapping::MapperContext,
+    const Legion::Partition &,
+    const SelectShardingFunctorInput &,
+    SelectShardingFunctorOutput & out) override {
+    out.chosen_functor = block_shard;
+  }
+  void select_sharding_functor(Legion::Mapping::MapperContext,
+    const Legion::Fill &,
+    const SelectShardingFunctorInput &,
+    SelectShardingFunctorOutput & out) override {
+    out.chosen_functor = block_shard;
   }
 
   Legion::LayoutConstraintID default_policy_select_layout_constraints(
@@ -593,6 +619,37 @@ private:
     variant;
 
   Legion::Memory local_sysmem, local_zerocopy, local_framebuffer;
+
+  static inline Legion::ShardingID block_shard =
+    [id = Legion::Runtime::generate_static_sharding_id()] {
+      struct functor : Legion::ShardingFunctor {
+      private:
+        static auto map(const Legion::Domain & d, std::size_t n) {
+          const Legion::Rect<1> r = d;
+          assert(!r.lo[0]);
+          return util::equal_map(r.hi[0] + 1, n);
+        }
+
+        bool is_invertible() const override {
+          return true;
+        }
+        Legion::ShardID shard(const Legion::DomainPoint & p,
+          const Legion::Domain & d,
+          std::size_t ns) override {
+          return map(d, ns).bin(p.point_data[0]);
+        }
+        void invert(Legion::ShardID s,
+          const Legion::Domain &,
+          const Legion::Domain & d,
+          std::size_t ns,
+          std::vector<Legion::DomainPoint> & out) override {
+          const auto r = map(d, ns)[s];
+          out.assign(r.begin(), r.end());
+        }
+      };
+      Legion::Runtime::preregister_sharding_functor(id, new functor());
+      return id;
+    }();
 
   // used consistently
   static inline const Legion::OrderingConstraint soa_constraint = {
