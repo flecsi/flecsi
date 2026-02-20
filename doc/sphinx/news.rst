@@ -41,6 +41,7 @@ New features
   * A task class can specify that launches of it should be ``synchronous``.
   * ``comm`` holds an MPI communicator for use in a task: in this version, only duplicates of ``MPI_COMM_WORLD``.
   * ``exec::group`` specifies processes to use for a task: in this version, all processes only.
+  * ``exec::mapping`` specifies processes to use for each point task: in this version, only by assigning blocks of point tasks.
   * ``exec::point_mutex`` serializes per-point-task access to non-field resources.
   * ``scheduler::wait`` finishes all launched tasks.
   * ``future_kind`` is an alias for the type of the second ``future`` template parameter.

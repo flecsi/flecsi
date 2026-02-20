@@ -108,7 +108,7 @@ protected:
   template<class R, typename T>
   void visit(data::reduction_accessor<R, T> &);
   /// Fill in information about task instances.
-  void visit(processor_space_t<Proc> &);
+  void visit(space_base::tasks &);
 };
 #endif
 
@@ -237,6 +237,10 @@ private:
 
   auto visitor() {
     return [&](auto & p, auto &&) { visit(p); }; // Clang deems 'this' unused
+  }
+
+  void visit(processor_space_t<Proc> & s) {
+    visit(s.bind());
   }
 
   void visit(point_mutex::lease &) {

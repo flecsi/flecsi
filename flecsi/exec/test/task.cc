@@ -155,6 +155,16 @@ half_mpi(exec::cpu s, comm::ref c, exec::launch_domain) noexcept {
 void
 vb(const std::vector<bool> &, const std::vector<long> &) noexcept {}
 
+Color
+over(exec::group::match,
+  exec::mapping::point p,
+  exec::launch_domain,
+  std::shared_ptr<int> sp) noexcept {
+  flog_assert(sp, "moved");
+  auto & t = p.local();
+  return 2 * t.index - t.size + 1 + !t.index;
+}
+
 int
 index_task(const flecsi::runtime * r, exec::launch_domain) noexcept {
   UNIT("TASK") {
@@ -353,11 +363,17 @@ task_driver(scheduler & s) {
 
     s.execute<vb>(std::vector<bool>(1), std::vector<int>());
 
-    constexpr bool add_four = (FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
-                              (FLECSI_BACKEND != FLECSI_BACKEND_hpx);
-    EXPECT_EQ(s.test<index_task>(&s.runtime(),
-                exec::launch_domain{s.runtime().processes() + 4 * add_four}),
-      0);
+    const exec::launch_domain extra{
+      np + 4 * ((FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
+                 (FLECSI_BACKEND != FLECSI_BACKEND_hpx))};
+    EXPECT_EQ((s.reduce<over, exec::fold::sum>(exec::group::world(),
+                 exec::mapping::block(),
+                 extra,
+                 std::make_shared<int>()))
+                .get(),
+      np);
+
+    EXPECT_EQ(s.test<index_task>(&s.runtime(), extra), 0);
 
     // Test reduction
     const int vpp = 5;

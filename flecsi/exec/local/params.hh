@@ -101,9 +101,9 @@ private:
   }
 
 protected:
-  static void visit(processor_space_t<Proc> & s) {
+  static void visit(space_base::tasks & s) {
     auto & c = run::context::instance();
-    s.bind(c.colors(), c.color());
+    s = s.make(c.colors(), c.color());
   }
 
   template<typename T, Privileges P>

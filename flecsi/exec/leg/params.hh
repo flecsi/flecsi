@@ -205,17 +205,16 @@ private:
 };
 
 /*!
-  The bind_accessors type is called to walk the user task arguments inside of
+  The bind_impl type is called to walk the user task arguments inside of
   an executing legion task to properly complete the users accessors, i.e., by
   pointing the accessor \em view instances to the appropriate legion-mapped
   buffers.
 
   This is the other half of the wire protocol implemented by \c task_prolog.
  */
-template<processor Proc>
-struct bind_accessors {
+struct bind_impl {
 
-  bind_accessors(Legion::Runtime * legion_runtime,
+  bind_impl(Legion::Runtime * legion_runtime,
     Legion::Context & legion_context,
     std::vector<Legion::PhysicalRegion> const & regions,
     std::vector<Legion::Future> const & futures,
@@ -228,16 +227,16 @@ struct bind_accessors {
     flog_assert(
       which.index_future.size() == futures.size(), "future count mismatch");
   }
-  ~bind_accessors() {
+  ~bind_impl() {
     flog_assert(region == which.fields.size(), "not enough accessors");
     flog_assert(future_id == futures_.size(), "not enough futures");
   }
 
 protected:
-  void visit(processor_space_t<Proc> & s) {
+  void visit(space_base::tasks & s) {
     const Legion::Task & t =
       *legion_runtime_->get_current_task(legion_context_);
-    s.bind(t.index_domain.get_volume(), t.index_point.point_data[0]);
+    s = s.make(t.index_domain.get_volume(), t.index_point.point_data[0]);
   }
 
   // All accessors are handled in terms of their underlying raw accessors.
@@ -307,7 +306,10 @@ private:
   const std::vector<Legion::Future> & futures_;
   const leg::bindings & which;
   std::vector<Legion::Future>::size_type single_future = 0, index_future;
-}; // struct bind_accessors
+};
+
+template<processor>
+using bind_accessors = bind_impl;
 
 /// \}
 } // namespace exec

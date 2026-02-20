@@ -9,6 +9,7 @@
 #include "flecsi/exec/kernel.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/util/annotation.hh"
+#include "flecsi/util/color_map.hh"
 #include "flecsi/util/function_traits.hh"
 #include "flecsi/util/mpi.hh"
 
@@ -287,6 +288,33 @@ namespace exec {
 /// \addtogroup execution
 /// \{
 
+/// A function that assigns point tasks to processes.
+/// Declare a task parameter as a \c point to use it.
+/// \note In the current implementation, the only usable function is \c block.
+struct mapping : data::convert_tag {
+  /// Identifies the point tasks on one process.
+  /// A task using one must also use a \c group or \c comm to establish the
+  /// meaning of ranks chosen; it may nonetheless have any number of point
+  /// tasks (so task parameters must be copyable).
+  /// \warning If there is more than one point task on a process, their
+  ///   mutable pointer and reference parameters alias and their MPI
+  ///   communicators are shared.
+  /// \remark A task with only a \c comm::ref and \c point as parameters will
+  ///   have zero point tasks for want of constraints.
+  struct point;
+
+  /// Return an object that assigns contiguous sets of point tasks.
+  /// The substrings are of equal size, with the lowest ranks assigned one
+  /// extra as needed.
+  /// \see \c data::launch::block
+  static mapping block() {
+    return {};
+  }
+
+private:
+  mapping() = default;
+};
+
 // Replaces certain task arguments before conversion to the parameter type.
 template<class P, class T>
 decltype(auto)
@@ -326,6 +354,8 @@ template<class T>
 using is_concurrent = std::is_base_of<group::concurrent, T>;
 template<class T>
 using is_comm = std::is_same<T, comm::ref>;
+template<class T>
+using is_mapping = std::is_same<T, mapping::point>;
 
 // Since our Legion task wrapper does not depend on argument types, even for
 // an MPI task we must eagerly create parameters and objects for any
@@ -560,9 +590,9 @@ struct protocol {
     std::enable_if_t<std::is_base_of_v<data::params_tag, P>>>
     : params_helper<P, decltype(std::declval<P>().flecsi_params())> {};
 
-  template<class P, class A>
+  template<class P, bool C = false, class A>
   static decltype(auto) make_parameter(A && a) {
-    if constexpr(!M)
+    if constexpr(!M || C)
       static_assert(std::is_copy_constructible_v<P>,
         "only per-process tasks can accept non-copyable parameters by value");
     return convert<typename std::conditional_t<S,
@@ -571,21 +601,26 @@ struct protocol {
       >(exec::replace_argument<P>(std::forward<A>(a)));
   }
 
-  template<class... PP, class... AA>
+  template<bool C, class... PP, class... AA>
   static auto make_parameters(std::tuple<PP...> * /* to deduce PP */,
     AA &&... aa) {
     return make_tuple([&]() -> decltype(auto) {
-      return make_parameter<PP>(std::forward<AA>(aa));
+      return make_parameter<PP, C>(std::forward<AA>(aa));
     }...);
   }
 };
 
-template<class... PP, class... BB>
+template<class... PP, class B>
 auto
-convert_parameters(std::tuple<PP...> *, std::tuple<BB...> && bound) {
-  return convert<std::tuple<std::conditional_t<std::is_convertible_v<BB &&, PP>,
-    BB &&,
-    std::remove_cvref_t<PP>>...>>(std::move(bound));
+convert_parameters(std::tuple<PP...> *, B && bound) {
+  return std::apply(
+    [&bound](auto &&... bb) { // just to get adjusted element types
+      return convert<
+        std::tuple<std::conditional_t<std::is_convertible_v<decltype(bb), PP>,
+          decltype(bb),
+          std::remove_cvref_t<PP>>...>>(std::forward<B>(bound));
+    },
+    std::forward<B>(bound));
 }
 } // namespace detail
 
@@ -595,8 +630,8 @@ struct launch {
   using Params = typename function::arguments_type;
   using Return = std::remove_cv_t<typename function::return_type>;
   static constexpr auto proc = mask_to_processor_type(A);
-  // When we have custom groups, we will have to trap the nomination of two
-  // distinct groups, but for now it's just that 0 or 1 might be.
+  // When we have custom groups/mappings, we will have to trap the nomination
+  // of two that differ, but for now it's just that 0 or 1 might be.
   static constexpr bool mpi = proc == processor::mpi,
                         matched =
                           mpi || detail::has_param<Params, detail::is_group>,
@@ -604,12 +639,15 @@ struct launch {
                           detail::has_param<Params, detail::is_concurrent>,
                         comm =
                           mpi || detail::has_param<Params, detail::is_comm>,
+                        mapped = detail::has_param<Params, detail::is_mapping>,
                         sync = mpi || A & synchronous_impl;
+  static_assert(!mapped || (matched && !mpi),
+    "tasks can be mapped only to specified processes");
   using protocol = detail::protocol<matched, sync>;
 
   template<class... AA>
   static auto params(AA &&... aa) {
-    return protocol::make_parameters(
+    return protocol::template make_parameters<mapped>(
       static_cast<Params *>(nullptr), std::forward<AA>(aa)...);
   }
   // Return the number of point tasks for the given arguments, or
@@ -618,13 +656,13 @@ struct launch {
   static auto size(const AA &... aa) {
     return [sz = detail::launch_size<Params>(aa...)] {
       // When we have general communicators, we can treat their sizes as a
-      // secondary information source.
-      if constexpr(comm) {
+      // secondary information source that is ignored for mapped tasks.
+      if constexpr(comm && !mapped) {
         return sz | detail::launch_combine(
                       detail::Index(run::context::instance().processes()));
       }
       else {
-        if constexpr(matched)
+        if constexpr(matched && !mapped)
           if(const auto n = sz.get(), p = run::context::instance().processes();
             n > p)
             flog_fatal(n << " point tasks for " << p << " processes in group");
@@ -822,14 +860,18 @@ struct space_base : data::bind_tag, data::convert_tag {
   struct tasks {
     Color size, ///< Number of task instances.
       index; ///< Current task instance (or point task) number.
+
+    static tasks make(Color n, Color i) { // for implicit conversions
+      return {n, i};
+    }
   };
   /// Describe the tasks launched.
   const tasks & launch() const {
     return t;
   }
 
-  void bind(Color n, Color i) {
-    t = {n, i};
+  tasks & bind() {
+    return t;
   }
 
   template<class T>
@@ -942,6 +984,27 @@ struct on_t : data::convert_tag {};
 /// Placeholder argument that corresponds to an execution-\ref space task
 /// parameter.
 inline constexpr on_t on;
+
+struct mapping::point : data::send_tag, data::bind_tag {
+  /// Information about the point tasks on this process.
+  const space_base::tasks & local() const {
+    return loc;
+  }
+
+  template<class F>
+  void send(F && f) {
+    space_base::tasks t{};
+    f(t, [](const mapping &) { return nullptr; });
+    if(t.size) {
+      const util::equal_map m(t.size, run::context::instance().processes());
+      const auto [us, i] = m.invert(t.index);
+      loc = loc.make(m[us].size(), i);
+    }
+  }
+
+private:
+  space_base::tasks loc;
+};
 
 template<class>
 constexpr bool synchronous_task = false;
@@ -1094,6 +1157,13 @@ struct task_param<comm::ref> {
 template<>
 struct launch<comm::ref, comm> {
   static Index get(const comm &) {
+    return {};
+  }
+};
+
+template<>
+struct task_param<mapping::point> {
+  static mapping::point replace(const mapping &) {
     return {};
   }
 };

@@ -149,13 +149,16 @@ task_wrapper(const Legion::Task * task,
   const auto call = [&](auto & p) {
     auto && ours = [&p]() -> decltype(auto) {
       if constexpr(L::matched)
-        return (p.params);
+        if constexpr(L::mapped)
+          return (p.params); // avoid double-moves
+        else
+          return std::move(p.params);
       else
         return bind_tuple(p.params);
     }();
     bind_parameters<L::proc>(
       ours, runtime, context, regions, task->futures, p.which);
-    const auto f = [&] { return L::call(std::move(ours)); };
+    const auto f = [&] { return L::call(std::forward<decltype(ours)>(ours)); };
     if constexpr(L::mpi) {
       if constexpr(std::is_void_v<typename L::Return>)
         c.mpi_call(f);
