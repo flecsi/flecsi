@@ -7,13 +7,13 @@ namespace poisson {
 namespace task {
 
 void red(flecsi::exec::accelerator,
-  mesh::accessor<ro> m,
-  field<double>::accessor<rw, ro> ua,
-  field<double>::accessor<ro, na> fa) noexcept;
+  mesh::accessor<flecsi::ro> m,
+  flecsi::field<double>::accessor<flecsi::rw, flecsi::ro> ua,
+  flecsi::field<double>::accessor<flecsi::ro, flecsi::na> fa) noexcept;
 void black(flecsi::exec::accelerator,
-  mesh::accessor<ro> m,
-  field<double>::accessor<rw, ro> ua,
-  field<double>::accessor<ro, na> fa) noexcept;
+  mesh::accessor<flecsi::ro> m,
+  flecsi::field<double>::accessor<flecsi::rw, flecsi::ro> ua,
+  flecsi::field<double>::accessor<flecsi::ro, flecsi::na> fa) noexcept;
 
 } // namespace task
 } // namespace poisson
