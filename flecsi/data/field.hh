@@ -288,9 +288,9 @@ inline constexpr bool portable_v =
 
 /// Helper type to define and access fields.
 /// \tparam T field value type:
-///   - if any non-MPI tasks or tasks that read ghosts use the field, \c T
-///     must be a trivially copyable
-///     type with no pointers or references
+///   - if \c T is not trivially copyable or contains any pointers or
+///     references, all tasks that use the field must be rank-matched, use the
+///     same memory space, and not read ghosts
 ///   - if any instance of the field is resized, \c T must be trivially
 ///     relocatable; this weaker property is not formally recognized by the
 ///     language, but common implementations of \c std::vector and \c

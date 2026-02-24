@@ -19,7 +19,8 @@ Parallelism
 Whether or not the MPI backend is in use, a FleCSI application is an MPI program, perhaps running many times in parallel (although there is no requirement in general that that number be the same as the number of colors in any particular topology).
 The control model actions run serially on each process and must perform the same sequence of collective calls into FleCSI with the same arguments.
 (In certain cases, it is the identity rather than the value of the arguments that matters; for example, a mesh coloring might be distributed (rather than replicated) over multiple processes, but that distributed object is the same object for the purpose of initializing a topology.)
-Tasks, however, are asynchronous: ``scheduler::execute`` may return before they complete and task instances from multiple task launches may run out of order or in parallel.
+However, it is unspecified on which processes task instances execute, so it is not generally meaningful to modify data outside the task.
+Moreover, tasks are asynchronous: ``scheduler::execute`` may return before they complete and task instances from multiple task launches may run out of order or in parallel.
 
 The threads necessary to implement this impose the ordinary responsibility of thread safety among tasks as well as between them and the actions.
 Because the threads may be pooled, they provide only the `parallel forward progress guarantee <https://en.cppreference.com/w/cpp/language/memory_model#Parallel_forward_progress>`_ (invalidating certain collective operations).
@@ -28,16 +29,31 @@ Furthermore, thread-local storage (whose utility is already limited by the pooli
 
 The ``flecsi::exec::executor`` operations (including the ``forall`` and ``reduceall`` macros) are asynchronous, but each waits on the previous such that values written by one may be read by another in the same task.
 
-MPI Tasks
-+++++++++
-The execution of ``mpi`` tasks (regardless of backend) is more predictable than that of normal tasks:
+Optional Semantics
+++++++++++++++++++
+Stronger semantics for tasks are available at a performance cost.
 
-#. Because they always run one point task in each process, it is meaningful for different callers to provide different argument values.
-#. Because each point task has access to the color corresponding to its MPI rank, no data relocation is needed between two MPI tasks.
-   Therefore, fields used *only* by MPI tasks may use non-trivial data types (although resizing the field can still invalidate pointers).
-#. Because they additionally run synchronously, their parameters may be references or pointers to non-const objects.
+MPI Groups
+^^^^^^^^^^
+If a task accepts a ``group::match`` as (part of) a parameter, its point tasks are assigned to processes (according to MPI rank).
+This control is necessary for interprocess communication but also has ancillary effects:
+
+#. Additional memory movement and scheduling latency may be required by the processor assignment.
+#. Tasks can accept pointers to non-const objects (without aliasing) and non-copyable objects by value.
+#. The various calling processes can provide different argument values for non-FleCSI types.
+#. Since no data relocation can be needed between two such tasks, fields used *only* by such tasks in one memory space may use non-trivial data types.
+
+Concurrent Tasks
+^^^^^^^^^^^^^^^^
+If a task accepts a ``group::concurrent`` as (part of) a parameter, the concurrent forward progress guarantee is also applied to it.
+(It is known that the HPX backend does not implement the guarantee perfectly and may produce a deadlock in certain situations with numerous concurrent tasks using communicators.)
+This guarantee makes more parallel operations correct in such a task, but it can also impair parallelism among task launches.
+
+MPI Tasks
+^^^^^^^^^
+The execution of ``mpi`` tasks (regardless of backend) provides even stronger semantics:
+
+#. Because they run synchronously, their parameters may be references to non-const objects.
 #. Because additionally no other point tasks are executed concurrently with them, they can access global data without race conditions.
-#. The resulting concurrent forward progress guarantee makes it valid for them to perform MPI communication (including via ``MPI_COMM_WORLD``).
-   (Their field data is stored on the host and thus may be accessed directly by MPI.)
 
 However, their return values are processed in the normal fashion and must be trivially relocatable.

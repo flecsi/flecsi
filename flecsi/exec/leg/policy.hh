@@ -62,7 +62,8 @@ reduce_internal(Args &&... args) {
 
   // Replace the MPI "processor type" with an actual flag:
   const auto task = leg::task_id<leg::task_wrapper<launch>,
-    (launch::mpi ? (Attributes & ~processor_mask) | loc : Attributes)>;
+    (launch::mpi ? (Attributes & ~processor_mask) | loc : Attributes),
+    launch::concurrent>;
 
   const auto add = [&](auto & l) {
     l.region_requirements = std::move(pro).region_requirements();
@@ -98,10 +99,11 @@ reduce_internal(Args &&... args) {
       launcher.point_futures.assign(
         pro.future_maps().begin(), pro.future_maps().end());
 
-      if(launch::mpi) {
-        launcher.tag = run::mapper::force_rank_match;
+      if(launch::matched)
+        launcher.tag |= run::mapper::force_rank_match;
+      launcher.concurrent = launch::concurrent;
+      if(launch::mpi)
         scheduler::instance->wait();
-      }
 
       if constexpr(!std::is_void_v<Reduction>)
         return future<return_t>{{},

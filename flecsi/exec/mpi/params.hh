@@ -12,7 +12,7 @@
 namespace flecsi::exec {
 
 template<processor Proc>
-struct task_prolog : local::prolog<task_prolog<Proc>> {
+struct task_prolog : local::prolog<task_prolog<Proc>, Proc> {
   using task_prolog::prolog::prolog;
 
   template<class T>

@@ -14,7 +14,7 @@ struct global_base;
 
 namespace exec::local {
 
-template<class D>
+template<class D, processor Proc>
 struct prolog : prolog_base {
   using prolog_base::prolog_base;
 
@@ -34,6 +34,7 @@ protected:
     auto & s = t.template get_partition<Space>();
     auto fld = s[f];
 
+    portability(ref, Proc == processor::toc, privilege_discard(P));
     if constexpr(std::is_same_v<typename Topo::base, topo::global_base>) {
       if(s.template ghost<privilege_pack<get_privilege(0, P), ro>>(f))
         d().template broadcast<T>(fld);

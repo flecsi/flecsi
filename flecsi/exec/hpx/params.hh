@@ -27,8 +27,9 @@
 
 namespace flecsi::exec {
 
-struct task_prolog_base : local::prolog<task_prolog_base> {
-  using prolog::prolog;
+template<processor Proc>
+struct task_prolog : local::prolog<task_prolog<Proc>, Proc> {
+  using task_prolog::prolog::prolog;
 
   template<class T>
   void broadcast(const data::local::field & f) {
@@ -74,7 +75,7 @@ struct task_prolog_base : local::prolog<task_prolog_base> {
   }
 
 protected:
-  using prolog::visit;
+  using task_prolog::prolog::visit;
 
   template<typename R>
   void visit(future<R> & p, future<R> & f) {
@@ -120,7 +121,7 @@ public:
       comms->depend(std::move(f));
     auto f = ::hpx::dataflow(
       [out = run::context::instance().outstanding(),
-        regions_partitions = detach(),
+        regions_partitions = this->detach(),
         task = std::forward<Task>(task),
         task_name = std::move(task_name),
         comm = need_comm ? &comms->get() : nullptr,
@@ -157,9 +158,6 @@ private:
   std::vector<run::comms::ptr> futures;
   bool need_comm = false;
 };
-
-template<processor>
-using task_prolog = task_prolog_base;
 
 /*!
   The bind_accessors type is called to walk the user task arguments inside of an

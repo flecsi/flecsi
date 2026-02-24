@@ -146,22 +146,16 @@ launch_size_single(const A & a) {
   return launch<std::remove_cvref_t<P>, A>::get(a);
 }
 
-template<bool M, class... PP, class... AA>
+template<class... PP, class... AA>
 auto
 launch_size(std::tuple<PP...> *, const AA &... aa) {
-  return (launch_combine([] {
-    // An MPI task has a known launch domain:
-    if constexpr(M)
-      return Index(run::context::instance().processes());
-    else
-      return nullptr;
-  }()) | ... |
-          launch_combine(launch_size_single<PP>(aa)));
+  return (
+    launch_combine(nullptr) | ... | launch_combine(launch_size_single<PP>(aa)));
 }
-template<class P, bool M = false, class... AA>
+template<class P, class... AA>
 auto
 launch_size(const AA &... aa) {
-  return launch_size<M>(static_cast<P *>(nullptr), aa...);
+  return launch_size(static_cast<P *>(nullptr), aa...);
 }
 
 template<class F>
@@ -192,6 +186,41 @@ struct consistent_variants
       S2> {};
 } // namespace detail
 
+/// An MPI group of processes on which to execute a task.
+/// Use for external resources that must be accessed per-process.
+/// Declare a task parameter as a \c match or \c concurrent to select it.
+/// \note In the current implementation, the only group available is that of
+///   \c MPI_COMM_WORLD.
+struct group : data::convert_tag {
+  /// A featureless task parameter for using a \c group.
+  /// Each point task for a task using one runs on the process with the
+  /// corresponding rank in the group (so such a launch must have a size no
+  /// greater than that of the group).
+  ///
+  /// Other parameters to such a task may be merely movable and can be
+  /// pointers to non-const types.
+  struct match {};
+  /// A featureless task parameter for using a \c group concurrently.
+  /// Beyond the semantics for \c match, point tasks for a task using one run
+  /// concurrently.
+  /// \remark Collective operations can be used only if there are as many
+  ///   point tasks as processes.
+  struct concurrent : match {};
+
+#ifdef DOXYGEN
+  /// Copyable.
+  group(const group &);
+#endif
+
+  /// Construct with the group of \c MPI_COMM_WORLD.
+  static group world() {
+    return {};
+  }
+
+private:
+  group() = default;
+};
+
 // Replaces certain task arguments before conversion to the parameter type.
 template<class P, class T>
 decltype(auto)
@@ -201,6 +230,35 @@ replace_argument(T && t) {
 }
 
 namespace detail {
+template<class P, template<class> class F>
+constexpr bool has_param = F<P>::value;
+
+template<class P, template<class> class F>
+constexpr bool has_param<const P, F> = has_param<P, F>;
+template<class P, template<class> class F>
+constexpr bool has_param<volatile P, F> = has_param<P, F>;
+template<class P, template<class> class F>
+constexpr bool has_param<P &, F> = has_param<P, F>;
+template<class P, template<class> class F>
+constexpr bool has_param<P &&, F> = has_param<P, F>;
+
+template<class... PP, template<class> class F>
+constexpr bool has_param<std::tuple<PP...>, F> = (has_param<PP, F> || ...);
+template<class P, template<class> class F>
+constexpr bool has_param<std::vector<P>, F> = has_param<P, F>;
+
+template<std::derived_from<data::params_tag> P, template<class> class F>
+constexpr bool has_param<P, F> =
+  has_param<decltype(std::declval<P>().flecsi_params()), F>;
+
+template<class T>
+using is_group = std::is_base_of<group::match, T>;
+// We offer concurrent forward progress only for rank-matched tasks because it
+// would be difficult if not impossible to synchronize among point tasks
+// running on unknown processes.
+template<class T>
+using is_concurrent = std::is_same<T, group::concurrent>;
+
 // Since our Legion task wrapper does not depend on argument types, even for
 // an MPI task we must eagerly create parameters and objects for any
 // references that require a conversion.  The following progression from task
@@ -210,8 +268,8 @@ namespace detail {
 // 3. the result of make_parameter (with convert applied for vectors)
 // 4. mpi_params, or the result of bind_tuple
 // 5. actual task parameter, without cv-qualification (with convert again)
-// We derive #2 from #5 and #1.  For non-MPI tasks, we derive #3 from
-// #5 and #4 from #3.  For MPI tasks, #3 is #2 unless we need a
+// We derive #2 from #5 and #1.  For non-synchronous tasks, we derive #3 from
+// #5 and #4 from #3.  For synchronous tasks, #3 is #2 unless we need a
 // "temporary" to which to bind a reference, in which case it is the type of
 // that temporary.  That situation can arise for an element type of a vector
 // or tuple, in which case #3 is a vector/tuple of the result(s).
@@ -363,43 +421,43 @@ make_tuple(FF... ff) { // use -> decltype(auto)
   return std::tuple<decltype(std::move(ff)())...>(std::move(ff)()...);
 }
 
-template<bool M, class P>
+template<bool S, class P>
 struct param_helper {
-  static_assert(M || std::is_move_constructible_v<P>,
+  static_assert(S || std::is_move_constructible_v<P>,
     "only MPI tasks can accept (references to) non-movable types");
-  // This is not used when M, but the assertions are:
+  // This is not used when S, but the assertions are:
   using type = P;
 };
-template<bool M>
+template<bool M, bool S>
 struct protocol {
   template<class P, class = void>
-  struct param_storage : param_helper<M, P> {};
+  struct param_storage : param_helper<S, P> {};
   template<class P>
   using param_storage_t = typename param_storage<P>::type;
   template<class P>
   struct param_storage<const P> : param_storage<P> {};
   template<class P>
   struct param_storage<P &> : param_storage<P> {
-    static_assert(M || std::is_const_v<P>,
+    static_assert((M && S) || std::is_const_v<P>,
       "only MPI tasks can accept non-const references");
   };
   template<class P>
   struct param_storage<P &&> : param_storage<P> {
-    static_assert(M, "only MPI tasks can accept rvalue references");
+    static_assert(M && S, "only MPI tasks can accept rvalue references");
   };
   template<class P>
-  struct param_storage<P *> : param_helper<M, P *> {
+  struct param_storage<P *> : param_helper<S, P *> {
     static_assert(M || std::is_const_v<P> || std::is_function_v<P>,
-      "only MPI tasks can accept non-const pointers");
+      "only per-process tasks can accept non-const pointers");
   };
   template<data::layout L, class T, Privileges P>
   struct param_storage<data::accessor<L, T, P>>
-    : param_helper<M, data::accessor<L, T, P>> {
+    : param_helper<S, data::accessor<L, T, P>> {
     static_assert(
       data::portable_v<T> ||
         (M && (privilege_count(P) <= 1 ||
                 !privilege_read(get_privilege(privilege_count(P) - 1, P)))),
-      "only MPI tasks can accept non-portable field accessors; "
+      "only per-process tasks can accept non-portable field accessors; "
       "they must not access ghosts");
   };
   // NB: this recursion happens regardless of must_convert.
@@ -425,7 +483,7 @@ struct protocol {
   template<class P, class... PP>
   struct params_helper<P, std::tuple<PP &...>>
     : std::conditional_t<true,
-        param_helper<M, P>, // we can't choose a different storage type
+        param_helper<S, P>, // we can't choose a different storage type
         std::void_t<param_storage_t<const PP &>...>> {};
   template<class P>
   struct param_storage<P,
@@ -436,8 +494,8 @@ struct protocol {
   static decltype(auto) make_parameter(A && a) {
     if constexpr(!M)
       static_assert(std::is_copy_constructible_v<P>,
-        "only MPI tasks can accept non-copyable parameters by value");
-    return convert<typename std::conditional_t<M,
+        "only per-process tasks can accept non-copyable parameters by value");
+    return convert<typename std::conditional_t<S,
       sync_storage<P, A &&>,
       std::type_identity<param_storage_t<P>>>::type // always instantiated
       >(exec::replace_argument<P>(std::forward<A>(a)));
@@ -467,8 +525,14 @@ struct launch {
   using Params = typename function::arguments_type;
   using Return = std::remove_cv_t<typename function::return_type>;
   static constexpr auto proc = mask_to_processor_type(A);
-  static constexpr bool mpi = proc == processor::mpi;
-  using protocol = detail::protocol<mpi>;
+  // When we have custom groups, we will have to trap the nomination of two
+  // distinct groups, but for now it's just that 0 or 1 might be.
+  static constexpr bool mpi = proc == processor::mpi,
+                        matched =
+                          mpi || detail::has_param<Params, detail::is_group>,
+                        concurrent =
+                          detail::has_param<Params, detail::is_concurrent>;
+  using protocol = detail::protocol<matched, mpi>;
 
   template<class... AA>
   static auto params(AA &&... aa) {
@@ -479,7 +543,20 @@ struct launch {
   // std::monostate() if a single launch is appropriate.
   template<class... AA>
   static auto size(const AA &... aa) {
-    return detail::launch_size<Params, mpi>(aa...).get();
+    return [sz = detail::launch_size<Params>(aa...)] {
+      if constexpr(mpi) {
+        return sz | detail::launch_combine(
+                      detail::Index(run::context::instance().processes()));
+      }
+      else {
+        if constexpr(matched)
+          if(const auto n = sz.get(), p = run::context::instance().processes();
+            n > p)
+            flog_fatal(n << " point tasks for " << p << " processes in group");
+        return sz;
+      }
+    }()
+             .get();
   }
 
   template<class P>
@@ -908,6 +985,19 @@ template<>
 struct launch<point_mutex::lease, point_mutex> {
   static Index get(const point_mutex & m) {
     return m.size();
+  }
+};
+
+template<>
+struct task_param<group::match> {
+  static group::match replace(const group &) {
+    return {};
+  }
+};
+template<>
+struct task_param<group::concurrent> {
+  static group::match replace(const group &) {
+    return {};
   }
 };
 

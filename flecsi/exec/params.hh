@@ -40,6 +40,12 @@ protected:
       p->template issue_copy<P>(ff);
   }
 
+  template<class R>
+  static void portability(const R & r, bool gpu, bool wo) {
+    if constexpr(!data::portable_v<typename R::value_type>)
+      r.get_region().non_portable(r.fid(), gpu, wo);
+  }
+
   scheduler * sched;
   std::vector<std::function<void()>> epilog_wrappers;
 

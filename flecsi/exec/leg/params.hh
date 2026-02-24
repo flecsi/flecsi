@@ -45,7 +45,8 @@ private:
 };
 } // namespace detail
 
-struct task_prolog_impl : prolog_base {
+template<processor Proc>
+struct task_prolog : prolog_base {
   using prolog_base::prolog_base;
 
   std::vector<Legion::RegionRequirement> && region_requirements() && {
@@ -122,6 +123,7 @@ protected:
     auto & p = t.template get_partition<Space>();
     const data::borrow * b = get_projection(t);
 
+    portability(r, Proc == processor::toc, privilege_discard(P));
     add_copy<P>(r);
 
     const Legion::PrivilegeMode m = privilege_mode(P);
@@ -201,9 +203,6 @@ private:
   std::vector<Legion::Future> futures_;
   std::vector<Legion::FutureMap> future_maps_;
 };
-
-template<processor>
-using task_prolog = task_prolog_impl;
 
 /*!
   The bind_accessors type is called to walk the user task arguments inside of

@@ -34,48 +34,62 @@ static_assert(priv<wo, rw>());
 static_assert(priv<ro, wo, rw>());
 static_assert(priv<na, ro, wo, rw>());
 
-template<bool M, class P, class A, class T>
+template<bool M, bool S, class P, class A, class T>
 constexpr bool good =
-  std::is_same_v<decltype(exec::detail::protocol<M>::template make_parameter<P>(
-                   std::declval<A>())),
+  std::is_same_v<decltype(exec::detail::protocol<M,
+                   S>::template make_parameter<P>(std::declval<A>())),
     T>;
 using future_arg = future<int, exec::launch_type_t::index>;
 
-static_assert(good<false, long, const int &, long>);
-static_assert(good<false, const int &, int &, int>);
-static_assert(good<true, int *, int *&, int *&>);
-static_assert(good<false, const future<int> &, future_arg &&, future<int>>);
+static_assert(good<false, false, long, const int &, long>);
+static_assert(good<false, false, const int &, int &, int>);
+static_assert(good<true, false, int *, int *&, int *>);
 static_assert(
-  good<false, std::tuple<const int &>, std::tuple<int &> &, std::tuple<int>>);
+  good<false, false, const future<int> &, future_arg &&, future<int>>);
 static_assert(good<false,
+  false,
+  std::tuple<const int &>,
+  std::tuple<int &> &,
+  std::tuple<int>>);
+static_assert(good<false,
+  false,
   std::tuple<const int, future<int>>,
   std::tuple<int, future_arg> &&,
   std::tuple<int, future<int>>>);
 static_assert(good<false,
+  false,
   std::vector<std::tuple<const int &>>,
   std::vector<std::tuple<int &>> &&,
   std::vector<std::tuple<int>>>);
 
-static_assert(good<true, int &&, int &&, int &&>);
+static_assert(good<true, true, int &&, int &&, int &&>);
+static_assert(good<false,
+  true,
+  const std::exception &,
+  std::logic_error &,
+  std::logic_error &>);
+static_assert(good<false, true, const int &, int &, int &>);
+static_assert(good<false, true, long, const int &, const int &>);
+static_assert(good<false, true, const long &, const int &, long>);
 static_assert(
-  good<true, const std::exception &, std::logic_error &, std::logic_error &>);
-static_assert(good<true, const int &, int &, int &>);
-static_assert(good<true, long, const int &, const int &>);
-static_assert(good<true, const long &, const int &, long>);
-static_assert(good<true, const future<int> &, future_arg &&, future<int>>);
-static_assert(good<true,
+  good<false, true, const future<int> &, future_arg &&, future<int>>);
+static_assert(good<false,
+  true,
   std::tuple<const int, future<int>>,
   std::tuple<int, future_arg> &&,
   std::tuple<int &&, future<int>>>);
-static_assert(good<true,
+static_assert(good<false,
+  true,
   std::tuple<int, const long &>,
   std::tuple<int, int> &&,
   std::tuple<int &&, long>>);
-static_assert(good<true,
+static_assert(good<false,
+  true,
   std::vector<std::tuple<const int &>>,
   std::vector<std::tuple<int &>> &&,
   std::vector<std::tuple<int &>> &&>);
-static_assert(good<true,
+static_assert(good<false,
+  true,
   const std::vector<std::tuple<const int &>> &,
   std::vector<std::tuple<int &>> &&,
   std::vector<std::tuple<const int &>>>);
@@ -125,6 +139,15 @@ mpi(int * p, const short & s, int i, exec::point_mutex::lease) {
 namespace {
 void
 pm(exec::point_mutex::lease) noexcept {}
+int
+matched(exec::cpu s,
+  exec::group::match,
+  const runtime * r,
+  exec::launch_domain) noexcept {
+  UNIT() {
+    EXPECT_EQ(s.launch().index, r->process());
+  };
+}
 
 void
 vb(const std::vector<bool> &, const std::vector<long> &) noexcept {}
@@ -293,6 +316,7 @@ var(const std::variant<field<int>::accessor<ro>,
 int
 task_driver(scheduler & s) {
   UNIT() {
+    auto np = s.runtime().processes();
     {
       auto & c = run::context::instance();
       flog(info) << "task depth: " << c.task_depth() << std::endl;
@@ -320,6 +344,10 @@ task_driver(scheduler & s) {
     EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
 
     s.execute<pm>(mut); // size inherited from mpi
+    EXPECT_EQ(
+      s.test<matched>(
+        exec::on, exec::group::world(), &s.runtime(), exec::launch_domain{np}),
+      0);
 
     s.execute<vb>(std::vector<bool>(1), std::vector<int>());
 
@@ -330,7 +358,6 @@ task_driver(scheduler & s) {
       0);
 
     // Test reduction
-    auto np = s.runtime().processes();
     const int vpp = 5;
     // Array of initial values per color
     arr::topology arr_s(s, arr::coloring(np, vpp));

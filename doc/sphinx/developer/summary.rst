@@ -118,7 +118,7 @@ Layouts
 ^^^^^^^
 
 The backend is expected merely to provide uninitialized storage arrays for each field and ``memcpy`` it appropriately.
-Therefore, ``sizeof(T)`` and the partition size is sufficient information to allocate it, but (if it is used with any non-MPI task) the type must be self-contained and trivially relocatable.
+Therefore, ``sizeof(T)`` and the partition size is sufficient information to allocate it, but (if it is used other than by rank-matched tasks in one memory space) the type must be self-contained and trivially relocatable.
 (This is not a formal C++ classification; note that ``std::tuple<int>`` is not trivially copyable.)
 
 This support is called the ``raw`` `layout`.

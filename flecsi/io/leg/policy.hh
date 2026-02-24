@@ -204,13 +204,15 @@ struct io_interface {
     });
 
     const auto task_id =
-      attach_flag ? exec::leg::task_id<checkpoint_task<W, true>, loc | inner>
-                  : exec::leg::task_id<checkpoint_task<W, false>, loc | leaf>;
+      attach_flag
+        ? exec::leg::task_id<checkpoint_task<W, true>, loc | inner, true>
+        : exec::leg::task_id<checkpoint_task<W, false>, loc | leaf, true>;
 
     Legion::IndexLauncher checkpoint_launcher(task_id,
       launch_space,
       Legion::TaskArgument((void *)(task_args.data()), task_args.size()),
       Legion::ArgumentMap());
+    checkpoint_launcher.concurrent = true;
 
     int idx = 0;
     for(auto & isd : isd_vector) {
