@@ -43,16 +43,6 @@ public:
       local_sysmem = sysmem_query.first();
       assert(local_sysmem.exists());
     }
-    if(!local_gpus.empty()) {
-      Machine::MemoryQuery zc_query(machine);
-      zc_query.local_address_space();
-      zc_query.only_kind(Memory::Z_COPY_MEM);
-      local_zerocopy = zc_query.first();
-      assert(local_zerocopy.exists());
-    }
-    else {
-      local_zerocopy = Memory::NO_MEMORY;
-    }
     if(local_kind == Processor::TOC_PROC) {
       Machine::MemoryQuery fb_query(machine);
       fb_query.local_address_space();
@@ -581,7 +571,7 @@ private:
     Legion::VariantID>
     variant;
 
-  Legion::Memory local_sysmem, local_zerocopy, local_framebuffer;
+  Legion::Memory local_sysmem, local_framebuffer;
 
   static inline Legion::ShardingID block_shard =
     [id = Legion::Runtime::generate_static_sharding_id()] {
