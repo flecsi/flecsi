@@ -306,7 +306,7 @@ public:
 
   } // map_task
 
-  /// Assign processors, implementing the \c force_rank_match tag.
+  /// Assign processors, unconditionally implementing \c force_rank_match.
   virtual void slice_task(const Legion::Mapping::MapperContext,
     const Legion::Task & task,
     const Legion::Mapping::Mapper::SliceTaskInput & input,
@@ -328,41 +328,17 @@ public:
         output.slices.resize(1);
         output.slices[0].domain = input.domain;
         output.slices[0].proc = task.target_proc;
-      } else
-#endif
-    if(task.tag & force_rank_match) {
-      // Control replication has already subdivided the launch domain:
-      assert(r.hi[0] == me);
-
-      output.slices.clear();
-      // Find the CPU with the desired address space:
-      Legion::Machine::ProcessorQuery pq =
-        Legion::Machine::ProcessorQuery(machine).only_kind(
-          Legion::Processor::LOC_PROC);
-      for(Legion::Machine::ProcessorQuery::iterator it = pq.begin();
-        it != pq.end();
-        ++it) {
-        Legion::Processor p = *it;
-        if(p.address_space() == me) {
-          auto & out = output.slices.emplace_back();
-          out.domain = r;
-          out.proc = p;
-          break;
-        }
+        return;
       }
-      assert(!output.slices.empty());
-    }
-    else {
-      // We've already been control replicated, so just divide our points
-      // over the appropriate local processors
-      auto & procs = processors(processor_kind(task.tag));
-      auto it = procs.begin();
-      for(auto m : util::equal_map(r.volume(), procs.size()))
-        if(!m.empty())
-          output.slices.emplace_back(
-            Domain(me + m.front(), me + m.back()), *it++, false, false);
-    }
-
+#endif
+    // Our sharding functor unconditionally implements rank-matching: for now,
+    // we simply do nothing to disturb that situation.
+    auto & procs = processors(processor_kind(task.tag));
+    auto it = procs.begin();
+    for(auto m : util::equal_map(r.volume(), procs.size()))
+      if(!m.empty())
+        output.slices.emplace_back(
+          Domain(me + m.front(), me + m.back()), *it++, false, false);
   } // slice_task
 
   /// Reuse existing indirection instances and request reusable preimages.
