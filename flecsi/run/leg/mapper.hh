@@ -315,6 +315,9 @@ public:
     using namespace Legion;
     using namespace mapper;
 
+    const Legion::Rect<1> r = input.domain;
+    const auto me = r.lo[0];
+
 #if 0 // this is not supported in FleCSI yet
       // when we launch subtasks
       // this tag is used to map nested tasks
@@ -329,9 +332,6 @@ public:
 #endif
     if(task.tag & force_rank_match) {
       // Control replication has already subdivided the launch domain:
-      assert(input.domain.get_dim() == 1);
-      const Legion::Rect<1> r = input.domain;
-      const auto me = r.lo[0];
       assert(r.hi[0] == me);
 
       output.slices.clear();
@@ -352,19 +352,16 @@ public:
       }
       assert(!output.slices.empty());
     }
-    else
+    else {
       // We've already been control replicated, so just divide our points
       // over the appropriate local processors
-      switch(task.tag & proc_mask) {
-        case gpu:
-          distribute_index_points_across_local_procs(input, output, local_gpus);
-          break;
-        case omp:
-          distribute_index_points_across_local_procs(input, output, local_omps);
-          break;
-        default:
-          distribute_index_points_across_local_procs(input, output, local_cpus);
-      }
+      auto & procs = processors(processor_kind(task.tag));
+      auto it = procs.begin();
+      for(auto m : util::equal_map(r.volume(), procs.size()))
+        if(!m.empty())
+          output.slices.emplace_back(
+            Domain(me + m.front(), me + m.back()), *it++, false, false);
+    }
 
   } // slice_task
 
@@ -480,6 +477,17 @@ private:
         return P::LOC_PROC;
     }
   }
+  const decltype(local_cpus) & processors(Legion::Processor::Kind k) const {
+    using P = Legion::Processor;
+    switch(k) {
+      case P::TOC_PROC:
+        return local_gpus;
+      case P::OMP_PROC:
+        return local_omps;
+      default:
+        return local_cpus;
+    }
+  }
 
   static Legion::LayoutConstraintSet constraints(Legion::FieldID f_id) {
     using namespace Legion;
@@ -522,28 +530,6 @@ private:
         constraints(missing_field),
         {req.region}));
   } // create_copy_instance
-
-  /*
-    Distribute the index points of a domain across the processors provided in
-    `local_procs` in a round robin way
-  */
-  static void distribute_index_points_across_local_procs(
-    const Legion::Mapping::Mapper::SliceTaskInput & input,
-    Legion::Mapping::Mapper::SliceTaskOutput & output,
-    const std::vector<Legion::Processor> & local_procs) {
-    using namespace Legion;
-    using namespace mapper;
-    unsigned local_index = 0;
-    for(Domain::DomainPointIterator itr(input.domain); itr; itr++) {
-      TaskSlice slice;
-      slice.domain = Domain(itr.p, itr.p);
-      slice.proc = local_procs[local_index];
-      local_index = (local_index + 1) % local_procs.size();
-      slice.recurse = false;
-      slice.stealable = false;
-      output.slices.push_back(slice);
-    }
-  }
 
   void create_reduction_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
