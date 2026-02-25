@@ -69,9 +69,6 @@ public:
     const Legion::Task & task,
     Legion::Mapping::Mapper::TaskOptions & output) override {
     DefaultMapper::select_task_options(ctx, task, output);
-    // make sure the input provided to `map_task` includes all the valid
-    // instances that the runtime knows
-    output.valid_instances = true;
     // Mysteriously, the top-level task has 16 bytes of argument.
     if(task.arglen == sizeof(std::size_t))
       context::instance()
