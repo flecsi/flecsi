@@ -30,8 +30,7 @@ public:
     : Legion::Mapping::DefaultMapper(_runtime->get_mapper_runtime(),
         machine,
         local,
-        "default"),
-      machine(machine) {
+        "default") {
     using namespace Legion;
     using namespace Legion::Mapping;
     memoize = true; // as set by -dm:memoize
@@ -564,8 +563,6 @@ private:
                  << op);
     return result;
   }
-
-  Realm::Machine machine;
 
   std::map<std::pair<Legion::TaskID, Legion::Processor::Kind>,
     Legion::VariantID>
