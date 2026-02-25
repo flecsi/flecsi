@@ -26,6 +26,6 @@ main(int argc, char ** argv) {
   if(flog_process.has_value())
     cfg.flog.process = flog_process;
   runtime run(cfg);
-  flecsi::flog::add_output_stream("flog", std::clog, true);
+  flecsi::flog::add_output_stream(std::clog, true);
   return run.control<control>();
 } // main

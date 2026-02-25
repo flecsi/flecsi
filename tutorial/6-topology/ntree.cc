@@ -174,6 +174,6 @@ main(int argc, char ** argv) {
   flecsi::getopt()(argc, argv);
   const flecsi::run::dependencies_guard dg;
   flecsi::runtime run;
-  flecsi::flog::add_output_stream("clog", std::clog, true);
+  flecsi::flog::add_output_stream(std::clog, true);
   return run.control<sph::control>();
 }

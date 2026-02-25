@@ -293,13 +293,9 @@ __ https://en.cppreference.com/w/cpp/io/clog
 .. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
   :start-at: // Add the standard log descriptor to Flog's buffers.
-  :end-at: log::add_output_stream("clog", std::clog, true);
+  :end-at: log::add_output_stream(std::clog, true);
 
 The arguments to ``add_output_stream`` are:
-
-* ``label`` (``"clog"``): |br|
-  This is an arbitrary label that may be used in future versions to
-  enable or disable output. The label should be unique.
 
 * ``stream buffer`` (``std::clog``): |br|
   A ``std::ostream`` object.
@@ -315,7 +311,7 @@ To add an output stream to a file, we can do the following:
 .. literalinclude:: ../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
   :start-at: // Add an output file to Flog's buffers.
-  :end-at: log::add_output_stream("log file", log_file);
+  :end-at: log::add_output_stream(log_file);
 
 .. important::
 

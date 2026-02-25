@@ -238,8 +238,6 @@ tags() {
 /*!
   Add an output stream to Flog.
 
-  @param label    An identifier for the stream. This can be used to access or
-                  update an output stream after it has been added.
   @param stream   The output stream to add.
   @param colorize Indicates whether the output to this stream should be
                   colorized. It is useful to turn colorization off for
@@ -247,10 +245,8 @@ tags() {
  */
 
 inline void
-add_output_stream(std::string const & label,
-  std::ostream & stream,
-  bool colorize = false) {
-  state::instance().config_stream().add_buffer(label, stream, colorize);
+add_output_stream(std::ostream & stream, bool colorize = false) {
+  state::instance().config_stream().add_buffer(stream, colorize);
 } // add_output_stream
 
 /*
@@ -403,7 +399,7 @@ tags() {
 }
 
 inline void
-add_output_stream(std::string const &, std::ostream &, bool = false) {}
+add_output_stream(std::ostream &, bool = false) {}
 
 template<class T>
 struct container {
@@ -430,6 +426,26 @@ struct container {
 #endif // FLECSI_ENABLE_FLOG
 
 namespace flecsi::flog {
+/*!
+  Add an output stream to Flog.
+
+  \param label Identifier for the stream.  Additional registrations with the
+  same label are ignored.
+
+  \see Overload without \p label.
+  \deprecated Omit \p label.
+  \ingroup flog
+ */
+
+[[deprecated("use overload without label")]] inline void
+add_output_stream(std::string const & label,
+  std::ostream & stream,
+  bool colorize = false) {
+  static std::set<std::string> labels_;
+  if(labels_.insert(label).second)
+    add_output_stream(stream, colorize);
+} // add_output_stream
+
 /// Flush buffered Flog output.
 /// \ingroup flog
 inline void

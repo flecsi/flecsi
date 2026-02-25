@@ -27,6 +27,6 @@ main(int argc, char ** argv) {
 #endif
 #endif
   flecsi::runtime run(cfg);
-  flecsi::flog::add_output_stream("clog", std::clog, true);
+  flecsi::flog::add_output_stream(std::clog, true);
   return run.control<poisson::control>();
 } // main
