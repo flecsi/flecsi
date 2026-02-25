@@ -30,29 +30,10 @@ public:
     : Legion::Mapping::DefaultMapper(_runtime->get_mapper_runtime(),
         machine,
         local,
-        "default") {
-    using namespace Legion;
-    using namespace Legion::Mapping;
+        "default"),
+      target_mem(closest()) {
     memoize = true; // as set by -dm:memoize
-    // Get our local memories
-    {
-      Machine::MemoryQuery sysmem_query(machine);
-      sysmem_query.local_address_space();
-      sysmem_query.only_kind(Memory::SYSTEM_MEM);
-      local_sysmem = sysmem_query.first();
-      assert(local_sysmem.exists());
-    }
-    if(local_kind == Processor::TOC_PROC) {
-      Machine::MemoryQuery fb_query(machine);
-      fb_query.local_address_space();
-      fb_query.only_kind(Memory::GPU_FB_MEM);
-      fb_query.best_affinity_to(local_proc);
-      local_framebuffer = fb_query.first();
-      assert(local_framebuffer.exists());
-    }
-    else {
-      local_framebuffer = Memory::NO_MEMORY;
-    }
+    assert(target_mem.exists());
   }
 
   void select_task_options(const Legion::Mapping::MapperContext ctx,
@@ -152,7 +133,6 @@ public:
   void create_compacted_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
-    const Legion::Memory & target_mem,
     const Legion::LayoutConstraintSet & layout_constraints,
     const size_t & indx) {
     using namespace Legion;
@@ -183,7 +163,6 @@ public:
   void create_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
-    const Legion::Memory & target_mem,
     const Legion::LayoutConstraintSet & layout_constraints,
     const size_t & indx) {
     using namespace Legion;
@@ -224,8 +203,6 @@ public:
     output.chosen_instances.resize(task.regions.size());
 
     if(task.regions.size() > 0) {
-      const Legion::Memory target_mem =
-        (task.tag & proc_mask) == gpu ? local_framebuffer : local_sysmem;
       std::vector<std::set<Legion::FieldID>> missing_fields(
         task.regions.size());
       runtime->filter_instances(ctx,
@@ -269,7 +246,7 @@ public:
 
         if(task.regions[indx].privilege == REDUCE) {
           create_reduction_instance(
-            ctx, task, output, target_mem, indx, valid_missing_fields);
+            ctx, task, output, indx, valid_missing_fields);
           continue;
         }
 
@@ -282,14 +259,13 @@ public:
             layout_constraints.add_constraint(
               Legion::FieldConstraint(all_fields, true));
             create_compacted_instance(
-              ctx, task, output, target_mem, layout_constraints, indx);
+              ctx, task, output, layout_constraints, indx);
           indx = indx + 2;
           continue;
         }
 #endif
         for(const auto & missing_field : missing_fields[indx])
-          create_instance(
-            ctx, task, output, target_mem, constraints(missing_field), indx);
+          create_instance(ctx, task, output, constraints(missing_field), indx);
       } // end for
 
     } // end if
@@ -431,6 +407,19 @@ private:
     return s.str();
   }
 
+  Legion::Memory closest(Legion::Memory::Kind k, Legion::Processor p) const {
+    using namespace Legion;
+    Machine::MemoryQuery q(machine);
+    q.local_address_space().only_kind(k).best_affinity_to(p);
+    return q.first();
+  }
+  Legion::Memory closest() const {
+    using namespace Legion;
+    return closest(local_kind == Processor::TOC_PROC ? Memory::GPU_FB_MEM
+                                                     : Memory::SYSTEM_MEM,
+      local_proc);
+  }
+
   static Legion::Processor::Kind processor_kind(Legion::MappingTagID t) {
     using namespace mapper;
     using P = Legion::Processor;
@@ -500,7 +489,6 @@ private:
   void create_reduction_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
-    const Legion::Memory & target_mem,
     const size_t & idx,
     std::set<Legion::FieldID> & missing_fields) {
 
@@ -542,7 +530,7 @@ private:
   Legion::Mapping::PhysicalInstance get_instance(
     const Legion::Mapping::MapperContext ctx,
     const std::string & op,
-    const Legion::Memory & target_mem,
+    const Legion::Memory & target_mem, // can be different for copies
     const Legion::LayoutConstraintSet & layout_constraints,
     const std::vector<Legion::LogicalRegion> & regions) const {
     Legion::Mapping::PhysicalInstance result;
@@ -568,7 +556,7 @@ private:
     Legion::VariantID>
     variant;
 
-  Legion::Memory local_sysmem, local_framebuffer;
+  Legion::Memory target_mem;
 
   static inline Legion::ShardingID block_shard =
     [id = Legion::Runtime::generate_static_sharding_id()] {
