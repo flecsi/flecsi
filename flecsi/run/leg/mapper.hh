@@ -75,8 +75,9 @@ public:
       context::instance()
         .params.at(get1<std::size_t>(task))
         .post(task.is_index_space
-                ? (task.index_domain.get_volume() + total_nodes - 1 - node_id) /
-                    total_nodes
+                ? util::equal_map(
+                    task.index_domain.get_volume(), total_nodes)[node_id]
+                    .size()
                 : node_id == output.initial_proc.address_space());
   }
 
