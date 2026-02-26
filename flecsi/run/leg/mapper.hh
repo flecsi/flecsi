@@ -34,6 +34,13 @@ public:
       target_mem(closest()) {
     memoize = true; // as set by -dm:memoize
     assert(target_mem.exists());
+    {
+      const auto sock = maybe_fb(Legion::Memory::SOCKET_MEM);
+      const auto numa = closest(sock);
+      for(auto p : processors(local_kind))
+        if(closest(sock, p) == numa)
+          numa_domain.push_back(p);
+    }
   }
 
   void select_task_options(const Legion::Mapping::MapperContext ctx,
@@ -187,17 +194,10 @@ public:
     using namespace Legion::Mapping;
     using namespace mapper;
 
-    output.chosen_variant =
-      find_variant(ctx, task.task_id, processor_kind(task.tag));
-    switch(task.tag & proc_mask) {
-      case gpu:
-        output.target_procs.push_back(task.target_proc);
-        break;
-      case omp:
-        output.target_procs = local_omps;
-        break;
-      default:
-        output.target_procs.resize(1, local_proc);
+    if(output.target_procs.empty()) { // replicated tasks are automatic
+      output.chosen_variant =
+        find_variant(ctx, task.task_id, processor_kind(task.tag));
+      output.target_procs = numa_domain;
     }
 
     output.chosen_instances.resize(task.regions.size());
@@ -407,17 +407,22 @@ private:
     return s.str();
   }
 
+  Legion::Memory::Kind maybe_fb(Legion::Memory::Kind k) const {
+    using namespace Legion;
+    return local_kind == Processor::TOC_PROC ? Memory::GPU_FB_MEM : k;
+  }
+
   Legion::Memory closest(Legion::Memory::Kind k, Legion::Processor p) const {
     using namespace Legion;
     Machine::MemoryQuery q(machine);
     q.local_address_space().only_kind(k).best_affinity_to(p);
     return q.first();
   }
+  Legion::Memory closest(Legion::Memory::Kind k) const {
+    return closest(k, local_proc);
+  }
   Legion::Memory closest() const {
-    using namespace Legion;
-    return closest(local_kind == Processor::TOC_PROC ? Memory::GPU_FB_MEM
-                                                     : Memory::SYSTEM_MEM,
-      local_proc);
+    return closest(maybe_fb(Legion::Memory::SYSTEM_MEM));
   }
 
   static Legion::Processor::Kind processor_kind(Legion::MappingTagID t) {
@@ -557,6 +562,7 @@ private:
     variant;
 
   Legion::Memory target_mem;
+  decltype(local_cpus) numa_domain;
 
   static inline Legion::ShardingID block_shard =
     [id = Legion::Runtime::generate_static_sharding_id()] {
