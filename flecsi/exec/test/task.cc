@@ -203,8 +203,8 @@ namespace user_types {
 const field<int>::definition<arr> int_field;
 const field<double>::definition<arr> double_field;
 
-constexpr int test_int = 317;
-constexpr double test_double = 8.64;
+constexpr int test_int = sizeof(int);
+constexpr double test_double = sizeof(double);
 
 struct type_with_accessors : data::params_tag {
   field<int>::accessor<wo> fa1;
@@ -269,6 +269,19 @@ get_values(std::tuple<field<int>::accessor<ro>, field<double>::accessor<ro>>
 }
 
 } // namespace user_types
+
+int
+var(const std::variant<field<int>::accessor<ro>,
+  field<double>::accessor<ro>,
+  const int *> & v) noexcept {
+  return std::visit(
+    [](const auto & a) {
+      UNIT() {
+        EXPECT_EQ(a[0], sizeof a[0]);
+      };
+    },
+    v);
+}
 
 int
 task_driver(scheduler & s) {
@@ -338,12 +351,13 @@ task_driver(scheduler & s) {
     s.execute<hydro::simple<const float *>>(&obj);
     s.execute<hydro::move>(exec::on, std::make_unique<int>());
 
+    const auto arr_i = user_types::int_field(arr_s);
+    const auto arr_d = user_types::double_field(arr_s);
     // params test
     s.execute<user_types::set_field_values>(std::tuple(
       user_types::int_field(arr_s), user_types::double_field(arr_s)));
-    EXPECT_EQ(s.test<user_types::get_field_values>(std::tuple(
-                user_types::int_field(arr_s), user_types::double_field(arr_s))),
-      0);
+    EXPECT_EQ(
+      s.test<user_types::get_field_values>(std::tuple(arr_i, arr_d)), 0);
 
     // args test
     user_types::type_with_references type_with_references_instance{
@@ -355,6 +369,13 @@ task_driver(scheduler & s) {
     s.execute<user_types::set_field_values>(type_with_references_instance);
     EXPECT_EQ(
       s.test<user_types::get_field_values>(type_with_references_instance), 0);
+
+    const auto arr_f =
+      [&s](std::variant<decltype(arr_i), decltype(arr_d), int *> v) {
+        return s.test<var>(v);
+      };
+    EXPECT_EQ(arr_f(arr_i), 0);
+    EXPECT_EQ(arr_f(arr_d), 0);
   };
 } // task_driver
 

@@ -269,6 +269,14 @@ struct sync_storage<std::tuple<PP...>, T, std::tuple<AA...>> {
     type_identity<std::tuple<sync_storage_t<PP, element_t<T, AA>>...>>,
     replaced<std::tuple<PP...>, T>>::type; // instantiated only if needed
 };
+template<class... PP, class T, class... AA>
+struct sync_storage<std::variant<PP...>, T, std::variant<AA...>> {
+  static constexpr bool temporary =
+    (sync_storage<PP, element_t<T, AA>>::temporary || ...);
+  using type = typename std::conditional_t<temporary,
+    type_identity<std::variant<sync_storage_t<PP, element_t<T, AA>>...>>,
+    replaced<std::variant<PP...>, T>>::type; // instantiated only if needed
+};
 template<class P, class V, class A>
 struct sync_storage<std::vector<P>, V, std::vector<A>> {
   static constexpr bool temporary = sync_storage<P, element_t<V, A>>::temporary;
@@ -277,10 +285,33 @@ struct sync_storage<std::vector<P>, V, std::vector<A>> {
     replaced<std::vector<P>, V>>::type;
 };
 
+template<class F, class A, std::size_t... II>
+decltype(auto)
+visit_index(F && f, A && v, std::index_sequence<II...>) {
+  static constexpr std::array tab{+[](F && f, A && v) -> decltype(auto) {
+    return f(util::constant<II>(), std::get<II>(std::forward<A>(v)));
+  }...};
+  return tab[v.index()](std::forward<F>(f), std::forward<A>(v));
+}
+template<class F, class A>
+decltype(auto)
+visit_index(F && f, A && v) {
+  if(v.valueless_by_exception())
+    throw std::bad_variant_access();
+  return visit_index(std::forward<F>(f),
+    std::forward<A>(v),
+    std::make_index_sequence<
+      std::variant_size_v<std::remove_reference_t<A>>>());
+}
+
 template<class>
 struct is_tuple : std::false_type {};
 template<class... TT>
 struct is_tuple<std::tuple<TT...>> : std::true_type {};
+template<class>
+struct is_variant : std::false_type {};
+template<class... TT>
+struct is_variant<std::variant<TT...>> : std::true_type {};
 template<class>
 struct is_vector : std::false_type {};
 template<class T>
@@ -302,6 +333,14 @@ convert(U && u) { // deep implicit conversions
       [](auto &&... xx) {
         return convert_tuple(
           static_cast<T *>(nullptr), std::forward<decltype(xx)>(xx)...);
+      },
+      std::forward<U>(u));
+  else if constexpr(is_variant<T>::value)
+    return visit_index(
+      [](auto i, auto && x) {
+        return T(std::in_place_index<i.value>,
+          convert<std::variant_alternative_t<i.value, T>>(
+            std::forward<decltype(x)>(x)));
       },
       std::forward<U>(u));
   else if constexpr(is_vector<T>::value) {
@@ -363,6 +402,10 @@ struct protocol {
   template<class... PP>
   struct param_storage<std::tuple<PP...>> {
     using type = std::tuple<param_storage_t<PP>...>;
+  };
+  template<class... PP>
+  struct param_storage<std::variant<PP...>> {
+    using type = std::variant<param_storage_t<PP>...>;
   };
   template<class P>
   struct param_storage<std::vector<P>> {
@@ -883,6 +926,64 @@ struct launch<std::tuple<PP...>, std::tuple<AA...>> {
       .value();
   }
 };
+
+template<class... PP>
+struct task_param<std::variant<PP...>> {
+  template<class... AA,
+    class = std::enable_if_t<(
+      replace_argument<std::decay_t<PP>, const AA &>::special || ...)>>
+  static auto replace(const std::variant<AA...> & v) {
+    return make(v);
+  }
+  template<class... AA,
+    class = std::enable_if_t<(
+      replace_argument<std::decay_t<PP>, AA &&>::special || ...)>>
+  static auto replace(std::variant<AA...> && v) {
+    return make(std::move(v));
+  }
+
+private:
+  template<std::size_t I, class T>
+  static decltype(auto) make1(T && x) {
+    return exec::replace_argument<
+      std::variant_alternative_t<I, std::variant<PP...>>>(std::forward<T>(x));
+  }
+  template<class V, std::size_t... II>
+  static auto storage(V && v, std::index_sequence<II...>) -> std::variant<
+    std::decay_t<decltype(make1<II>(std::get<II>(std::forward<V>(v))))>...>;
+
+  template<class V>
+  static auto make(V && v) {
+    return visit_index(
+      [](auto i, auto && x) {
+        return decltype(storage(std::forward<V>(v),
+          std::index_sequence_for<PP...>()))(std::in_place_index<i.value>,
+          make1<i.value>(std::forward<decltype(x)>(x)));
+      },
+      std::forward<V>(v));
+  }
+};
+template<class... TT>
+struct must_convert<std::variant<TT...>>
+  : std::disjunction<must_convert<TT>...> {};
+template<class... PP, class... AA>
+struct launch<std::variant<PP...>, std::variant<AA...>> {
+  static auto get(const std::variant<AA...> & v) {
+    return visit_index(
+      [](auto i, auto & x) {
+        return (
+          launch_combine(std::decay_t<decltype(launch_size<std::tuple<PP...>>(
+              std::declval<AA>()...)
+                .value())>()) |
+          launch_combine(launch_size_single<
+            std::variant_alternative_t<i.value, std::variant<PP...>>>(x)))
+          .value();
+      },
+      v);
+  }
+};
+template<class... TT>
+struct must_bind<std::variant<TT...>> : std::disjunction<must_bind<TT>...> {};
 
 template<class P, class... AA>
 struct launch<P,

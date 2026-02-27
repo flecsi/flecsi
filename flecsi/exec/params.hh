@@ -172,6 +172,11 @@ private:
       },
       pt);
   }
+  template<class... PP, class... AA>
+  void visit(std::variant<PP...> & pv, const std::variant<AA...> & av) {
+    detail::visit_index(
+      [&](auto i, auto & av) { visit(std::get<i.value>(pv), av); }, av);
+  }
 
   // The const prevents being a better match than more specialized overloads.
   // This is constrained opposite the above because it is more specialized.
@@ -206,6 +211,10 @@ private:
   void visit(std::tuple<TT...> & t) {
     std::apply(
       [&](auto &&... xx) { (visit(std::forward<decltype(xx)>(xx)), ...); }, t);
+  }
+  template<class... TT>
+  void visit(std::variant<TT...> & v) {
+    std::visit([&](auto & x) { visit(x); }, v);
   }
 
   template<class P>
