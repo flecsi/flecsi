@@ -177,6 +177,13 @@ private:
     detail::visit_index(
       [&](auto i, auto & av) { visit(std::get<i.value>(pv), av); }, av);
   }
+  template<class P, class A>
+  void visit(std::optional<P> & p, const std::optional<A> & a) {
+    if(p) {
+      flog_assert(a, "mismatched empty optional");
+      visit(*p, *a);
+    }
+  }
 
   // The const prevents being a better match than more specialized overloads.
   // This is constrained opposite the above because it is more specialized.
@@ -215,6 +222,11 @@ private:
   template<class... TT>
   void visit(std::variant<TT...> & v) {
     std::visit([&](auto & x) { visit(x); }, v);
+  }
+  template<class T>
+  void visit(std::optional<T> & o) {
+    if(o)
+      visit(*o);
   }
 
   template<class P>

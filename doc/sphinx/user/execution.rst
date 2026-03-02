@@ -63,11 +63,11 @@ For example, if all fields share the same type, a ``std::vector`` can be used to
    void bar(flecsi::exec::cpu e,
      std::vector<flecsi::field<double>::accessor<ro, ro>> fv1) noexcept { /* ... */ }
 
-Similarly, ``std::variant`` may be used to accept a runtime choice from a set of field types.
+Similarly, ``std::optional`` can be used to provide zero or one field, and ``std::variant`` may be used to accept a runtime choice from a set of field types.
 
 .. warning::
 
-   A task with a ``std::vector`` or ``std::variant`` argument that can contain a relevant FleCSI type but does not do so (because the vector is empty or the variant holds some other type) will execute zero times unless some other argument implies a launch size.
+   A task with a ``std::vector``, ``std::optional``, or ``std::variant`` argument that can contain a relevant FleCSI type but does not do so (because the vector or optional is empty or the variant holds some other type) will execute zero times unless some other argument implies a launch size.
 
 Caller Side
 ^^^^^^^^^^^

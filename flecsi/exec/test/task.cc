@@ -272,12 +272,17 @@ get_values(std::tuple<field<int>::accessor<ro>, field<double>::accessor<ro>>
 
 int
 var(const std::variant<field<int>::accessor<ro>,
-  field<double>::accessor<ro>,
-  const int *> & v) noexcept {
+      field<double>::accessor<ro>,
+      const int *> & v,
+  const std::optional<field<int>::accessor<ro>> & o1,
+  std::optional<field<double>::accessor<ro>> o2) noexcept {
   return std::visit(
-    [](const auto & a) {
+    [&o1, &o2](const auto & a) {
       UNIT() {
         EXPECT_EQ(a[0], sizeof a[0]);
+        EXPECT_FALSE(o1);
+        ASSERT_TRUE(o2);
+        EXPECT_EQ((*o2)[0], sizeof(*o2)[0]);
       };
     },
     v);
@@ -371,8 +376,9 @@ task_driver(scheduler & s) {
       s.test<user_types::get_field_values>(type_with_references_instance), 0);
 
     const auto arr_f =
-      [&s](std::variant<decltype(arr_i), decltype(arr_d), int *> v) {
-        return s.test<var>(v);
+      [&](std::variant<decltype(arr_i), decltype(arr_d), int *> v) {
+        return s.test<var>(
+          v, decltype(std::make_optional(arr_i))(), std::make_optional(arr_d));
       };
     EXPECT_EQ(arr_f(arr_i), 0);
     EXPECT_EQ(arr_f(arr_d), 0);
