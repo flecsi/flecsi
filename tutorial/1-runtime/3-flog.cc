@@ -68,12 +68,12 @@ main(int argc, char ** argv) {
 
   // Add the standard log descriptor to Flog's buffers.
 
-  flog::add_output_stream("clog", std::clog, true);
+  flog::add_output_stream(std::clog, true);
 
   // Add an output file to Flog's buffers.
 
   log_file.open("output.txt");
-  flog::add_output_stream("log file", log_file);
+  flog::add_output_stream(log_file);
 
   return run.control<run::call>(simulation);
 } // main

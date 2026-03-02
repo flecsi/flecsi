@@ -24,6 +24,10 @@ Deprecated
 
   * ``exec::launch_type_t`` |mdash| use ``future_kind`` as the type (but not for the values)
 
+* Logging
+  
+  * ``flog::add_output_stream(std::string const&, std::ostream&, bool)`` |mdash| use ``flog::add_output_stream(std::ostream&, bool)``
+
 New features
 ^^^^^^^^^^^^
 * Data
@@ -38,6 +42,7 @@ New features
 * Logging
 
   * ``flog::flush`` is available in ``flog.hh``.
+  * ``flog::add_output_stream`` no longer requires a stream identifier.
 
 Changes in v2.4.2
 +++++++++++++++++

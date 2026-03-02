@@ -174,7 +174,7 @@ main(int argc, char ** argv) {
   flecsi::getopt()(argc, argv);
   const flecsi::run::dependencies_guard dg;
   flecsi::runtime run;
-  flecsi::flog::add_output_stream("clog", std::clog, true);
+  flecsi::flog::add_output_stream(std::clog, true);
   // Execute our code control point by control point.
   return run.control<flaxpy::control>();
 }

@@ -13,7 +13,6 @@
 #include <cassert>
 #include <iostream>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace flecsi {
@@ -58,37 +57,17 @@ public:
    */
 
   struct buffer_data_t {
-    bool enabled;
     bool colorized;
     std::streambuf * buffer;
   }; // struct buffer_data_t
 
   /*!
-    Add a buffer to which output should be written. This also enables
-    the buffer,i.e., output will be written to it. For a given key,
-    only the first call to this method will have an effect.
+    Add a buffer to which output should be written.
    */
 
-  void add_buffer(std::string key, std::streambuf * sb, bool colorized) {
-    buffers_.insert({key, {true, colorized, sb}});
+  void add_buffer(std::streambuf * sb, bool colorized) {
+    buffers_.push_back({colorized, sb});
   } // add_buffer
-
-  /*!
-    Enable a buffer so that output is written to it. This is mainly
-    for buffers that have been disabled and need to be re-enabled.
-   */
-
-  void enable_buffer(std::string key) {
-    buffers_.at(key).enabled = true;
-  } // enable_buffer
-
-  /*!
-    Disable a buffer so that output is not written to it.
-   */
-
-  void disable_buffer(std::string key) {
-    buffers_.at(key).enabled = false;
-  } // disable_buffer
 
 protected:
   /*!
@@ -122,7 +101,7 @@ protected:
           }
           else {
             // No match, go ahead and write the character
-            return flush_buffer(all_buffers);
+            return flush_buffer();
           } // if
 
         case 1:
@@ -133,7 +112,7 @@ protected:
           else {
             // This is some other kind of escape. Write the
             // buffered output to all buffers.
-            return flush_buffer(all_buffers);
+            return flush_buffer();
           } // if
 
         case 2:
@@ -144,7 +123,7 @@ protected:
           else {
             // This is some other kind of escape. Write the
             // buffered output to all buffers.
-            return flush_buffer(all_buffers);
+            return flush_buffer();
           } // if
 
         case 3:
@@ -160,7 +139,7 @@ protected:
           else {
             // This is some other kind of escape. Write the
             // buffered output to all buffers.
-            return flush_buffer(all_buffers);
+            return flush_buffer();
           } // if
 
         case 4:
@@ -171,7 +150,7 @@ protected:
           else {
             // This is some other kind of escape. Write the
             // buffered output to all buffers.
-            return flush_buffer(all_buffers);
+            return flush_buffer();
           } // if
 
         case 5:
@@ -182,7 +161,7 @@ protected:
           else {
             // This is some other kind of escape. Write the
             // buffered output to all buffers.
-            return flush_buffer(all_buffers);
+            return flush_buffer();
           } // if
 
         case 6:
@@ -194,7 +173,7 @@ protected:
           else {
             // This is some other kind of escape. Write the
             // buffered output to all buffers.
-            return flush_buffer(all_buffers);
+            return flush_buffer();
           } // if
       } // switch
 
@@ -210,7 +189,7 @@ protected:
     bool fail = false;
 
     for(const auto & b : buffers_) {
-      if(b.second.buffer->pubsync())
+      if(b.buffer->pubsync())
         fail = true;
     } // for
 
@@ -219,26 +198,26 @@ protected:
   } // sync
 
 private:
-  // Predicate to select all buffers.
-  static bool all_buffers(const buffer_data_t & bd) {
-    return bd.enabled;
-  } // any_buffer
+  // Default predicate: flush unconditionally.
+  int flush_buffer() {
+    return flush_buffer([](const buffer_data_t &) { return true; });
+  }
 
   // Predicate to select color buffers.
   static bool color_buffers(const buffer_data_t & bd) {
-    return bd.enabled && bd.colorized;
+    return bd.colorized;
   } // any_buffer
 
   // Flush buffered output to buffers that satisfy the predicate function.
   template<typename P>
-  int flush_buffer(P && predicate = all_buffers) {
+  int flush_buffer(P && predicate) {
     int eof = !EOF;
 
     // Put test buffer characters to each buffer
     for(const auto & b : buffers_) {
-      if(predicate(b.second)) {
+      if(predicate(b)) {
         for(auto bc : test_buffer_) {
-          const int w = b.second.buffer->sputc(bc);
+          const int w = b.buffer->sputc(bc);
           if(eof != EOF)
             eof = w;
         } // for
@@ -252,7 +231,7 @@ private:
     return eof == EOF ? EOF : !EOF;
   } // flush_buffer
 
-  std::unordered_map<std::string, buffer_data_t> buffers_;
+  std::vector<buffer_data_t> buffers_;
   std::string test_buffer_;
 
 }; // class tee_buffer_t
@@ -268,7 +247,7 @@ struct tee_stream_t : public std::ostream {
     // Allow users to turn std::clog output on and off from
     // their environment.
     if(std::getenv("FLOG_ENABLE_STDLOG")) {
-      tee_.add_buffer("flog", std::clog.rdbuf(), true);
+      tee_.add_buffer(std::clog.rdbuf(), true);
     } // if
   } // tee_stream_t
 
@@ -276,31 +255,9 @@ struct tee_stream_t : public std::ostream {
     Add a new buffer to the output.
    */
 
-  void add_buffer(std::string const & key,
-    std::ostream & s,
-    bool colorized = false) {
-    tee_.add_buffer(key, s.rdbuf(), colorized);
+  void add_buffer(std::ostream & s, bool colorized = false) {
+    tee_.add_buffer(s.rdbuf(), colorized);
   } // add_buffer
-
-  /*!
-    Enable an existing buffer.
-
-    \param key The string identifier of the streambuf.
-   */
-
-  void enable_buffer(std::string const & key) {
-    tee_.enable_buffer(key);
-  } // enable_buffer
-
-  /*!
-    Disable an existing buffer.
-
-    \param key The string identifier of the streambuf.
-   */
-
-  void disable_buffer(std::string const & key) {
-    tee_.disable_buffer(key);
-  } // disable_buffer
 
 private:
   tee_buffer_t tee_;

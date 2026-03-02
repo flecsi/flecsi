@@ -45,7 +45,7 @@ int
 main() {
   const flecsi::run::dependencies_guard dg;
   flecsi::runtime run;
-  flecsi::flog::add_output_stream("clog", std::clog, true);
+  flecsi::flog::add_output_stream(std::clog, true);
   // Run the control model.  control::invoke will, in turn,
   // execute all of the cycles, and actions of the control model.
   return run.control<control>();
