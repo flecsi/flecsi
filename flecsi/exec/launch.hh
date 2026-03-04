@@ -164,12 +164,6 @@ launch_size(const AA &... aa) {
   return launch_size<M>(static_cast<P *>(nullptr), aa...);
 }
 
-template<class, class = void>
-struct has_space : std::false_type {};
-template<class S>
-struct has_space<S, std::void_t<typename S::execution_space>> : std::true_type {
-};
-
 template<class F>
 void ignore(F); // work around GCC bug #119343
 
@@ -507,9 +501,55 @@ struct launch_domain {
   Color size_;
 };
 
+struct cpu;
+struct gpu;
+struct omp;
+
+namespace detail {
+template<class>
+struct kokkos_space; // undefined
+template<class S>
+using kokkos_space_t = typename kokkos_space<S>::type;
+template<>
+struct kokkos_space<cpu> {
+#ifdef KOKKOS_ENABLE_SERIAL
+  using type = Kokkos::Serial;
+#endif
+};
+template<>
+struct kokkos_space<gpu> {
+#ifdef KOKKOS_ENABLE_CUDA
+  using type = Kokkos::Cuda;
+#elif defined(KOKKOS_ENABLE_HIP)
+  using type = Kokkos::HIP;
+#endif // otherwise undefined
+};
+template<>
+struct kokkos_space<omp> {
+#ifdef KOKKOS_ENABLE_OPENMP
+  using type = Kokkos::OpenMP;
+#endif // otherwise undefined
+};
+
+template<class, class = void>
+struct has_space : std::false_type {};
+template<class S>
+struct has_space<S, std::void_t<kokkos_space_t<S>>> : std::true_type {};
+
+template<class S, bool = has_space<S>::value>
+struct kokkos_base {};
+template<class S>
+struct kokkos_base<S, true> {
+  kokkos_space_t<S> kok;
+};
+} // namespace detail
+
 /// Executor derivation.
-template<class D>
-struct executor_base {
+template<class S, class D>
+struct executor_base : private detail::kokkos_base<S> {
+  executor_base(detail::kokkos_space_t<S> k)
+    : executor_base::kokkos_base{std::move(k)} {}
+
   /// \see \c executor
   template<class C, class F>
   void for_each(C && c, F && f) const {
@@ -520,6 +560,11 @@ struct executor_base {
   [[nodiscard]] T reduce(C && c, F && f) const {
     return d().named({}).template reduce<R, T>(
       std::forward<C>(c), std::forward<F>(f));
+  }
+
+  /// Return the Kokkos execution space in use.
+  auto kokkos() const {
+    return this->kok;
   }
 
 private:
@@ -566,14 +611,15 @@ public:
 
 /// Parallel operations given a name for debugging or profiling.
 template<class S, unsigned T, unsigned B>
-struct executor : executor_base<executor<S, T, B>> {
-  explicit executor(std::string n) : name(std::move(n)) {}
+struct executor : executor_base<S, executor<S, T, B>> {
+  explicit executor(detail::kokkos_space_t<S> k, std::string n)
+    : executor::executor_base(std::move(k)), name(std::move(n)) {}
 
 private:
   // auto to avoid requiring Kokkos for merely choosing the execution space.
   auto range(util::id n) const {
-    return exec::policy_type<typename S::execution_space,
-      Kokkos::LaunchBounds<T, B>>(0, n);
+    auto k = this->kokkos();
+    return exec::policy_type<decltype(k), Kokkos::LaunchBounds<T, B>>(k, 0, n);
   }
 
 public:
@@ -598,23 +644,23 @@ private:
 };
 /// Parallel operations with thread configuration.
 template<class S, unsigned T, unsigned B>
-struct blocks : executor_base<blocks<S, T, B>> {
+struct blocks : executor_base<S, blocks<S, T, B>> {
   /// Specify a name for an operation.
   /// \return \c executor
   auto named(std::string n) const {
-    return executor<S, T, B>(std::move(n));
+    return executor<S, T, B>(this->kokkos(), std::move(n));
   }
 };
 /// A node-local context for potentially parallel operations.
 template<class S>
-struct agent : executor_base<agent<S>> {
+struct agent : executor_base<S, agent<S>> {
   /// Specify threads and blocks for an operation.
   /// These are ignored if not supported by the execution space.
   /// \see \c Kokkos::LaunchBounds
   /// \return \c blocks
   template<unsigned T, unsigned B>
   auto threads() const {
-    return blocks<S, T, B>();
+    return blocks<S, T, B>{{this->kokkos()}};
   }
   /// \see \c blocks
   auto named(std::string n) const {
@@ -646,38 +692,27 @@ private:
 };
 /// Execution space operations.
 template<class S>
-struct space : space_base {
+struct space : space_base, private detail::kokkos_base<S> {
   // Since derived executors should be able to outlive their bases, it makes
   // sense to allow a base executor to outlive its (potentially copied) space.
 
   /// Get an executor for potentially parallel operations on this space.
   agent<S> executor() const {
-    return {};
+    return {{this->kok}};
   }
 };
 
 /// Single-core execution space.
 struct cpu : space<cpu> {
   static constexpr processor proc = processor::loc;
-#ifdef KOKKOS_ENABLE_SERIAL
-  using execution_space = Kokkos::Serial;
-#endif // otherwise undefined
 };
 /// GPU execution space.
 struct gpu : space<gpu> {
   static constexpr processor proc = processor::toc;
-#ifdef KOKKOS_ENABLE_CUDA
-  using execution_space = Kokkos::Cuda;
-#elif defined(KOKKOS_ENABLE_HIP)
-  using execution_space = Kokkos::HIP;
-#endif // otherwise undefined
 };
 /// OpenMP execution space.
 struct omp : space<omp> {
   static constexpr processor proc = processor::omp;
-#ifdef KOKKOS_ENABLE_OPENMP
-  using execution_space = Kokkos::OpenMP;
-#endif // otherwise undefined
 };
 
 template<processor>

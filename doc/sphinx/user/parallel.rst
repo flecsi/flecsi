@@ -53,3 +53,5 @@ In this example, ``named("named forall")`` attaches a label to the kernel which 
 ``threads<64, 1>()`` specifies limits on the number of threads and blocks used to execute the construct.
 ``for_each`` is a function template equivalent of ``forall`` that directly accepts a function object.
 ``reduce`` is the equivalent for ``reduceall``; function objects used with these must be declared with ``FLECSI_INLINE_TARGET`` for compatibility with typical GPU compilers.
+
+To allow applications to use other Kokkos features, the underlying Kokkos execution space is provided as ``s.executor().kokkos()``.
