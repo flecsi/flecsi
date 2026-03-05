@@ -42,6 +42,9 @@ struct resize : specialization<column, resize> {
     /// \param s hysteresis control on [0,1]: larger values reallocate more
     ///   frequently for monotonic size changes but less frequently for
     ///   oscillatory ones
+    /// \warning If \a s is small, \a l is small but non-zero, and any of the
+    ///   other parameters are changed from their defaults, very large
+    ///   allocations can result.
     policy(std::size_t m = 0,
       std::size_t e = 0,
       float l = 0,
