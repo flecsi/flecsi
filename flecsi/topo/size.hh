@@ -51,12 +51,9 @@ struct resize : specialization<column, resize> {
 
     data::prefixes_base::size_request operator()(std::size_t n,
       std::size_t cap) const {
-      const auto apply_slow = [](float hyst, float a, float b) -> float {
-        return hyst == 0   ? b
-               : hyst == 1 ? a
-                           : std::pow(a, hyst) * std::pow(b, 1 - hyst);
+      const auto slow = [this](float a, float b) {
+        return std::pow(a, hyst) * std::pow(b, 1 - hyst);
       };
-
       const auto div = [](size_t sz, float d) -> std::size_t {
         return std::nearbyint((sz + .5f) / d);
       };
@@ -64,11 +61,11 @@ struct resize : specialization<column, resize> {
       std::size_t s;
       bool req;
       if(n > hi * cap) {
-        s = div(n, apply_slow(hyst, hi, lo));
+        s = div(n, slow(hi, lo));
         req = true;
       }
       else if(const auto lo_thr = lo * cap; n < lo_thr) {
-        auto d = apply_slow(hyst, lo, hi);
+        const auto d = slow(lo, hi);
         s = div(n, d);
         req = div(lo_thr, d) >= std::max(min, std::size_t(lo_thr) + extra);
       }
