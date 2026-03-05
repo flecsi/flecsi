@@ -73,7 +73,8 @@ struct resize : specialization<column, resize> {
         req = div(lo_thr, d) >= std::max(min, std::size_t(lo_thr) + extra);
       }
       else {
-        s = cap * std::pow(n / (cap * std::sqrt(hi * lo)), 2 * (1 - hyst));
+        const auto d = cap * std::sqrt(hi * lo); // if 0, base never matters
+        s = cap * std::pow(d ? n / d : 1, 2 * (1 - hyst));
         req = false;
       }
       const std::size_t clamp = std::max(min, n + extra);
