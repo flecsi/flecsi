@@ -269,6 +269,21 @@ struct sync_storage<std::tuple<PP...>, T, std::tuple<AA...>> {
     type_identity<std::tuple<sync_storage_t<PP, element_t<T, AA>>...>>,
     replaced<std::tuple<PP...>, T>>::type; // instantiated only if needed
 };
+template<class... PP, class T, class... AA>
+struct sync_storage<std::variant<PP...>, T, std::variant<AA...>> {
+  static constexpr bool temporary =
+    (sync_storage<PP, element_t<T, AA>>::temporary || ...);
+  using type = typename std::conditional_t<temporary,
+    type_identity<std::variant<sync_storage_t<PP, element_t<T, AA>>...>>,
+    replaced<std::variant<PP...>, T>>::type; // instantiated only if needed
+};
+template<class P, class V, class A>
+struct sync_storage<std::optional<P>, V, std::optional<A>> {
+  static constexpr bool temporary = sync_storage<P, element_t<V, A>>::temporary;
+  using type = typename std::conditional_t<temporary,
+    type_identity<std::optional<sync_storage_t<P, element_t<V, A>>>>,
+    replaced<std::optional<P>, V>>::type;
+};
 template<class P, class V, class A>
 struct sync_storage<std::vector<P>, V, std::vector<A>> {
   static constexpr bool temporary = sync_storage<P, element_t<V, A>>::temporary;
@@ -277,10 +292,37 @@ struct sync_storage<std::vector<P>, V, std::vector<A>> {
     replaced<std::vector<P>, V>>::type;
 };
 
+template<class F, class A, std::size_t... II>
+decltype(auto)
+visit_index(F && f, A && v, std::index_sequence<II...>) {
+  static constexpr std::array tab{+[](F && f, A && v) -> decltype(auto) {
+    return f(util::constant<II>(), std::get<II>(std::forward<A>(v)));
+  }...};
+  return tab[v.index()](std::forward<F>(f), std::forward<A>(v));
+}
+template<class F, class A>
+decltype(auto)
+visit_index(F && f, A && v) {
+  if(v.valueless_by_exception())
+    throw std::bad_variant_access();
+  return visit_index(std::forward<F>(f),
+    std::forward<A>(v),
+    std::make_index_sequence<
+      std::variant_size_v<std::remove_reference_t<A>>>());
+}
+
 template<class>
 struct is_tuple : std::false_type {};
 template<class... TT>
 struct is_tuple<std::tuple<TT...>> : std::true_type {};
+template<class>
+struct is_variant : std::false_type {};
+template<class... TT>
+struct is_variant<std::variant<TT...>> : std::true_type {};
+template<class>
+struct is_optional : std::false_type {};
+template<class T>
+struct is_optional<std::optional<T>> : std::true_type {};
 template<class>
 struct is_vector : std::false_type {};
 template<class T>
@@ -304,6 +346,17 @@ convert(U && u) { // deep implicit conversions
           static_cast<T *>(nullptr), std::forward<decltype(xx)>(xx)...);
       },
       std::forward<U>(u));
+  else if constexpr(is_variant<T>::value)
+    return visit_index(
+      [](auto i, auto && x) {
+        return T(std::in_place_index<i.value>,
+          convert<std::variant_alternative_t<i.value, T>>(
+            std::forward<decltype(x)>(x)));
+      },
+      std::forward<U>(u));
+  else if constexpr(is_optional<T>::value)
+    return u ? T(convert<typename T::value_type>(*std::forward<decltype(u)>(u)))
+             : std::nullopt;
   else if constexpr(is_vector<T>::value) {
     util::transform_view(u, [](auto && x) {
       return convert<typename T::value_type>(std::forward<decltype(x)>(x));
@@ -363,6 +416,14 @@ struct protocol {
   template<class... PP>
   struct param_storage<std::tuple<PP...>> {
     using type = std::tuple<param_storage_t<PP>...>;
+  };
+  template<class... PP>
+  struct param_storage<std::variant<PP...>> {
+    using type = std::variant<param_storage_t<PP>...>;
+  };
+  template<class P>
+  struct param_storage<std::optional<P>> {
+    using type = std::optional<param_storage_t<P>>;
   };
   template<class P>
   struct param_storage<std::vector<P>> {
@@ -883,6 +944,98 @@ struct launch<std::tuple<PP...>, std::tuple<AA...>> {
       .value();
   }
 };
+
+template<class... PP>
+struct task_param<std::variant<PP...>> {
+  template<class... AA,
+    class = std::enable_if_t<(
+      replace_argument<std::decay_t<PP>, const AA &>::special || ...)>>
+  static auto replace(const std::variant<AA...> & v) {
+    return make(v);
+  }
+  template<class... AA,
+    class = std::enable_if_t<(
+      replace_argument<std::decay_t<PP>, AA &&>::special || ...)>>
+  static auto replace(std::variant<AA...> && v) {
+    return make(std::move(v));
+  }
+
+private:
+  template<std::size_t I, class T>
+  static decltype(auto) make1(T && x) {
+    return exec::replace_argument<
+      std::variant_alternative_t<I, std::variant<PP...>>>(std::forward<T>(x));
+  }
+  template<class V, std::size_t... II>
+  static auto storage(V && v, std::index_sequence<II...>) -> std::variant<
+    std::decay_t<decltype(make1<II>(std::get<II>(std::forward<V>(v))))>...>;
+
+  template<class V>
+  static auto make(V && v) {
+    return visit_index(
+      [](auto i, auto && x) {
+        return decltype(storage(std::forward<V>(v),
+          std::index_sequence_for<PP...>()))(std::in_place_index<i.value>,
+          make1<i.value>(std::forward<decltype(x)>(x)));
+      },
+      std::forward<V>(v));
+  }
+};
+template<class... TT>
+struct must_convert<std::variant<TT...>>
+  : std::disjunction<must_convert<TT>...> {};
+template<class... PP, class... AA>
+struct launch<std::variant<PP...>, std::variant<AA...>> {
+  static auto get(const std::variant<AA...> & v) {
+    return visit_index(
+      [](auto i, auto & x) {
+        return (
+          launch_combine(std::decay_t<decltype(launch_size<std::tuple<PP...>>(
+              std::declval<AA>()...)
+                .value())>()) |
+          launch_combine(launch_size_single<
+            std::variant_alternative_t<i.value, std::variant<PP...>>>(x)))
+          .value();
+      },
+      v);
+  }
+};
+template<class... TT>
+struct must_bind<std::variant<TT...>> : std::disjunction<must_bind<TT>...> {};
+
+template<class P>
+struct task_param<std::optional<P>> {
+  template<class A,
+    class =
+      std::enable_if_t<replace_argument<std::decay_t<P>, const A &>::special>>
+  static auto replace(const std::optional<A> & o) {
+    return make(o);
+  }
+  template<class A,
+    class = std::enable_if_t<replace_argument<std::decay_t<P>, A &&>::special>>
+  static auto replace(std::optional<A> && o) {
+    return make(std::move(o));
+  }
+
+private:
+  template<class O>
+  static auto make(O && o) {
+    return o ? std::make_optional(
+                 exec::replace_argument<P>(*std::forward<O>(o)))
+             : std::nullopt;
+  }
+};
+template<class T>
+struct must_convert<std::optional<T>> : must_convert<T> {};
+template<class P, class A>
+struct launch<std::optional<P>, std::optional<A>> {
+  using type = decltype(launch<P, A>::get(std::declval<A>()));
+  static type get(const std::optional<A> & o) {
+    return o ? launch<P, A>::get(*o) : type();
+  }
+};
+template<class T>
+struct must_bind<std::optional<T>> : must_bind<T> {};
 
 template<class P, class... AA>
 struct launch<P,
