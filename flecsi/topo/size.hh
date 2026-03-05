@@ -57,8 +57,14 @@ struct resize : specialization<column, resize> {
       const auto slow = [this](float a, float b) {
         return std::pow(a, hyst) * std::pow(b, 1 - hyst);
       };
+      static constexpr auto lim = [](float x) {
+        auto y = data::logical_size;
+        if(x < y)
+          y = x;
+        return y;
+      };
       const auto div = [](size_t sz, float d) -> std::size_t {
-        return std::nearbyint((sz + .5f) / d);
+        return lim(std::nearbyint((sz + .5f) / d));
       };
 
       std::size_t s;
@@ -74,7 +80,7 @@ struct resize : specialization<column, resize> {
       }
       else {
         const auto d = cap * std::sqrt(hi * lo); // if 0, base never matters
-        s = cap * std::pow(d ? n / d : 1, 2 * (1 - hyst));
+        s = lim(cap * std::pow(d ? n / d : 1, 2 * (1 - hyst)));
         req = false;
       }
       const std::size_t clamp = std::max(min, n + extra);
