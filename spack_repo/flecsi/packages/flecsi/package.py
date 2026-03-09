@@ -23,8 +23,6 @@ class Flecsi(Flecsi):
     # local development / CI changes (not intended for public Spack package)
     conflicts('^hpx networking=tcp', when='backend=hpx')
 
-    depends_on("texlive", when="+doc")
-    depends_on("pdf2svg", when="+doc")
     variant("format", default=False, description="Enable Formatting")
     depends_on("llvm@13 +clang", type="build", when="+format")
     depends_on("git", type="build", when="+format")

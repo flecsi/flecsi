@@ -1,0 +1,62 @@
+mpich-mpi-gnu:
+  stage: MPI backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: mpi/serial/mpich-gcc-debug
+
+mpich-mpi-gnu:release:
+  stage: MPI backend
+  extends: [.darwin_release_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: mpi/serial/mpich-gcc-release
+
+openmpi-mpi-gnu:
+  stage: MPI backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: mpi/serial/openmpi-gcc-debug
+
+openmpi-mpi-gnu:release:
+  stage: MPI backend
+  extends: [.darwin_release_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: mpi/serial/openmpi-gcc-release
+
+openmpi-mpi-clang:
+  stage: MPI backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: mpi/serial/openmpi-clang-debug
+
+mpich-mpi-openmp-clang:
+  stage: MPI backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: mpi/openmp/mpich-clang-debug
+    ARCHIVE_SPACK_ENV: "yes"
+
+mpich-mpi-cuda-clang:
+  stage: MPI backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: mpi/cuda/mpich-volta-clang-debug
+    PARTITIONS: volta-x86
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+
+openmpi-mpi-cuda-clang:
+  stage: MPI backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: mpi/cuda/openmpi-volta-clang-debug
+    PARTITIONS: volta-x86
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+    ARCHIVE_SPACK_ENV: "yes"
+
+openmpi-mpi-rocm:
+  stage: MPI backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: mpi/rocm/openmpi-mi250-gcc-debug
+    PARTITIONS: shared-gpu-amd-mi250
+    JOB_CONSTRAINTS: ""
+    ARCHIVE_SPACK_ENV: "yes"

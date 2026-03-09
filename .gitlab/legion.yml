@@ -1,0 +1,66 @@
+mpich-legion-defaults:
+  stage: Legion backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: legion/ucx/serial/mpich-gcc-defaults
+
+mpich-legion-gnu:
+  stage: Legion backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: legion/ucx/serial/mpich-gcc-debug
+    ARCHIVE_SPACK_ENV: "yes"
+
+mpich-legion-gnu:release:
+  stage: Legion backend
+  extends: [.darwin_release_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: legion/ucx/serial/mpich-gcc-release
+
+openmpi-legion-openmp-gnu:
+  stage: Legion backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: legion/ucx/openmp/openmpi-gcc-debug
+    ARCHIVE_SPACK_ENV: "yes"
+
+openmpi-legion-openmp-gnu:release:
+  stage: Legion backend
+  extends: [.darwin_release_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: legion/ucx/openmp/openmpi-gcc-release
+
+openmpi-legion-ucx-cuda-clang:
+  stage: Legion backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: legion/ucx/cuda/openmpi-volta-clang-debug
+    PARTITIONS: volta-x86
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+    ARCHIVE_SPACK_ENV: "yes"
+
+openmpi-legion-mpi-cuda-clang:
+  stage: Legion backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: legion/gasnet/cuda/openmpi-mpi-volta-clang-debug
+    PARTITIONS: volta-x86
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+    ARCHIVE_SPACK_ENV: "yes"
+
+mpich-legion-mpi-cuda-clang:
+  stage: Legion backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: legion/ucx/cuda/mpich-volta-clang-debug
+    PARTITIONS: volta-x86
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+
+openmpi-legion-rocm:
+  stage: Legion backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: legion/gasnet/rocm/openmpi-mpi-mi250-gcc-debug
+    PARTITIONS: shared-gpu-amd-mi250
+    JOB_CONSTRAINTS: ""
+    ARCHIVE_SPACK_ENV: "yes"
