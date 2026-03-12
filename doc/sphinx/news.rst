@@ -36,6 +36,7 @@ Fixed
 
   * MPI tasks with reference parameters support more argument conversions.
     (Part of this was a regression in 2.4.1.)
+  * CPU tasks properly make use of idle cores.
 
 * HPX backend
 
