@@ -26,6 +26,10 @@ Deprecated
 
 Fixed
 ^^^^^
+* Data
+
+  * Automatic resizing works properly when the lower threshold is zero.
+
 * Execution
 
   * ``std::tuple`` task parameters with elements that are references or ``std::vector`` specializations are supported properly.
