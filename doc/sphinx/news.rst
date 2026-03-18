@@ -26,6 +26,10 @@ Deprecated
 
 Fixed
 ^^^^^
+* Runtime
+
+  * ``action`` objects cannot be moved (which never worked properly).
+
 * Data
 
   * Automatic resizing works properly when the lower threshold is zero.

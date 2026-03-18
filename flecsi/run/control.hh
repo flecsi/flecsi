@@ -290,6 +290,7 @@ public:
         "you cannot use this interface for internal control points!");
       instance().control_point_dag(CP).push_back(&node_);
     }
+    action(action &&) = delete; // node_'s address is used
 
     /*!
       Add a function to be executed under the specified control point.
