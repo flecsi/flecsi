@@ -108,7 +108,7 @@ struct identity_traits {
 template<class R>
 struct identity_traits<R, decltype(void(&R::identity))> {
   template<class T>
-  static inline const T & value{R::identity};
+  static inline const T value{R::identity};
 };
 } // namespace exec::detail
 } // namespace flecsi
