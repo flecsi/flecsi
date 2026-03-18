@@ -215,7 +215,8 @@ struct unstructured_base : base {
       util::gid entities = 0;
 
       /// Information specific to local colors.
-      /// Each process may contribute any number of partitions.
+      /// Colors must be distributed over processes as evenly as possible,
+      /// with one additional color on low-ranked processes as needed.
       std::vector<index_color> colors;
 
       // number of ghost intervals over all colors
