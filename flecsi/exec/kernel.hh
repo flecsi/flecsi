@@ -226,7 +226,7 @@ mdiota_view(const M & m, std::index_sequence<II...> ii, const R & rt) {
 /// Compute the Cartesian product of several intervals of integers.
 /// @param m mdspan or mdcolex object
 /// \param rr \c full_range, \c prefix_range, or \c sub_range objects for each
-///   dimension
+///   dimension, least-significant index first
 /// \return sized random-access range of \c std::array objects, each with one
 /// index of type \c range_index for each argument in \a rr
 template<class M, class... RR>
