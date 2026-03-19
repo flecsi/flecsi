@@ -56,7 +56,7 @@ struct bind_accessors : local::bind<bind_accessors<Proc>, Proc> {
         host_s.data(),
         host_s.size(),
         flecsi::util::mpi::type<T>(),
-        exec::fold::wrap<R, T>::op,
+        exec::fold::wrap<R, T>::op(),
         MPI_COMM_WORLD,
         r));
     });

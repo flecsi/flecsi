@@ -200,6 +200,35 @@ private:
   MPI_Datatype d = MPI_DATATYPE_NULL;
 };
 
+struct op {
+  op() = default;
+  explicit op(MPI_User_function f, bool comm = true) {
+    util::mpi::test(MPI_Op_create(f, comm, &o));
+  }
+  op(op && x) noexcept {
+    std::swap(o, x.o);
+  }
+  ~op() {
+    if(*this)
+      MPI_Op_free(&o);
+  }
+
+  op & operator=(op x) & noexcept {
+    std::swap(o, x.o);
+    return *this;
+  }
+  explicit operator bool() const noexcept {
+    return o != MPI_OP_NULL;
+  }
+
+  operator MPI_Op() const {
+    return o;
+  }
+
+private:
+  MPI_Op o = MPI_OP_NULL;
+};
+
 // This is a workaround for a bug in Cray MPICH.
 #define FLECSI_CRAY_MPICH_WORKAROUND(d)                                        \
   (MPI_CXX_##d == MPI_DATATYPE_NULL ? MPI_C_##d : MPI_CXX_##d)
@@ -317,6 +346,13 @@ template<class T,
 MPI_Datatype
 static_type() {
   return maybe_static<T>();
+}
+
+template<MPI_User_function F, bool C = true>
+MPI_Op
+operation() {
+  static const MPI_Op ret = detail::registry().push(op(F, C));
+  return ret;
 }
 
 struct auto_requests {
