@@ -70,59 +70,14 @@ private:
   std::optional<type> count;
 };
 
-// A move-only subset of std::any.
-struct any_base {
-  virtual ~any_base() = default;
-  virtual void * get(const std::type_info &) = 0;
-};
-
-template<class T>
-struct any_impl : any_base {
-  any_impl(T t) : t(std::move(t)) {}
-  void * get(const std::type_info & i) override {
-    if(i != typeid(T))
-      throw std::bad_cast();
-    return &t;
-  }
-  T t;
-};
-
-struct any {
-  template<class T>
-  std::decay_t<T> & emplace(T && t) {
-    auto * const q = new any_impl<std::decay_t<T>>(std::forward<T>(t));
-    p.reset(q);
-    return q->t;
-  }
-
-  explicit operator bool() const {
-    return !!p;
-  }
-  template<class T>
-  T & get() {
-    return *static_cast<T *>(p->get(typeid(T)));
-  }
-  template<class T>
-  const T & get() const {
-    return const_cast<any &>(*this).get<T>();
-  }
-  template<class T>
-  T && get() && {
-    return std::move(get<T>());
-  }
-
-private:
-  std::unique_ptr<any_base> p;
-};
-
 class param_locker {
   struct task {
-    task(task_count::ptr tc, any && p)
+    task(task_count::ptr tc, util::any && p)
       : tc(std::move(tc)), params(std::move(p)) {}
 
     task_count::ptr tc;
     util::ref_count<task_count::type> ref{1};
-    any params;
+    util::any params;
   };
 
   using Map = std::map<task_idx, task>;
@@ -160,7 +115,7 @@ class param_locker {
   };
 
 public:
-  [[nodiscard]] task_idx add(any && a, task_count::ptr tc) {
+  [[nodiscard]] task_idx add(util::any && a, task_count::ptr tc) {
     return lease(), tasks.try_emplace(id, std::move(tc), std::move(a)), id++;
   }
   guard at(task_idx i) {
