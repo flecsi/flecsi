@@ -42,8 +42,6 @@ inline constexpr detail detail_level{detail::high};
 inline constexpr detail detail_level{detail::medium};
 #elif FLECSI_CALIPER_DETAIL == FLECSI_CALIPER_DETAIL_low
 inline constexpr detail detail_level{detail::low};
-#else // FLECSI_CALIPER_DETAIL == FLECSI_CALIPER_DETAIL_none
-#define DISABLE_CALIPER
 #endif
 
 inline const char *
@@ -66,13 +64,13 @@ c_str(const std::string & s) {
  */
 template<class T>
 struct context {
-#if !defined(DISABLE_CALIPER)
+#if FLECSI_CALIPER_DETAIL != FLECSI_CALIPER_DETAIL_none
   static cali::Annotation ann;
 #endif
   template<detail D, class F>
   static void begin(F && f) { // f() -> std::string or const char*
     (void)f;
-#ifndef DISABLE_CALIPER
+#if FLECSI_CALIPER_DETAIL != FLECSI_CALIPER_DETAIL_none
     if constexpr(D <= detail_level)
       ann.begin(c_str(std::forward<F>(f)()));
 #endif
@@ -84,7 +82,7 @@ struct context {
   }
   template<detail D>
   static void end() {
-#ifndef DISABLE_CALIPER
+#if FLECSI_CALIPER_DETAIL != FLECSI_CALIPER_DETAIL_none
     if constexpr(D <= detail_level)
       ann.end();
 #endif
@@ -297,7 +295,7 @@ public:
 
 /// Initialize caliper annotation objects from the context name.
 /// \deprecated Use \c guard or \c rguard.
-#if !defined(DISABLE_CALIPER)
+#if FLECSI_CALIPER_DETAIL != FLECSI_CALIPER_DETAIL_none
 template<class T>
 cali::Annotation annotation::context<T>::ann{T::name};
 #endif
