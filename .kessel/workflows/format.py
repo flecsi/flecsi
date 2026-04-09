@@ -9,6 +9,7 @@ class Format(BuildEnvironment, CMake):
     build_dir = environment(Path.cwd() / "build_format")
     spack_env = environment("format")
     project_spec = environment("flecsi+format")
+    tests = False
 
     def ci_message(self, args):
         return super().ci_message(args, post_alloc_init="source .gitlab/kessel.sh")

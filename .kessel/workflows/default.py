@@ -6,6 +6,7 @@ class Default(BuildEnvironment, CMake):
     steps = ["env", "configure", "build_noflog", "build", "test", "install"]
 
     project_spec = environment("flecsi+flog")
+    tests = True
 
     def ci_message(self, args):
         return super().ci_message(args, post_alloc_init="source .gitlab/kessel.sh")

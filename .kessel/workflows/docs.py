@@ -9,6 +9,7 @@ class Docs(BuildEnvironment, CMake):
     build_dir = environment(Path.cwd() / "build_docs")
     spack_env = environment("docs")
     project_spec = environment("flecsi+doc")
+    tests = False
 
     def ci_message(self, args):
         return super().ci_message(args, post_alloc_init="source .gitlab/kessel.sh")
