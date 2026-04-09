@@ -11,6 +11,7 @@ stages:
 
 variables:
   ENABLED_CLUSTERS: darwin
+  SPACK_COLOR: always
 
 include:
  - .gitlab/common.yml
