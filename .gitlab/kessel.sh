@@ -1,6 +1,6 @@
 # Helper script that detects a deployment on a cluster.
 # Intended to work on sh, zsh, and bash.
-DEPLOYMENT_VERSION="2025-10-21"
+DEPLOYMENT_VERSION="2026-04-03"
 SCRIPT_PATH=${BASH_SOURCE[0]:-${(%):-%x}}
 PARENT_DIR=$( cd "$( dirname "${SCRIPT_PATH}" )" &>/dev/null && pwd )
 
