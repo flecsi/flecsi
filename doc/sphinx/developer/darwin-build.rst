@@ -3,61 +3,47 @@ Building for Darwin
 
 Darwin is a testbed cluster at LANL that provides a wide variety of
 node hardware configurations.
-The FleCSI distribution provides a
-script, ``tools/darwin.sh``, that automates downloading, building, and
-installing FleCSI and all of its dependencies.  The script can be run
-either from a checked-out version of the FleCSI repository, in which
-case it will not re-download FleCSI, or as a standalone script, in
-which case it will clone the ``flecsi`` repository and build from
-there.
+Our CI pipelines run on a range of hardware of this cluster and as such it is important to target the same kind of nodes during development.
 
-The former is the preferred approach.  From a back-end node, run
+Recreating continuous integration (CI) builds
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: console
+To avoid having to build a wide range of dependencies for the various hardware architectures, we are using a shared Spack deployment on Darwin.
+Both the CI and developers can make use of this deployment to speed up creating their development environments.
 
-  $ git clone ssh://git@re-git.lanl.gov:10022/flecsi/flecsi.git
-  $ flecsi/tools/darwin.sh
+In its simplest form, individual continuous integration jobs can be recreated with a FleCSI checkout on Darwin.
+Each CI job will print a highlighted message at the beginning of the log and provide instructions on how to re-create the exact configuration.
 
-The script performs the following operations:
+These instructions include
+- the `salloc` line for allocating the correct type of compute node to run the job
+- a few steps to initiate the build and test workflow
 
-1. Clone ``flecsi`` if the script was not run as above, from a cloned
-   repository.
+For simplification of these instructions, we make use a LANL tool called ``kessel <https://github.com/lanl/kessel>``_.
+``kessel`` is a utility for streamlining and generalizing developer and CI workflows for both cluster and local development.
+It helps you set up a complete software stack for development and run predefined actions with it.
 
-2. Install a version of the `Spack package manager
-   <https://spack.readthedocs.io/>`_ known to work with FleCSI into
-   ``$HOME/spack``.
-
-3. Load Darwin's `environment modules
-   <http://modules.sourceforge.net/>`_ for known-to-work-with-FleCSI
-   versions of various tools.
-
-4. Create and activate a ``flecsi-mpich`` Spack environment.
-   Download, build, and install FleCSI's dependencies into this
-   environment.  (This is by far the more time-consuming part of the
-   script.  Plan on about 45 minutes.)
-
-5. Configure, build, test, and install FleCSI into
-   ``$HOME/flecsi-inst``, including documentation.
-
-6. Configure and build the FleCSI tutorial files.  This ensures that
-   it is possible to compile and link against the headers and
-   libraries in ``$HOME/flecsi-inst``.
-
-The script expects a fairly virgin environment.  It currently fails if
-Spack is already installed, conflicting modules are already loaded, or
-other aspects of the installation already have been run.
-
-Once the script completes, you can activate the FleCSI environment with
+The CI instructions include sourcing ``.gitlab/kessel.sh`` to create a temporary deployment copy and activate it.
+This creates a self contained, writable instance which points to a cluster-wide read-only Spack deployment as upstream.
+To create a persistent copy of such a deployment, set ``KESSEL_WORKFLOW_DEPLOYMENT`` to a custom location prior to sourcing that script.
 
 .. code-block:: console
 
-  $ source ~/spack/share/spack/setup-env.sh
-  $ spack env activate flecsi-mpich
+   $ export KESSEL_WORKFLOW_DEPLOYMENT=<custom-path>
+   $ source .gitlab/kessel.sh
 
-The complete ``tools/darwin.sh`` script is reproduced below.  Although
-the script is intended to be run on the Darwin cluster, it should not
-be too hard to adapt it to other systems or even simply use the script
-as a reference for the commands needed to get FleCSI up and running.
+Building on a local system
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. literalinclude:: ../../../tools/darwin.sh
-  :language: bash
+Whether you want to build on a local system or don't want to use the prebuilt Spack deployments on the Darwin cluster, the FleCSI distribution also includes a utility script ``dev-setup.sh`` that helps with the initial setup of a clean build environment.
+
+.. code-block:: console
+
+  $ git clone https://github.com/flecsi/flecsi.git
+  $ flecsi/tools/dev-setup.sh
+
+This script will download both Spack and Kessel and place them in the parent directory of your FleCSI checkout.
+In addition, it places an ``activate.sh`` in this folder to set the necessary environment variables to make both Kessel and Spack available in your current shell.
+
+Simply source the ``activate.sh`` script after the script has completed.
+
+With both Spack and Kessel in place, you can then go ahead and run Kessel workflows.

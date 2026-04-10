@@ -9,11 +9,11 @@ cmake_minimum_required(VERSION 3.13...3.20)
 project(poisson LANGUAGES CXX C)
 
 #------------------------------------------------------------------------------#
-# FleCSI currently depends on C++17.
+# FleCSI currently depends on C++20.
 #------------------------------------------------------------------------------#
 
 set(CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 #------------------------------------------------------------------------------#
 # Find the FleCSI installation.

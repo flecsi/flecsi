@@ -1,0 +1,101 @@
+default:
+  interruptible: true
+  before_script:
+   - unset CI_MERGE_REQUEST_DESCRIPTION
+   - unset CI_MERGE_REQUEST_TITLE
+   - source .gitlab/kessel.sh
+
+.ascgit_job:
+  id_tokens:
+    SITE_ID_TOKEN:
+      aud: https://asc-git.lanl.gov
+
+.darwin_job:
+  extends: [.ascgit_job]
+  variables:
+    CLUSTER: darwin
+    PARTITIONS: general,skylake-gold,skylake-platinum
+    GENERAL_ARCH_CONSTRAINT: "(cpu_family:haswell|cpu_family:broadwell|cpu_family:skylake|cpu_family:cascadelake)"
+    V100_ARCH_CONSTRAINT: "(cpu_family:haswell|cpu_family:cascadelake)"
+    V100_CONSTRAINT: "--constraint=\"${V100_ARCH_CONSTRAINT}&(gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB)\""
+    IB_CONSTRAINT: "--constraint=\"${GENERAL_ARCH_CONSTRAINT}&(ib:edr|ib:hdr)\""
+    JOB_CONSTRAINTS: "${IB_CONSTRAINT}"
+    SCHEDULER_PARAMETERS: "-N1 --qos=debug -p ${PARTITIONS} ${JOB_CONSTRAINTS}"
+  tags:
+    - darwin-slurm-shared
+
+.darwin_regular_job:
+  extends: [.darwin_job]
+  rules:
+    - if: $ENABLED_CLUSTERS =~ /darwin/ && $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+    - if: $ENABLED_CLUSTERS =~ /darwin/ && $CI_PIPELINE_SOURCE == "web"
+      when: always
+    - when: never
+
+.darwin_release_job:
+  extends: [.darwin_job]
+  rules:
+    - if: $ENABLED_CLUSTERS =~ /darwin/ && $CI_MERGE_REQUEST_LABELS =~ /release_builds/ && $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+    - if: $ENABLED_CLUSTERS =~ /darwin/ && $CI_MERGE_REQUEST_LABELS =~ /release_builds/ && $CI_PIPELINE_SOURCE == "web"
+      when: always
+    - when: never
+
+.build_and_test:
+  needs: []
+  script:
+    - kessel run --env "${SPACK_ENV_NAME}"
+    - |
+      if [ -n "$ARCHIVE_SPACK_ENV" ]; then
+        echo "Creating snapshot of current deployment..."
+        spack repo remove flecsi
+        mksquashfs "$KESSEL_DEPLOYMENT" "build/spack-env.sqfs" -comp gzip
+        echo "JOB_ARCH_CONSTRAINT=cpu_family:$(spack arch -t | sed s/_avx512//)" > build/build.env
+        echo "PARENT_KESSEL_DEPLOYMENT=${KESSEL_DEPLOYMENT}" >> build/build.env
+        echo "CLUSTER=${CLUSTER}" >> build/build.env
+        echo "SPACK_ENV_NAME=${SPACK_ENV_NAME}" >> build/build.env
+        echo "INSTALL_DIR=build/install" >> build/build.env
+      fi
+  artifacts:
+    when: always
+    expire_in: 2 weeks
+    paths:
+      - build
+    reports:
+      junit: build/tests.xml
+      dotenv: build/build.env
+
+.build_standalone:
+  stage: Standalone
+  before_script:
+   - unset CI_MERGE_REQUEST_DESCRIPTION
+   - unset CI_MERGE_REQUEST_TITLE
+   - unsquashfs -d "${PARENT_KESSEL_DEPLOYMENT}" "build/spack-env.sqfs"
+   - export KESSEL_WORKFLOW_DEPLOYMENT=${PARENT_KESSEL_DEPLOYMENT}
+   - source .gitlab/kessel.sh
+  script:
+   - kessel activate standalone
+   - kessel run --env "${SPACK_ENV_NAME}" --flecsi-install-dir "${INSTALL_DIR}" -S "${STANDALONE_SOURCE_DIR}" -B "${STANDALONE_BUILD_DIR}"
+
+.check:
+  stage: Checks
+  needs: []
+  variables:
+    JOB_CONSTRAINTS: "--constraint=\"${GENERAL_ARCH_CONSTRAINT}\""
+
+.build_docs:
+  extends: [.check]
+  script:
+    - kessel activate docs
+    - kessel run
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - build/doc
+
+.check_format:
+  extends: [.check]
+  script:
+    - kessel activate format
+    - kessel run
