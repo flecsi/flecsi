@@ -42,7 +42,7 @@ reduce_internal(Args &&... args) {
 
   const auto domain_size = launch::size(args...);
 
-  run::any any;
+  util::any any;
   auto & params =
     any.emplace(leg::parameters(launch::params(std::forward<Args>(args)...)));
   prolog<launch::proc> pro(params.params, args...);

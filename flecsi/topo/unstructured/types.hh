@@ -65,7 +65,7 @@ struct peer_entities {
 /// \ingroup unstructured
 struct index_color {
   /// Total number of entities stored by this color, including ghosts.
-  util::id entities = 0;
+  util::id entities{}; // actually unused
 
   /// Entities sent to and received from other colors.
   std::map<Color, peer_entities> peers;
@@ -86,54 +86,12 @@ struct index_color {
     return ghst;
   }
 
-  /// Entities owned by this color
-  auto owned() const {
-    std::vector<util::id> ownd;
-    std::set<util::id> ghst = ghosts();
-
-    for(util::id e = 0; e < entities; ++e) {
-      if(!ghst.count(e)) {
-        ownd.push_back(e);
-      }
-    }
-    return ownd;
-  }
-
-  /// Entities that are ghosts on another color.
-  auto shared() const {
-    std::set<util::id> shr;
-    for(auto & p : peers) {
-      shr.insert(p.second.shared.begin(), p.second.shared.end());
-    }
-    return shr;
-  }
-
-  /// The subset of \c owned that are not ghosts on any other color.
-  auto exclusive() const {
-    const auto ss = shared();
-    std::vector<util::id> ex;
-    for(auto o : owned())
-      if(!ss.count(o))
-        ex.push_back(o);
-    return ex;
-  }
-
   auto ghost_intervals() const {
     return rle(ghosts());
   }
 
   /// \endcond
 }; // struct index_color
-
-inline std::ostream &
-operator<<(std::ostream & stream, index_color const & ic) {
-  stream << "owned\n" << flog::container{ic.owned()} << "\n";
-  stream << "exclusive\n" << flog::container{ic.exclusive()} << "\n";
-  stream << "shared\n" << flog::container{ic.shared()} << "\n";
-  stream << "ghosts\n" << flog::container{ic.ghosts()} << "\n";
-  stream << "cnx_allocs:\n" << flog::container{ic.cnx_allocs} << "\n";
-  return stream;
-}
 
 /// \}
 } // namespace unstructured_impl
@@ -427,24 +385,6 @@ struct unstructured_base : base {
     return box;
   }
 }; // struct unstructured_base
-
-inline std::ostream &
-operator<<(std::ostream & stream,
-  typename unstructured_base::coloring const & c) {
-  stream << "colors: " << c.colors << std::endl;
-  stream << "color_peers\n" << flog::container{c.color_peers} << std::endl;
-  stream << "idx_spaces\n" << flog::container{c.idx_spaces} << std::endl;
-  return stream;
-}
-
-inline std::ostream &
-operator<<(std::ostream & stream,
-  typename unstructured_base::coloring::index_space const & idx) {
-  stream << "peers: " << flog::container(idx.peers) << std::endl;
-  stream << "partitions\n" << flog::container{idx.partitions} << std::endl;
-  stream << "colors\n" << flog::container{idx.colors} << std::endl;
-  return stream;
-}
 
 namespace unstructured_impl {
 /// \cond core

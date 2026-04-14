@@ -107,98 +107,42 @@ protected:
       return !EOF;
     }
     else {
-      // Get the size before we add the current character
-      const size_t tbsize = test_buffer_.size();
-
       // Buffer the output for now...
       test_buffer_.append(1, char(c)); // takes char
 
-      switch(tbsize) {
-
+      bool color = false;
+      switch(test_buffer_.size() - 1) {
         case 0:
-          if(c == '\033') {
-            // This could be a color string, start buffering
+          if(c == '\033')
             return c;
-          }
-          else {
-            // No match, go ahead and write the character
-            return flush_buffer(all_buffers);
-          } // if
-
+          break;
         case 1:
-          if(c == '[') {
-            // This still looks like a color string, keep buffering
+          if(c == '[')
             return c;
-          }
-          else {
-            // This is some other kind of escape. Write the
-            // buffered output to all buffers.
-            return flush_buffer(all_buffers);
-          } // if
-
+          break;
         case 2:
-          if(c == '0' || c == '1') {
-            // This still looks like a color string, keep buffering
+          if(c == '0' || c == '1')
             return c;
-          }
-          else {
-            // This is some other kind of escape. Write the
-            // buffered output to all buffers.
-            return flush_buffer(all_buffers);
-          } // if
-
+          break;
         case 3:
-          if(c == ';') {
-            // This still looks like a color string, keep buffering
+          if(c == ';')
             return c;
-          }
-          else if(c == 'm') {
-            // This is a plain color termination. Write the
-            // buffered output to the color buffers.
-            return flush_buffer(color_buffers);
-          }
-          else {
-            // This is some other kind of escape. Write the
-            // buffered output to all buffers.
-            return flush_buffer(all_buffers);
-          } // if
-
+          else
+            color = c == 'm';
+          break;
         case 4:
-          if(c == '3') {
-            // This still looks like a color string, keep buffering
+          if(c == '3')
             return c;
-          }
-          else {
-            // This is some other kind of escape. Write the
-            // buffered output to all buffers.
-            return flush_buffer(all_buffers);
-          } // if
-
+          break;
         case 5:
-          if(isdigit(c) && (c - '0') < 8) {
-            // This still looks like a color string, keep buffering
+          if(isdigit(c) && (c - '0') < 8)
             return c;
-          }
-          else {
-            // This is some other kind of escape. Write the
-            // buffered output to all buffers.
-            return flush_buffer(all_buffers);
-          } // if
-
+          break;
         case 6:
-          if(c == 'm') {
-            // This is a color string termination. Write the
-            // buffered output to the color buffers.
-            return flush_buffer(color_buffers);
-          }
-          else {
-            // This is some other kind of escape. Write the
-            // buffered output to all buffers.
-            return flush_buffer(all_buffers);
-          } // if
+          color = c == 'm';
       } // switch
 
-      return c;
+      return flush_buffer(color ? color_buffers : all_buffers);
     } // if
   } // overflow
 
