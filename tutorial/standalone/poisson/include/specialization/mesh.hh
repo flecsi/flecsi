@@ -5,8 +5,6 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
-#include "types.hh"
-
 namespace poisson {
 
 struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {

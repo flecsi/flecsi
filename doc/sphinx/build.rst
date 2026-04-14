@@ -15,7 +15,11 @@ that can be taken to tailor FleCSI to a given system and architecture.
 Build requirements
 ++++++++++++++++++
 
-* C++17 compliant compiler
+* C++20 compliant compiler
+
+  .. attention::
+
+    We require that any GPU compiler fully support C++ in conjunction with any GPU-specific features. In particular, NVIDIA ``nvcc`` provides only partial C++ support and cannot be used for Kokkos+CUDA builds; for that configuration, Clang should be used instead.
 
 * MPI: must have support for *MPI_THREAD_MULTIPLE*.
 

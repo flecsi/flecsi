@@ -921,7 +921,22 @@ struct task_param<std::vector<P>> {
   template<class A,
     class = std::enable_if_t<replace_argument<P, const A &>::special>>
   static auto replace(const std::vector<A> & v) {
-    const util::transform_view t(v, exec::replace_argument<P, const A &>);
+    return make(v);
+  }
+  template<class A,
+    class = std::enable_if_t<replace_argument<P, A &&>::special>>
+  static auto replace(std::vector<A> && v) {
+    return make(std::move(v));
+  }
+
+private:
+  template<class T>
+  static auto make(T && v) {
+    const util::transform_view<T &, decltype([](auto && x) -> decltype(auto) {
+      return exec::replace_argument<P>(
+        static_cast<detail::same_ref_t<T, decltype(x)>>(x));
+    })>
+      t(v);
     return std::vector(t.begin(), t.end());
   }
 };

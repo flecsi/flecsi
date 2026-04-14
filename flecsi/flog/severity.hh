@@ -21,8 +21,19 @@ verbose(const char * file, int line) {
   return std::move(ss).str();
 }
 
-#define process_stamp " p" << state::instance().process()
-#define thread_stamp " t" << std::this_thread::get_id()
+namespace detail {
+struct process_stamp {
+  friend std::ostream & operator<<(std::ostream & os, process_stamp) {
+    return os << " p" << state::instance().process();
+  }
+} inline constexpr process_stamp;
+
+struct thread_stamp {
+  friend std::ostream & operator<<(std::ostream & os, thread_stamp) {
+    return os << " t" << std::this_thread::get_id();
+  }
+} inline constexpr thread_stamp;
+} // namespace detail
 
 // Displays messages without decoration.
 struct utility {
@@ -49,8 +60,8 @@ struct trace {
     if(state::instance().verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
     ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
-    ss << FLOG_OUTPUT_GREEN(process_stamp);
-    ss << FLOG_OUTPUT_LTBLUE(thread_stamp);
+    ss << FLOG_OUTPUT_GREEN(detail::process_stamp);
+    ss << FLOG_OUTPUT_LTBLUE(detail::thread_stamp);
     ss << FLOG_OUTPUT_CYAN("] ") << std::endl;
 
     return false;
@@ -71,8 +82,8 @@ struct info {
     if(state::instance().verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
     ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
-    ss << FLOG_OUTPUT_GREEN(process_stamp);
-    ss << FLOG_OUTPUT_LTBLUE(thread_stamp);
+    ss << FLOG_OUTPUT_GREEN(detail::process_stamp);
+    ss << FLOG_OUTPUT_LTBLUE(detail::thread_stamp);
     ss << FLOG_OUTPUT_GREEN("] ") << std::endl;
 
     return false;
@@ -93,8 +104,8 @@ struct warn {
     if(state::instance().verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
     ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
-    ss << FLOG_OUTPUT_GREEN(process_stamp);
-    ss << FLOG_OUTPUT_LTBLUE(thread_stamp);
+    ss << FLOG_OUTPUT_GREEN(detail::process_stamp);
+    ss << FLOG_OUTPUT_LTBLUE(detail::thread_stamp);
     ss << FLOG_OUTPUT_BROWN("] ") << std::endl << FLOG_COLOR_YELLOW;
 
     return true;
@@ -115,8 +126,8 @@ struct error {
     if(state::instance().verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
     ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
-    ss << FLOG_OUTPUT_GREEN(process_stamp);
-    ss << FLOG_OUTPUT_LTBLUE(thread_stamp);
+    ss << FLOG_OUTPUT_GREEN(detail::process_stamp);
+    ss << FLOG_OUTPUT_LTBLUE(detail::thread_stamp);
     ss << FLOG_OUTPUT_RED("] ") << std::endl << FLOG_COLOR_LTRED;
 
     return true;

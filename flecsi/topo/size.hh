@@ -42,6 +42,9 @@ struct resize : specialization<column, resize> {
     /// \param s hysteresis control on [0,1]: larger values reallocate more
     ///   frequently for monotonic size changes but less frequently for
     ///   oscillatory ones
+    /// \warning If \a s is small, \a l is small but non-zero, and any of the
+    ///   other parameters are changed from their defaults, very large
+    ///   allocations can result.
     policy(std::size_t m = 0,
       std::size_t e = 0,
       float l = 0,
@@ -51,29 +54,33 @@ struct resize : specialization<column, resize> {
 
     data::prefixes_base::size_request operator()(std::size_t n,
       std::size_t cap) const {
-      const auto apply_slow = [](float hyst, float a, float b) -> float {
-        return hyst == 0   ? b
-               : hyst == 1 ? a
-                           : std::pow(a, hyst) * std::pow(b, 1 - hyst);
+      const auto slow = [this](float a, float b) {
+        return std::pow(a, hyst) * std::pow(b, 1 - hyst);
       };
-
+      static constexpr auto lim = [](float x) {
+        auto y = data::logical_size;
+        if(x < y)
+          y = x;
+        return y;
+      };
       const auto div = [](size_t sz, float d) -> std::size_t {
-        return std::nearbyint((sz + .5f) / d);
+        return lim(std::nearbyint((sz + .5f) / d));
       };
 
       std::size_t s;
       bool req;
       if(n > hi * cap) {
-        s = div(n, apply_slow(hyst, hi, lo));
+        s = div(n, slow(hi, lo));
         req = true;
       }
       else if(const auto lo_thr = lo * cap; n < lo_thr) {
-        auto d = apply_slow(hyst, lo, hi);
+        const auto d = slow(lo, hi);
         s = div(n, d);
         req = div(lo_thr, d) >= std::max(min, std::size_t(lo_thr) + extra);
       }
       else {
-        s = cap * std::pow(n / (cap * std::sqrt(hi * lo)), 2 * (1 - hyst));
+        const auto d = cap * std::sqrt(hi * lo); // if 0, base never matters
+        s = lim(cap * std::pow(d ? n / d : 1, 2 * (1 - hyst)));
         req = false;
       }
       const std::size_t clamp = std::max(min, n + extra);

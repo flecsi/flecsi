@@ -1,0 +1,5 @@
+format:
+  extends: [.darwin_regular_job, .check_format]
+
+docs:
+  extends: [.darwin_regular_job, .build_docs]

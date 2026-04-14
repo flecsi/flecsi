@@ -274,15 +274,6 @@ private:
 
   static inline const connect_t<Policy> connect_;
 
-  template<typename, typename>
-  struct key_define;
-
-  template<typename T, auto... SS>
-  struct key_define<T, util::constants<SS...>> {
-    using type = util::key_tuple<util::key_type<SS,
-      typename field<T>::template definition<Policy, SS>>...>;
-  };
-
   typename ctopo::topology ctopo_;
 
   static inline const util::key_array<

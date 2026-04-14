@@ -112,7 +112,7 @@ struct scheduler {
 
   /// Launch a variant of a reduction task.
   template<class, class R, class... AA>
-  auto reduce(AA &&...);
+  [[nodiscard]] auto reduce(AA &&...);
   /// Launch a variant of a task.
   /// \tparam V like \c task_class
   template<class V, class... AA>
@@ -128,7 +128,7 @@ struct scheduler {
   /// \return a \ref future providing the reduced return value
   /// \see \c execute about parameter and argument types.
   template<auto &, class R, class... AA>
-  auto reduce(AA &&...);
+  [[nodiscard]] auto reduce(AA &&...);
   /// Launch a task.
   template<auto & F, class... AA>
   auto execute(AA &&... aa) {

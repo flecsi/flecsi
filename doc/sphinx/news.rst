@@ -60,6 +60,14 @@ Deprecated
 
 Fixed
 ^^^^^
+* Runtime
+
+  * ``action`` objects cannot be moved (which never worked properly).
+
+* Data
+
+  * Automatic resizing works properly when the lower threshold is zero.
+
 * Execution
 
   * ``std::tuple`` task parameters with elements that are references or ``std::vector`` specializations are supported properly.
@@ -70,6 +78,7 @@ Fixed
 
   * MPI tasks with reference parameters support more argument conversions.
     (Part of this was a regression in 2.4.1.)
+  * CPU tasks properly make use of idle cores.
 
 * HPX backend
 

@@ -86,98 +86,59 @@ protected:
       return !EOF;
     }
     else {
-      // Get the size before we add the current character
-      const size_t tbsize = test_buffer_.size();
-
       // Buffer the output for now...
       test_buffer_.append(1, char(c)); // takes char
 
-      switch(tbsize) {
-
+      bool color = false;
+      switch(test_buffer_.size() - 1) {
         case 0:
-          if(c == '\033') {
-            // This could be a color string, start buffering
+          if(c == '\033')
             return c;
-          }
-          else {
-            // No match, go ahead and write the character
-            return flush_buffer();
-          } // if
-
+          break;
         case 1:
-          if(c == '[') {
-            // This still looks like a color string, keep buffering
+          if(c == '[')
             return c;
-          }
-          else {
-            // This is some other kind of escape. Write the
-            // buffered output to all buffers.
-            return flush_buffer();
-          } // if
-
+          break;
         case 2:
-          if(c == '0' || c == '1') {
-            // This still looks like a color string, keep buffering
+          if(c == '0' || c == '1')
             return c;
-          }
-          else {
-            // This is some other kind of escape. Write the
-            // buffered output to all buffers.
-            return flush_buffer();
-          } // if
-
+          break;
         case 3:
-          if(c == ';') {
-            // This still looks like a color string, keep buffering
+          if(c == ';')
             return c;
-          }
-          else if(c == 'm') {
-            // This is a plain color termination. Write the
-            // buffered output to the color buffers.
-            return flush_buffer(color_buffers);
-          }
-          else {
-            // This is some other kind of escape. Write the
-            // buffered output to all buffers.
-            return flush_buffer();
-          } // if
-
+          else
+            color = c == 'm';
+          break;
         case 4:
-          if(c == '3') {
-            // This still looks like a color string, keep buffering
+          if(c == '3')
             return c;
-          }
-          else {
-            // This is some other kind of escape. Write the
-            // buffered output to all buffers.
-            return flush_buffer();
-          } // if
-
+          break;
         case 5:
-          if(isdigit(c) && (c - '0') < 8) {
-            // This still looks like a color string, keep buffering
+          if(isdigit(c) && (c - '0') < 8)
             return c;
-          }
-          else {
-            // This is some other kind of escape. Write the
-            // buffered output to all buffers.
-            return flush_buffer();
-          } // if
-
+          break;
         case 6:
-          if(c == 'm') {
-            // This is a color string termination. Write the
-            // buffered output to the color buffers.
-            return flush_buffer(color_buffers);
-          }
-          else {
-            // This is some other kind of escape. Write the
-            // buffered output to all buffers.
-            return flush_buffer();
-          } // if
+          color = c == 'm';
       } // switch
 
-      return c;
+      int eof = !EOF;
+
+      // Put test buffer characters to each buffer
+      for(const auto & b : buffers_) {
+        if(!color || b.colorized) {
+          for(auto bc : test_buffer_) {
+            const int w = b.buffer->sputc(bc);
+            if(eof != EOF)
+              eof = w;
+          } // for
+        } // if
+      } // for
+
+      // Clear the test buffer
+      test_buffer_.clear();
+
+      // Return EOF if one of the buffers hit the end
+      return eof == EOF ? EOF : !EOF;
     } // if
   } // overflow
 
@@ -198,39 +159,6 @@ protected:
   } // sync
 
 private:
-  // Default predicate: flush unconditionally.
-  int flush_buffer() {
-    return flush_buffer([](const buffer_data_t &) { return true; });
-  }
-
-  // Predicate to select color buffers.
-  static bool color_buffers(const buffer_data_t & bd) {
-    return bd.colorized;
-  } // any_buffer
-
-  // Flush buffered output to buffers that satisfy the predicate function.
-  template<typename P>
-  int flush_buffer(P && predicate) {
-    int eof = !EOF;
-
-    // Put test buffer characters to each buffer
-    for(const auto & b : buffers_) {
-      if(predicate(b)) {
-        for(auto bc : test_buffer_) {
-          const int w = b.buffer->sputc(bc);
-          if(eof != EOF)
-            eof = w;
-        } // for
-      } // if
-    } // for
-
-    // Clear the test buffer
-    test_buffer_.clear();
-
-    // Return EOF if one of the buffers hit the end
-    return eof == EOF ? EOF : !EOF;
-  } // flush_buffer
-
   std::vector<buffer_data_t> buffers_;
   std::string test_buffer_;
 

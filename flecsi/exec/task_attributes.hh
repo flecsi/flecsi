@@ -40,7 +40,8 @@ enum task_attributes_mask_t : TaskAttributes {
   /// \warning MPI backend: Running one process per core likely
   ///          leads to poor performance.
   omp,
-  /// Run simultaneously on all processes with the obvious color mapping;
+  /// Run simultaneously on all processes with field data stored on the host
+  /// with the obvious color mapping;
   /// allow MPI communication among point tasks, at the cost of significant
   /// startup overhead.
   mpi

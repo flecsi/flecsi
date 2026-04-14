@@ -164,10 +164,8 @@ struct copy_engine : local::copy_base {
               std::memcpy(send_buffer.data() + i * type_size,
                 src + shared_indices.data()[i] * type_size,
                 type_size);
-            ops.push_back(set(comm,
-              that_site_arg(dst_rank),
-              std::move(send_buffer),
-              tag_arg(p2p)));
+            ops.push_back(
+              set(comm, that_site_arg(dst_rank), std::move(send_buffer), p2p));
           }
 
           ::hpx::wait_all(std::move(ops)); // rethrows exceptions, if needed

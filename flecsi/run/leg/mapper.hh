@@ -5,6 +5,7 @@
 #define FLECSI_RUN_LEG_MAPPER_HH
 
 #include "../backend.hh"
+#include "flecsi/util/color_map.hh"
 
 #include <legion.h>
 #include <mappers/default_mapper.h>
@@ -30,38 +31,15 @@ public:
         machine,
         local,
         "default"),
-      machine(machine) {
-    using namespace Legion;
-    using namespace Legion::Mapping;
+      target_mem(closest()) {
     memoize = true; // as set by -dm:memoize
-    // Get our local memories
+    assert(target_mem.exists());
     {
-      Machine::MemoryQuery sysmem_query(machine);
-      sysmem_query.local_address_space();
-      sysmem_query.only_kind(Memory::SYSTEM_MEM);
-      local_sysmem = sysmem_query.first();
-      assert(local_sysmem.exists());
-    }
-    if(!local_gpus.empty()) {
-      Machine::MemoryQuery zc_query(machine);
-      zc_query.local_address_space();
-      zc_query.only_kind(Memory::Z_COPY_MEM);
-      local_zerocopy = zc_query.first();
-      assert(local_zerocopy.exists());
-    }
-    else {
-      local_zerocopy = Memory::NO_MEMORY;
-    }
-    if(local_kind == Processor::TOC_PROC) {
-      Machine::MemoryQuery fb_query(machine);
-      fb_query.local_address_space();
-      fb_query.only_kind(Memory::GPU_FB_MEM);
-      fb_query.best_affinity_to(local_proc);
-      local_framebuffer = fb_query.first();
-      assert(local_framebuffer.exists());
-    }
-    else {
-      local_framebuffer = Memory::NO_MEMORY;
+      const auto sock = maybe_fb(Legion::Memory::SOCKET_MEM);
+      const auto numa = closest(sock);
+      for(auto p : processors(local_kind))
+        if(closest(sock, p) == numa)
+          numa_domain.push_back(p);
     }
   }
 
@@ -69,17 +47,40 @@ public:
     const Legion::Task & task,
     Legion::Mapping::Mapper::TaskOptions & output) override {
     DefaultMapper::select_task_options(ctx, task, output);
-    // make sure the input provided to `map_task` includes all the valid
-    // instances that the runtime knows
-    output.valid_instances = true;
     // Mysteriously, the top-level task has 16 bytes of argument.
     if(task.arglen == sizeof(std::size_t))
       context::instance()
         .params.at(get1<std::size_t>(task))
         .post(task.is_index_space
-                ? (task.index_domain.get_volume() + total_nodes - 1 - node_id) /
-                    total_nodes
+                ? util::equal_map(
+                    task.index_domain.get_volume(), total_nodes)[node_id]
+                    .size()
                 : node_id == output.initial_proc.address_space());
+  }
+
+  void select_sharding_functor(Legion::Mapping::MapperContext,
+    const Legion::Task &,
+    const SelectShardingFunctorInput &,
+    SelectShardingFunctorOutput & out) override {
+    out.chosen_functor = block_shard;
+  }
+  void select_sharding_functor(Legion::Mapping::MapperContext,
+    const Legion::Copy &,
+    const SelectShardingFunctorInput &,
+    SelectShardingFunctorOutput & out) override {
+    out.chosen_functor = block_shard;
+  }
+  void select_sharding_functor(Legion::Mapping::MapperContext,
+    const Legion::Partition &,
+    const SelectShardingFunctorInput &,
+    SelectShardingFunctorOutput & out) override {
+    out.chosen_functor = block_shard;
+  }
+  void select_sharding_functor(Legion::Mapping::MapperContext,
+    const Legion::Fill &,
+    const SelectShardingFunctorInput &,
+    SelectShardingFunctorOutput & out) override {
+    out.chosen_functor = block_shard;
   }
 
   Legion::LayoutConstraintID default_policy_select_layout_constraints(
@@ -139,7 +140,6 @@ public:
   void create_compacted_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
-    const Legion::Memory & target_mem,
     const Legion::LayoutConstraintSet & layout_constraints,
     const size_t & indx) {
     using namespace Legion;
@@ -170,7 +170,6 @@ public:
   void create_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
-    const Legion::Memory & target_mem,
     const Legion::LayoutConstraintSet & layout_constraints,
     const size_t & indx) {
     using namespace Legion;
@@ -195,24 +194,15 @@ public:
     using namespace Legion::Mapping;
     using namespace mapper;
 
-    output.chosen_variant =
-      find_variant(ctx, task.task_id, processor_kind(task.tag));
-    switch(task.tag & proc_mask) {
-      case gpu:
-        output.target_procs.push_back(task.target_proc);
-        break;
-      case omp:
-        output.target_procs = local_omps;
-        break;
-      default:
-        output.target_procs.resize(1, local_proc);
+    if(output.target_procs.empty()) { // replicated tasks are automatic
+      output.chosen_variant =
+        find_variant(ctx, task.task_id, processor_kind(task.tag));
+      output.target_procs = numa_domain;
     }
 
     output.chosen_instances.resize(task.regions.size());
 
     if(task.regions.size() > 0) {
-      const Legion::Memory target_mem =
-        (task.tag & proc_mask) == gpu ? local_framebuffer : local_sysmem;
       std::vector<std::set<Legion::FieldID>> missing_fields(
         task.regions.size());
       runtime->filter_instances(ctx,
@@ -256,7 +246,7 @@ public:
 
         if(task.regions[indx].privilege == REDUCE) {
           create_reduction_instance(
-            ctx, task, output, target_mem, indx, valid_missing_fields);
+            ctx, task, output, indx, valid_missing_fields);
           continue;
         }
 
@@ -269,21 +259,20 @@ public:
             layout_constraints.add_constraint(
               Legion::FieldConstraint(all_fields, true));
             create_compacted_instance(
-              ctx, task, output, target_mem, layout_constraints, indx);
+              ctx, task, output, layout_constraints, indx);
           indx = indx + 2;
           continue;
         }
 #endif
         for(const auto & missing_field : missing_fields[indx])
-          create_instance(
-            ctx, task, output, target_mem, constraints(missing_field), indx);
+          create_instance(ctx, task, output, constraints(missing_field), indx);
       } // end for
 
     } // end if
 
   } // map_task
 
-  /// Assign processors, implementing the \c force_rank_match tag.
+  /// Assign processors, unconditionally implementing \c force_rank_match.
   virtual void slice_task(const Legion::Mapping::MapperContext,
     const Legion::Task & task,
     const Legion::Mapping::Mapper::SliceTaskInput & input,
@@ -291,6 +280,9 @@ public:
 
     using namespace Legion;
     using namespace mapper;
+
+    const Legion::Rect<1> r = input.domain;
+    const auto me = r.lo[0];
 
 #if 0 // this is not supported in FleCSI yet
       // when we launch subtasks
@@ -302,47 +294,17 @@ public:
         output.slices.resize(1);
         output.slices[0].domain = input.domain;
         output.slices[0].proc = task.target_proc;
-      } else
+        return;
+      }
 #endif
-    if(task.tag & force_rank_match) {
-      // Control replication has already subdivided the launch domain:
-      assert(input.domain.get_dim() == 1);
-      const Legion::Rect<1> r = input.domain;
-      const auto me = r.lo[0];
-      assert(r.hi[0] == me);
-
-      output.slices.clear();
-      // Find the CPU with the desired address space:
-      Legion::Machine::ProcessorQuery pq =
-        Legion::Machine::ProcessorQuery(machine).only_kind(
-          Legion::Processor::LOC_PROC);
-      for(Legion::Machine::ProcessorQuery::iterator it = pq.begin();
-        it != pq.end();
-        ++it) {
-        Legion::Processor p = *it;
-        if(p.address_space() == me) {
-          auto & out = output.slices.emplace_back();
-          out.domain = r;
-          out.proc = p;
-          break;
-        }
-      }
-      assert(!output.slices.empty());
-    }
-    else
-      // We've already been control replicated, so just divide our points
-      // over the appropriate local processors
-      switch(task.tag & proc_mask) {
-        case gpu:
-          distribute_index_points_across_local_procs(input, output, local_gpus);
-          break;
-        case omp:
-          distribute_index_points_across_local_procs(input, output, local_omps);
-          break;
-        default:
-          distribute_index_points_across_local_procs(input, output, local_cpus);
-      }
-
+    // Our sharding functor unconditionally implements rank-matching: for now,
+    // we simply do nothing to disturb that situation.
+    auto & procs = processors(processor_kind(task.tag));
+    auto it = procs.begin();
+    for(auto m : util::equal_map(r.volume(), procs.size()))
+      if(!m.empty())
+        output.slices.emplace_back(
+          Domain(me + m.front(), me + m.back()), *it++, false, false);
   } // slice_task
 
   /// Reuse existing indirection instances and request reusable preimages.
@@ -445,6 +407,24 @@ private:
     return s.str();
   }
 
+  Legion::Memory::Kind maybe_fb(Legion::Memory::Kind k) const {
+    using namespace Legion;
+    return local_kind == Processor::TOC_PROC ? Memory::GPU_FB_MEM : k;
+  }
+
+  Legion::Memory closest(Legion::Memory::Kind k, Legion::Processor p) const {
+    using namespace Legion;
+    Machine::MemoryQuery q(machine);
+    q.local_address_space().only_kind(k).best_affinity_to(p);
+    return q.first();
+  }
+  Legion::Memory closest(Legion::Memory::Kind k) const {
+    return closest(k, local_proc);
+  }
+  Legion::Memory closest() const {
+    return closest(maybe_fb(Legion::Memory::SYSTEM_MEM));
+  }
+
   static Legion::Processor::Kind processor_kind(Legion::MappingTagID t) {
     using namespace mapper;
     using P = Legion::Processor;
@@ -455,6 +435,17 @@ private:
         return P::OMP_PROC;
       default:
         return P::LOC_PROC;
+    }
+  }
+  const decltype(local_cpus) & processors(Legion::Processor::Kind k) const {
+    using P = Legion::Processor;
+    switch(k) {
+      case P::TOC_PROC:
+        return local_gpus;
+      case P::OMP_PROC:
+        return local_omps;
+      default:
+        return local_cpus;
     }
   }
 
@@ -500,32 +491,9 @@ private:
         {req.region}));
   } // create_copy_instance
 
-  /*
-    Distribute the index points of a domain across the processors provided in
-    `local_procs` in a round robin way
-  */
-  static void distribute_index_points_across_local_procs(
-    const Legion::Mapping::Mapper::SliceTaskInput & input,
-    Legion::Mapping::Mapper::SliceTaskOutput & output,
-    const std::vector<Legion::Processor> & local_procs) {
-    using namespace Legion;
-    using namespace mapper;
-    unsigned local_index = 0;
-    for(Domain::DomainPointIterator itr(input.domain); itr; itr++) {
-      TaskSlice slice;
-      slice.domain = Domain(itr.p, itr.p);
-      slice.proc = local_procs[local_index];
-      local_index = (local_index + 1) % local_procs.size();
-      slice.recurse = false;
-      slice.stealable = false;
-      output.slices.push_back(slice);
-    }
-  }
-
   void create_reduction_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
-    const Legion::Memory & target_mem,
     const size_t & idx,
     std::set<Legion::FieldID> & missing_fields) {
 
@@ -567,7 +535,7 @@ private:
   Legion::Mapping::PhysicalInstance get_instance(
     const Legion::Mapping::MapperContext ctx,
     const std::string & op,
-    const Legion::Memory & target_mem,
+    const Legion::Memory & target_mem, // can be different for copies
     const Legion::LayoutConstraintSet & layout_constraints,
     const std::vector<Legion::LogicalRegion> & regions) const {
     Legion::Mapping::PhysicalInstance result;
@@ -589,13 +557,43 @@ private:
     return result;
   }
 
-  Realm::Machine machine;
-
   std::map<std::pair<Legion::TaskID, Legion::Processor::Kind>,
     Legion::VariantID>
     variant;
 
-  Legion::Memory local_sysmem, local_zerocopy, local_framebuffer;
+  Legion::Memory target_mem;
+  decltype(local_cpus) numa_domain;
+
+  static inline Legion::ShardingID block_shard =
+    [id = Legion::Runtime::generate_static_sharding_id()] {
+      struct functor : Legion::ShardingFunctor {
+      private:
+        static auto map(const Legion::Domain & d, std::size_t n) {
+          const Legion::Rect<1> r = d;
+          assert(!r.lo[0]);
+          return util::equal_map(r.hi[0] + 1, n);
+        }
+
+        bool is_invertible() const override {
+          return true;
+        }
+        Legion::ShardID shard(const Legion::DomainPoint & p,
+          const Legion::Domain & d,
+          std::size_t ns) override {
+          return map(d, ns).bin(p.point_data[0]);
+        }
+        void invert(Legion::ShardID s,
+          const Legion::Domain &,
+          const Legion::Domain & d,
+          std::size_t ns,
+          std::vector<Legion::DomainPoint> & out) override {
+          const auto r = map(d, ns)[s];
+          out.assign(r.begin(), r.end());
+        }
+      };
+      Legion::Runtime::preregister_sharding_functor(id, new functor());
+      return id;
+    }();
 
   // used consistently
   static inline const Legion::OrderingConstraint soa_constraint = {
