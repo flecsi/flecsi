@@ -10,7 +10,7 @@
 #
 #------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.23...3.31)
 
 #------------------------------------------------------------------------------#
 # Add local module path.
@@ -120,12 +120,14 @@ if(ENABLE_LIBRARY)
   #----------------------------------------------------------------------------#
   option(BUILD_SHARED_LIBS "Build shared libs" ON)
   mark_as_advanced(BUILD_SHARED_LIBS)
+  option(ENABLE_DEVELOPER_WARNINGS "Build with warnings" OFF)
+  mark_as_advanced(ENABLE_DEVELOPER_WARNINGS)
 
   enable_language(CXX)
   enable_language(C)
 
   set(CXX_STANDARD_REQUIRED ON)
-  set(CMAKE_CXX_STANDARD "17" CACHE STRING "C++ standard")
+  set(CMAKE_CXX_STANDARD "20" CACHE STRING "C++ standard")
   set(CMAKE_CXX_EXTENSIONS OFF)
 
   include(GNUInstallDirs)
@@ -239,6 +241,16 @@ if(ENABLE_LIBRARY)
 
   if (NOT CALIPER_DETAIL STREQUAL "none")
     flecsi_enable_caliper(FleCSI)
+  endif()
+
+  if(ENABLE_DEVELOPER_WARNINGS)
+    target_compile_options(FleCSI PUBLIC -Wall -Wundef -W -Werror -Wvla -Wextra-semi $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>)
+    if(Kokkos_ENABLE_HIP)
+      target_compile_options(FleCSI PUBLIC -Wno-unused-command-line-argument)
+    endif()
+    if(Kokkos_ENABLE_CUDA)
+      target_compile_options(FleCSI PUBLIC -Wno-unknown-cuda-version)
+    endif()
   endif()
 
   #----------------------------------------------------------------------------#

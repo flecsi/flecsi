@@ -1,0 +1,30 @@
+mpich-hpx-gnu:
+  stage: HPX backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: hpx/serial/mpich-gcc-debug
+    ARCHIVE_SPACK_ENV: "yes"
+
+mpich-hpx-gnu:release:
+  stage: HPX backend
+  extends: [.darwin_release_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: hpx/serial/mpich-gcc-release
+
+openmpi-hpx-gnu:
+  stage: HPX backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: hpx/serial/openmpi-gcc-debug
+
+openmpi-hpx-gnu:release:
+  stage: HPX backend
+  extends: [.darwin_release_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: hpx/serial/openmpi-gcc-release
+
+mpich-hpx-clang:
+  stage: HPX backend
+  extends: [.darwin_regular_job, .build_and_test]
+  variables:
+    SPACK_ENV_NAME: hpx/serial/mpich-clang-debug

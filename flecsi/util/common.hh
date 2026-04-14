@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <ios>
 #include <map>
+#include <memory>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -45,6 +46,51 @@ struct identity {
 };
 
 /// \cond core
+
+// A move-only subset of std::any.
+struct any_base {
+  virtual ~any_base() = default;
+  virtual void * get(const std::type_info &) = 0;
+};
+
+template<class T>
+struct any_impl : any_base {
+  any_impl(T t) : t(std::move(t)) {}
+  void * get(const std::type_info & i) override {
+    if(i != typeid(T))
+      throw std::bad_cast();
+    return &t;
+  }
+  T t;
+};
+
+struct any {
+  template<class T>
+  std::decay_t<T> & emplace(T && t) {
+    auto * const q = new any_impl<std::decay_t<T>>(std::forward<T>(t));
+    p.reset(q);
+    return q->t;
+  }
+
+  explicit operator bool() const {
+    return !!p;
+  }
+  template<class T>
+  T & get() {
+    return *static_cast<T *>(p->get(typeid(T)));
+  }
+  template<class T>
+  const T & get() const {
+    return const_cast<any &>(*this).get<T>();
+  }
+  template<class T>
+  T && get() && {
+    return std::move(get<T>());
+  }
+
+private:
+  std::unique_ptr<any_base> p;
+};
 
 template<bool Const, class T>
 using maybe_const = std::conditional_t<Const, const T, T>;

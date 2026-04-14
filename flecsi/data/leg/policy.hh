@@ -4,7 +4,6 @@
 #ifndef FLECSI_DATA_LEG_POLICY_HH
 #define FLECSI_DATA_LEG_POLICY_HH
 
-#include "flecsi/run/leg/mapper.hh"
 #include "flecsi/util/array_ref.hh"
 
 #include <legion.h>

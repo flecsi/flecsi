@@ -83,7 +83,7 @@ reduce_internal(Args &&... args) {
         ret->data(),
         1,
         flecsi::util::mpi::type<R>(),
-        flecsi::exec::fold::wrap<Reduction, R>::op,
+        fold::wrap<Reduction, R>::op(),
         MPI_COMM_WORLD,
         ret->request()));
 

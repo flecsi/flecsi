@@ -51,10 +51,6 @@ struct repartition : with_size, data::prefixes, with_cleanup, virtual_base {
   }
 
 private:
-  auto & get_sizes() {
-    return sz;
-  }
-
   template<class F>
   static void fill(resize::Field::accessor<wo> a, F f) noexcept {
     const auto extent = std::move(f)(run::context::instance().color());
@@ -456,10 +452,6 @@ struct borrow_sizes {
 
   auto & get_sizes(std::size_t i) {
     return sz[i];
-  }
-  auto & get_sizes() {
-    static_assert(Q::index_spaces::size == 1);
-    return get_sizes(0);
   }
 
 private:

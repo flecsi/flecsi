@@ -26,14 +26,8 @@ private:
     } // for
   }
 
-  static void init() {
-    // Create the operator and register it with the runtime
-    util::mpi::test(MPI_Op_create(apply, true, &op));
-  }
-
 public:
-  // NB: The real initialization is in the callback.
-  static inline MPI_Op op = (run::context::register_init(init), MPI_Op());
+  static constexpr auto & op = util::mpi::operation<apply>;
 };
 
 template<class>
@@ -72,7 +66,7 @@ template<class R, class T>
 struct wrap<R,
   T,
   decltype(void((redop<R>(), util::mpi::static_type<T>(), ordered<R, T>())))> {
-  static inline const MPI_Op & op = redop<R>();
+  static constexpr auto & op = redop<R>;
 };
 
 /// \}

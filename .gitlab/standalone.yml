@@ -1,0 +1,122 @@
+#------------------------------------------------------------------------------#
+# Tutorial tests
+#------------------------------------------------------------------------------#
+mpich-tutorial:legion:
+  extends: [.darwin_regular_job, .build_standalone]
+  needs:
+    - "mpich-legion-gnu"
+  variables:
+    STANDALONE_SOURCE_DIR: tutorial
+    STANDALONE_BUILD_DIR: build-tutorial
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+mpich-flaxpy:legion:
+  extends: [.darwin_regular_job, .build_standalone]
+  needs:
+    - "mpich-legion-gnu"
+  variables:
+    STANDALONE_SOURCE_DIR: tutorial/standalone/flaxpy
+    STANDALONE_BUILD_DIR: build-flaxpy
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+mpich-poisson:legion:
+  extends: [.darwin_regular_job, .build_standalone]
+  needs:
+    - "mpich-legion-gnu"
+  variables:
+    STANDALONE_SOURCE_DIR: tutorial/standalone/poisson
+    STANDALONE_BUILD_DIR: build-poisson
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+mpich-tutorial:hpx:
+  extends: [.darwin_regular_job, .build_standalone]
+  needs:
+    - "mpich-hpx-gnu"
+  variables:
+    STANDALONE_SOURCE_DIR: tutorial
+    STANDALONE_BUILD_DIR: build-tutorial
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+mpich-flaxpy:hpx:
+  extends: [.darwin_regular_job, .build_standalone]
+  needs:
+    - "mpich-hpx-gnu"
+  variables:
+    STANDALONE_SOURCE_DIR: tutorial/standalone/flaxpy
+    STANDALONE_BUILD_DIR: build-flaxpy
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+mpich-poisson:hpx:
+  extends: [.darwin_regular_job, .build_standalone]
+  needs:
+    - "mpich-hpx-gnu"
+  variables:
+    STANDALONE_SOURCE_DIR: tutorial/standalone/poisson
+    STANDALONE_BUILD_DIR: build-poisson
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+#------------------------------------------------------------------------------#
+# OpenMP standalone tests
+#------------------------------------------------------------------------------#
+openmpi-poisson-openmp:legion:
+  extends: [.darwin_regular_job, .build_standalone]
+  needs:
+   - "openmpi-legion-openmp-gnu"
+  variables:
+    STANDALONE_SOURCE_DIR: tutorial/standalone/poisson
+    STANDALONE_BUILD_DIR: build-poisson
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+mpich-poisson-openmp-clang:mpi:
+  extends: [.darwin_regular_job, .build_standalone]
+  needs:
+   - "mpich-mpi-openmp-clang"
+  variables:
+    STANDALONE_SOURCE_DIR: tutorial/standalone/poisson
+    STANDALONE_BUILD_DIR: build-poisson
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+#------------------------------------------------------------------------------#
+# GPU standalone tests
+#------------------------------------------------------------------------------#
+openmpi-poisson-cuda-clang:legion:
+  extends: [.darwin_regular_job, .build_standalone]
+  needs:
+   - "openmpi-legion-ucx-cuda-clang"
+  variables:
+    STANDALONE_SOURCE_DIR: tutorial/standalone/poisson
+    STANDALONE_BUILD_DIR: build-poisson
+    PARTITIONS: volta-x86
+    V100_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+
+openmpi-poisson-cuda-clang:mpi:
+  extends: [.darwin_regular_job, .build_standalone]
+  needs:
+   - "openmpi-mpi-cuda-clang"
+  variables:
+    STANDALONE_SOURCE_DIR: tutorial/standalone/poisson
+    STANDALONE_BUILD_DIR: build-poisson
+    PARTITIONS: volta-x86
+    V100_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+
+openmpi-poisson-rocm:mpi:
+  extends: [.darwin_regular_job, .build_standalone]
+  needs:
+   - "openmpi-mpi-rocm"
+  variables:
+    STANDALONE_SOURCE_DIR: tutorial/standalone/poisson
+    STANDALONE_BUILD_DIR: build-poisson
+    PARTITIONS: shared-gpu-amd-mi250
+    JOB_CONSTRAINTS: ""
+
+openmpi-poisson-rocm:legion:
+  extends: [.darwin_regular_job, .build_standalone]
+  needs:
+   - "openmpi-legion-rocm"
+  variables:
+    STANDALONE_SOURCE_DIR: tutorial/standalone/poisson
+    STANDALONE_BUILD_DIR: build-poisson
+    PARTITIONS: shared-gpu-amd-mi250
+    JOB_CONSTRAINTS: ""

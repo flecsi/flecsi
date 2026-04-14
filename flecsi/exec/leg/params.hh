@@ -103,6 +103,8 @@ private:
     auto & r = region_reqs_[which.fields.emplace_back(it->second, f).first];
     if(!r.privilege_fields.count(f))
       r.add_field(f);
+    // Notionally, some legitimate warnings could be missed because the flag
+    // applies to all fields.
     if(rsz)
       r.add_flags(LEGION_SUPPRESS_WARNINGS_FLAG);
   }

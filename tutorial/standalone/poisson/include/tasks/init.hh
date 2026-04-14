@@ -7,11 +7,11 @@ namespace poisson {
 namespace task {
 
 void eggcarton(flecsi::exec::accelerator,
-  mesh::accessor<ro> m,
-  field<double>::accessor<wo, na> ua,
-  field<double>::accessor<wo, na> fa,
-  field<double>::accessor<wo, na> sa,
-  field<double>::accessor<wo, na> Aua) noexcept;
+  mesh::accessor<flecsi::ro> m,
+  flecsi::field<double>::accessor<flecsi::wo, flecsi::na> ua,
+  flecsi::field<double>::accessor<flecsi::wo, flecsi::na> fa,
+  flecsi::field<double>::accessor<flecsi::wo, flecsi::na> sa,
+  flecsi::field<double>::accessor<flecsi::wo, flecsi::na> Aua) noexcept;
 
 } // namespace task
 } // namespace poisson

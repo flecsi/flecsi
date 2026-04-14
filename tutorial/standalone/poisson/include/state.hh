@@ -5,12 +5,8 @@
 
 namespace poisson {
 
-inline const field<double>::definition<mesh, mesh::vertices> test;
-
-inline const field<double>::definition<mesh, mesh::vertices> ud;
-inline const field<double>::definition<mesh, mesh::vertices> fd;
-inline const field<double>::definition<mesh, mesh::vertices> sd;
-inline const field<double>::definition<mesh, mesh::vertices> Aud;
+inline const flecsi::field<double>::definition<mesh, mesh::vertices> ud, fd, sd,
+  Aud;
 
 } // namespace poisson
 

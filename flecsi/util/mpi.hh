@@ -53,42 +53,6 @@ test(int err) {
 }
 
 namespace detail {
-struct guard {
-  guard() = default;
-  guard(guard &&) = delete; // MPI knows our address
-  ~guard() {
-    if(!v.empty())
-      flog_fatal("MPI datatypes list destroyed too early");
-  }
-
-  void commit(MPI_Datatype & d) {
-    if(!setup) {
-      int keyval;
-      test(MPI_Comm_create_keyval(
-        MPI_COMM_NULL_COPY_FN, destroy, &keyval, nullptr));
-      test(MPI_Comm_set_attr(MPI_COMM_SELF, keyval, this));
-      test(MPI_Comm_free_keyval(&keyval));
-      setup = true;
-    }
-    test(MPI_Type_commit(&d));
-    v.push_back(d);
-  }
-
-private:
-  static int destroy(MPI_Comm, int, void * attr, void *) {
-    int e = MPI_SUCCESS;
-    for(auto & v = static_cast<guard *>(attr)->v;
-      !v.empty() && e == MPI_SUCCESS;) {
-      e = MPI_Type_free(&v.back());
-      v.pop_back();
-    }
-    return e;
-  }
-
-  bool setup = false;
-  std::vector<MPI_Datatype> v;
-} inline datatypes;
-
 struct vector { // for *v functions
   explicit vector(count_t n) {
     off.reserve(n);
@@ -146,6 +110,37 @@ struct init {
   static inline bool finalize = true; // for GASNet compatibility
 };
 
+// Schedules objects to be destroyed upon the call to MPI_Finalize.
+struct finalizer {
+  static finalizer & make() {
+    return *new finalizer;
+  }
+
+  template<class T>
+  auto & push(T && t) {
+    return v.emplace_back().emplace(std::forward<T>(t));
+  }
+
+private:
+  finalizer() {
+    int k;
+    test(MPI_Comm_create_keyval(
+      MPI_COMM_NULL_COPY_FN,
+      [](MPI_Comm, int, void * a, void *) {
+        delete static_cast<finalizer *>(a);
+        return MPI_SUCCESS;
+      },
+      &k,
+      nullptr));
+    test(MPI_Comm_set_attr(MPI_COMM_SELF, k, this));
+    test(MPI_Comm_free_keyval(&k));
+  }
+  finalizer(finalizer &&) = delete; // MPI knows our address
+
+private:
+  std::vector<any> v;
+};
+
 struct comm {
   MPI_Comm c = MPI_COMM_NULL;
 
@@ -170,6 +165,68 @@ struct comm {
     test(MPI_Comm_split(c0, c, k, &ret.c));
     return ret;
   }
+};
+
+struct datatype {
+  datatype() = default;
+  template<class F>
+  explicit datatype(F && f) {
+    std::forward<F>(f)(d);
+    // The pointer really shouldn't be necessary, but this usage is correct
+    // even if MPI writes through it.
+    test(MPI_Type_commit(&d));
+  }
+  datatype(datatype && x) noexcept {
+    std::swap(d, x.d);
+  }
+  ~datatype() {
+    if(*this)
+      MPI_Type_free(&d);
+  }
+
+  datatype & operator=(datatype x) & noexcept {
+    std::swap(d, x.d);
+    return *this;
+  }
+  explicit operator bool() const noexcept {
+    return d != MPI_DATATYPE_NULL;
+  }
+
+  operator MPI_Datatype() const {
+    return d;
+  }
+
+private:
+  MPI_Datatype d = MPI_DATATYPE_NULL;
+};
+
+struct op {
+  op() = default;
+  explicit op(MPI_User_function f, bool comm = true) {
+    util::mpi::test(MPI_Op_create(f, comm, &o));
+  }
+  op(op && x) noexcept {
+    std::swap(o, x.o);
+  }
+  ~op() {
+    if(*this)
+      MPI_Op_free(&o);
+  }
+
+  op & operator=(op x) & noexcept {
+    std::swap(o, x.o);
+    return *this;
+  }
+  explicit operator bool() const noexcept {
+    return o != MPI_OP_NULL;
+  }
+
+  operator MPI_Op() const {
+    return o;
+  }
+
+private:
+  MPI_Op o = MPI_OP_NULL;
 };
 
 // This is a workaround for a bug in Cray MPICH.
@@ -261,6 +318,14 @@ maybe_static() {
 
 #undef FLECSI_CRAY_MPICH_WORKAROUND
 
+namespace detail {
+inline auto &
+registry() {
+  static auto & fin = finalizer::make();
+  return fin;
+}
+} // namespace detail
+
 template<class T>
 MPI_Datatype
 type() {
@@ -268,12 +333,10 @@ type() {
     return maybe_static<T>();
   else {
     static_assert(bit_assignable_v<T>);
-    static const MPI_Datatype ret = [] {
-      MPI_Datatype data_type;
-      test(MPI_Type_contiguous(sizeof(T), MPI_BYTE, &data_type));
-      detail::datatypes.commit(data_type);
-      return data_type;
-    }();
+    static const MPI_Datatype ret =
+      detail::registry().push(datatype([](MPI_Datatype & data_type) {
+        test(MPI_Type_contiguous(sizeof(T), MPI_BYTE, &data_type));
+      }));
     return ret;
   }
 }
@@ -283,6 +346,13 @@ template<class T,
 MPI_Datatype
 static_type() {
   return maybe_static<T>();
+}
+
+template<MPI_User_function F, bool C = true>
+MPI_Op
+operation() {
+  static const MPI_Op ret = detail::registry().push(op(F, C));
+  return ret;
 }
 
 struct auto_requests {

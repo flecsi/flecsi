@@ -6,15 +6,15 @@
 namespace poisson {
 namespace task {
 
-double diff(mesh::accessor<ro> m,
-  field<double>::accessor<ro, na> aa,
-  field<double>::accessor<ro, na> ba) noexcept;
+double diff(mesh::accessor<flecsi::ro> m,
+  flecsi::field<double>::accessor<flecsi::ro, flecsi::na> aa,
+  flecsi::field<double>::accessor<flecsi::ro, flecsi::na> ba) noexcept;
 
-double scale(mesh::accessor<ro> m, double sum) noexcept;
+double scale(mesh::accessor<flecsi::ro> m, double sum) noexcept;
 
-void discrete_operator(mesh::accessor<ro> m,
-  field<double>::accessor<ro, ro> ua,
-  field<double>::accessor<wo, na> Aua) noexcept;
+void discrete_operator(mesh::accessor<flecsi::ro> m,
+  flecsi::field<double>::accessor<flecsi::ro, flecsi::ro> ua,
+  flecsi::field<double>::accessor<flecsi::wo, flecsi::na> Aua) noexcept;
 
 } // namespace task
 } // namespace poisson
