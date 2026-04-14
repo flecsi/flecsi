@@ -24,9 +24,9 @@
 namespace flecsi {
 namespace topo {
 
+namespace unstructured_impl {
 /// \addtogroup unstructured
 /// \{
-namespace unstructured_impl {
 
 using entity_index_space = std::size_t;
 
@@ -135,10 +135,12 @@ operator<<(std::ostream & stream, index_color const & ic) {
   return stream;
 }
 
+/// \}
 } // namespace unstructured_impl
 
 /// Specialization-independent definitions.
 /// Name as \c base in an \c unstructured specialization.
+/// \ingroup unstructured
 struct unstructured_base : base {
   /// The type for specifying an index space for a single color.
   using index_color = unstructured_impl::index_color;
@@ -204,8 +206,7 @@ struct unstructured_base : base {
           colors(std::move(colors)), num_intervals(std::move(num_intervals)) {}
 
       /// The communication peers over all colors, i.e.,
-      /// for each color, the communication peers
-      /// (color ids) are stored.
+      /// for each color, the colors for which it holds shared entities.
       std::vector<std::vector<Color>> peers;
 
       /// The number of entities (including ghosts) for every color.
@@ -216,7 +217,8 @@ struct unstructured_base : base {
       util::gid entities = 0;
 
       /// Information specific to local colors.
-      /// Each process may contribute any number of partitions.
+      /// Colors must be distributed over processes as evenly as possible,
+      /// with one additional color on low-ranked processes as needed.
       std::vector<index_color> colors;
 
       // number of ghost intervals over all colors
@@ -454,6 +456,7 @@ namespace unstructured_impl {
   @tparam NF    Number of privileges for connectivity field.
   @param  mconn A multi-accessor to the connectivity field.
   @param  connectivities
+  \ingroup unstructured
  */
 template<PrivilegeCount NF>
 void
@@ -475,7 +478,6 @@ init_connectivity(
 /// \endcond
 } // namespace unstructured_impl
 
-/// \}
 } // namespace topo
 
 } // namespace flecsi

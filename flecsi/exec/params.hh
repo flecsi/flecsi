@@ -101,6 +101,8 @@ protected:
   /// Send a global field reference to a reduction accessor.
   template<class R, typename T>
   void visit(data::reduction_accessor<R, T> &);
+  /// Fill in information about task instances.
+  void visit(processor_space_t<Proc> &);
 };
 #endif
 
