@@ -233,7 +233,7 @@ Such an object can also be passed as a task argument for a ``future<T>`` paramet
 
 The values returned by an index launch may also be `reduced` to a single value (still expressed as a future).
 The reduction operation is expressed as a type, passed as a template argument to ``reduce``, with members ``combine`` and ``identity``, which may optionally be templates.
-The most common reduction operations are provided in the ``exec::fold`` namespace, defined in ``fold.hh``; the generic interface is adapted to each backend in ``*/reduction_wrapper.hh``.
+The most common reduction operations are provided in the ``exec::fold`` namespace, defined in ``fold.hh``; the generic interface is adapted to each backend in ``*/fold.hh``.
 
 The function template ``execute`` simply forwards to ``reduce`` with ``void`` as the (non-)reduction type; both are defined in ``execution.hh``.
 In turn, ``reduce`` performs periodic log aggregation and then calls the ``reduce_internal`` entry point defined in ``*/policy.hh``.

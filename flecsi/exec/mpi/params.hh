@@ -6,7 +6,7 @@
 
 #include "flecsi/exec/future.hh"
 #include "flecsi/exec/local/params.hh"
-#include "flecsi/exec/mpi/reduction_wrapper.hh"
+#include "flecsi/exec/mpi/fold.hh"
 #include "flecsi/util/mpi.hh"
 
 namespace flecsi::exec {
