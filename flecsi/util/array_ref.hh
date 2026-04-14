@@ -617,7 +617,8 @@ public:
   }; // struct iterator
 
   /// Wrap a container.
-  constexpr transform_view(C c, F f = {}) : c(std::move(c)), f(std::move(f)) {}
+  constexpr transform_view(C c, F f = {})
+    : c(std::forward<C>(c)), f(std::move(f)) {}
 
   FLECSI_INLINE_TARGET constexpr iterator<false> begin() noexcept {
     return {std::begin(c), &f};
