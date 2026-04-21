@@ -528,12 +528,7 @@ one_to_allv(R && r, MPI_Comm comm = MPI_COMM_WORLD) {
       0,
       comm));
 
-    if(rank) {
-      auto const * p = v.data.data();
-      return serial::get<return_type>(p);
-    }
-    else
-      return std::move(*mine);
+    return rank ? serial::get1<return_type>(v.data.data()) : std::move(*mine);
   }
 } // one_to_allv
 
