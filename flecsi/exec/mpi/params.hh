@@ -39,7 +39,8 @@ protected:
   template<typename R>
   static void visit(future<R, exec::launch_type_t::single> & single,
     const future<R, exec::launch_type_t::index> & index) {
-    single = future<R>::make(index.result);
+    if constexpr(!std::is_void_v<R>)
+      single = future<R>::make(index.result);
   }
 }; // struct task_prolog
 
