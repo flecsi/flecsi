@@ -7,7 +7,7 @@
 #include "flecsi/exec/future.hh"
 #include "flecsi/exec/launch.hh"
 #include "flecsi/exec/leg/fold.hh"
-#include "flecsi/exec/leg/task_wrapper.hh"
+#include "flecsi/exec/leg/task.hh"
 #include "flecsi/exec/leg/tracer.hh"
 #include "flecsi/exec/params.hh"
 #include "flecsi/run/backend.hh"

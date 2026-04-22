@@ -11,7 +11,7 @@ flecsi_headers(
 
 if(FLECSI_BACKEND STREQUAL "legion")
   flecsi_headers(
-    leg/task_wrapper.hh
+    leg/task.hh
     leg/params.hh
     leg/policy.hh
     leg/future.hh
