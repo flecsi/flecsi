@@ -600,10 +600,7 @@ public:
     }
 
     FLECSI_INLINE_TARGET constexpr reference operator*() const {
-      if constexpr(std::is_member_pointer_v<F>)
-        return std::invoke(*f, *p); // not constexpr until C++20
-      else
-        return (*f)(*p);
+      return std::invoke(*f, *p);
     }
     // operator-> makes sense only for a true 'reference'
     FLECSI_INLINE_TARGET constexpr reference operator[](
