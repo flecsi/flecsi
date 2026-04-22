@@ -49,7 +49,7 @@ mempcpy(std::size_t & x, const void *, std::size_t n) {
 /// Extension point for serialization.
 /// The primary template is not really a complete type.
 /// \tparam T object type
-/// \tparam E unused SFINAE hook
+/// \tparam E unused SFINAE hook (\b deprecated: use constraints)
 template<class T, class E = void>
 struct traits
 #ifdef DOXYGEN
@@ -196,7 +196,8 @@ namespace serial {
 /// \{
 
 template<class T>
-struct traits<T, std::enable_if_t<bit_copyable_v<T>>> {
+  requires bit_copyable_v<T>
+struct traits<T> {
   static_assert(!std::is_pointer_v<T>, "Cannot serialize pointers");
   template<class P>
   static void put(P & p, const T & t) {
@@ -211,8 +212,8 @@ struct traits<T, std::enable_if_t<bit_copyable_v<T>>> {
   }
 };
 template<class T, class U>
-struct traits<std::pair<T, U>,
-  std::enable_if_t<!bit_copyable_v<std::pair<T, U>>>> {
+  requires(!bit_copyable_v<std::pair<T, U>>)
+struct traits<std::pair<T, U>> {
   using type = std::pair<T, U>;
   template<class P>
   static void put(P & p, const type & v) {
@@ -223,8 +224,8 @@ struct traits<std::pair<T, U>,
   }
 };
 template<class... TT>
-struct traits<std::tuple<TT...>,
-  std::enable_if_t<!bit_copyable_v<std::tuple<TT...>>>> {
+  requires(!bit_copyable_v<std::tuple<TT...>>)
+struct traits<std::tuple<TT...>> {
   using type = std::tuple<TT...>;
   template<class P>
   static void put(P & p, const type & t) {
@@ -235,8 +236,8 @@ struct traits<std::tuple<TT...>,
   }
 };
 template<class T, std::size_t N>
-struct traits<std::array<T, N>,
-  std::enable_if_t<!bit_copyable_v<std::array<T, N>>>> {
+  requires(!bit_copyable_v<std::array<T, N>>)
+struct traits<std::array<T, N>> {
   using type = std::array<T, N>;
   template<class P>
   static void put(P & p, const type & a) {
@@ -306,9 +307,11 @@ struct value {
 
 // This works even without Legion:
 template<class T>
-struct traits<T,
-  voided<decltype(&T::legion_buffer_size),
-    std::enable_if_t<!bit_copyable_v<T>>>> {
+  requires requires(const T t) {
+    t.legion_buffer_size();
+    requires !bit_copyable_v<T>;
+  }
+struct traits<T> {
   template<class P>
   static void put(P & p, const T & t) {
     if constexpr(std::is_pointer_v<P>)
