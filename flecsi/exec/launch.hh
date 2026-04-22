@@ -230,10 +230,6 @@ using same_ref_t = std::conditional_t<std::is_lvalue_reference_v<R>, T &, T &&>;
 template<class C, class T> // similar to std::forward_like
 using element_t = same_ref_t<C,
   util::maybe_const<std::is_const_v<std::remove_reference_t<C>>, T>>;
-template<class T>
-struct type_identity { // from C++20
-  using type = T;
-};
 
 template<class P, class A, class D = std::decay_t<A>>
 struct sync_storage {
@@ -255,14 +251,14 @@ struct sync_storage<std::tuple<PP...>, T, std::tuple<AA...>> {
   static constexpr bool temporary =
     (sync_storage<PP, element_t<T, AA>>::temporary || ...);
   using type = typename std::conditional_t<temporary,
-    type_identity<std::tuple<sync_storage_t<PP, element_t<T, AA>>...>>,
+    std::type_identity<std::tuple<sync_storage_t<PP, element_t<T, AA>>...>>,
     replaced<std::tuple<PP...>, T>>::type; // instantiated only if needed
 };
 template<class P, class V, class A>
 struct sync_storage<std::vector<P>, V, std::vector<A>> {
   static constexpr bool temporary = sync_storage<P, element_t<V, A>>::temporary;
   using type = typename std::conditional_t<temporary,
-    type_identity<std::vector<sync_storage_t<P, element_t<V, A>>>>,
+    std::type_identity<std::vector<sync_storage_t<P, element_t<V, A>>>>,
     replaced<std::vector<P>, V>>::type;
 };
 
@@ -365,7 +361,7 @@ struct protocol {
         "only MPI tasks can accept non-copyable parameters by value");
     return convert<typename std::conditional_t<M,
       sync_storage<P, A &&>,
-      type_identity<param_storage_t<P>>>::type // always instantiated
+      std::type_identity<param_storage_t<P>>>::type // always instantiated
       >(exec::replace_argument<P>(std::forward<A>(a)));
   }
 
