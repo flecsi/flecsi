@@ -729,10 +729,10 @@ struct partial : std::tuple<AA...> {
 ///   \endcode
 ///
 /// \ns.
-/// \deprecated Use a lambda or \c std::bind.
+/// \deprecated Use a lambda or \c std::bind_front.
 template<auto & F, class... AA>
-[[deprecated(
-  "use lambda or std::bind")]] constexpr exec::partial<F, std::decay_t<AA>...>
+[[deprecated("use lambda or std::bind_front")]] constexpr exec::partial<F,
+  std::decay_t<AA>...>
 make_partial(AA &&... aa) {
   return {std::forward<AA>(aa)...};
 }
