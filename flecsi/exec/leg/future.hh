@@ -57,7 +57,7 @@ struct future<Return, exec::launch_type_t::index> {
 };
 
 template<class Return>
-future<std::decay_t<Return>>
+future<std::remove_cvref_t<Return>>
 make_future(Return && val) {
   return {{}, Legion::Future::from_value(std::forward<Return>(val))};
 } // make_future

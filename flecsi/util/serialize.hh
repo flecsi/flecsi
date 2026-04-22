@@ -364,8 +364,8 @@ struct traits<T, decltype(void(convert<T>::put))> {
       p += Convert::size(t);
   }
   static T get(const std::byte *& p) {
-    return Convert::get(
-      serial::get<std::decay_t<decltype(Convert::put(std::declval<T>()))>>(p));
+    return Convert::get(serial::get<
+      std::remove_cvref_t<decltype(Convert::put(std::declval<T>()))>>(p));
   }
 };
 

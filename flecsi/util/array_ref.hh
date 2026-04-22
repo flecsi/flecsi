@@ -520,7 +520,7 @@ public:
     using difference_type = typename traits::difference_type;
     using reference = decltype(std::declval<const F &>()(
       std::declval<typename traits::reference>()));
-    using value_type = std::decay_t<reference>;
+    using value_type = std::remove_cvref_t<reference>;
     using pointer = void;
     using iterator_category = std::conditional_t<std::is_reference_v<reference>,
       typename traits::iterator_category,
