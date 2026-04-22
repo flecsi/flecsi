@@ -18,81 +18,7 @@
 #include <mutex>
 #include <type_traits>
 
-namespace flecsi {
-
-namespace exec {
-
-namespace detail {
-
-struct atomic_base {
-  // Expecting that concurrent atomic operations are more likely on a single
-  // type, we share one large lock array:
-  static constexpr std::uintptr_t locks = 255;
-  static inline std::mutex lock[locks];
-
-  static auto lower(std::memory_order o) {
-    switch(o) {
-      case std::memory_order_relaxed:
-        return __ATOMIC_RELAXED;
-      case std::memory_order_consume:
-        return __ATOMIC_CONSUME;
-      case std::memory_order_acquire:
-        return __ATOMIC_ACQUIRE;
-      case std::memory_order_release:
-        return __ATOMIC_RELEASE;
-      case std::memory_order_acq_rel:
-        return __ATOMIC_ACQ_REL;
-      default:
-        return __ATOMIC_SEQ_CST;
-    }
-  }
-};
-// A simple, abridged version of std::atomic_ref from C++20.
-template<class T, class = void>
-struct atomic_ref : private atomic_base {
-  explicit atomic_ref(T & t) : p(&t) {}
-  bool compare_exchange_strong(T & expected,
-    T desired,
-    std::memory_order = {}) const noexcept {
-    const std::unique_lock guard(
-      lock[reinterpret_cast<std::uintptr_t>(p) / alignof(T) % locks]);
-    const bool fail = std::memcmp(p, &expected, sizeof(T));
-    std::memcpy(fail ? &expected : p, fail ? p : &desired, sizeof(T));
-    return !fail;
-  }
-
-private:
-  T * p;
-};
-// The real implementation for certain built-in types:
-template<class T>
-struct atomic_ref<T,
-  std::enable_if_t<std::is_pointer_v<T> || std::is_integral_v<T>>>
-  : private atomic_base {
-  explicit atomic_ref(T & t) : p(&t) {}
-
-  bool compare_exchange_strong(T & expected,
-    T desired,
-    std::memory_order o = std::memory_order_seq_cst) const noexcept {
-    return __atomic_compare_exchange_n(
-      p, &expected, desired, false, lower(o), lower([o]() {
-        switch(o) {
-          case std::memory_order_acq_rel:
-            return std::memory_order_acquire;
-          case std::memory_order_release:
-            return std::memory_order_relaxed;
-          default:
-            return o;
-        }
-      }()));
-  }
-
-private:
-  T * p;
-};
-} // namespace detail
-
-namespace fold {
+namespace flecsi::exec::fold {
 /// \addtogroup legion-execution
 /// \{
 
@@ -108,7 +34,7 @@ struct custom_wrap {
       a = R::combine(a, b);
     else {
       LHS rd{};
-      detail::atomic_ref<LHS> r(a);
+      std::atomic_ref<LHS> r(a);
       while(!r.compare_exchange_strong(
         rd, R::combine(rd, b), std::memory_order_relaxed))
         ;
@@ -178,8 +104,6 @@ template<class R, class T>
 using wrap = typename detail::wrap<R, T>::type;
 
 /// \}
-} // namespace fold
-} // namespace exec
-} // namespace flecsi
+} // namespace flecsi::exec::fold
 
 #endif
