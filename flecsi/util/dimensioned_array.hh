@@ -42,9 +42,7 @@ public:
   //--------------------------------------------------------------------------//
   constexpr dimensioned_array(std::initializer_list<TYPE> list) : base{} {
     assert(list.size() == DIMENSION && "dimension size mismatch");
-    auto p = list.begin();
-    for(auto & x : *this)
-      x = *p++; // std::copy isn't constexpr until C++20
+    std::copy(list.begin(), list.end(), this->data());
   } // dimensioned_array
 
   //--------------------------------------------------------------------------//
