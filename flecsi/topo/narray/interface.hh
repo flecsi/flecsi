@@ -628,7 +628,7 @@ protected:
   }
 
   /// Get axis information.
-  /// This function is \ref topology "host-accessible".
+  /// \host.
   template<index_space S, Axis A>
   FLECSI_INLINE_TARGET axis_info axis() const {
     return get_axis<S, A>();
