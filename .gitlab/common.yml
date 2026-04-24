@@ -92,7 +92,7 @@ default:
   artifacts:
     expire_in: 2 weeks
     paths:
-      - build/doc
+      - build_docs/doc
 
 .check_format:
   extends: [.check]

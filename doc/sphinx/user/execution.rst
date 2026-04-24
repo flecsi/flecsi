@@ -150,8 +150,7 @@ The example below shows the static member function template for a task:
 .. code-block:: cpp
 
    struct task_variants {
-     template<class S>
-     static void task(S, /* ... */ ) noexcept {
+     static void task(auto, /* ... */ ) noexcept {
        /* ... */
      }
    };
@@ -163,8 +162,7 @@ This ensures that tasks cannot be launched on the architectures that are not spe
 .. code-block:: cpp
 
    struct task_variants {
-     template<class S>
-     static void task(S, /* ... */ ) noexcept = delete;
+     static void task(auto, /* ... */ ) noexcept = delete;
    };
 
    // CPU variant

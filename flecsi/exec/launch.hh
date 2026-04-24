@@ -48,7 +48,7 @@ struct must_convert
 template<class P, class A>
 struct replace_argument<P,
   A,
-  std::enable_if_t<!must_convert<std::decay_t<A>>::value>> {
+  std::enable_if_t<!must_convert<std::remove_cvref_t<A>>::value>> {
   static constexpr bool special = false;
   static A replace(A a) { // NB: not P
     return static_cast<A>(a);
@@ -143,7 +143,7 @@ private:
 template<class P, class A>
 auto
 launch_size_single(const A & a) {
-  return launch<std::decay_t<P>, A>::get(a);
+  return launch<std::remove_cvref_t<P>, A>::get(a);
 }
 
 template<bool M, class... PP, class... AA>
@@ -196,7 +196,7 @@ struct consistent_variants
 template<class P, class T>
 decltype(auto)
 replace_argument(T && t) {
-  return detail::replace_argument<std::decay_t<P>, T &&>::replace(
+  return detail::replace_argument<std::remove_cvref_t<P>, T &&>::replace(
     std::forward<T>(t));
 }
 
@@ -235,10 +235,6 @@ using same_ref_t = std::conditional_t<std::is_lvalue_reference_v<R>, T &, T &&>;
 template<class C, class T> // similar to std::forward_like
 using element_t = same_ref_t<C,
   util::maybe_const<std::is_const_v<std::remove_reference_t<C>>, T>>;
-template<class T>
-struct type_identity { // from C++20
-  using type = T;
-};
 
 template<class P, class A, class D = std::decay_t<A>>
 struct sync_storage {
@@ -247,11 +243,11 @@ struct sync_storage {
     !temporary || std::is_move_constructible_v<std::remove_reference_t<P>>,
     "references to non-movable types must bind directly");
   static_assert(!std::conditional_t<temporary, // avoid unneeded instantiation
-                  sync_storage<std::decay_t<P>, A, D>,
+                  sync_storage<std::remove_cvref_t<P>, A, D>,
                   sync_storage>::temporary,
     "MPI tasks cannot accept references that require nested conversions");
-  using type =
-    typename std::conditional_t<temporary, std::decay<P>, replaced<P, A>>::type;
+  using type = typename std::
+    conditional_t<temporary, std::remove_cvref<P>, replaced<P, A>>::type;
 };
 template<class P, class A>
 using sync_storage_t = typename sync_storage<P, A>::type;
@@ -260,7 +256,7 @@ struct sync_storage<std::tuple<PP...>, T, std::tuple<AA...>> {
   static constexpr bool temporary =
     (sync_storage<PP, element_t<T, AA>>::temporary || ...);
   using type = typename std::conditional_t<temporary,
-    type_identity<std::tuple<sync_storage_t<PP, element_t<T, AA>>...>>,
+    std::type_identity<std::tuple<sync_storage_t<PP, element_t<T, AA>>...>>,
     replaced<std::tuple<PP...>, T>>::type; // instantiated only if needed
 };
 template<class... PP, class T, class... AA>
@@ -268,21 +264,21 @@ struct sync_storage<std::variant<PP...>, T, std::variant<AA...>> {
   static constexpr bool temporary =
     (sync_storage<PP, element_t<T, AA>>::temporary || ...);
   using type = typename std::conditional_t<temporary,
-    type_identity<std::variant<sync_storage_t<PP, element_t<T, AA>>...>>,
+    std::type_identity<std::variant<sync_storage_t<PP, element_t<T, AA>>...>>,
     replaced<std::variant<PP...>, T>>::type; // instantiated only if needed
 };
 template<class P, class V, class A>
 struct sync_storage<std::optional<P>, V, std::optional<A>> {
   static constexpr bool temporary = sync_storage<P, element_t<V, A>>::temporary;
   using type = typename std::conditional_t<temporary,
-    type_identity<std::optional<sync_storage_t<P, element_t<V, A>>>>,
+    std::type_identity<std::optional<sync_storage_t<P, element_t<V, A>>>>,
     replaced<std::optional<P>, V>>::type;
 };
 template<class P, class V, class A>
 struct sync_storage<std::vector<P>, V, std::vector<A>> {
   static constexpr bool temporary = sync_storage<P, element_t<V, A>>::temporary;
   using type = typename std::conditional_t<temporary,
-    type_identity<std::vector<sync_storage_t<P, element_t<V, A>>>>,
+    std::type_identity<std::vector<sync_storage_t<P, element_t<V, A>>>>,
     replaced<std::vector<P>, V>>::type;
 };
 
@@ -443,7 +439,7 @@ struct protocol {
         "only MPI tasks can accept non-copyable parameters by value");
     return convert<typename std::conditional_t<M,
       sync_storage<P, A &&>,
-      type_identity<param_storage_t<P>>>::type // always instantiated
+      std::type_identity<param_storage_t<P>>>::type // always instantiated
       >(exec::replace_argument<P>(std::forward<A>(a)));
   }
 
@@ -461,7 +457,7 @@ auto
 convert_parameters(std::tuple<PP...> *, std::tuple<BB...> && bound) {
   return convert<std::tuple<std::conditional_t<std::is_convertible_v<BB &&, PP>,
     BB &&,
-    std::decay_t<PP>>...>>(std::move(bound));
+    std::remove_cvref_t<PP>>...>>(std::move(bound));
 }
 } // namespace detail
 
@@ -761,7 +757,7 @@ template<class... TT>
 struct param_space<std::tuple<TT...>> {
   using type = typename decltype((
     processor_combine<void>() | ... |
-    processor_combine<space_base::keep<std::decay_t<TT>>>()))::type;
+    processor_combine<space_base::keep<std::remove_cvref_t<TT>>>()))::type;
 };
 
 template<class, class, class = void>
@@ -847,10 +843,10 @@ struct partial : std::tuple<AA...> {
 ///   \endcode
 ///
 /// \ns.
-/// \deprecated Use a lambda or \c std::bind.
+/// \deprecated Use a lambda or \c std::bind_front.
 template<auto & F, class... AA>
-[[deprecated(
-  "use lambda or std::bind")]] constexpr exec::partial<F, std::decay_t<AA>...>
+[[deprecated("use lambda or std::bind_front")]] constexpr exec::partial<F,
+  std::decay_t<AA>...>
 make_partial(AA &&... aa) {
   return {std::forward<AA>(aa)...};
 }
@@ -946,13 +942,13 @@ template<class... PP>
 struct task_param<std::tuple<PP...>> {
   template<class... AA,
     class = std::enable_if_t<(
-      replace_argument<std::decay_t<PP>, const AA &>::special || ...)>>
+      replace_argument<std::remove_cvref_t<PP>, const AA &>::special || ...)>>
   static auto replace(const std::tuple<AA...> & t) {
     return make(t);
   }
   template<class... AA,
     class = std::enable_if_t<(
-      replace_argument<std::decay_t<PP>, AA &&>::special || ...)>>
+      replace_argument<std::remove_cvref_t<PP>, AA &&>::special || ...)>>
   static auto replace(std::tuple<AA...> && t) {
     return make(std::move(t));
   }
@@ -971,7 +967,7 @@ private:
 };
 template<class... TT>
 struct must_convert<std::tuple<TT...>>
-  : std::disjunction<must_convert<std::decay_t<TT>>...> {};
+  : std::disjunction<must_convert<std::remove_cvref_t<TT>>...> {};
 template<class... PP, class... AA>
 struct launch<std::tuple<PP...>, std::tuple<AA...>> {
   static auto get(const std::tuple<AA...> & t) {
@@ -987,13 +983,13 @@ template<class... PP>
 struct task_param<std::variant<PP...>> {
   template<class... AA,
     class = std::enable_if_t<(
-      replace_argument<std::decay_t<PP>, const AA &>::special || ...)>>
+      replace_argument<std::remove_cvref_t<PP>, const AA &>::special || ...)>>
   static auto replace(const std::variant<AA...> & v) {
     return make(v);
   }
   template<class... AA,
     class = std::enable_if_t<(
-      replace_argument<std::decay_t<PP>, AA &&>::special || ...)>>
+      replace_argument<std::remove_cvref_t<PP>, AA &&>::special || ...)>>
   static auto replace(std::variant<AA...> && v) {
     return make(std::move(v));
   }
@@ -1044,13 +1040,14 @@ struct must_bind<std::variant<TT...>> : std::disjunction<must_bind<TT>...> {};
 template<class P>
 struct task_param<std::optional<P>> {
   template<class A,
-    class =
-      std::enable_if_t<replace_argument<std::decay_t<P>, const A &>::special>>
+    class = std::enable_if_t<
+      replace_argument<std::remove_cvref_t<P>, const A &>::special>>
   static auto replace(const std::optional<A> & o) {
     return make(o);
   }
   template<class A,
-    class = std::enable_if_t<replace_argument<std::decay_t<P>, A &&>::special>>
+    class =
+      std::enable_if_t<replace_argument<std::remove_cvref_t<P>, A &&>::special>>
   static auto replace(std::optional<A> && o) {
     return make(std::move(o));
   }
@@ -1082,7 +1079,7 @@ struct task_param<P, std::enable_if_t<std::is_base_of_v<data::params_tag, P>>> {
     !std::is_base_of_v<data::arg_tag, std::remove_reference_t<A>>,
     P>
   replace(A && t) {
-    // The template argument is a tuple of references that are decayed later.
+    // The template argument is a tuple of references that are stripped later.
     return std::make_from_tuple<P>(
       exec::replace_argument<decltype(std::declval<P &>().flecsi_params())>(
         std::forward<A>(t)));

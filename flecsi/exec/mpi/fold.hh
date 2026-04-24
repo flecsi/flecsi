@@ -1,8 +1,8 @@
 // Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
-#ifndef FLECSI_EXEC_MPI_REDUCTION_WRAPPER_HH
-#define FLECSI_EXEC_MPI_REDUCTION_WRAPPER_HH
+#ifndef FLECSI_EXEC_MPI_FOLD_HH
+#define FLECSI_EXEC_MPI_FOLD_HH
 
 #include "flecsi/exec/fold.hh"
 #include "flecsi/run/backend.hh"

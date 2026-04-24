@@ -520,7 +520,7 @@ public:
     using difference_type = typename traits::difference_type;
     using reference = decltype(std::declval<const F &>()(
       std::declval<typename traits::reference>()));
-    using value_type = std::decay_t<reference>;
+    using value_type = std::remove_cvref_t<reference>;
     using pointer = void;
     using iterator_category = std::conditional_t<std::is_reference_v<reference>,
       typename traits::iterator_category,
@@ -600,10 +600,7 @@ public:
     }
 
     FLECSI_INLINE_TARGET constexpr reference operator*() const {
-      if constexpr(std::is_member_pointer_v<F>)
-        return std::invoke(*f, *p); // not constexpr until C++20
-      else
-        return (*f)(*p);
+      return std::invoke(*f, *p);
     }
     // operator-> makes sense only for a true 'reference'
     FLECSI_INLINE_TARGET constexpr reference operator[](
@@ -743,7 +740,7 @@ private:
 };
 
 /// A simple subset of \c std::ranges::transform from C++20.
-/// This function supports GPU execution.
+/// \gpu{function}.
 /// \param s source range
 /// \param d destination iterator
 template<class S, class D, class F>
@@ -754,7 +751,7 @@ transform(S && s, D d, F && f) {
 }
 
 /// A subset of \c std::ranges::partition_point from C++20.
-/// This function supports GPU execution.
+/// \gpu{function}.
 /// \param r random-access range
 /// \return an iterator to the first element for which \a f returns \c false
 template<class R, class F>
@@ -772,7 +769,7 @@ partition_point(R && r, F && f) {
 }
 
 /// Find the index of a value in a sorted range.
-/// This function supports GPU execution.
+/// \gpu{function}.
 /// \param r random-access range
 template<class R,
   class T = std::remove_reference_t<decltype(*std::begin(std::declval<R>()))>>
@@ -788,7 +785,7 @@ binary_index(R && r, const T & t) {
 /// (though see also \c #binary_index) and may be repeated (with caution for
 /// the resulting aliasing).
 ///
-/// This function supports GPU execution.
+/// \gpu{function}.
 /// \param b random-access starting iterator
 /// \param r range of offsets from \a b
 /// \return view of selected elements, random access iff \c R is

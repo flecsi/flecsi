@@ -6,7 +6,7 @@
 
 #include "flecsi/exec/future.hh"
 #include "flecsi/exec/local/params.hh"
-#include "flecsi/exec/mpi/reduction_wrapper.hh"
+#include "flecsi/exec/mpi/fold.hh"
 #include "flecsi/util/mpi.hh"
 
 namespace flecsi::exec {
@@ -39,7 +39,8 @@ protected:
   template<typename R>
   static void visit(future<R> & single,
     const future<R, exec::launch_type_t::index> & index) {
-    single = future<R>::make(index.result);
+    if constexpr(!std::is_void_v<R>)
+      single = future<R>::make(index.result);
   }
 }; // struct task_prolog
 

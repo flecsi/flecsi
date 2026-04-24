@@ -1,8 +1,8 @@
 // Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
-#ifndef FLECSI_EXEC_LEG_TASK_WRAPPER_HH
-#define FLECSI_EXEC_LEG_TASK_WRAPPER_HH
+#ifndef FLECSI_EXEC_LEG_TASK_HH
+#define FLECSI_EXEC_LEG_TASK_HH
 
 #include "flecsi/exec/params.hh"
 #include "flecsi/exec/task_attributes.hh"

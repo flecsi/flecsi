@@ -105,7 +105,7 @@ private:
     result = v;
   }
   bool found = false;
-  bool result = false; // until C++20
+  bool result;
 };
 
 template<class T, class C>

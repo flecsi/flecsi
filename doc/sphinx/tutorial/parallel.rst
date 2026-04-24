@@ -33,7 +33,7 @@ The latter supports further composition, such as client library interfaces that 
 Any of these can have a name attached as illustrated with the ``named`` function.
 
 ``reduce2`` also illustrates defining a task as a function template so that it can use an execution space chosen by FleCSI.
-For syntactic reasons, the function template is wrapped in a ``struct``; it is always named ``task`` and has just one template parameter which is the execution space.
+For syntactic reasons, the function template is wrapped in a ``struct``; it is always named ``task`` and has just one ``auto`` parameter which is the execution space.
 Note that, to let FleCSI select which specializations to instantiate, the definition of the function template must be available when the task is launched (rather than being defined in another source file).
 The application can influence that choice: here, the ``gpu`` execution space is taken to be undesirable and is disabled by deleting its template specialization.
 
