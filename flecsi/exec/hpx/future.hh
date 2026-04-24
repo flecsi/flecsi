@@ -157,9 +157,9 @@ struct future<void, exec::launch_type_t::index> : detail::future_index<void> {
 };
 
 template<class R>
-future<std::decay_t<R>>
+future<std::remove_cvref_t<R>>
 make_future(R && r) {
-  return future<std::decay_t<R>>(std::forward<R>(r));
+  return future<std::remove_cvref_t<R>>(std::forward<R>(r));
 }
 
 } // namespace flecsi

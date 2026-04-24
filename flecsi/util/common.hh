@@ -109,8 +109,6 @@ struct convert {
     return std::move(f)();
   }
 };
-template<class F>
-convert(F) -> convert<F>; // automatic in C++20
 
 template<class T>
 constexpr std::enable_if_t<std::is_unsigned_v<T>, T>
