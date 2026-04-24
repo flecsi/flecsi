@@ -743,7 +743,7 @@ private:
 };
 
 /// A simple subset of \c std::ranges::transform from C++20.
-/// This function supports GPU execution.
+/// \gpu{function}.
 /// \param s source range
 /// \param d destination iterator
 template<class S, class D, class F>
@@ -754,7 +754,7 @@ transform(S && s, D d, F && f) {
 }
 
 /// A subset of \c std::ranges::partition_point from C++20.
-/// This function supports GPU execution.
+/// \gpu{function}.
 /// \param r random-access range
 /// \return an iterator to the first element for which \a f returns \c false
 template<class R, class F>
@@ -772,7 +772,7 @@ partition_point(R && r, F && f) {
 }
 
 /// Find the index of a value in a sorted range.
-/// This function supports GPU execution.
+/// \gpu{function}.
 /// \param r random-access range
 template<class R,
   class T = std::remove_reference_t<decltype(*std::begin(std::declval<R>()))>>
@@ -788,7 +788,7 @@ binary_index(R && r, const T & t) {
 /// (though see also \c #binary_index) and may be repeated (with caution for
 /// the resulting aliasing).
 ///
-/// This function supports GPU execution.
+/// \gpu{function}.
 /// \param b random-access starting iterator
 /// \param r range of offsets from \a b
 /// \return view of selected elements, random access iff \c R is

@@ -32,9 +32,8 @@ reduce1(exec::accelerator s,
 }
 
 struct reduce2 {
-  template<class S>
   static void
-  task(S s, canon::accessor<ro> t, field<double>::accessor<ro> p) noexcept {
+  task(auto s, canon::accessor<ro> t, field<double>::accessor<ro> p) noexcept {
     auto res = s.executor().template reduce<exec::fold::max, double>(
       t.cells(), FLECSI_LAMBDA(auto c, auto up) { up(p[c]); });
 

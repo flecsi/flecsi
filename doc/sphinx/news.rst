@@ -20,6 +20,10 @@ Changes in v2.4.2
 
 Deprecated
 ^^^^^^^^^^
+* Utilities
+
+  * SFINAE hook for ``serial::traits`` |mdash| use constraints
+
 * Logging
 
   * ``fixme`` |mdash| use ``flog(warn)``
