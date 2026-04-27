@@ -93,13 +93,12 @@ struct copy_engine : local::copy_engine {
 
             // copy shared values to gather buffer on device in parallel,
             // for each element
-            const auto base = gpu; // to be captured, until C++20
             Kokkos::parallel_for(
               n_elements, KOKKOS_LAMBDA(const auto & i) {
                 // Yes, memcpy is supported on device as long as there is no
                 // std:: qualifier.
                 memcpy(gather_buffer_device_view->data() + i * type_size,
-                  base + src_indices_view[i] * type_size,
+                  gpu + src_indices_view[i] * type_size,
                   type_size);
               });
 
@@ -165,10 +164,9 @@ struct copy_engine : local::copy_engine {
 
           // copy ghost values from scatter buffer on device to field
           // storage in parallel, for each element
-          const auto base = gpu; // to be captured, until C++20
           Kokkos::parallel_for(
             n_elements, KOKKOS_LAMBDA(const auto & i) {
-              memcpy(base + dst_indices_view[i] * type_size,
+              memcpy(gpu + dst_indices_view[i] * type_size,
                 scatter_buffer_device_view->data() + i * type_size,
                 type_size);
             });

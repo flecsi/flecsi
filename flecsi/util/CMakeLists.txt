@@ -1,7 +1,6 @@
 flecsi_headers(
   annotation.hh
   array_ref.hh
-  bitutils.hh
   color_map.hh
   common.hh
   constant.hh

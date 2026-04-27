@@ -4,8 +4,7 @@
 #ifndef FLECSI_DATA_PRIVILEGE_HH
 #define FLECSI_DATA_PRIVILEGE_HH
 
-#include "flecsi/util/bitutils.hh"
-
+#include <bit>
 #include <cstddef>
 #include <utility>
 
@@ -88,7 +87,7 @@ inline constexpr Privileges privilege_pack = [] {
 
 constexpr PrivilegeCount
 privilege_count(Privileges PACK) {
-  return (util::bit_width(PACK) - 1) / privilege_bits;
+  return (std::bit_width(PACK) - 1) / privilege_bits;
 } // privilege_count
 
 /*!

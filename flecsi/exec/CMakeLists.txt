@@ -11,11 +11,11 @@ flecsi_headers(
 
 if(FLECSI_BACKEND STREQUAL "legion")
   flecsi_headers(
-    leg/task_wrapper.hh
+    leg/task.hh
     leg/params.hh
     leg/policy.hh
     leg/future.hh
-    leg/reduction_wrapper.hh
+    leg/fold.hh
     leg/tracer.hh
   )
 elseif(FLECSI_BACKEND STREQUAL "mpi")
@@ -24,7 +24,7 @@ elseif(FLECSI_BACKEND STREQUAL "mpi")
     mpi/future.hh
     mpi/params.hh
     mpi/policy.hh
-    mpi/reduction_wrapper.hh
+    mpi/fold.hh
     tracer.hh
   )
 elseif(FLECSI_BACKEND STREQUAL "hpx")
@@ -33,7 +33,7 @@ elseif(FLECSI_BACKEND STREQUAL "hpx")
     hpx/future.hh
     hpx/params.hh
     hpx/policy.hh
-    hpx/reduction_wrapper.hh
+    hpx/fold.hh
     tracer.hh
   )
 endif()

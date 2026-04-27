@@ -54,6 +54,10 @@ Changes in v2.4.2
 
 Deprecated
 ^^^^^^^^^^
+* Utilities
+
+  * SFINAE hook for ``serial::traits`` |mdash| use constraints
+
 * Logging
 
   * ``fixme`` |mdash| use ``flog(warn)``
@@ -79,6 +83,11 @@ Fixed
   * MPI tasks with reference parameters support more argument conversions.
     (Part of this was a regression in 2.4.1.)
   * CPU tasks properly make use of idle cores.
+
+* MPI backend
+
+  * ``future<void, exec::launch_type_t::index>`` task arguments are accepted.
+    (For portability, note that only recent versions of Legion honor that sort of dependency.)
 
 * HPX backend
 

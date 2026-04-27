@@ -90,8 +90,7 @@ simple(TYPE arg) noexcept {
 } // simple
 
 struct move {
-  template<class S>
-  static void task(S, const std::unique_ptr<int> &) noexcept = delete;
+  static void task(auto, const std::unique_ptr<int> &) noexcept = delete;
 };
 template<>
 void
