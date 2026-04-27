@@ -284,7 +284,7 @@ private:
     const Legion::Rect<data::leg::region_dimensions> r(dom);
 
     if(!dom.empty())
-      acc.bind(util::span(aa.ptr(Legion::Domain::DomainPointIterator(dom).p),
+      acc.bind(std::span(aa.ptr(Legion::Domain::DomainPointIterator(dom).p),
         r.hi[1] - r.lo[1] + 1));
   }
 

@@ -70,6 +70,7 @@ Fixed
 
 * Utilities
 
+  * ``util::span`` is a C++20 borrowed range.
   * ``Color`` is documented properly.
 
 Changes in v2.4.1 (October 20 2025)

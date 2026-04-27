@@ -74,7 +74,7 @@ hashtable_driver(scheduler &) {
 
     std::vector<pair_t> idx_s;
     idx_s.resize(ht_size);
-    const span span_ht(idx_s);
+    const std::span span_ht(idx_s);
 
     EXPECT_EQ(assign(span_ht), 0);
     EXPECT_EQ(check(span_ht), 0);

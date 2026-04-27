@@ -5,7 +5,7 @@
 #define FLECSI_UTIL_MPI_HH
 
 #include "flecsi/config.hh"
-#include "flecsi/util/array_ref.hh" // span
+#include "flecsi/util/array_ref.hh"
 #include "flecsi/util/serialize.hh"
 
 #include <algorithm>
@@ -17,6 +17,7 @@
 #include <memory>
 #include <numeric>
 #include <optional>
+#include <span>
 #include <stack>
 #include <type_traits>
 
@@ -669,7 +670,7 @@ one_to_alli(R && r, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
           test(MPI_Waitsome(
             req.size(), req.data(), &count, done.data(), MPI_STATUSES_IGNORE));
           // Clear data for completed sends:
-          for(auto j : util::span(done).first(count)) {
+          for(auto j : std::span(done).first(count)) {
             auto & w = val[j];
             used -= w.bytes();
             w.reset();

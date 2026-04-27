@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <iterator>
 #include <memory>
+#include <span>
 #include <stack>
 
 namespace flecsi {
@@ -171,7 +172,7 @@ private:
 template<class R, typename T>
 struct reduction_accessor : bind_tag {
   using element_type = T;
-  using size_type = typename util::span<element_type>::size_type;
+  using size_type = typename std::span<element_type>::size_type;
 
   /// Prepare to update en element.
   /// \return a callable that merges its \p T argument into the field element
@@ -179,7 +180,7 @@ struct reduction_accessor : bind_tag {
     return [&v = s[index]](const T & r) { v = R::combine(v, r); };
   }
 
-  void bind(util::span<element_type> x) { // for bind_accessors
+  void bind(std::span<element_type> x) { // for bind_accessors
     s = x;
   }
 
@@ -189,7 +190,7 @@ struct reduction_accessor : bind_tag {
   }
 
 private:
-  util::span<element_type> s;
+  std::span<element_type> s;
 };
 
 /// Accessor for potentially uninitialized memory.
@@ -200,17 +201,16 @@ struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
   using element_type = detail::element_t<DATA_TYPE, PRIVILEGES>;
 
   /// Get the allocated memory.
-  /// \return \c util::span
-  FLECSI_INLINE_TARGET auto span() const {
+  FLECSI_INLINE_TARGET util::span<element_type> span() const {
     return s;
   }
 
-  void bind(util::span<element_type> x) { // for bind_accessors
+  void bind(std::span<element_type> x) { // for bind_accessors
     s = x;
   }
 
 private:
-  util::span<element_type> s;
+  std::span<element_type> s;
 }; // struct accessor
 
 /// Accessor for ordinary fields.
@@ -1484,7 +1484,7 @@ struct multi : send_tag {
   /// \return a sized random-access range of color-accessor pairs
   auto components() const {
     return util::transform_view(
-      util::span(v), [](const round & r) -> std::pair<Color, const A &> {
+      std::span(v), [](const round & r) -> std::pair<Color, const A &> {
         return {r.row, r.a};
       });
   }
@@ -1525,7 +1525,7 @@ private:
   template<class V>
   static auto xform(V & v) {
     return util::transform_view(
-      util::span(v), [](auto & r) -> auto & { return r.a; });
+      std::span(v), [](auto & r) -> auto & { return r.a; });
   }
 
   std::vector<round> v;

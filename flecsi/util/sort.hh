@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <random>
+#include <span>
 
 namespace flecsi {
 namespace util {
@@ -115,12 +116,12 @@ protected:
   }; // struct max
 
   template<typename T>
-  static void index_sort(T * ptr, util::span<const std::size_t> schanges) {
+  static void index_sort(T * ptr, std::span<const std::size_t> schanges) {
     index_sort(reinterpret_cast<std::byte *>(ptr), schanges, sizeof(T));
   }
 
   static void index_sort(std::byte * ptr,
-    util::span<const std::size_t> schanges,
+    std::span<const std::size_t> schanges,
     const int size) {
     std::vector<std::size_t> changes(schanges.begin(), schanges.end());
     std::vector<std::byte> data(size);

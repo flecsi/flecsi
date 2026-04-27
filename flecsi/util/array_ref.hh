@@ -10,6 +10,7 @@
 #include <functional>
 #include <iterator>
 #include <limits>
+#include <ranges>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -817,5 +818,8 @@ ckd_mul(R * result, A a, B b) {
 /// \}
 } // namespace util
 } // namespace flecsi
+
+template<class T>
+constexpr bool std::ranges::enable_borrowed_range<flecsi::util::span<T>> = true;
 
 #endif

@@ -6,6 +6,8 @@
 
 #include "flecsi/flog.hh"
 #include <flecsi/util/array_ref.hh>
+
+#include <span>
 #include <utility>
 
 namespace flecsi {
@@ -59,7 +61,6 @@ public:
   }
 };
 
-// hashtable implementation based on a \c util::span.
 // This hashtable is based on span as 1D array.
 // The hashtable is iterable.
 template<class KEY, class TYPE, class HASH>
@@ -78,15 +79,13 @@ public:
 
 private:
   constexpr static std::size_t modulo_ = 334214459;
-  util::span<pair_t> span_;
+  std::span<pair_t> span_;
 
   // Max number of search before crash
   constexpr static std::size_t max_find_ = 10;
 
 public:
-  constexpr hashtable(const util::span<pair_t> & span) {
-    span_ = span;
-  }
+  constexpr hashtable(std::span<pair_t> span) : span_(span) {}
 
   // Find a value in the hashtable
   // While the value or a null key is not found we keep looping
@@ -151,14 +150,14 @@ public:
   }
 
   constexpr iterator begin() const noexcept {
-    auto it = iterator(span_.begin(), this);
+    auto it = iterator(span_.data(), this);
     if(it->first == key_t{})
       ++it;
     return it;
   }
 
   constexpr iterator end() const noexcept {
-    return iterator(span_.end(), this);
+    return iterator(std::to_address(span_.end()), this);
   }
 
   // Number of elements currently stored in the hashtable

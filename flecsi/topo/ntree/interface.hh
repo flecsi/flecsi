@@ -219,7 +219,7 @@ private:
 
   FLECSI_INLINE_TARGET static hmap_t map(
     typename field<hmap_pair_t>::template accessor<rw, na> hcells) {
-    return hcells.span();
+    return std::span(hcells.span());
   }
 
   static void init_meta_field(
@@ -1244,7 +1244,7 @@ public:
   // strictly internal, we are using a const_cast to get an unprotected access
   // to the field.
   FLECSI_INLINE_TARGET hmap_t map() const {
-    return util::span<hmap_pair_t>(
+    return std::span<hmap_pair_t>(
       const_cast<hmap_pair_t *>(hcells.span().data()), hcells.span().size());
   }
 

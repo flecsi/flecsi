@@ -242,7 +242,8 @@ struct intervals {
     // Make sure the task that is writing to the field has finished running
     f.storage().synchronize();
     // Eagerly read field data, which might legitimately change later.
-    ghost_ranges = to_vector(f.as<Value>());
+    const auto s = f.as<Value>();
+    ghost_ranges.assign(s.begin(), s.end());
     if(auto iter = std::max_element(ghost_ranges.begin(),
          ghost_ranges.end(),
          [](Value x, Value y) { return x.second < y.second; });

@@ -170,7 +170,7 @@ Mutators also have permissions: write-only mutators (re)initialize a field (to a
 Multiple permissions distinguish mutators that trigger ghost copies from those that implement them.
 
 Accessors of different layouts form a hierarchy parallel to that of field definitions.
-The ultimately underlying ``raw`` accessors merely store a ``util::span<T>``.
+The ultimately underlying ``raw`` accessors merely store a ``std::span<T>``.
 Higher-level accessors implement additional behavior, including certain automatic task launches.
 Additionally, ``ragged`` mutators are implemented in terms of the same underlying accessors as ``ragged`` accessors, and ``sparse`` mutators are in turn a wrapper around them.
 All these types are defined in ``accessor.hh``, but the (undefined) primary templates are declared in the lower-level ``field.hh``.
