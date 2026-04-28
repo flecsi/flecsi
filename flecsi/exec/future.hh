@@ -11,6 +11,8 @@
 #include <type_traits>
 #include <vector>
 
+#include <variant>
+
 namespace flecsi {
 /// \addtogroup execution
 /// \{
@@ -66,8 +68,8 @@ struct future;
 
 #endif // FLECSI_BACKEND
 
-#ifdef DOXYGEN // implemented per-backend
 namespace flecsi {
+#ifdef DOXYGEN // implemented per-backend
 /// \addtogroup execution
 /// \{
 
@@ -103,6 +105,52 @@ future<std::remove_cvref_t<Return>> make_future(Return &&);
 /// \endcond
 
 /// \}
-} // namespace flecsi
 #endif // DOXYGEN
+
+namespace exec {
+/// \addtogroup execution
+/// \{
+
+/// Serializes corresponding point tasks in successive index launches.
+/// Declare a task parameter as a \c lease to accept it.
+struct point_mutex : data::convert_tag {
+  /// The featureless task parameter to accept a \c point_mutex.
+  struct lease : data::bind_tag {};
+
+  using Single = future<void>;
+  using Index = future<void, launch_type_t::index>;
+  using Future = std::variant<Single, Index>;
+
+  /// Default constructible.
+  point_mutex() = default;
+
+  /// Movable.  The source object controls a new chain of index tasks.
+  point_mutex(point_mutex && m) noexcept {
+    std::swap(last, m.last);
+  }
+  point_mutex & operator=(point_mutex m) & noexcept {
+    std::swap(last, m.last);
+    return *this;
+  }
+
+  auto size() const {
+    const auto p = std::get_if<Index>(&last);
+    return p ? p->size() : std::optional<Color>();
+  }
+
+  auto get() && {
+    return std::move(last);
+  }
+  void set(Future f) {
+    last = std::move(f);
+  }
+
+private:
+  Future last;
+};
+/// \}
+} // namespace exec
+
+} // namespace flecsi
+
 #endif

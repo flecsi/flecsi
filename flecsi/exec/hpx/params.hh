@@ -78,14 +78,14 @@ protected:
 
   template<typename R>
   void visit(future<R> & p, future<R> & f) {
-    dependencies(f.depend());
+    dependencies(f.backend());
     futures.push_back(f.get_comms());
     p.silence();
   }
   template<typename R>
   void visit(future<R> & single,
     future<R, exec::launch_type_t::index> & index) {
-    auto f = index.mine();
+    auto f = index.backend();
     dependencies(f);
     futures.push_back(index.get_comms());
     single = {std::move(f), nullptr};

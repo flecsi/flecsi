@@ -81,28 +81,28 @@ reduce_internal(Args &&... args) {
     }
   };
 
-  if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
-    TaskLauncher launcher(task, TaskArgument(buf.data(), buf.size()));
-    add(launcher);
+  auto ret = [&] {
+    if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
+      TaskLauncher launcher(task, TaskArgument(buf.data(), buf.size()));
+      add(launcher);
 
-    return future<return_t>{
-      {}, legion_runtime->execute_task(legion_context, launcher)};
-  }
-  else {
-    IndexTaskLauncher launcher(task,
-      Domain(0, static_cast<coord_t>(domain_size) - 1),
-      {buf.data(), buf.size()},
-      {});
-    add(launcher);
-    launcher.point_futures.assign(
-      pro.future_maps().begin(), pro.future_maps().end());
-
-    if(launch::mpi) {
-      launcher.tag = run::mapper::force_rank_match;
-      scheduler::instance->wait();
+      return future<return_t>{
+        {}, legion_runtime->execute_task(legion_context, launcher)};
     }
+    else {
+      IndexTaskLauncher launcher(task,
+        Domain(0, static_cast<coord_t>(domain_size) - 1),
+        {buf.data(), buf.size()},
+        {});
+      add(launcher);
+      launcher.point_futures.assign(
+        pro.future_maps().begin(), pro.future_maps().end());
 
-    auto ret = [&] {
+      if(launch::mpi) {
+        launcher.tag = run::mapper::force_rank_match;
+        scheduler::instance->wait();
+      }
+
       if constexpr(!std::is_void_v<Reduction>)
         return future<return_t>{{},
           legion_runtime->execute_index_space(legion_context,
@@ -111,12 +111,12 @@ reduce_internal(Args &&... args) {
       else
         return future<return_t, launch_type_t::index>{
           legion_runtime->execute_index_space(legion_context, launcher)};
-    }();
-    if(launch::mpi)
-      ret.wait();
-    return ret;
-  } // if constexpr
-
+    }
+  }();
+  pro.set_future(ret.depend());
+  if(launch::mpi)
+    ret.wait();
+  return ret;
 } // reduce_internal
 
 /// \}

@@ -897,6 +897,20 @@ struct launch<P, future<T, launch_type_t::index>> {
   }
 };
 
+template<>
+struct task_param<point_mutex::lease> {
+  static point_mutex::lease replace(point_mutex &) {
+    return {};
+  }
+  // point_mutex&& would be a waste (at least of a std::move).
+};
+template<>
+struct launch<point_mutex::lease, point_mutex> {
+  static Index get(const point_mutex & m) {
+    return m.size();
+  }
+};
+
 template<class P>
 struct task_param<std::vector<P>> {
   // Copy (breaking non-const reference parameters) only if necessary:

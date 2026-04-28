@@ -121,6 +121,15 @@ struct prolog : task_prolog<Proc> {
     this->template issue_copy<Proc>();
   }
 
+  void set_future(const point_mutex::Single & f) {
+    for(auto p : mutexes)
+      p->set(f);
+  }
+  void set_future(const point_mutex::Index & f) {
+    for(auto p : mutexes)
+      p->set(f);
+  }
+
 private:
   template<class A>
   auto visitor(A & a) {
@@ -133,6 +142,17 @@ private:
   static void visit(data::detail::host_only &, decltype(nullptr)) {
     static_assert(Proc != flecsi::exec::processor::toc,
       "accessor type is supported only on host");
+  }
+
+  void visit(point_mutex::lease &, point_mutex & a) {
+    mutexes.push_back(&a);
+    // Register a dependency:
+    std::visit(
+      [&](auto && f) {
+        future<void> local;
+        visit(local, std::forward<decltype(f)>(f));
+      },
+      std::move(a).get());
   }
 
   template<class P, class A>
@@ -192,6 +212,8 @@ private:
   template<class P, class A>
   static std::enable_if_t<!std::is_base_of_v<data::send_tag, P>>
   visit(const P &, const A &) {} // visit
+
+  std::vector<point_mutex *> mutexes;
 };
 
 template<processor Proc>
@@ -208,6 +230,11 @@ private:
 
   auto visitor() {
     return [&](auto & p, auto &&) { visit(p); }; // Clang deems 'this' unused
+  }
+
+  void visit(point_mutex::lease &) {
+    future<void> sink;
+    visit(sink); // to match prolog
   }
 
   template<class T>

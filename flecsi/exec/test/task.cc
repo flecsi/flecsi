@@ -116,13 +116,16 @@ seq(const T & s, F f) noexcept {
 }
 
 void
-mpi(int * p, const short & s, int i) {
+mpi(int * p, const short & s, int i, exec::point_mutex::lease) {
   *p = s == i; // check argument conversions
 }
 
 } // namespace hydro
 
 namespace {
+void
+pm(exec::point_mutex::lease) noexcept {}
+
 void
 vb(const std::vector<bool> &, const std::vector<long> &) noexcept {}
 
@@ -311,9 +314,12 @@ task_driver(scheduler & s) {
     s.execute<hydro::seq<V, decltype(d)>>(
       V{"It's Elementary", "Dear, Dear Data"}, d);
 
+    exec::point_mutex mut;
     int x = 0;
-    execute<hydro::mpi, mpi>(&x, 1, 1);
+    execute<hydro::mpi, mpi>(&x, 1, 1, mut);
     EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
+
+    s.execute<pm>(mut); // size inherited from mpi
 
     s.execute<vb>(std::vector<bool>(1), std::vector<int>());
 

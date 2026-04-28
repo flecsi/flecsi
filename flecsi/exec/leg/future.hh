@@ -10,6 +10,9 @@ namespace flecsi {
 
 template<typename Return>
 struct future<Return> : data::bind_tag {
+  future<void> depend() const {
+    return {{}, legion_future_};
+  }
 
   void wait() {
     legion_future_.wait();
@@ -27,6 +30,10 @@ struct future<Return> : data::bind_tag {
 
 template<typename Return>
 struct future<Return, exec::launch_type_t::index> {
+  future<void, exec::launch_type_t::index> depend() const {
+    return {legion_future_};
+  }
+
   void wait(bool silence_warnings = false) {
     legion_future_.wait_all_results(silence_warnings);
   } // wait

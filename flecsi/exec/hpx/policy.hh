@@ -93,6 +93,7 @@ reduce_internal(Args &&... args) {
       std::move(bound_params)
         .template delay_execution<R>(
           util::symbol<F>(), std::move(apply_delayed_prolog)));
+    bound_params.set_future(ret.depend());
     if(launch::mpi)
       ret.wait();
     return ret;

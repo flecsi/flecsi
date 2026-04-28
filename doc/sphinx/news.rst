@@ -38,6 +38,7 @@ New features
 * Execution
 
   * A task parameter can be a ``std::optional`` of, or a ``std::variant`` that includes, a FleCSI type such as an accessor.
+  * ``exec::point_mutex`` serializes per-point-task access to non-field resources.
   * ``scheduler::wait`` finishes all launched tasks.
   * ``future_kind`` is an alias for the type of the second ``future`` template parameter.
 

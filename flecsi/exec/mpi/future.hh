@@ -9,8 +9,23 @@
 
 namespace flecsi {
 
+namespace detail {
+struct future_base {
+  inline future<void> depend() const;
+};
+struct future_index {
+  inline future<void, exec::launch_type_t::index> depend() const;
+  void wait(bool = false) {
+    util::mpi::test(MPI_Barrier(MPI_COMM_WORLD));
+  }
+  Color size() const {
+    return run::context::instance().processes();
+  }
+};
+} // namespace detail
+
 template<typename R>
-struct future<R> {
+struct future<R> : detail::future_base {
   // Provide value semantics:
   future() = default; // for partially constructed task parameters
   future(const future &) = default;
@@ -46,7 +61,7 @@ private:
 };
 
 template<>
-struct future<void> {
+struct future<void> : detail::future_base {
   void wait() {
     get();
   }
@@ -56,12 +71,8 @@ struct future<void> {
 };
 
 template<typename R>
-struct future<R, exec::launch_type_t::index> {
+struct future<R, exec::launch_type_t::index> : detail::future_index {
   explicit future(R r) : result(std::move(r)) {}
-
-  void wait(bool = false) {
-    util::mpi::test(MPI_Barrier(MPI_COMM_WORLD));
-  }
 
   [[deprecated("pass to a task or use all")]] [[nodiscard]] R
   get(Color index = 0, bool = false) {
@@ -81,26 +92,26 @@ struct future<R, exec::launch_type_t::index> {
     return util::mpi::all_gatherv(result);
   }
 
-  Color size() const {
-    return run::context::instance().processes();
-  }
-
   R result;
 };
 
 template<>
-struct future<void, exec::launch_type_t::index> {
-  void wait(bool = false) {
-    util::mpi::test(MPI_Barrier(MPI_COMM_WORLD));
-  }
+struct future<void, exec::launch_type_t::index> : detail::future_index {
   [[deprecated("pass to a task or use all")]] void get(Color = 0,
     bool = false) {
     wait();
   }
-  Color size() const {
-    return run::context::instance().processes();
-  }
 };
+
+future<void>
+detail::future_base::depend() const {
+  return {};
+}
+
+future<void, exec::launch_type_t::index>
+detail::future_index::depend() const {
+  return {};
+}
 
 template<class Return>
 future<std::remove_cvref_t<Return>>
