@@ -204,7 +204,7 @@ private:
 
   template<typename T>
   static void visit(const data::detail::scalar_value<T> & s) {
-    s.template copy<Proc>();
+    s.copy(processor_space_t<Proc>());
   }
 
   template<class P>

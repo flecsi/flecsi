@@ -1411,24 +1411,13 @@ struct scalar_value : bind_tag {
   const T * device;
   T * host;
 
-  // The backend knows what value of P to provide when processing this as a
-  // "task parameter" and thus whether 'device' is really a device pointer.
-  template<exec::processor P>
-  void copy() const {
-    if constexpr(P == exec::processor::toc) {
-#if defined(__NVCC__) || defined(__CUDACC__)
-      auto status = cudaMemcpy(host, device, sizeof(T), cudaMemcpyDeviceToHost);
-      flog_assert(cudaSuccess == status, "Error calling cudaMemcpy");
-      return;
-#elif defined(__HIPCC__)
-      auto status = hipMemcpy(host, device, sizeof(T), hipMemcpyDeviceToHost);
-      flog_assert(hipSuccess == status, "Error calling hipMemcpy");
-      return;
-#else
-      flog_assert(false, "CUDA or HIP should be enabled when using toc task");
-#endif
-    }
-    *host = *device;
+  void copy(auto s) const { // from the exec machinery
+    using E = decltype(s)::execution_space; // emulate kokkos() from 2.5
+    E space;
+    Kokkos::deep_copy(space,
+      Kokkos::View<T *, Kokkos::HostSpace>{host, 1},
+      Kokkos::View<const T *, typename E::memory_space>(device, 1));
+    space.fence();
   }
 };
 
