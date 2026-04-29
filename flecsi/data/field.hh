@@ -426,7 +426,7 @@ struct field_register<T, ragged, Topo, Space>
 
 namespace detail {
 template<class T>
-struct scalar_value;
+struct scalar_access;
 struct host_only {};
 struct save_for_epilog {};
 } // namespace detail

@@ -59,6 +59,10 @@ Fixed
 
   * The performance of reduction tasks and certain kinds of single tasks is significantly improved.
 
+* On-node parallelism
+
+  * Host-acessible values are copied on first use.
+
 Changes in v2.4.1 (October 20 2025)
 +++++++++++++++++++++++++++++++++++
 
