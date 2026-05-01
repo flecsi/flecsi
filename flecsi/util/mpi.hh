@@ -84,7 +84,74 @@ struct vector { // for *v functions
     serial::put(p, t);
   }
 };
+
+// Since keyvals are just ints and some MPI implementations use int for all
+// handles, use the destructor as the tag:
+template<auto &>
+struct traits; // undefined
+template<>
+struct traits<MPI_Comm_free> {
+  static inline const MPI_Comm null = MPI_COMM_NULL;
+};
+template<>
+struct traits<MPI_Comm_free_keyval> {
+  static inline const int null = MPI_KEYVAL_INVALID;
+};
+template<>
+struct traits<MPI_Type_free> {
+  static inline const MPI_Datatype null = MPI_DATATYPE_NULL;
+};
+template<>
+struct traits<MPI_Op_free> {
+  static inline const MPI_Op null = MPI_OP_NULL;
+};
+
+template<auto & F>
+struct unique {
+protected:
+  static constexpr auto & null = detail::traits<F>::null;
+  using type = std::remove_cvref_t<decltype(null)>;
+
+  unique() = default;
+  unique(unique && u) noexcept {
+    std::swap(h, u.h);
+  }
+  ~unique() {
+    if(*this)
+      test(F(&h));
+  }
+
+  unique & operator=(unique && u) & noexcept {
+    unique sink(std::move(u));
+    std::swap(h, sink.h);
+    return *this;
+  }
+
+  type * out() noexcept {
+    return &h;
+  }
+
+public:
+  explicit operator bool() const noexcept {
+    return h != null;
+  }
+  operator type() const noexcept {
+    return h;
+  }
+
+private:
+  type h = null;
+};
 } // namespace detail
+
+struct keyval : detail::unique<MPI_Comm_free_keyval> {
+  keyval() = default;
+  explicit keyval(MPI_Comm_copy_attr_function * cp = MPI_COMM_NULL_COPY_FN,
+    MPI_Comm_delete_attr_function * rm = MPI_COMM_NULL_DELETE_FN,
+    void * s = nullptr) {
+    test(MPI_Comm_create_keyval(cp, rm, out(), s));
+  }
+};
 
 struct init {
   init(int argc, char ** argv) {
@@ -124,17 +191,11 @@ struct finalizer {
 
 private:
   finalizer() {
-    int k;
-    test(MPI_Comm_create_keyval(
-      MPI_COMM_NULL_COPY_FN,
-      [](MPI_Comm, int, void * a, void *) {
-        delete static_cast<finalizer *>(a);
-        return MPI_SUCCESS;
-      },
-      &k,
-      nullptr));
+    const keyval k(MPI_COMM_NULL_COPY_FN, [](MPI_Comm, int, void * a, void *) {
+      delete static_cast<finalizer *>(a);
+      return MPI_SUCCESS;
+    });
     test(MPI_Comm_set_attr(MPI_COMM_SELF, k, this));
-    test(MPI_Comm_free_keyval(&k));
   }
   finalizer(finalizer &&) = delete; // MPI knows our address
 
@@ -142,92 +203,31 @@ private:
   std::vector<any> v;
 };
 
-struct comm {
-  MPI_Comm c = MPI_COMM_NULL;
-
-  comm() = default;
-  comm(comm && o) noexcept {
-    std::swap(c, o.c);
-  }
-  ~comm() {
-    if(*this)
-      test(MPI_Comm_free(&c));
-  }
-  comm & operator=(comm o) & noexcept {
-    std::swap(c, o.c);
-    return *this;
-  }
-  explicit operator bool() const noexcept {
-    return c != MPI_COMM_NULL;
-  }
-
+struct comm : detail::unique<MPI_Comm_free> {
   static comm split(MPI_Comm c0, int c, int k = 0) {
     comm ret;
-    test(MPI_Comm_split(c0, c, k, &ret.c));
+    test(MPI_Comm_split(c0, c, k, ret.out()));
     return ret;
   }
 };
 
-struct datatype {
+struct datatype : detail::unique<MPI_Type_free> {
   datatype() = default;
   template<class F>
   explicit datatype(F && f) {
+    auto & d = *out();
     std::forward<F>(f)(d);
     // The pointer really shouldn't be necessary, but this usage is correct
     // even if MPI writes through it.
     test(MPI_Type_commit(&d));
   }
-  datatype(datatype && x) noexcept {
-    std::swap(d, x.d);
-  }
-  ~datatype() {
-    if(*this)
-      MPI_Type_free(&d);
-  }
-
-  datatype & operator=(datatype x) & noexcept {
-    std::swap(d, x.d);
-    return *this;
-  }
-  explicit operator bool() const noexcept {
-    return d != MPI_DATATYPE_NULL;
-  }
-
-  operator MPI_Datatype() const {
-    return d;
-  }
-
-private:
-  MPI_Datatype d = MPI_DATATYPE_NULL;
 };
 
-struct op {
+struct op : detail::unique<MPI_Op_free> {
   op() = default;
   explicit op(MPI_User_function f, bool comm = true) {
-    util::mpi::test(MPI_Op_create(f, comm, &o));
+    util::mpi::test(MPI_Op_create(f, comm, out()));
   }
-  op(op && x) noexcept {
-    std::swap(o, x.o);
-  }
-  ~op() {
-    if(*this)
-      MPI_Op_free(&o);
-  }
-
-  op & operator=(op x) & noexcept {
-    std::swap(o, x.o);
-    return *this;
-  }
-  explicit operator bool() const noexcept {
-    return o != MPI_OP_NULL;
-  }
-
-  operator MPI_Op() const {
-    return o;
-  }
-
-private:
-  MPI_Op o = MPI_OP_NULL;
 };
 
 // This is a workaround for a bug in Cray MPICH.
