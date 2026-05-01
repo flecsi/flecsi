@@ -83,12 +83,10 @@ protected:
     p.silence();
   }
   template<typename R>
-  void visit(future<R, exec::launch_type_t::single> & single,
-    future<R, exec::launch_type_t::index> & index) {
-    auto f = index.mine();
-    dependencies(f);
+  void visit(future<R> & p, future<R, launch_type_t::index> & index) {
+    p = index.mine();
+    dependencies(p.depend());
     futures.push_back(index.get_comms());
-    single = {std::move(f), nullptr};
   }
 
 public:
