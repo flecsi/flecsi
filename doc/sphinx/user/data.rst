@@ -296,7 +296,7 @@ Layouts that support those operations provide `mutators` for the purpose:
 
 * A ``ragged`` mutator provides an interface at each index point based on ``std::vector``.
 * A ``sparse`` mutator provides an interface at each index point based on ``std::map``.
-* A ``particle`` mutator provides an interface based on C++'s proposed ``std::hive`` for efficient insertion and deletion of field values.
+* A ``particle`` mutator provides an interface for the entire field based on (one block of a) ``std::hive`` (from C++26).
 
 Just like an accessor, a mutator corresponds to a field reference argument and has privileges.
 The first access to a field with any of these layouts must use a write-only mutator to initialize it to the appropriate empty state.
