@@ -242,7 +242,7 @@ struct mdspan : detail::mdbase<T, D> {
 };
 /// \}
 
-/// Deduction guide.
+/// Deduction guide (needed in C++20 only).
 /// \memberof mdspan
 template<class T, class U, std::size_t D>
 mdspan(T *, std::array<U, D>) -> mdspan<T, D>;
