@@ -421,9 +421,9 @@ private:
   }; // struct raw_row
 
 public:
-  /// A row handle.  Provides the \c std::vector interface, with the important
-  /// difference that there is no guarantee of contiguity between memory
-  /// locations.
+  /// A row handle.
+  /// \warning Unlike for \c std::vector, there is no guarantee of contiguity
+  ///   between memory locations.
   struct row : util::with_index_iterator<const row>, private raw_row {
     using value_type = T;
     using typename raw_row::size_type;
