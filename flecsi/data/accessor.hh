@@ -1209,31 +1209,31 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   /// \{
 
   /// <a></a>
-  FLECSI_INLINE_TARGET size_type size() const {
+  FLECSI_INLINE_TARGET size_type size() const noexcept {
     const auto s = this->span();
     const auto n = s.size();
     const auto i = n ? s.front().skip : 0;
     return i == n ? n : s[i].free.prev;
   }
-  FLECSI_INLINE_TARGET size_type capacity() const {
+  FLECSI_INLINE_TARGET size_type capacity() const noexcept {
     return this->span().size();
   }
-  [[nodiscard]] FLECSI_INLINE_TARGET bool empty() const {
+  [[nodiscard]] FLECSI_INLINE_TARGET bool empty() const noexcept {
     return !size();
   }
 
-  FLECSI_INLINE_TARGET iterator begin() const {
+  FLECSI_INLINE_TARGET iterator begin() const noexcept {
     const auto s = this->span();
     return {this, s.empty() || s.front().skip ? 0 : 1 + first_skip()};
   }
-  FLECSI_INLINE_TARGET iterator end() const {
+  FLECSI_INLINE_TARGET iterator end() const noexcept {
     return {this, capacity()};
   }
 
   /// Implements \c std::hive::get_iterator.
   /// \c T must be standard-layout.
   FLECSI_INLINE_TARGET iterator get_iterator_from_pointer(
-    element_type * the_pointer) const {
+    element_type * the_pointer) const noexcept {
     static_assert(std::is_standard_layout_v<Particle>);
     const auto * const p = reinterpret_cast<Particle *>(the_pointer);
     const auto ret = p - this->span().data();
@@ -1302,7 +1302,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   /// \{
 
   /// <a></a>
-  FLECSI_INLINE_TARGET void clear() const {
+  FLECSI_INLINE_TARGET void clear() const noexcept {
     if(!std::is_trivially_destructible_v<T>)
       std::destroy(this->begin(), this->end());
     init();
