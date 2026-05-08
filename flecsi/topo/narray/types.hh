@@ -26,7 +26,6 @@ namespace narray_impl {
 using coord = std::vector<util::id>;
 using gcoord = std::vector<util::gid>;
 using hypercube = std::array<coord, 2>;
-using interval = std::pair<std::size_t, std::size_t>;
 using colors = std::vector<Color>;
 
 /// \cond core

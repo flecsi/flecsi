@@ -599,8 +599,6 @@ public:
     sched->allocate(sort::copy_g_p, sort_base::colors * sort_base::colors);
     sched->execute<sort_base::init_copy_task>(sort::copy_g_f(*sort::copy_g_p));
 
-    std::vector<std::size_t> sizes(sort_base::colors, 0);
-
     // Compute total number of entities to sort
     auto fm_tsizes = sched->reduce<sort::size_task, exec::fold::sum>(values);
     // Resize the index array to fit the values

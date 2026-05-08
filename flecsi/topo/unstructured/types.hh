@@ -28,8 +28,6 @@ namespace unstructured_impl {
 /// \addtogroup unstructured
 /// \{
 
-using entity_index_space = std::size_t;
-
 /*!
   Initialize a connectivity using its transpose connectivity, e.g.,
   initializing vertex-to-cell connectivity using cell-to-vertex.

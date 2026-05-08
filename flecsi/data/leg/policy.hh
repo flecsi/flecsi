@@ -111,10 +111,6 @@ inline Legion::coord_t
 upper(std::size_t n) {
   return static_cast<Legion::coord_t>(n) - 1;
 }
-inline std::size_t
-bound(Legion::coord_t c) {
-  return static_cast<std::size_t>(c) + 1;
-}
 
 template<class T>
 const char *
