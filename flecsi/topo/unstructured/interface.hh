@@ -339,7 +339,7 @@ protected:
     Return an index space as a range.
     \host.
 
-    \return range of \c id\<IndexSpace\> values
+    \return range of \c id\<S\> values
    */
 
   template<index_space S>
