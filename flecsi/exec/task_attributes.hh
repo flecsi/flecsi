@@ -6,8 +6,6 @@
 
 #include "flecsi/config.hh"
 
-#include <cstddef> // size_t
-
 namespace flecsi {
 /// \addtogroup execution
 /// \{
@@ -75,7 +73,7 @@ namespace exec {
   Enumeration of processor types.
  */
 
-enum class processor : size_t { loc, toc, omp, mpi };
+enum class processor { loc, toc, omp, mpi };
 
 // Bits for representing task attributes
 inline constexpr TaskAttributes processor_mask = 0x3;

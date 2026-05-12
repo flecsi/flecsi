@@ -513,7 +513,7 @@ struct narray_base : base {
      end of a periodic axis as boundary points, not ghosts.
    \deprecated Use \c axis_color and \c axis_layout.
   */
-  enum class /* [[deprecated]] would warn internally */ domain : std::size_t {
+  enum class /* [[deprecated]] would warn internally */ domain {
     logical, ///<  the logical, i.e., the owned part of the axis
     extended, ///< the boundary padding along with the logical part
     all, ///< the ghost padding along with the logical part

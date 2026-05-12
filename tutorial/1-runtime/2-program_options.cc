@@ -42,7 +42,7 @@ flecsi::program_option<bool> child_seat("Car Options",
 // Add a an option to a different section, i.e., "Ride Options". The enumeration
 // type is not enforced by the FleCSI runtime, and is mostly for convenience.
 
-enum purpose_option : size_t { personal, business };
+enum purpose_option { personal, business };
 
 flecsi::program_option<size_t> purpose("Ride Options",
   "purpose,p",

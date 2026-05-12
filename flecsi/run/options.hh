@@ -16,7 +16,7 @@ namespace flecsi {
 /// \addtogroup runtime
 /// \{
 
-enum option_attribute : size_t {
+enum option_attribute {
   option_default,
   option_implicit,
   option_zero,
