@@ -450,7 +450,7 @@ struct borrow_sizes {
   borrow_sizes(typename Q::topology & t, const data::borrow & b, bool f)
     : borrow_sizes(t, b, f, typename Q::index_spaces()) {}
 
-  auto & get_sizes(std::size_t i) {
+  auto & get_sizes(IndexSpace i) {
     return sz[i];
   }
 

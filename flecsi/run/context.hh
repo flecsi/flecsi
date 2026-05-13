@@ -172,6 +172,7 @@ struct context {
 
 private:
   struct fields {
+    // topo::IndexSpace would be circular.
     explicit fields(std::size_t n) : ff(n), used(false) {}
     std::vector<data::fields> ff; // per index space
     bool used;

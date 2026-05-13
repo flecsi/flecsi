@@ -24,6 +24,8 @@ namespace topo {
 /// \addtogroup topology
 /// \{
 
+using IndexSpace = unsigned short;
+
 /// The default, trivial index-space type used by specializations.
 enum single_space {
   elements ///< The single index space.

@@ -69,7 +69,7 @@ struct topology<Policy, narray_base>
   }
 
   template<index_space S>
-  static constexpr std::size_t index = index_spaces::template index<S>;
+  static constexpr IndexSpace index = index_spaces::template index<S>;
 
   template<index_space S>
   data::region & get_region() {
@@ -362,7 +362,7 @@ private:
   static void set_meta(exec::cpu s,
     typename policy_meta::Field::template accessor<wo> m,
     const coloring * c) noexcept {
-    std::size_t index{0};
+    IndexSpace index{0};
     (
       [&] {
         const auto & idef = c->idx_colorings[index++];
@@ -372,7 +372,7 @@ private:
       ...);
   }
 
-  auto & get_sizes(std::size_t i) {
+  auto & get_sizes(IndexSpace i) {
     return part_[i].sz;
   }
 
@@ -528,7 +528,7 @@ struct topology<Policy, narray_base>::access {
 
   template<class F>
   void send(F && f) {
-    std::size_t i{0};
+    IndexSpace i{0};
     for(auto & a : size_)
       f(a, [&i](auto & n) { return topo::resize::field(n.get_sizes(i++)); });
     std::forward<F>(f)(meta_, [](auto & n) { return meta_field(n.meta); });

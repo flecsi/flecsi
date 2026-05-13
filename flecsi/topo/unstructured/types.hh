@@ -272,7 +272,7 @@ struct unstructured_base : base {
   }
 
   static void cnx_size(std::vector<index_color> const & vic,
-    std::size_t is,
+    IndexSpace is,
     data::multi<resize::Field::accessor<wo>> aa) {
     auto it = vic.begin();
     for(auto & a : aa.accessors()) {
