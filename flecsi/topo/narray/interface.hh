@@ -195,7 +195,7 @@ private:
         std::size_t,
         std::size_t>>>;
 
-    using intervals = std::vector<std::pair<std::size_t, std::size_t>>;
+    using intervals = std::vector<data::subrow>;
 
     // The index_definition provides the layout of other colors to compute
     // shared offsets.
