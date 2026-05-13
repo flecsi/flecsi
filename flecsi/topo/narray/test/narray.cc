@@ -16,7 +16,7 @@ using mesh4d = mesh<4>;
 
 using axis_info = topo::narray_base::axis_info;
 
-template<std::size_t D, typename F>
+template<Dimension D, typename F>
 void
 field_helper(typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<wo, na> ca,
@@ -34,7 +34,7 @@ init_field(exec::cpu es, field<std::size_t>::accessor<wo, wo> ca) noexcept {
   std::fill(s.begin(), s.end(), es.launch().index);
 } // init_field
 
-template<std::size_t D>
+template<Dimension D>
 void
 update_field(exec::cpu s,
   typename mesh<D>::template accessor<ro> m,
@@ -43,7 +43,7 @@ update_field(exec::cpu s,
     m, ca, [c = s.launch().index](auto & x) { x = std::pow(10, c); });
 } // update_field
 
-template<std::size_t D>
+template<Dimension D>
 void
 print_field(typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<ro, ro> ca) noexcept {
@@ -80,7 +80,7 @@ print_field(typename mesh<D>::template accessor<ro> m,
 
 } // print_field
 
-template<std::size_t D>
+template<Dimension D>
 struct Axes {
   template<auto... A>
   static std::string data(typename mesh<D>::template accessor<ro> & m,
@@ -112,7 +112,7 @@ struct Axes {
 template<auto A>
 using cnst = util::constant<A>;
 
-template<std::size_t D>
+template<Dimension D>
 int
 check_mesh_field(exec::cpu s,
   std::string name,
@@ -253,7 +253,7 @@ using ints = field<int, data::ragged>;
 // This print task will only read the ghost values and not invoke any
 // communication. The purpose is to aid in debugging and see the sequence
 // of changes to field values as other tasks are performed.
-template<std::size_t D>
+template<Dimension D>
 void
 print_rf(exec::cpu s,
   typename mesh<D>::template accessor<ro> m,
@@ -279,7 +279,7 @@ print_rf(exec::cpu s,
   flog(info) << ss.rdbuf() << std::endl;
 } // print_rf
 
-template<std::size_t D>
+template<Dimension D>
 void
 allocate_field(field<std::size_t>::accessor<ro, ro> f,
   topo::resize::Field::accessor<wo> a,
@@ -314,7 +314,7 @@ bool
 any_aux(const A & a, util::constants<VV...>) {
   return (a.template axis<VV>().axis.auxiliary || ...);
 }
-template<std::size_t D, bool V>
+template<Dimension D, bool V>
 int
 init_verify_rf(typename mesh<D>::template accessor<ro> m,
   std::conditional_t<V, ints::accessor<ro, ro>, ints::mutator<wo, na>> tf,
@@ -391,7 +391,7 @@ check_4dmesh(mesh4d::accessor<ro> m) noexcept {
   return check4(m, mesh4d::axes());
 } // check_4dmesh
 
-template<std::size_t D, bool A>
+template<Dimension D, bool A>
 int
 value_rewrite_rf(typename mesh<D>::template accessor<ro> m,
   ints::accessor<wo, na> a) noexcept {
@@ -404,7 +404,7 @@ value_rewrite_rf(typename mesh<D>::template accessor<ro> m,
   };
 }
 
-template<std::size_t D>
+template<Dimension D>
 int
 value_rewrite_verify_rf(typename mesh<D>::template accessor<ro> m,
   ints::accessor<ro, ro> tf) noexcept {
@@ -421,7 +421,7 @@ value_rewrite_verify_rf(typename mesh<D>::template accessor<ro> m,
   };
 }
 
-template<std::size_t D>
+template<Dimension D>
 [[nodiscard]] int
 test_mesh(scheduler & s,
   topo::narray_impl::colors color_dist,

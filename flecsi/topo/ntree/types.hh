@@ -118,7 +118,7 @@ public:
     return type_;
   }
 
-  constexpr bool has_child(std::size_t c) const {
+  constexpr bool has_child(Dimension c) const {
     return type_ & (1 << c);
   }
 

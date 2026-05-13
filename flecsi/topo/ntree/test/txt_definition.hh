@@ -36,10 +36,10 @@ operator<<(std::ostream & os, const sort_entity<DIM, T, KEY> & e) {
   return os;
 }
 
-template<typename KEY, int DIM>
+template<typename KEY, flecsi::Dimension DIM>
 class txt_definition {
 public:
-  static constexpr int dim = DIM;
+  static constexpr flecsi::Dimension dim = DIM;
   using key_t = KEY;
   using point_t = flecsi::util::point<double, DIM>;
   using ent_t = sort_entity<DIM, double, key_t>;
@@ -60,7 +60,7 @@ public:
 
     // Coordinates, ignore the other colors
     for(size_t i = 0; i < nlocal_entities_; ++i) {
-      for(int j = 0; j < dim; ++j)
+      for(flecsi::Dimension j = 0; j < dim; ++j)
         myfile_ >> entities_[i].coordinates_[j];
     }
 
@@ -115,16 +115,16 @@ private:
     myfile_.seekg(position);
 
     point_t p;
-    for(int j = 0; j < dim; ++j) {
+    for(flecsi::Dimension j = 0; j < dim; ++j) {
       myfile_ >> p[j];
     }
 
     range_[0] = range_[1] = p;
     for(size_t i = 1; i < nglobal_entities_; ++i) {
-      for(int j = 0; j < dim; ++j) {
+      for(flecsi::Dimension j = 0; j < dim; ++j) {
         myfile_ >> p[j];
       }
-      for(int d = 0; d < dim; ++d) {
+      for(flecsi::Dimension d = 0; d < dim; ++d) {
         range_[1][d] = std::max(range_[1][d], p[d] + 1);
         range_[0][d] = std::min(range_[0][d], p[d] - 1);
       }

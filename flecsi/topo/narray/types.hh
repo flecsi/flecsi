@@ -575,7 +575,7 @@ struct narray_base : base {
   static std::vector<axis_definition> make_axes(const colors & color_dist,
     const gcoord & indices) {
     std::vector<axis_definition> axes;
-    for(std::size_t d = 0; d < indices.size(); d++) {
+    for(Dimension d = 0; d < indices.size(); d++) {
       flecsi::util::equal_map em{indices[d], color_dist[d]};
       axes.push_back({em});
     }
