@@ -179,6 +179,8 @@ struct linearize {
  \image html narray-layout.svg "Layouts for each possible orientation." width=100%
  */
 struct axis_layout {
+  using End = short;
+
   FLECSI_INLINE_TARGET axis_layout(util::id bdepth,
     util::id log,
     util::id halo_up, // depth of points communicated upward
@@ -206,7 +208,7 @@ struct axis_layout {
   /// for this color without
   /// boundary padding or ghosts.
   /// \tparam E 0 or 1 for beginning or end
-  template<short E>
+  template<End E>
   FLECSI_INLINE_TARGET util::id logical() const {
     static_assert(E == 0 || E == 1);
     return bdy[0] + gh[0] + E * log;
@@ -224,7 +226,7 @@ struct axis_layout {
   /// end can come first if an entity is shared with both neighbors.
   /// \tparam E 0 or 1 for beginning or end
   /// \endif
-  template<short E>
+  template<End E>
   FLECSI_INLINE_TARGET util::id exclusive() const {
     static_assert(E == 0 || E == 1);
     return bdy[0] + gh[0] + (E ? log - shr[1] : shr[0]);
@@ -233,7 +235,7 @@ struct axis_layout {
   /// The beginning or end index of the domain entities, including logical and
   /// ghost entities.
   /// \tparam E 0 or 1 for beginning or end
-  template<short E>
+  template<End E>
   FLECSI_INLINE_TARGET util::id ghost() const {
     static_assert(E == 0 || E == 1);
     return bdy[0] + E * (both(gh) + log);
@@ -247,7 +249,7 @@ struct axis_layout {
   ///   halo_depth_low = extended<0>();
   ///   halo_depth_high = extent() - extended<1>();\endcode
   /// \tparam E 0 or 1 for beginning or end
-  template<short E>
+  template<End E>
   FLECSI_INLINE_TARGET util::id extended() const {
     static_assert(E == 0 || E == 1);
     return gh[0] + E * (both(bdy) + log);

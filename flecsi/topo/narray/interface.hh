@@ -599,7 +599,7 @@ private:
      @tparam P Value 0 denotes lower bound, and value 1 denotes upper
                bound.
     */
-  template<index_space S, Axis A, std::size_t P>
+  template<index_space S, Axis A, axis_layout::End P>
   FLECSI_INLINE_TARGET util::id logical() const {
     return get_axis<S, A>()().template logical<P>();
   }
@@ -611,7 +611,7 @@ private:
     @tparam P Value 0 denotes lower bound, and value 1 denotes upper
               bound.
    */
-  template<index_space S, Axis A, std::size_t P>
+  template<index_space S, Axis A, axis_layout::End P>
   FLECSI_INLINE_TARGET util::id extended() const {
     const axis_color & a = get_axis<S, A>();
     if constexpr(P == 0) {
