@@ -300,7 +300,7 @@ check(int & x, int y) {
 
 bool
 check_sz(ints::accessor<ro, ro> tf, util::id lid, std::size_t sz) {
-  return (tf[lid].size() == (std::size_t)sz);
+  return tf[lid].size() == sz;
 }
 
 bool
