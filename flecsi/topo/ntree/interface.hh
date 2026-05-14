@@ -269,7 +269,7 @@ private:
       root_->second.set_node_idx(cnode);
       n_keys(cnode) = root_->second.key();
     }
-    std::size_t current_depth = key_t::max_depth();
+    auto current_depth = key_t::max_depth();
     // Entity keys, last and current
     key_t lastekey = key_t(0);
     if(color != 0)
