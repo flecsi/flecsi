@@ -81,8 +81,17 @@ private:
   constexpr static std::size_t modulo_ = 334214459;
   std::span<pair_t> span_;
 
-  // Max number of search before crash
-  constexpr static std::size_t max_find_ = 10;
+  constexpr pointer lookup(const key_t & k) const {
+    std:size_t = HASH::hash(k) % span_.size();
+    for(unsigned ttl = 10; ttl--;) { // max number of search before crash
+      const pointer p = span_.data() + h;
+      if(p->first == k || p->first == key_t())
+        return p;
+      h = (h + modulo_) % span_.size();
+    }
+    assert(!"hash table full");
+    return nullptr;
+  }
 
 public:
   constexpr hashtable(std::span<pair_t> span) : span_(span) {}
@@ -90,14 +99,7 @@ public:
   // Find a value in the hashtable
   // While the value or a null key is not found we keep looping
   constexpr iterator find(const key_t & key) const {
-    std::size_t h = HASH::hash(key) % span_.size();
-    pointer ptr = span_.data() + h;
-    std::size_t iter = 0;
-    while(ptr->first != key && ptr->first != key_t{} && iter != max_find_) {
-      h = (h + modulo_) % span_.size();
-      ptr = span_.data() + h;
-      ++iter;
-    }
+    const pointer ptr = lookup(key);
     if(ptr->first != key) {
       return end();
     }
@@ -109,20 +111,7 @@ public:
   // conflict using modulo method.
   template<typename... ARGS>
   iterator insert(const key_t & key, ARGS &&... args) const {
-    std::size_t h = HASH::hash(key) % span_.size();
-    pointer ptr = span_.data() + h;
-    std::size_t iter = 0;
-    while(ptr->first != key && ptr->first != key_t{} && iter != max_find_) {
-      h = (h + modulo_) % span_.size();
-      ptr = span_.data() + h;
-      ++iter;
-    }
-
-    if(iter == max_find_) {
-      flog(error) << "Max iteration reached, couldn't insert element: " << key
-                  << std::endl;
-      return end();
-    }
+    pointer ptr = lookup(key);
     ptr = new(ptr) pair_t(key, {std::forward<ARGS>(args)...});
     return iterator(ptr, this);
   }
