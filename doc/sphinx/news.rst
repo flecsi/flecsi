@@ -47,6 +47,7 @@ Fixed
 * Topologies
 
   * ``num_intervals`` in the ``unstructured`` ``index_space`` type is documented properly.
+  * ``gcoord`` and ``colors`` in ``narray_base`` are documented properly.
 
 * Legion backend
 
@@ -66,6 +67,10 @@ Fixed
 * On-node parallelism
 
   * Host-acessible values are copied on first use.
+
+* Utilities
+
+  * ``Color`` is documented properly.
 
 Changes in v2.4.1 (October 20 2025)
 +++++++++++++++++++++++++++++++++++
