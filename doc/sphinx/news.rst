@@ -44,6 +44,10 @@ Fixed
   * Implicit conversions are applied to elements of ``std::vector`` task arguments (as well as FleCSI-specific transformations for, say, field accessors).
   * Top-level *cv*-qualifiers are ignored in task return types.
 
+* Topologies
+
+  * ``num_intervals`` in the ``unstructured`` ``index_space`` type is documented properly.
+
 * Legion backend
 
   * MPI tasks with reference parameters support more argument conversions.

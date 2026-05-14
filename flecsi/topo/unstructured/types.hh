@@ -179,7 +179,7 @@ struct unstructured_base : base {
       /// with one additional color on low-ranked processes as needed.
       std::vector<index_color> colors;
 
-      // number of ghost intervals over all colors
+      /// Number of ghost intervals over all colors.
       std::vector<std::size_t> num_intervals;
     };
 
