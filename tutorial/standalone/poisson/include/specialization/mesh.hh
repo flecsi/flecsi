@@ -32,7 +32,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   };
 
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr flecsi::PrivilegeCount privilege_count = 2;
 
   /*--------------------------------------------------------------------------*
     Interface.

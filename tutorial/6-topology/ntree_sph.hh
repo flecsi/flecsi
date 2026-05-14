@@ -43,7 +43,7 @@ struct sph_ntree_t
     return static_cast<std::size_t>(k.value() & ((1 << 22) - 1));
   }
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr flecsi::PrivilegeCount privilege_count = 2;
 
   using index_space = base::index_space;
   using index_spaces = base::index_spaces;
