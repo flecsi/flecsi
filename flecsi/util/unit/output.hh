@@ -51,7 +51,7 @@ public:
     backup >> default_.rdbuf();
 
     // save test output to .current for updates
-    size_t lastindex = filename.find_last_of(".");
+    const auto lastindex = filename.find_last_of(".");
     std::string save_output = filename.substr(0, lastindex) + ".current";
     to_file(save_output);
 

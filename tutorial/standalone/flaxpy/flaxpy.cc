@@ -123,7 +123,7 @@ void
 mul_add_task(double a,
   one_field::accessor<flecsi::ro> x_acc,
   one_field::accessor<flecsi::rw> y_acc) noexcept {
-  std::size_t num_local_elts = x_acc.span().size();
+  const auto num_local_elts = x_acc.span().size();
   for(std::size_t i = 0; i < num_local_elts; ++i)
     y_acc[i] += a * x_acc[i];
 }
