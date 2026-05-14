@@ -160,8 +160,8 @@ protected:
     std::size_t output = s.launch().index * c;
     for(unsigned int j = 0; j < c; ++j) {
       int count = 0;
-      for(std::size_t i = 0; i < transfers.span().size(); ++i)
-        if(transfers[i] == j)
+      for(auto & t : transfers.span())
+        if(t == j)
           ++count;
       copy[output + j](count);
     }
