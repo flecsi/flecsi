@@ -80,7 +80,7 @@ public:
       myfile_ >> entities_[i].mass_;
 
     // Ids
-    for(size_t i = offset_[c], k = 0; i < offset_[c + 1]; ++i, ++k)
+    for(flecsi::util::gid i = offset_[c], k = 0; i < offset_[c + 1]; ++i, ++k)
       entities_[k].id_ = i;
 
     // Generate the keys
@@ -88,7 +88,7 @@ public:
       entities_[i].key_ = key_t(range_, entities_[i].coordinates_);
   }
 
-  size_t global_num_entities() const {
+  flecsi::util::gid global_num_entities() const {
     return nglobal_entities_;
   }
 
@@ -96,7 +96,7 @@ public:
     return entities_.size();
   }
 
-  std::pair<size_t, size_t> offset(const int & i) const {
+  std::pair<flecsi::util::gid, flecsi::util::gid> offset(const int & i) const {
     return std::pair(offset_[i], offset_[i + 1]);
   }
 
@@ -120,7 +120,7 @@ private:
     }
 
     range_[0] = range_[1] = p;
-    for(size_t i = 1; i < nglobal_entities_; ++i) {
+    for(flecsi::util::gid i = 1; i < nglobal_entities_; ++i) {
       for(flecsi::Dimension j = 0; j < dim; ++j) {
         myfile_ >> p[j];
       }
@@ -160,10 +160,10 @@ private:
   std::ifstream myfile_;
   range_t range_;
   std::vector<ent_t> entities_;
-  size_t nglobal_entities_;
+  flecsi::util::gid nglobal_entities_;
   size_t nlocal_entities_;
   std::vector<flecsi::util::id> distribution_;
-  std::vector<flecsi::util::id> offset_;
+  std::vector<flecsi::util::gid> offset_;
 
 }; // class txt_definition
 

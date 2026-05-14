@@ -776,7 +776,8 @@ coloring_driver(scheduler & s) {
       for(const auto c1 : util::equal_map(
             idef.colors(), s.runtime().processes())[s.runtime().process()]) {
         const auto c3 = idef.color_indices(c1);
-        std::vector<std::size_t> g, e, o;
+        std::vector<util::gid> g, o;
+        std::vector<std::size_t> e;
         std::vector<std::string> log, ext;
         color.push_back(glin({c3[0], c3[1], c3[2]}));
         for(Dimension d = 0; d < 3; ++d) {

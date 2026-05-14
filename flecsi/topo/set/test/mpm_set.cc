@@ -26,7 +26,7 @@ struct spec_setopo_t : topo::specialization<topo::set, spec_setopo_t> {
 
 struct Particle {
   double pressure;
-  std::size_t cgid;
+  util::gid cgid;
 };
 
 using accessorm = spec_setopo_t::mesh_type::accessor<ro, ro, ro>;

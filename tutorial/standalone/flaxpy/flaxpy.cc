@@ -13,7 +13,7 @@
 namespace flaxpy {
 
 // Let the user specify the vector length on the command line.
-inline flecsi::program_option<std::size_t> vector_length(
+inline flecsi::program_option<flecsi::util::gid> vector_length(
   "Flaxpy-specific Options",
   "length,l",
   "Specify the length of the vectors to add.",

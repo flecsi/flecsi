@@ -44,7 +44,8 @@ template<typename T, typename key_type>
 void
 merge(const T & ma, std::vector<key_type> & v) {
 
-  std::size_t total = 0, cur = 0, size = 0;
+  gid total = 0, cur = 0;
+  std::size_t size = 0;
   for(auto & m : ma) {
     total += m.span().size();
     if(m.span().size())
@@ -340,7 +341,7 @@ protected:
       topo::resize::Field::accessor<wo>,
       typename field<key_type>::template accessor<wo>> maybe_probes,
     typename field<interval>::template accessor<ro> intervals,
-    const std::size_t totalents,
+    const gid totalents,
     const int iteration,
     const int iterations,
     const double epsilon) noexcept {
@@ -375,7 +376,7 @@ protected:
     return nprobes;
   } // probes_task
 
-  static std::size_t size_task(
+  static gid size_task(
     typename field<key_type>::template accessor1<privilege_repeat<ro, PC>>
       v) noexcept {
     return v.span().size();
@@ -459,7 +460,7 @@ protected:
     typename field<interval>::template accessor<rw> intervals,
     field<hist_int_t>::accessor<ro> histo,
     data::multi<typename field<key_type>::template accessor<ro>> p,
-    const std::size_t totalents) noexcept {
+    const gid totalents) noexcept {
     constexpr key_type max = std::numeric_limits<key_type>::max();
     constexpr key_type min = std::numeric_limits<key_type>::min();
 
@@ -645,7 +646,7 @@ public:
       intervals_fh, fm_min.get(), fm_max.get());
 
     int iterations = std::log(std::log(sort_base::colors) / epsilon);
-    std::size_t tsizes = fm_tsizes.get();
+    const gid tsizes = fm_tsizes.get();
 
     // Compute splitters
     for(int i = 0; i < iterations; ++i) {

@@ -233,7 +233,7 @@ private:
   // Add the entities in the hashmap and create needed nodes.
   // After this first step, the top tree entities and nodes are returned. These
   // will build the top tree, shared by all colors.
-  static std::array<std::size_t, 2> make_tree_local_task(
+  static std::array<util::gid, 2> make_tree_local_task(
     typename field<key_t>::template accessor<rw, na> e_keys,
     typename field<key_t>::template accessor<rw, na> n_keys,
     typename field<ntree_data>::template accessor<ro, ro> data_field,
@@ -380,7 +380,7 @@ private:
         }
       } // for
     } // while
-    std::size_t count_ents = 0, count_nodes = 0;
+    util::gid count_ents = 0, count_nodes = 0;
     top_tree_boundaries<true>(hmap, count_ents, count_nodes);
     return {count_ents, count_nodes};
   } // make_tree
@@ -400,7 +400,7 @@ private:
     T & count_accessor_ents,
     T & count_accessor_nodes) {
 
-    [[maybe_unused]] std::size_t count_ents = 0, count_nodes = 0;
+    [[maybe_unused]] util::gid count_ents = 0, count_nodes = 0;
 
     auto color = run::context::instance().color();
     std::vector<hcell_t *> queue;
@@ -604,7 +604,7 @@ private:
 
   template<index_space E = entities>
   static void copy_sizes_top_tree_task(topo::resize::Field::accessor<wo> a,
-    future<std::array<std::size_t, 2>> b) noexcept {
+    future<std::array<util::gid, 2>> b) noexcept {
     a = b.get()[E != entities];
   }
 

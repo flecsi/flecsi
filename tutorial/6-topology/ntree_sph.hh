@@ -131,8 +131,8 @@ struct sph_ntree_t
   // Feed the index space / fields with initial information for the entities
   static void init_fields(
     flecsi::data::multi<sph_ntree_t::accessor<flecsi::rw, flecsi::na>> t,
-    const std::size_t nents,
-    const std::vector<flecsi::util::id> & offsets) {
+    const flecsi::util::gid nents,
+    const std::vector<flecsi::util::gid> & offsets) {
     assert(offsets.size() == t.depth());
     flecsi::Color col = 0;
     for(auto [c, a] : t.components()) {
@@ -167,9 +167,9 @@ struct sph_ntree_t
     auto lm = flecsi::data::launch::make(s, nt);
     const auto ours = flecsi::util::equal_map(
       c.nparts_, s.runtime().processes())[s.runtime().process()];
-    std::vector<flecsi::util::id> offsets;
+    std::vector<flecsi::util::gid> offsets;
     auto b = c.entities_sizes_.begin();
-    auto o = std::accumulate(b, b + ours[0], 0);
+    auto o = std::accumulate(b, b + ours[0], flecsi::util::gid());
     for(const auto i : ours) {
       offsets.push_back(o);
       o += b[i];
@@ -190,7 +190,7 @@ struct sph_ntree_t
   }
 
   // N-Tree coloring
-  static coloring color(flecsi::Color size, flecsi::util::id nents) {
+  static coloring color(flecsi::Color size, flecsi::util::gid nents) {
     const flecsi::util::id hmap_size = 1 << 20;
     coloring c(size, hmap_size);
     for(auto bin : flecsi::util::equal_map(nents, size))
