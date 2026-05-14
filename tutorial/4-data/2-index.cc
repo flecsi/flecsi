@@ -8,17 +8,17 @@ using namespace flecsi;
 
 template<typename T>
 using single = field<T, data::single>;
-const single<std::size_t>::definition<topo::index> ifield;
+const single<int>::definition<topo::index> ifield;
 
 void
-init(exec::cpu s, single<std::size_t>::accessor<wo> iv) noexcept {
+init(exec::cpu s, single<int>::accessor<wo> iv) noexcept {
   flog(trace) << "initializing value on color " << s.launch().index << " of "
               << s.launch().size << std::endl;
   iv = s.launch().index;
 }
 
 void
-print(exec::cpu s, single<std::size_t>::accessor<ro> iv) noexcept {
+print(exec::cpu s, single<int>::accessor<ro> iv) noexcept {
   flog(trace) << "index value: " << iv << " (color " << s.launch().index
               << " of " << s.launch().size << ")" << std::endl;
 }

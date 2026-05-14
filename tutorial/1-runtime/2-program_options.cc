@@ -44,11 +44,11 @@ flecsi::program_option<bool> child_seat("Car Options",
 
 enum purpose_option { personal, business };
 
-flecsi::program_option<size_t> purpose("Ride Options",
+flecsi::program_option<int> purpose("Ride Options",
   "purpose,p",
   "Specify the purpose of the trip (personal=0, business=1).",
   {{flecsi::option_default, purpose_option::business}},
-  [](std::size_t value, std::stringstream & ss) {
+  [](int value, std::stringstream & ss) {
     return value == personal || value == business ||
            (ss << "value(" << value << ") is invalid", false);
   });
@@ -115,7 +115,7 @@ simulation(flecsi::scheduler &) {
     return 5;
   };
 
-  size_t passengers = read_file(passenger_list.value());
+  const int passengers = read_file(passenger_list.value());
 
   price *= passengers * 1.10 * price;
 

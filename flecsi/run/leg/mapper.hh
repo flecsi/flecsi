@@ -160,7 +160,7 @@ public:
       {task.regions[indx].region,
         task.regions[indx + 1].region,
         task.regions[indx + 2].region});
-    for(size_t j = 0; j < 3; j++) {
+    for(int j = 0; j < 3; j++) {
       output.chosen_instances[indx + j].clear();
       output.chosen_instances[indx + j].push_back(result);
     } // for
@@ -234,7 +234,7 @@ public:
         if(missing_fields[indx].empty()) {
 #if 0 // this block is only used for compacted instances
           if(task.regions[indx].tag & mapper::exclusive_lr){
-            for(size_t j = 1; j < 3; j++)
+            for(int j = 1; j < 3; j++)
               output.chosen_instances[indx + j] = valid_instances; 
             indx = indx + 2;
           }

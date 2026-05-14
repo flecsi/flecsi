@@ -17,9 +17,9 @@ sanity(flecsi::scheduler &) {
 
     {
       std::vector<bool> v{false, true};
-      std::map<size_t, size_t> m{{0, 1}, {1, 0}};
-      std::unordered_map<size_t, size_t> um{{2, 1}, {3, 2}};
-      std::set<size_t> s{0, 1, 2, 3, 4};
+      std::map<int, int> m{{0, 1}, {1, 0}};
+      std::unordered_map<int, int> um{{2, 1}, {3, 2}};
+      std::set<int> s{0, 1, 2, 3, 4};
 
       data = serial::put_tuple(v, m, um, s);
     } // scope
@@ -31,15 +31,15 @@ sanity(flecsi::scheduler &) {
       ASSERT_FALSE(v[0]);
       ASSERT_TRUE(v[1]);
 
-      const auto m = serial::get<std::map<size_t, size_t>>(p);
+      const auto m = serial::get<std::map<int, int>>(p);
       ASSERT_EQ(m.at(0), 1u);
       ASSERT_EQ(m.at(1), 0u);
 
-      const auto um = serial::get<std::unordered_map<size_t, size_t>>(p);
+      const auto um = serial::get<std::unordered_map<int, int>>(p);
       ASSERT_EQ(um.at(2), 1u);
       ASSERT_EQ(um.at(3), 2u);
 
-      const auto s = serial::get<std::set<size_t>>(p);
+      const auto s = serial::get<std::set<int>>(p);
       ASSERT_NE(s.find(0), s.end());
       ASSERT_NE(s.find(1), s.end());
       ASSERT_NE(s.find(2), s.end());
@@ -62,14 +62,14 @@ unit::driver<sanity> driver;
 //----------------------------------------------------------------------------//
 
 struct type_t {
-  type_t(size_t id = std::numeric_limits<size_t>::max()) : id_(id) {}
+  explicit type_t(int id = std::numeric_limits<int>::min()) : id_(id) {}
 
-  size_t id() const {
+  int id() const {
     return id_;
   }
 
 private:
-  size_t id_;
+  int id_;
 
 }; // struct type_t
 
@@ -109,23 +109,23 @@ unit::driver<user_type> user_type_driver;
 struct simple_context_t {
 
   struct element_info_t {
-    size_t id;
+    int id;
   }; // struct element_info_t
 
-  using map_element_t = std::unordered_map<size_t, element_info_t>;
+  using map_element_t = std::unordered_map<int, element_info_t>;
 
   static simple_context_t & instance() {
     static simple_context_t tc;
     return tc;
   } // instance
 
-  void add_map_element_info(size_t map_identifier,
-    size_t element_identifier,
+  void add_map_element_info(int map_identifier,
+    int element_identifier,
     element_info_t const & info) {
     element_map_[map_identifier][element_identifier] = info;
   } // add_map_element_info
 
-  std::unordered_map<size_t, map_element_t> & element_map() {
+  std::unordered_map<int, map_element_t> & element_map() {
     return element_map_;
   } // map_element
 
@@ -140,7 +140,7 @@ struct simple_context_t {
 private:
   friend serial::convert<simple_context_t>;
 
-  std::unordered_map<size_t, map_element_t> element_map_;
+  std::unordered_map<int, map_element_t> element_map_;
 
 }; // struct simple_context_t
 

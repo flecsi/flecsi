@@ -17,8 +17,8 @@ log_driver(scheduler &) {
     EXPECT_EQ(flog::to_string(std::vector<bool>{false, true}), "[0, 1]");
 
     {
-      std::vector<std::vector<std::size_t>> v;
-      for(std::size_t i{0}; i < 10; ++i) {
+      std::vector<std::vector<int>> v;
+      for(int i = 0; i < 10; ++i) {
         v.push_back({0, 1, 2});
       }
 
@@ -28,8 +28,8 @@ log_driver(scheduler &) {
     }
 
     {
-      std::map<std::size_t, std::size_t> m;
-      for(std::size_t i{0}; i < 10; ++i) {
+      std::map<int, int> m;
+      for(int i = 0; i < 10; ++i) {
         m[i] = i;
       }
 
@@ -38,8 +38,8 @@ log_driver(scheduler &) {
     }
 
     {
-      std::map<std::size_t, std::vector<std::size_t>> m;
-      for(std::size_t i{0}; i < 10; ++i) {
+      std::map<int, std::vector<int>> m;
+      for(int i = 0; i < 10; ++i) {
         m[i] = {0, 1, 2};
       }
 
