@@ -82,7 +82,7 @@ private:
   std::span<pair_t> span_;
 
   constexpr pointer lookup(const key_t & k) const {
-    std:size_t = HASH::hash(k) % span_.size();
+    size_type h = HASH::hash(k) % span_.size();
     for(unsigned ttl = 10; ttl--;) { // max number of search before crash
       const pointer p = span_.data() + h;
       if(p->first == k || p->first == key_t())
@@ -94,6 +94,8 @@ private:
   }
 
 public:
+  using size_type = typename decltype(span_)::size_type;
+
   constexpr hashtable(std::span<pair_t> span) : span_(span) {}
 
   // Find a value in the hashtable
@@ -151,7 +153,7 @@ public:
 
   // Number of elements currently stored in the hashtable
   // This computation is linear in time and should be used for debug only
-  constexpr std::size_t count_entries() const noexcept {
+  constexpr size_type count_entries() const noexcept {
     return std::distance(this->begin(), this->end());
   }
 
