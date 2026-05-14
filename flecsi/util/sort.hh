@@ -122,7 +122,7 @@ protected:
 
   static void index_sort(std::byte * ptr,
     std::span<const std::size_t> schanges,
-    const int size) {
+    const std::size_t size) {
     std::vector<std::size_t> changes(schanges.begin(), schanges.end());
     std::vector<std::byte> data(size);
     std::byte * tmp = data.data();
