@@ -73,7 +73,7 @@ private:
     key_t hibound = key_t::root(), lobound = key_t::root();
   };
 
-  constexpr static std::size_t nchildren_ = 1 << dimension;
+  constexpr static Children nchildren_ = 1 << dimension;
 
 public:
   template<Privileges>
@@ -372,7 +372,7 @@ private:
         cur->set_node_idx(cnode);
         n_keys(cnode) = cur->key();
       }
-      for(std::size_t j = 0; j < nchildren_; ++j) {
+      for(Children j = 0; j < nchildren_; ++j) {
         if(cur->has_child(j)) {
           auto it = hmap.find(nkey.push(j));
           if(it->second.is_node())
@@ -412,7 +412,7 @@ private:
         key_t nkey = cur->key();
         if(cur->is_node() && cur->is_incomplete()) {
           assert(cur->type() != 0);
-          for(std::size_t j = 0; j < nchildren_; ++j) {
+          for(Children j = 0; j < nchildren_; ++j) {
             if(cur->has_child(j)) {
               nqueue.push_back(&hmap.at(nkey.push(j)));
             }
@@ -1260,7 +1260,7 @@ public:
       // Intersection
       if(f(cur) && cur->has_child()) {
         auto nkey = cur->key();
-        for(std::size_t j = 0; j < nchildren_; ++j) {
+        for(Children j = 0; j < nchildren_; ++j) {
           if(cur->has_child(j)) {
             tqueue.push(&hmap.at(nkey.push(j)));
           } // if
@@ -1394,7 +1394,7 @@ public:
     auto nkey = n_keys[node_id];
     auto hmap = map();
     auto cur = &(hmap.find(nkey)->second);
-    for(std::size_t j = 0; j < nchildren_; ++j) {
+    for(Children j = 0; j < nchildren_; ++j) {
       if(cur->has_child(j)) {
         auto it = hmap.find(nkey.push(j));
         if(it->second.is_ent()) {
@@ -1451,7 +1451,7 @@ public:
     auto nkey = n_keys[node_id];
     auto hmap = map();
     auto cur = &(hmap.find(nkey)->second);
-    for(std::size_t j = 0; j < nchildren_; ++j) {
+    for(Children j = 0; j < nchildren_; ++j) {
       if(cur->has_child(j)) {
         auto it = hmap.find(nkey.push(j));
         if(it->second.is_node()) {
@@ -1476,7 +1476,7 @@ public:
       tqueue.pop();
       assert(cur->is_node());
       auto nkey = cur->key();
-      for(std::size_t j = 0; j < nchildren_; ++j) {
+      for(Children j = 0; j < nchildren_; ++j) {
         if(cur->has_child(j)) {
           auto it = hmap.find(nkey.push(j));
           if(it->second.is_node()) {
@@ -1508,7 +1508,7 @@ public:
         hcell_t * cur = stk.top();
         stk.pop();
         auto nkey = cur->key();
-        for(std::size_t j = 0; j < nchildren_; ++j) {
+        for(Children j = 0; j < nchildren_; ++j) {
           if(cur->has_child(j)) {
             auto it = hmap.find(nkey.push(j));
             if(it->second.is_node()) {
@@ -1548,8 +1548,8 @@ public:
         else {
           ids.push_back(id<index_space::nodes>(cur->idx()));
         }
-        for(std::size_t j = 0; j < nchildren_; ++j) {
-          const std::size_t child =
+        for(Children j = 0; j < nchildren_; ++j) {
+          const Children child =
             nchildren_ - 1 - j; // Take children in reverse order
           if(cur->has_child(child)) {
             auto it = hmap.find(nkey.push(child));
@@ -1618,7 +1618,7 @@ public:
           node, "shape", completeness[cur->is_complete()].second);
         gv.set_node_attribute(node, "color", locality[cur->is_local()].second);
         // Add the child to the stack and add for display
-        for(std::size_t i = 0; i < nchildren_; ++i) {
+        for(Children i = 0; i < nchildren_; ++i) {
           auto it = hmap.find(cur->key().push(i));
           if(it != hmap.end()) {
             stk.push(std::pair(&it->second, node));
