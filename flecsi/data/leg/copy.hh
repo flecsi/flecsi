@@ -59,8 +59,7 @@ struct prefixes : private leg::with_used, leg::partition, prefixes_base {
 struct intervals : leg::partition {
   using Value = leg::rect;
 
-  static Value make(subrow n,
-    std::size_t i = run::context::instance().color()) {
+  static Value make(subrow n, Color i = run::context::instance().color()) {
     const Legion::coord_t r = i;
     const Legion::coord_t ln = n.first;
     return {{r, ln}, {r, leg::upper(n.second)}};
@@ -72,7 +71,7 @@ struct intervals : leg::partition {
 struct copy_engine {
   using Point = Legion::Point<2>;
 
-  static auto point(std::size_t r, util::id i) {
+  static auto point(Color r, util::id i) {
     return Point(r, i);
   }
 

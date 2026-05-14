@@ -229,7 +229,7 @@ private:
 
 struct intervals {
   using Value = subrow; // [begin, end)
-  static Value make(subrow r, std::size_t = 0) {
+  static Value make(subrow r, Color = 0) {
     return r;
   }
 

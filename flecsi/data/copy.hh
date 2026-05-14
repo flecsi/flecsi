@@ -49,7 +49,7 @@ struct prefixes : partition, prefixes_base {
 /// A subset of each row in a region_base, expressed as a set of intervals.
 struct intervals {
   /// Factory function for the interval type.
-  static auto make(subrow, std::size_t r = run::context::instance().color());
+  static auto make(subrow, Color r = run::context::instance().color());
   /// Defined by the backend.
   using Value = decltype(make({}));
 
@@ -68,7 +68,7 @@ struct copy_engine {
   /// Factory function for the \c Point type.
   /// \param r row
   /// \param i index (within row)
-  static auto point(std::size_t r, util::id i);
+  static auto point(Color r, util::id i);
   /// Defined by the backend.
   using Point = decltype(point(0, 0));
 

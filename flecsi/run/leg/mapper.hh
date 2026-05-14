@@ -568,7 +568,7 @@ private:
     [id = Legion::Runtime::generate_static_sharding_id()] {
       struct functor : Legion::ShardingFunctor {
       private:
-        static auto map(const Legion::Domain & d, std::size_t n) {
+        static auto map(const Legion::Domain & d, Color n) {
           const Legion::Rect<1> r = d;
           assert(!r.lo[0]);
           return util::equal_map(r.hi[0] + 1, n);

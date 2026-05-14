@@ -296,7 +296,7 @@ private:
                                "std::size_t limits");
               }
               return partitions;
-            }()](std::size_t i) { return p[i]; })...}},
+            }()](Color i) { return p[i]; })...}},
       plan_{{make_copy_plan<CI>(s, c.idx_colorings[index<CI>])...}},
       ragged_buffers_{{data::buffers::topology(s,
         meta_data::peers(c.idx_colorings[index<CI>]))...}} {

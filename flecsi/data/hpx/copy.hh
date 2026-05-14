@@ -35,7 +35,7 @@ all_to_allv(F && f, run::communicator & comm) {
   std::vector<std::vector<util::id>> result;
   result.reserve(size);
 
-  for(std::size_t r = 0; r < size; ++r)
+  for(Color r = 0; r < size; ++r)
     result.push_back(f(r));
 
   return all_to_all(comm.comm(), std::move(result), this_site_arg(), comm.gen())

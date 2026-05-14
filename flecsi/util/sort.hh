@@ -45,7 +45,7 @@ void
 merge(const T & ma, std::vector<key_type> & v) {
 
   gid total = 0, cur = 0;
-  std::size_t size = 0;
+  Color size = 0;
   for(auto & m : ma) {
     total += m.span().size();
     if(m.span().size())
@@ -55,7 +55,7 @@ merge(const T & ma, std::vector<key_type> & v) {
   v.resize(total);
   if(total == 0)
     return;
-  std::vector<std::size_t> heap(size);
+  std::vector<Color> heap(size);
   std::iota(heap.begin(), heap.end(), 0);
   auto h_b = heap.begin();
   auto h_e = heap.end();
@@ -68,9 +68,7 @@ merge(const T & ma, std::vector<key_type> & v) {
       end_it.push_back(m.span().end());
     }
 
-  auto comp = [&](std::size_t idx1, std::size_t idx2) {
-    return *it[idx1] > *it[idx2];
-  };
+  auto comp = [&](Color idx1, Color idx2) { return *it[idx1] > *it[idx2]; };
 
   std::make_heap(h_b, h_e, comp);
   v[cur++] = *it[heap[0]];
@@ -90,7 +88,7 @@ struct sort_base {
 protected:
   using hist_int_t = std::uint64_t;
 
-  sort_base(scheduler & s, std::size_t c)
+  sort_base(scheduler & s, Color c)
     : transfer_t(s, std::vector<std::size_t>(c, 0)),
       idx_t(s, std::vector<std::size_t>(c, 0)),
       meta_t(s, std::vector<std::size_t>(c, 1)),
@@ -154,12 +152,12 @@ protected:
   // We could use multi-accessor like in other places but chose to use global
   // reduction for simplicity
   static void compute_copy_task(exec::cpu s,
-    field<std::size_t>::accessor<wo> transfers,
-    data::reduction_accessor<exec::fold::sum, int> copy) noexcept {
+    field<Color>::accessor<ro> transfers,
+    data::reduction_accessor<exec::fold::sum, Color> copy) noexcept {
     auto c = colors;
     id output = s.launch().index * c;
-    for(unsigned int j = 0; j < c; ++j) {
-      int count = 0;
+    for(Color j = 0; j < c; ++j) {
+      Color count = 0;
       for(auto & t : transfers.span())
         if(t == j)
           ++count;
@@ -171,7 +169,7 @@ protected:
     std::fill(v.span().begin(), v.span().end(), 0);
   } // init_hist_task
 
-  static void init_copy_task(field<int>::accessor<wo> v) noexcept {
+  static void init_copy_task(field<Color>::accessor<wo> v) noexcept {
     std::fill(v.span().begin(), v.span().end(), 0);
   }
   static void init_sizes_task(field<id>::accessor<wo> v) noexcept {
@@ -179,7 +177,7 @@ protected:
   }
 
   static inline const field<hist_int_t>::definition<topo::global> hist_g_f;
-  static inline const field<int>::definition<topo::global> copy_g_f;
+  static inline const field<Color>::definition<topo::global> copy_g_f;
   static inline const field<id>::definition<topo::global> sizes_g_f;
 
   topo::global::ptr hist_g_p, copy_g_p, sizes_g_p;
@@ -190,7 +188,7 @@ protected:
 
   // Transfer indices
   sort_array_t::topology transfer_t;
-  const static inline field<std::size_t>::definition<sort_array_t> transfer_f;
+  const static inline field<Color>::definition<sort_array_t> transfer_f;
 
   // Indices for the sort
   sort_array_t::topology idx_t;
@@ -201,7 +199,7 @@ protected:
   struct sort_color : topo::specialization<topo::color, sort_color> {};
   sort_color::topology intervals_t;
 
-  static inline std::size_t colors = 1;
+  static inline Color colors = 1; // side channel for tasks!
 
 }; // sort_base
 
@@ -290,7 +288,7 @@ protected:
   static void set_pointers_task(exec::cpu s,
     typename field<data::copy_engine::Point>::template accessor1<
       privilege_repeat<wo, PC>> a,
-    field<int>::accessor<ro> copy,
+    field<Color>::accessor<ro> copy,
     typename field<meta, data::single>::template accessor<wo> m) noexcept {
     auto c = colors;
     id cur = m->initial;
@@ -303,7 +301,7 @@ protected:
       // Basically count for each color
       for(unsigned int j = 0; j < s.launch().index; ++j)
         icur += copy[c * i + j];
-      for(int j = 0; j < copy[ptr]; ++j)
+      for(Color j = 0; j < copy[ptr]; ++j)
         a(cur++) = data::copy_engine::point(i, icur++);
     }
   } // set_pointers_task
@@ -313,9 +311,9 @@ protected:
       values,
     typename field<interval>::template accessor<rw> intervals,
     data::reduction_accessor<exec::fold::sum, id> sizes,
-    field<std::size_t>::accessor<wo> transfers) noexcept {
+    field<Color>::accessor<wo> transfers) noexcept {
     // Count the number of values
-    std::size_t j = 0;
+    Color j = 0;
     id localsize = 0;
     for(id i = 0; i < values.span().size();) {
       if(j >= intervals.span().size() || values[i] <= intervals[j].lower) {
@@ -358,7 +356,7 @@ protected:
     const double proba = c * sj / totalents;
 
     id j = 0;
-    for(unsigned int i = 0; i < c - 1; ++i) {
+    for(Color i = 0; i < c - 1; ++i) {
       for(; j < values.span().size() && values[j] < intervals[i].upper; ++j) {
         if(values[j] > intervals[i].lower) {
           if(mrnd() / m_rnd < proba) {
@@ -431,11 +429,11 @@ protected:
 
   static void set_destination_task(exec::cpu s,
     field<data::intervals::Value>::accessor<wo> a,
-    field<int>::accessor<ro> copy,
+    field<Color>::accessor<ro> copy,
     typename field<meta, data::single>::template accessor<ro> m) noexcept {
     auto c = sort_base::colors;
     id total = 0;
-    for(unsigned int i = 0; i < c; ++i)
+    for(Color i = 0; i < c; ++i)
       if(i != s.launch().index)
         total += copy[c * i + s.launch().index];
     a(0) =
@@ -444,7 +442,7 @@ protected:
 
   static void update_sizes_task(exec::cpu s,
     topo::resize::Field::accessor<wo> a,
-    field<int>::accessor<ro> cpy,
+    field<Color>::accessor<ro> cpy,
     typename field<meta, data::single>::template accessor<ro> m) noexcept {
     auto c = sort_base::colors;
     // Compute data that will be sent to me
@@ -470,7 +468,7 @@ protected:
 
     auto c = sort_base::colors;
     std::vector<id> ideal(c, totalents / c);
-    for(unsigned int i = 0; i < c; ++i) {
+    for(Color i = 0; i < c; ++i) {
       if(totalents % (ideal[i] * c) > i)
         ++ideal[i];
       if(i > 0)

@@ -764,7 +764,7 @@ coloring_driver(scheduler & s) {
         "coloring_" + name + "_" + std::to_string(s.runtime().processes()) +
         "_" + std::to_string(s.runtime().process()) + ".blessed";
       auto & out = UNIT_CAPTURE();
-      std::vector<std::size_t> color;
+      std::vector<Color> color;
       std::vector<std::string> global, extent, offset, logical, extended;
 
       auto seq = [](const auto & c) {

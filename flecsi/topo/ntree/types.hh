@@ -154,10 +154,10 @@ public:
     type_ &= ~REQUESTED_MASK;
   }
 
-  std::size_t color() const {
+  Color color() const {
     return color_;
   }
-  void set_color(std::size_t color) {
+  void set_color(Color color) {
     color_ = color;
   }
 
@@ -183,7 +183,7 @@ private:
   bool is_node_ = true;
   bool is_incomplete_ = true;
   unsigned int type_ = 0;
-  std::size_t color_;
+  Color color_;
 };
 
 template<Dimension D, typename T, class K>

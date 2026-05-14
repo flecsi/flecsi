@@ -14,8 +14,8 @@ namespace local {
 struct copy_base {
   using index_type = util::id;
 
-  using Point = std::pair<std::size_t, index_type>;
-  static Point point(std::size_t r, index_type i) {
+  using Point = std::pair<Color, index_type>;
+  static Point point(Color r, index_type i) {
     return {r, i};
   }
 };
@@ -67,7 +67,7 @@ struct copy_engine : copy_base {
     // from remote destination rank to a vector of *local* source indices. This
     // information is later used by MPI_Send().
     {
-      std::size_t r = 0;
+      Color r = 0;
       for(auto & v :
         std::forward<AllToAll>(all_to_all)(remote_shared_entities)) {
         const auto n = v.size();

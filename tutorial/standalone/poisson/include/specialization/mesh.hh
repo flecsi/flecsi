@@ -96,7 +96,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     Color Method.
    *--------------------------------------------------------------------------*/
 
-  static coloring color(std::size_t num_colors, gcoord axis_extents) {
+  static coloring color(flecsi::Color num_colors, gcoord axis_extents) {
     index_definition idef;
     idef.axes = base::make_axes(num_colors, axis_extents);
     for(auto & a : idef.axes) {

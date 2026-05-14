@@ -48,7 +48,7 @@ drows(exec::cpu s, double_at::mutator<wo> mm) noexcept {
   UNIT("TASK") {
     const auto me = s.launch().index;
     const auto && m = mm[0];
-    for(std::size_t c = 0; c <= me; ++c)
+    for(Color c = 0; c <= me; ++c)
       m.try_emplace(column + c, me + c);
     for(const auto && p : m)
       EXPECT_EQ(p.first - column, p.second - me);

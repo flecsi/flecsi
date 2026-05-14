@@ -13,7 +13,7 @@ namespace topo {
 /// \addtogroup topology
 /// \{
 
-inline constexpr auto zero = [](std::size_t) { return 0u; };
+inline constexpr auto zero = [](Color) { return 0u; };
 
 // Clang insists on virtual destructors even without delete:
 struct virtual_base {
@@ -234,9 +234,8 @@ struct array_base {
 template<class P>
 struct topology<P, array_base> : array_base, repartitioned {
   topology(scheduler & s, const coloring & c)
-    : repartitioned(make_repartitioned<P>(c.size(), s, [c](std::size_t i) {
-        return c[i];
-      })) {}
+    : repartitioned(
+        make_repartitioned<P>(c.size(), s, [c](Color i) { return c[i]; })) {}
 };
 
 template<class P>

@@ -142,7 +142,7 @@ private:
           c.colors,
           s,
           [p = c.idx_spaces[index<VV>].partitions](
-            std::size_t i) { return p[i]; })...
+            Color i) { return p[i]; })...
         }
       },
       special_(s, c.colors),

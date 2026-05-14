@@ -112,8 +112,8 @@ public:
         util::constant<share_ghosts_comms>()),
       buf(s, [&c] {
         data::buffers::coloring ret(c.nparts_);
-        for(std::size_t i_r = 0; i_r < ret.size(); ++i_r) {
-          for(std::size_t i = 0; i < c.nparts_; ++i) {
+        for(Color i_r = 0; i_r < ret.size(); ++i_r) {
+          for(Color i = 0; i < c.nparts_; ++i) {
             if(i != i_r) {
               ret[i_r].push_back(i);
             }
@@ -130,13 +130,13 @@ private:
   auto
   rep(scheduler & s, const coloring & c, const std::vector<util::id> & size) {
     return make_repartitioned<Policy, idx>(
-      c.nparts_, s, [size](std::size_t i) { return size[i]; });
+      c.nparts_, s, [size](Color i) { return size[i]; });
   }
 
   template<index_space idx>
   auto rep(scheduler & s, const coloring & c, util::id size) {
     return make_repartitioned<Policy, idx>(
-      c.nparts_, s, [size](std::size_t) { return size; });
+      c.nparts_, s, [size](Color) { return size; });
   }
 
   // Ntree mandatory fields ---------------------------------------------------
@@ -462,7 +462,7 @@ private:
     parent->second.add_child(child);
   }
 
-  static void load_shared_entity(const std::size_t & c,
+  static void load_shared_entity(const Color & c,
     const key_t & k,
     hmap_t & hmap,
     typename field<meta_type, data::single>::template accessor<rw> mf,
@@ -484,7 +484,7 @@ private:
     }
   }
 
-  static void load_shared_node(const std::size_t & c,
+  static void load_shared_node(const Color & c,
     const key_t & k,
     hmap_t & hmap,
     typename field<meta_type, data::single>::template accessor<rw> mf,
@@ -845,7 +845,7 @@ private:
     typename field<Color>::template accessor<rw, na> e_c) noexcept {
 
     // Read
-    std::size_t cs = run::context::instance().colors();
+    const Color cs = run::context::instance().colors();
     int cur = 0;
     util::id idx = m->local.ents;
     const auto color = run::context::instance().color();
@@ -892,7 +892,7 @@ private:
     data::buffers::Transfer mv,
     typename field<h_s_t>::template accessor<ro, na> f) noexcept {
     // Read
-    std::size_t cs = run::context::instance().colors();
+    const Color cs = run::context::instance().colors();
     int cur = 0;
     const auto color = run::context::instance().color();
     for(Color c = 0; c < cs; ++c) {
@@ -1301,7 +1301,7 @@ public:
         hmap);
     } // for
     // Add all the std::sets to the end vector to create the copy plan
-    for(std::size_t i = 0; i < cs; ++i) {
+    for(Color i = 0; i < cs; ++i) {
       if constexpr(C)
         count_accessor[i] = send_ids[i].size();
       else {
@@ -1323,7 +1323,7 @@ public:
 
     auto hmap = map();
     for(util::id i = 0; i < mf->local.ents; ++i) {
-      std::set<std::size_t> send_colors;
+      std::set<Color> send_colors;
       ent_id id(i);
       traversal(
         &hmap.at(key_t::root()),
