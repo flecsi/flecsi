@@ -19,7 +19,6 @@ struct htype_t {
   std::string g, h, i;
 };
 
-using pair_t = std::pair<hkey_t, htype_t>;
 using hmap_t = hashtable<hkey_t, htype_t>;
 
 [[nodiscard]] int
@@ -72,7 +71,7 @@ hashtable_driver(scheduler &) {
   UNIT() {
     const std::size_t ht_size = 1 << 15;
 
-    std::vector<pair_t> idx_s;
+    std::vector<hmap_t::pair_t> idx_s;
     idx_s.resize(ht_size);
     const std::span span_ht(idx_s);
 
