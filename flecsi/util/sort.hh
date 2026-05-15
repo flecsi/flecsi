@@ -468,12 +468,10 @@ protected:
 
     auto c = sort_base::colors;
     std::vector<id> ideal(c, totalents / c);
-    for(Color i = 0; i < c; ++i) {
-      if(totalents % (ideal[i] * c) > i)
-        ++ideal[i];
-      if(i > 0)
-        ideal[i] += ideal[i - 1];
-    }
+    for(Color i = totalents % c; i--;)
+      ++ideal[i];
+    for(Color i = 1; i < c; ++i)
+      ideal[i] += ideal[i - 1];
     for(id i = 0; i < intervals.span().size(); ++i) {
       auto & [L, U] = intervals[i];
       if(L == U)
