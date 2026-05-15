@@ -111,7 +111,7 @@ checkpoint_task(const Legion::Task * task,
       }
 
       Realm::ExternalHDF5Resource resource(
-        fname.c_str(), LEGION_FILE_READ_WRITE);
+        fname.c_str(), W ? LEGION_FILE_READ_WRITE : LEGION_FILE_READ_ONLY);
       hdf5_attach_launcher.external_resource = &resource;
       hdf5_attach_launcher.field_files = field_map;
       hdf5_attach_launcher.initialize_constraints(
