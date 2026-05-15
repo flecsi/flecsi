@@ -13,11 +13,9 @@
 namespace flecsi {
 namespace data {
 
-enum disjointness { compute = 0, disjoint = 1, aliased = 2 };
-
 constexpr auto
-partitionKind(disjointness dis, completeness cpt) {
-  return Legion::PartitionKind((dis + 2) % 3 + 3 * cpt);
+partitionKind(completeness cpt) { // for disjoint
+  return Legion::PartitionKind(3 * cpt);
 }
 
 // The "infinite" size used for resizable regions.
@@ -327,7 +325,7 @@ private:
                 src.root(),
                 fid,
                 src.get_color_space(),
-                partitionKind(disjoint, cpt)),
+                partitionKind(cpt)),
           (name(src.logical_partition, "?") + std::string("->")).c_str())) {}
 };
 
