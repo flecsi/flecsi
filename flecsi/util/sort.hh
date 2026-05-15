@@ -452,7 +452,7 @@ protected:
       total += cpy[c * i + s.launch().index];
     }
     a = total;
-  } // udpate_sizes_task
+  } // update_sizes_task
 
   static void update_bound_task(
     typename field<interval>::template accessor<rw> intervals,

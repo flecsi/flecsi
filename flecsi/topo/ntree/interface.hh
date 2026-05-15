@@ -47,7 +47,7 @@ namespace topo {
 /// using a hashtable. The creation of the N-Tree requires three steps, after
 /// filling the appropriate index spaces data:
 ///   - call make_tree function
-///   - Compute the local information for the interation. This information is
+///   - Compute the local information for the interaction. This information is
 ///   used for the next step to compute the ghosts.
 ///   - call share_ghosts function
 /// After these calls the N-Tree is ready to be used and the neighbors are
@@ -63,7 +63,7 @@ private:
   using key_t = typename Policy::key_t;
 
   using type_t = double;
-  /// Type store in the hastable. It can represent both node or entity
+  /// Type store in the hashtable. It can represent both node or entity
   using hcell_t = hcell_base_t<dimension, type_t, key_t>;
 
   using entity_data = typename Policy::entity_data;
@@ -152,7 +152,7 @@ public:
   static inline const typename field<Color>::template definition<Policy,
     entities>
     e_colors;
-  /// Field containing the structure for entities interation from the
+  /// Field containing the structure for entities interaction from the
   /// specialization
   static inline const typename field<entity_data>::template definition<Policy,
     entities>
@@ -161,7 +161,7 @@ public:
   /// Node keys field
   static inline const typename field<key_t>::template definition<Policy, nodes>
     n_keys;
-  /// Field containing the structure for nodes interation from the
+  /// Field containing the structure for nodes interaction from the
   /// specialization
   static inline const typename field<node_data>::template definition<Policy,
     nodes>
@@ -490,7 +490,7 @@ private:
     typename field<meta_type, data::single>::template accessor<rw> mf,
     typename field<key_t>::template accessor<rw, na> n_keys) {
     key_t key = k;
-    // Node doesnt exists already
+    // Node doesn't exist already
     auto cur = hmap.find(key);
     if(cur == hmap.end()) {
       auto & cur = hmap.insert(key, key)->second;
@@ -1678,7 +1678,7 @@ struct ntree_specialization : specialization<ntree, ntree_specialization> {
   using index_spaces = base::index_spaces;
 
   /// \name Intersection Functions
-  /// Function computing interation between entity-entity, entity-node and
+  /// Function computing interaction between entity-entity, entity-node and
   /// node-node. Returns true if there is an interaction. A possible
   /// implementation is to use a templated function.
   /// \{
