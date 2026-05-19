@@ -48,9 +48,9 @@ public:
     Legion::Mapping::Mapper::TaskOptions & output) override {
     DefaultMapper::select_task_options(ctx, task, output);
     // Mysteriously, the top-level task has 16 bytes of argument.
-    if(task.arglen == sizeof(std::size_t))
+    if(task.arglen == sizeof(task_idx))
       context::instance()
-        .params.at(get1<std::size_t>(task))
+        .params.at(get1<task_idx>(task))
         .post(task.is_index_space
                 ? util::equal_map(
                     task.index_domain.get_volume(), total_nodes)[node_id]

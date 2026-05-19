@@ -14,7 +14,7 @@ struct Noisy {
     ++count;
   }
   Noisy * p = this;
-  static inline std::atomic<std::size_t> count;
+  static inline std::atomic<run::task_idx> count;
 };
 
 using double_field = field<double, single>;
@@ -111,7 +111,7 @@ binit(boolN::mutator<wo> m) noexcept {
   };
 }
 
-std::size_t
+run::task_idx
 reset(noisy::accessor<wo> a) noexcept { // must be an MPI task for correct total
   return Noisy::count + (a->p != &*a);
 }

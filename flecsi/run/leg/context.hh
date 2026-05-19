@@ -53,8 +53,6 @@ inline constexpr Legion::MappingTagID
 /// \}
 } // namespace mapper
 
-using task_idx = std::size_t;
-
 // The number of task instances for a process to execute may become known only
 // after several task launches that share it (via tracing).
 struct task_count {

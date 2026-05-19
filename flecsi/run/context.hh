@@ -48,6 +48,8 @@ namespace run {
 /// \addtogroup runtime
 /// \{
 
+using task_idx = std::size_t;
+
 struct context_t; // supplied by backend
 
 /// Exit status returned by initialization code.
