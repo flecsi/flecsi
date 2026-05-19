@@ -489,8 +489,10 @@ struct narray_base : base {
   /// The type describing an axis in a task.
   using axis_info = narray_impl::axis_info;
   using coord = narray_impl::coord;
+  /// A `std::vector<util::gid>` of overall domain sizes per axis.
   using gcoord = narray_impl::gcoord;
   using hypercube = narray_impl::hypercube;
+  /// A `std::vector<Color>` of color hyperplanes per axis.
   using colors = narray_impl::colors;
   /// The type for specifying an axis for a coloring.
   using axis_definition = narray_impl::axis_definition;

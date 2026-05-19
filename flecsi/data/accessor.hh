@@ -421,9 +421,9 @@ private:
   }; // struct raw_row
 
 public:
-  /// A row handle.  Provides the \c std::vector interface, with the important
-  /// difference that there is no guarantee of contiguity between memory
-  /// locations.
+  /// A row handle.
+  /// \warning Unlike for \c std::vector, there is no guarantee of contiguity
+  ///   between memory locations.
   struct row : util::with_index_iterator<const row>, private raw_row {
     using value_type = T;
     using typename raw_row::size_type;
@@ -1205,20 +1205,19 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
     size_type i;
   };
 
-  // This interface is a subset of that proposed for std::hive.
+  /// \name std::hive operations
+  /// \{
 
-  /// Get the number of extant particles.
+  /// <a></a>
   FLECSI_INLINE_TARGET size_type size() const {
     const auto s = this->span();
     const auto n = s.size();
     const auto i = n ? s.front().skip : 0;
     return i == n ? n : s[i].free.prev;
   }
-  /// Get the maximum number of particles.
   FLECSI_INLINE_TARGET size_type capacity() const {
     return this->span().size();
   }
-  /// Test whether any particles exist.
   [[nodiscard]] FLECSI_INLINE_TARGET bool empty() const {
     return !size();
   }
@@ -1231,7 +1230,7 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
     return {this, capacity()};
   }
 
-  /// Get an iterator that refers to a particle.
+  /// Implements \c std::hive::get_iterator.
   /// \c T must be standard-layout.
   FLECSI_INLINE_TARGET iterator get_iterator_from_pointer(
     element_type * the_pointer) const {
@@ -1242,6 +1241,7 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
     assert(!p->skip != !ret && "field slot is empty");
     return iterator(this, ret);
   }
+  /// \}
 
   base_type & get_base() {
     return *this;
@@ -1281,6 +1281,7 @@ struct accessor<particle, T, P> : particle_accessor<T, P, false> {
 /// \gpu; however, insertions and deletions are not thread-safe.
 /// Iterators are invalidated only if their particle is removed.
 /// \tparam P if write-only, all particles are discarded
+/// \warning Unlike for \c std::hive, insertion fails beyond `capacity()`.
 template<class T, Privileges P>
 struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   static_assert(privilege_write(P), "mutators cannot be read-only");
@@ -1297,26 +1298,22 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   // tables, accessor could provide it instead of having this class at all.
   // However, the natural wo semantics differ between the two cases.
 
-  /// Remove all particles.
+  /// \name std::hive operations
+  /// \{
+
+  /// <a></a>
   FLECSI_INLINE_TARGET void clear() const {
     if(!std::is_trivially_destructible_v<T>)
       std::destroy(this->begin(), this->end());
     init();
   }
 
-  /// Add a particle.
-  /// \see emplace
   FLECSI_INLINE_TARGET iterator insert(const value_type & v) const {
     return emplace(v);
   }
-  /// Add a particle by moving.
-  /// \see emplace
   FLECSI_INLINE_TARGET iterator insert(value_type && v) const {
     return emplace(std::move(v));
   }
-  /// Create an element, in constant time.
-  /// It is unspecified where it appears in the sequence.
-  /// \return an iterator to the new element
   template<class... AA>
   FLECSI_INLINE_TARGET iterator emplace(AA &&... aa) const {
     const auto s = this->span();
@@ -1341,8 +1338,6 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
     return {this, ret};
   }
 
-  /// Remove an element, in constant time.
-  /// \return an iterator past the removed element
   FLECSI_INLINE_TARGET iterator erase(const iterator & it) const {
     const auto s = this->span();
     const auto n = s.size();
@@ -1380,6 +1375,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
 
     return iterator(this, 1 + (i ? i + beg : this->first_skip()));
   }
+  /// \}
 
   template<class F>
   void send(F && f) {

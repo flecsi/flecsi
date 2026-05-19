@@ -47,7 +47,7 @@ public:
   }
 };
 
-/// A small implementation of std::inplace_vector as proposed for C++26.
+/// A small implementation of std::inplace_vector from C++26.
 /// \gpu.
 template<typename T, std::size_t SIZE>
 class inplace_vector {

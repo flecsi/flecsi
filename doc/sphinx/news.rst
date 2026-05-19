@@ -44,6 +44,11 @@ Fixed
   * Implicit conversions are applied to elements of ``std::vector`` task arguments (as well as FleCSI-specific transformations for, say, field accessors).
   * Top-level *cv*-qualifiers are ignored in task return types.
 
+* Topologies
+
+  * ``num_intervals`` in the ``unstructured`` ``index_space`` type is documented properly.
+  * ``gcoord`` and ``colors`` in ``narray_base`` are documented properly.
+
 * Legion backend
 
   * MPI tasks with reference parameters support more argument conversions.
@@ -62,6 +67,10 @@ Fixed
 * On-node parallelism
 
   * Host-acessible values are copied on first use.
+
+* Utilities
+
+  * ``Color`` is documented properly.
 
 Changes in v2.4.1 (October 20 2025)
 +++++++++++++++++++++++++++++++++++

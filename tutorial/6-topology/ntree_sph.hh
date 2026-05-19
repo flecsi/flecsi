@@ -107,7 +107,7 @@ struct sph_ntree_t
   }
 
   // Compute the keys (aka filling curve) for each entities.
-  // The keys are cnmputed using the domain (min/max coordinates) and the
+  // The keys are computed using the domain (min/max coordinates) and the
   // coordinates of the entity.
   static void keys_task(sph_ntree_t::accessor<flecsi::rw, flecsi::wo> ts,
     flecsi::field<range_t>::accessor<flecsi::ro> r) noexcept {
