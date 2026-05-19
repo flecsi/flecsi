@@ -8,9 +8,9 @@
 namespace flecsi {
 namespace flog {
 
-task_local<std::size_t> state::cur_tag;
+task_local<state::Tag> state::cur_tag;
 
-std::size_t &
+state::Tag &
 state::active_tag() {
   return *cur_tag;
 }

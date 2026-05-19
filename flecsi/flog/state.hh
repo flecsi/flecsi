@@ -49,7 +49,8 @@ namespace flog {
 
 class state {
 public:
-  static constexpr std::size_t tag_bits = 1024;
+  using Tag = unsigned short;
+  static constexpr unsigned short tag_bits = 1024;
   static constexpr Color all_processes = -1;
 
   state(const config & cfg)
@@ -142,7 +143,7 @@ public:
     Return the tag map.
    */
 
-  static const std::unordered_map<std::string, size_t> & tag_map() {
+  static const std::unordered_map<std::string, Tag> & tag_map() {
     return tag_map_;
   }
 
@@ -167,12 +168,12 @@ public:
     Return the next tag id.
    */
 
-  static std::size_t register_tag(const char * tag) {
+  static Tag register_tag(const char * tag) {
     // If the tag is already registered, just return the previously
     // assigned id. This allows tags to be registered in headers.
     return tag_map_
       .try_emplace(tag, util::convert{[&] {
-        const size_t id = tag_names.size();
+        const Tag id = tag_names.size();
         assert(id < tag_bits && "Tag bits overflow! Increase state::tag_bits");
 #if defined(FLOG_ENABLE_DEBUG)
         std::cerr << FLOG_COLOR_LTGRAY << "Flog: registering tag " << tag
@@ -188,13 +189,13 @@ public:
     Return a reference to the active tag.
    */
 
-  static std::size_t & active_tag();
+  static Tag & active_tag();
 
   /*!
     Return the tag name associated with a tag id.
    */
 
-  static std::string tag_name(size_t id) {
+  static std::string tag_name(Tag id) {
     return tag_names.at(id);
   }
 
@@ -207,7 +208,7 @@ public:
   }
 
   static bool tag_enabled() {
-    const std::size_t t = active_tag();
+    const Tag t = active_tag();
     const bool ret = instance().tag_bitset_.test(t);
 
 #if defined(FLOG_ENABLE_DEBUG)
@@ -269,9 +270,9 @@ private:
 
   static std::optional<state> instance_;
 
-  static task_local<std::size_t> cur_tag;
+  static task_local<Tag> cur_tag;
   std::bitset<tag_bits> tag_bitset_;
-  static inline std::unordered_map<std::string, size_t> tag_map_;
+  static inline std::unordered_map<std::string, Tag> tag_map_;
   static inline std::vector<std::string> tag_names;
 
   using clock = std::chrono::system_clock;
