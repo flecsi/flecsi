@@ -591,11 +591,12 @@ public:
 
     // Global sizes
     sched->allocate(sort::sizes_g_p, sort_base::colors);
-    sched->execute<sort_base::init_sizes_task>(
-      sort::sizes_g_f(*sort::sizes_g_p));
+    const auto sizes_fh = sort::sizes_g_f(*sort::sizes_g_p);
+    sched->execute<sort_base::init_sizes_task>(sizes_fh);
     // Copy area
     sched->allocate(sort::copy_g_p, sort_base::colors * sort_base::colors);
-    sched->execute<sort_base::init_copy_task>(sort::copy_g_f(*sort::copy_g_p));
+    const auto copy_fh = sort::copy_g_f(*sort::copy_g_p);
+    sched->execute<sort_base::init_copy_task>(copy_fh);
 
     // Compute total number of entities to sort
     auto fm_tsizes = sched->reduce<sort::size_task, exec::fold::sum>(values);
@@ -686,8 +687,6 @@ public:
         intervals_fh, hist_fh, sort::probes_f(lm_probes), tsizes);
     } // for
 
-    auto sizes_fh = sort::sizes_g_f(*sort::sizes_g_p);
-    auto copy_fh = sort::copy_g_f(*sort::copy_g_p);
     // Transfer array (destination of the entities)
     // Need to be of the same size as the array of values to sort
     auto transfer_fh = sort::transfer_f(sort::transfer_t);
