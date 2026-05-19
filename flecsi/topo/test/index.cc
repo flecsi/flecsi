@@ -95,7 +95,7 @@ assign(exec::cpu s,
   flog(info) << "assign on " << i << std::endl;
   p = i;
   static_assert(std::is_same_v<decltype(r.get_offsets().span()),
-    util::span<const std::size_t>>);
+    util::span<const util::id>>);
   r[0].back() = 1;
   ++sp[0](column + i);
 } // assign

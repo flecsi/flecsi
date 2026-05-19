@@ -99,7 +99,7 @@ initialize_vectors_task(flecsi::exec::accelerator s,
   // for the latter because it can run in parallel without access to
   // the index variable.
   auto p = x_acc.span().begin();
-  for(size_t i :
+  for(flecsi::util::id i :
     flaxpy::divide_indices_among_colors(s.launch().size)[s.launch().index])
     *p++ = i;
   s.executor().forall(elt, y_acc.span()) {
@@ -124,7 +124,7 @@ mul_add_task(double a,
   one_field::accessor<flecsi::ro> x_acc,
   one_field::accessor<flecsi::rw> y_acc) noexcept {
   const auto num_local_elts = x_acc.span().size();
-  for(std::size_t i = 0; i < num_local_elts; ++i)
+  for(flecsi::util::id i = 0; i < num_local_elts; ++i)
     y_acc[i] += a * x_acc[i];
 }
 

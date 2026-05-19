@@ -43,7 +43,7 @@ transpose(
   field<util::id, data::ragged>::accessor1<privilege_repeat<ro, NI>> input,
   field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NO>>
     output) noexcept {
-  std::size_t e = 0;
+  util::id e = 0;
   for(auto && i : input) {
     for(auto v : i)
       output[v].push_back(e);
@@ -247,7 +247,7 @@ struct unstructured_base : base {
       flog_assert(a.span().size() == iv.size(),
         "interval size mismatch a.span ("
           << a.span().size() << ") != intervals (" << iv.size() << ")");
-      std::size_t i{0};
+      util::id i = 0;
       for(auto & it : iv) {
         a[i++] = data::intervals::make(it, c);
       } // for
@@ -294,7 +294,7 @@ struct unstructured_base : base {
     auto it = vic.begin();
 
     for(auto & a : aa.accessors()) {
-      std::size_t count = 0;
+      util::id count = 0;
       for(auto & p : it++->peers) {
         count += p.second.shared.size();
       }

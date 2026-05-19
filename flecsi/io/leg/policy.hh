@@ -58,7 +58,7 @@ checkpoint_task(const Legion::Task * task,
         const auto & rr = task->regions[rid];
         Legion::Rect<2> rect =
           runtime->get_index_space_domain(ctx, rr.region.get_index_space());
-        size_t domain_size = rect.volume();
+        util::id domain_size = rect.volume();
         auto & m = field_size_map_vector[rid];
         std::string pfx = "region " + std::to_string(rid);
         for(Legion::FieldID fid : rr.privilege_fields) {

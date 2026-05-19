@@ -191,9 +191,8 @@ private:
     }
 
     using points = std::map<Color,
-      std::vector<std::pair</* local ghost offset, remote shared offset */
-        std::size_t,
-        std::size_t>>>;
+      std::vector<
+        std::pair<util::id /* ghost */, util::id /* remote shared */>>>;
 
     using intervals = std::vector<data::subrow>;
 
@@ -208,7 +207,7 @@ private:
       const linearize<dimension, Color> global{md.colors()};
 
       points points;
-      std::vector<std::size_t> ghost;
+      std::vector<util::id> ghost;
       for(const auto & [ngh, reg] : md.traffic(false)) {
         const auto src = md.neighbor(ngh);
         linearize<dimension> remote;
@@ -322,7 +321,7 @@ private:
     field<data::intervals::Value>::accessor<wo> a,
     const index_definition * idef) noexcept {
     const auto c = s.launch().index;
-    std::size_t i{0};
+    util::id i = 0;
     for(auto & it : meta_data::ghosts(*idef, c).second)
       a[i++] = data::intervals::make({it.first, it.second}, c);
   }

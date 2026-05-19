@@ -22,7 +22,7 @@ struct copy_engine : local::copy_engine {
         meta_fid,
         [](auto const & remote_shared_entities) {
           return util::mpi::all_to_allv([&](int r) -> auto & {
-            static const std::vector<std::size_t> empty;
+            static const std::vector<util::id> empty;
             const auto i = remote_shared_entities.find(r);
             return i == remote_shared_entities.end() ? empty : i->second;
           });
@@ -76,7 +76,7 @@ struct copy_engine : local::copy_engine {
           if(cpu) {
             auto src_indices_view = indices.data();
 
-            for(std::size_t i = 0; i < src_indices_view.extent(0); i++) {
+            for(util::id i = 0; i < src_indices_view.extent(0); i++) {
               std::memcpy(dst + i * type_size,
                 cpu + src_indices_view[i] * type_size,
                 type_size);
@@ -142,7 +142,7 @@ struct copy_engine : local::copy_engine {
 
           const std::byte * src = recv_buffer->data();
 
-          for(std::size_t i = 0; i < dst_indices_view.extent(0); i++) {
+          for(util::id i = 0; i < dst_indices_view.extent(0); i++) {
             std::memcpy(cpu + dst_indices_view[i] * type_size,
               src + i * type_size,
               type_size);

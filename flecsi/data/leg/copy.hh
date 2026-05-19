@@ -72,7 +72,7 @@ struct intervals : leg::partition {
 struct copy_engine {
   using Point = Legion::Point<2>;
 
-  static auto point(std::size_t r, std::size_t i) {
+  static auto point(std::size_t r, util::id i) {
     return Point(r, i);
   }
 

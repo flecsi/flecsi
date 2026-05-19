@@ -68,7 +68,7 @@ struct copy_engine {
   /// Factory function for the \c Point type.
   /// \param r row
   /// \param i index (within row)
-  static auto point(std::size_t r, std::size_t i);
+  static auto point(std::size_t r, util::id i);
   /// Defined by the backend.
   using Point = decltype(point(0, 0));
 

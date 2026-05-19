@@ -44,7 +44,7 @@ struct field {
 
 private:
   storage_ptr s;
-  std::size_t n;
+  std::size_t n; // wide to support T erased as std::byte
 };
 
 struct region_impl : std::enable_shared_from_this<region_impl> {
@@ -139,7 +139,7 @@ struct partition {
     return *r;
   }
 
-  void resize(std::size_t n) {
+  void resize(util::id n) {
     if(n > r->size().second)
       throw std::out_of_range("partition larger than region");
     nelems = n;
@@ -147,7 +147,7 @@ struct partition {
 
 private:
   region_impl * r;
-  size_t nelems = 0; // for this process
+  util::id nelems = 0; // for this process
 };
 
 using storages = std::vector<field>;
@@ -260,7 +260,7 @@ struct intervals {
 
   // Locally cached metadata on ranges of ghost index.
   std::vector<Value> ghost_ranges;
-  std::size_t max_end = 0; // size of prefix containing all ranges
+  util::id max_end = 0; // size of prefix containing all ranges
 };
 
 } // namespace data

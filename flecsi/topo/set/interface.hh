@@ -21,7 +21,7 @@ struct set_base : base {
     /// Pointer to the underlying topology
     void * ptr;
     /// Counts per color
-    std::vector<std::size_t> counts;
+    std::vector<util::id> counts;
   };
 }; // set_base
 

@@ -111,7 +111,7 @@ struct sph_ntree_t
   // coordinates of the entity.
   static void keys_task(sph_ntree_t::accessor<flecsi::rw, flecsi::wo> ts,
     flecsi::field<range_t>::accessor<flecsi::ro> r) noexcept {
-    for(std::size_t e = 0; e < ts.e_i.span().size(); ++e) {
+    for(flecsi::util::id e = 0; e < ts.e_i.span().size(); ++e) {
       ts.e_keys[e] = key_t(r[0], ts.e_i[e].coordinates);
     }
   }

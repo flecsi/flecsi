@@ -54,7 +54,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     template<mesh::axis A>
-    FLECSI_INLINE_TARGET auto red(std::size_t row) const {
+    FLECSI_INLINE_TARGET auto red(flecsi::util::id row) const {
       // The checkerboard extends across colors.  The (boundary) point with
       // global ID (0,0) is red; row is local, and 0 in the space of the
       // stride_view is the first interior vertex.
@@ -66,7 +66,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     template<mesh::axis A>
-    FLECSI_INLINE_TARGET auto black(std::size_t row) const {
+    FLECSI_INLINE_TARGET auto black(flecsi::util::id row) const {
       return red<A>(row + 1);
     }
 
@@ -87,7 +87,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     template<mesh::axis A>
-    FLECSI_INLINE_TARGET double value(std::size_t i) const {
+    FLECSI_INLINE_TARGET double value(flecsi::util::id i) const {
       return (A == x_axis ? xdelta() : ydelta()) * axis<A>().global_id(i);
     }
   }; // struct interface

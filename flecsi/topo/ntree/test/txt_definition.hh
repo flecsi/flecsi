@@ -59,7 +59,7 @@ public:
     myfile_.seekg(position);
 
     // Coordinates, ignore the other colors
-    for(size_t i = 0; i < nlocal_entities_; ++i) {
+    for(flecsi::util::id i = 0; i < nlocal_entities_; ++i) {
       for(flecsi::Dimension j = 0; j < dim; ++j)
         myfile_ >> entities_[i].coordinates_[j];
     }
@@ -68,7 +68,7 @@ public:
     myfile_.seekg(position);
 
     // Radius
-    for(size_t i = 0; i < nlocal_entities_; ++i)
+    for(flecsi::util::id i = 0; i < nlocal_entities_; ++i)
       myfile_ >> entities_[i].radius_;
 
     position = 2 + nglobal_entities_ * lineC + nglobal_entities_ * lineR +
@@ -76,7 +76,7 @@ public:
     myfile_.seekg(position);
 
     // Mass
-    for(size_t i = 0; i < nlocal_entities_; ++i)
+    for(flecsi::util::id i = 0; i < nlocal_entities_; ++i)
       myfile_ >> entities_[i].mass_;
 
     // Ids
@@ -84,7 +84,7 @@ public:
       entities_[k].id_ = i;
 
     // Generate the keys
-    for(size_t i = 0; i < nlocal_entities_; ++i)
+    for(flecsi::util::id i = 0; i < nlocal_entities_; ++i)
       entities_[i].key_ = key_t(range_, entities_[i].coordinates_);
   }
 
@@ -142,8 +142,8 @@ private:
 
     offset_.resize(size + 1, 0);
     distribution_.resize(size, 0);
-    int nlocal_entities = nglobal_entities_ / size; // per color
-    int lm = nglobal_entities_ % size;
+    const flecsi::util::id nlocal_entities = nglobal_entities_ / size,
+                           lm = nglobal_entities_ % size;
     for(int i = 0; i < size; ++i) {
       distribution_[i] = nlocal_entities;
       if(i < lm)
@@ -161,7 +161,7 @@ private:
   range_t range_;
   std::vector<ent_t> entities_;
   flecsi::util::gid nglobal_entities_;
-  size_t nlocal_entities_;
+  flecsi::util::id nlocal_entities_;
   std::vector<flecsi::util::id> distribution_;
   std::vector<flecsi::util::gid> offset_;
 

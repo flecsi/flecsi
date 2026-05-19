@@ -270,7 +270,7 @@ struct ragged_accessor
     util::with_index_iterator<const ragged_accessor<T, P, OP>> {
   using base_type = typename ragged_accessor::accessor;
   using typename base_type::element_type;
-  using Offsets = accessor<dense, std::size_t, OP>;
+  using Offsets = accessor<dense, util::id, OP>;
   using Offset = typename Offsets::value_type;
   using size_type = typename Offsets::size_type;
   using row = util::span<element_type>;
@@ -470,7 +470,10 @@ public:
     }
 
     size_type max_size() const noexcept {
-      return overflow->buffer.max_size();
+      // C++26's std::saturating_cast:
+      return std::clamp(overflow->buffer.max_size(),
+        {},
+        {std::numeric_limits<util::id>::max()});
     }
 
     size_type capacity() const noexcept {
@@ -1349,7 +1352,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
     const Skip end = i > 1 ? rm[-1].skip : 0, // adjacent empty run lengths
       beg = i && i < n - 1 ? rm[1].skip : 0;
     if(i)
-      rm[-end].skip = rm[beg].skip = beg + end + 1; // set up new run
+      (rm - end)->skip = rm[beg].skip = beg + end + 1; // set up new run
 
     if(end)
       rm->reset(); // no links in middle of run
@@ -1388,7 +1391,7 @@ private:
   FLECSI_INLINE_TARGET void init() const {
     const auto s = this->span();
     std::uninitialized_default_construct(s.begin(), s.end());
-    if(const auto n = s.size()) {
+    if(const typename mutator::Particle::size_type n = s.size()) {
       auto & a = s.front();
       a.free = {0, 1};
       a.skip = 0;

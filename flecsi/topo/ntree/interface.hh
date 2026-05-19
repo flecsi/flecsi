@@ -265,7 +265,7 @@ private:
     auto root_ = hmap.find(key_t::root());
     root_->second.set_color(color);
     {
-      const std::size_t cnode = mf->local.nodes++;
+      const util::id cnode = mf->local.nodes++;
       root_->second.set_node_idx(cnode);
       n_keys(cnode) = root_->second.key();
     }
@@ -368,7 +368,7 @@ private:
       auto nkey = cur->key();
       if(cur->key() != key_t::root()) {
         assert(cur->idx() == 0);
-        std::size_t cnode = mf->local.nodes++;
+        const util::id cnode = mf->local.nodes++;
         cur->set_node_idx(cnode);
         n_keys(cnode) = cur->key();
       }
@@ -450,7 +450,7 @@ private:
     auto parent = hmap.end();
     while((parent = hmap.find(key)) == hmap.end()) {
       parent = hmap.insert(key, key);
-      const std::size_t cnode = mf->local.nodes++;
+      const util::id cnode = mf->local.nodes++;
       parent->second.set_node_idx(cnode);
       n_keys(cnode) = key;
       parent->second.add_child(child);
@@ -672,7 +672,7 @@ private:
     typename field<meta_type, data::single>::template accessor<ro> mf,
     typename field<h_s_t>::template accessor<ro, na> ids) noexcept {
     util::id idx = mf->local.ents;
-    for(std::size_t j = 0; j < mf->nents_recv_2; ++j) {
+    for(util::id j = 0; j < mf->nents_recv_2; ++j) {
       assert(ids[j].first.color() != run::context::instance().color());
       a(idx++) =
         data::copy_engine::point(ids[j].first.color(), ids[j].first.idx());
@@ -805,7 +805,7 @@ private:
     for(Color c = 0; c < run::context::instance().colors(); ++c) {
       if(c != color) {
         auto w = mv[cur].write();
-        for(std::size_t i = 0; i < f.span().size(); ++i) {
+        for(util::id i = 0; i < f.span().size(); ++i) {
           if(f[i].color == c && !w(a(f[i].id))) {
             restart(cur) = i;
             break;
@@ -825,7 +825,7 @@ private:
     for(Color c = 0; c < run::context::instance().colors(); ++c) {
       if(c != color) {
         auto w = mv[cur].write();
-        for(std::size_t i = 0; i < f.span().size(); ++i) {
+        for(util::id i = 0; i < f.span().size(); ++i) {
           if(f[i].second == c && !w(f[i])) {
             restart(cur) = i;
             break;
@@ -868,7 +868,7 @@ private:
         bool done = true;
         if(restart(cur) != 0) {
           auto w = mv[cur].write();
-          for(std::size_t i = restart(c); i < f.span().size(); ++i) {
+          for(util::id i = restart(c); i < f.span().size(); ++i) {
             if(f[i].color == c && !w(a(f[i].id))) {
               restart(cur) = i;
               done = false;
@@ -913,7 +913,7 @@ private:
         bool done = true;
         if(restart(cur) != 0) {
           auto w = mv[cur].write();
-          for(std::size_t i = restart(c); i < f.span().size(); ++i) {
+          for(util::id i = restart(c); i < f.span().size(); ++i) {
             if(f[i].second == c && !w(f[i])) {
               restart(cur) = i;
               done = false;
@@ -969,7 +969,7 @@ private:
     typename field<h_s_t>::template accessor<ro, na> recv) noexcept {
     auto hmap = map(hcells);
     auto c = run::context::instance().color();
-    for(std::size_t i = 0; i < mf->nents_recv_2; ++i) {
+    for(util::id i = 0; i < mf->nents_recv_2; ++i) {
       auto key = recv[i].first.key();
       auto f = hmap.find(key);
       if(f == hmap.end()) {
@@ -1273,13 +1273,12 @@ public:
   void find_intersect_entities(T count_accessor) const {
     auto hmap = map();
     const auto cs = run::context::instance().colors();
-    [[maybe_unused]] std::size_t count = 0;
+    [[maybe_unused]] util::id count = 0;
     // Make a tree traversal per last elements in the intersection field.
     // Caution entities can be detected several time for the same neighbor.
     std::vector<std::set<hcell_t>> send_ids(cs);
-    std::size_t start = mf->local.ents;
-    std::size_t stop = start + mf->nents_recv;
-    for(std::size_t i = start; i < stop; ++i) {
+    const util::id start = mf->local.ents, stop = start + mf->nents_recv;
+    for(util::id i = start; i < stop; ++i) {
       ent_id id(i);
       auto tcolor = e_colors[i];
       assert(tcolor != run::context::instance().color());
@@ -1323,7 +1322,7 @@ public:
       count = 0;
 
     auto hmap = map();
-    for(std::size_t i = 0; i < mf->local.ents; ++i) {
+    for(util::id i = 0; i < mf->local.ents; ++i) {
       std::set<std::size_t> send_colors;
       ent_id id(i);
       traversal(

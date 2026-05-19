@@ -128,7 +128,7 @@ inline constexpr bool is_trivially_move_constructible_v =
   std::is_move_constructible_v<move_check<T>>;
 
 struct particle_base {
-  using size_type = std::size_t; // full-width since have only the one block
+  using size_type = util::id; // full-width since we have only the one block
   struct link {
     // Only the first element of each run participates in the linked list.
     size_type prev, // head element has count of used elements instead
@@ -397,7 +397,7 @@ struct field_base<T, single> {
 template<class T>
 struct field_base<T, ragged> {
   using base_type = field<T, raw>;
-  using Offsets = field<std::size_t>;
+  using Offsets = field<util::id>;
 };
 template<class T>
 struct field_base<T, sparse> {
