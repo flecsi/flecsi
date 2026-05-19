@@ -56,6 +56,11 @@ struct fixed_mesh
       return B::template entities<index_space::cells>();
     }
 
+    template<typename B::entity_list L>
+    auto cells() const {
+      return B::template special_entities<index_space::cells, L>();
+    }
+
     template<index_space From>
     auto cells(flecsi::topo::id<From> from) const {
       return B::template entities<index_space::cells>(from);
@@ -63,6 +68,11 @@ struct fixed_mesh
 
     auto vertices() const {
       return B::template entities<index_space::vertices>();
+    }
+
+    template<typename B::entity_list L>
+    auto vertices() const {
+      return B::template special_entities<index_space::vertices, L>();
     }
 
     template<index_space From>
@@ -136,9 +146,96 @@ struct fixed_mesh
     }
   } // init_mesh_ids
 
+  static auto get_owned(const base::index_color & ic) {
+    using namespace flecsi;
+    std::vector<util::id> ownd;
+    std::set<util::id> ghst = ic.ghosts();
+
+    for(util::id e = 0; e < ic.entities; ++e) {
+      if(!ghst.count(e)) {
+        ownd.push_back(e);
+      }
+    }
+    return ownd;
+  }
+
+  static auto get_shared(const base::index_color & ic) {
+    std::set<flecsi::util::id> shr;
+    for(auto & p : ic.peers) {
+      shr.insert(p.second.shared.begin(), p.second.shared.end());
+    }
+    return shr;
+  }
+
+  static auto get_exclusive(const base::index_color & ic) {
+    const auto ss = get_shared(ic);
+    std::vector<flecsi::util::id> ex;
+    for(auto o : get_owned(ic))
+      if(!ss.count(o))
+        ex.push_back(o);
+    return ex;
+  }
+
+  template<entity_list E>
+  static auto get_list(const base::index_color & ic) {
+    if constexpr(E == owned) {
+      return get_owned(ic);
+    }
+    else if constexpr(E == shared) {
+      return get_shared(ic);
+    }
+    else {
+      static_assert(E == ghost);
+      return ic.ghosts();
+    }
+  }
+
+  template<entity_list E>
+  static void allocate_list(
+    flecsi::data::multi<flecsi::topo::resize::Field::accessor<flecsi::wo>> aa,
+    const std::vector<base::index_color> & vic) {
+
+    auto it = vic.begin();
+    for(auto & a : aa.accessors()) {
+      a = get_list<E>(*it++).size();
+    }
+  }
+
+  template<entity_list E>
+  static void populate_list(
+    flecsi::data::multi<flecsi::field<flecsi::util::id>::accessor<flecsi::wo>>
+      m,
+    const std::vector<base::index_color> & vic) {
+    auto it = vic.begin();
+    for(auto & a : m.accessors()) {
+      auto elements = get_list<E>(*it++);
+      std::copy(elements.begin(), elements.end(), a.span().begin());
+    }
+  }
+
+  template<index_space I, entity_list E>
+  static void init_list(flecsi::scheduler & s,
+    fixed_mesh::topology & m,
+    coloring const & c) {
+    using namespace flecsi;
+    using namespace topo::unstructured_impl;
+
+    auto & el = m.get_special_entities<I, E>();
+    auto slm = data::launch::make(s, el.sz);
+
+    execute<allocate_list<E>, flecsi::mpi>(flecsi::topo::resize::field(slm),
+      c.idx_spaces[topology::index<I>].colors);
+    el.resize();
+
+    auto slm2 = data::launch::make(s, el);
+
+    execute<populate_list<E>, flecsi::mpi>(
+      m.special_field(slm2), c.idx_spaces[topology::index<I>].colors);
+  }
+
   static void initialize(flecsi::scheduler & s,
     fixed_mesh::topology & m,
-    coloring const &,
+    coloring const & c,
     const init & fields) {
     using namespace flecsi;
     auto & c2v = m.get_connectivity<fixed_mesh::cells, fixed_mesh::vertices>();
@@ -151,6 +248,13 @@ struct fixed_mesh
     constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
     constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
     s.execute<topo::unstructured_impl::transpose<NPC, NPV>>(c2v(m), v2c(m));
+
+    init_list<index_space::cells, entity_list::owned>(s, m, c);
+    init_list<index_space::cells, entity_list::shared>(s, m, c);
+    init_list<index_space::cells, entity_list::ghost>(s, m, c);
+    init_list<index_space::vertices, entity_list::owned>(s, m, c);
+    init_list<index_space::vertices, entity_list::shared>(s, m, c);
+    init_list<index_space::vertices, entity_list::ghost>(s, m, c);
 
     execute<init_mesh_ids, mpi>(lm, cid(lm), vid(lm), fields.cid, fields.vid);
   } // initialize
