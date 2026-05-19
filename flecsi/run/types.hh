@@ -315,7 +315,7 @@ struct point_writer {
       } // for
     } // for
 
-    for(size_t n{1}; n < nodes.size(); ++n) {
+    for(std::size_t n = 1; n < nodes.size(); ++n) {
       auto * edge = gv.add_edge(nodes[n - 1], nodes[n]);
       gv.set_edge_attribute(edge, "penwidth", "1.5");
     } // for

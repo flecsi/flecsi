@@ -22,19 +22,19 @@ at the end, as in the following sequential code:
 
     // Allocate and initialize the two vectors.
     std::vector<double> x(N), y(N);
-    for (size_t i = 0; i < N; ++i) {
+    for(std::size_t i = 0; i < N; ++i) {
       x[i] = static_cast<double>(i);
       y[i] = 0.0;
     }
 
     // Perform the DAXPY operation.
     const double a = 12.34;
-    for (size_t i = 0; i < N; ++i)
+    for(std::size_t i = 0; i < N; ++i)
       y[i] += a*x[i];
 
     // Report the sum over y.
     double sum = 0.0;
-    for (size_t i = 0; i < N; ++i)
+    for(std::size_t i = 0; i < N; ++i)
       sum += y[i];
     std::cout << "The sum over all elements in the final vector is " << sum << std::endl;
 

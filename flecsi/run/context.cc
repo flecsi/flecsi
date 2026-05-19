@@ -176,13 +176,11 @@ getopt::usage(std::string_view p) const {
 
   auto & pd = run::context::positional_description();
   const unsigned positional_count = pd.max_total_count();
-  size_t max_label_chars = std::numeric_limits<size_t>::min();
+  std::size_t max_label_chars = 0;
 
   for(unsigned i = 0; i < positional_count; ++i) {
     ret << '<' << pd.name_for_position(i) << "> ";
-
-    const size_t size = pd.name_for_position(i).size();
-    max_label_chars = size > max_label_chars ? size : max_label_chars;
+    max_label_chars = std::max(max_label_chars, pd.name_for_position(i).size());
   } // for
 
   max_label_chars += 2;

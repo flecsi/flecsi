@@ -46,7 +46,7 @@ check(hmap_t hmap) {
       ++error;
     }
   }
-  size_t i = 0;
+  std::size_t i = 0;
   // Loop over the table and check elements
   for(auto & a : hmap) {
     if(i % 20 && a.first != i) {

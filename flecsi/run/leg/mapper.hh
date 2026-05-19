@@ -141,7 +141,7 @@ public:
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
     const Legion::LayoutConstraintSet & layout_constraints,
-    const size_t & indx) {
+    const std::size_t & indx) {
     using namespace Legion;
     using namespace Legion::Mapping;
 
@@ -171,7 +171,7 @@ public:
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
     const Legion::LayoutConstraintSet & layout_constraints,
-    const size_t & indx) {
+    const std::size_t & indx) {
     using namespace Legion;
     using namespace Legion::Mapping;
 
@@ -211,7 +211,7 @@ public:
         output.chosen_instances,
         missing_fields);
 
-      for(size_t indx = 0; indx < task.regions.size(); indx++) {
+      for(std::size_t indx = 0; indx < task.regions.size(); indx++) {
         // Check to see if any of the valid instances satisfy this requirement
         std::vector<Legion::Mapping::PhysicalInstance> valid_instances;
         for(auto & vi : input.valid_instances[indx])
@@ -494,7 +494,7 @@ private:
   void create_reduction_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
-    const size_t & idx,
+    const std::size_t & idx,
     std::set<Legion::FieldID> & missing_fields) {
 
     Legion::Processor target_proc = output.target_procs[0];
@@ -504,7 +504,7 @@ private:
       runtime->find_task_layout_constraints(
         ctx, task.task_id, output.chosen_variant);
 
-    size_t footprint;
+    std::size_t footprint;
     if(!default_create_custom_instances(ctx,
          target_proc,
          target_mem,
