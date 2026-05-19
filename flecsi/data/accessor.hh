@@ -1407,32 +1407,6 @@ private:
 
 namespace detail {
 template<class T>
-struct scalar_value : bind_tag {
-  const T * device;
-  T * host;
-
-  // The backend knows what value of P to provide when processing this as a
-  // "task parameter" and thus whether 'device' is really a device pointer.
-  template<exec::processor P>
-  void copy() const {
-    if constexpr(P == exec::processor::toc) {
-#if defined(__NVCC__) || defined(__CUDACC__)
-      auto status = cudaMemcpy(host, device, sizeof(T), cudaMemcpyDeviceToHost);
-      flog_assert(cudaSuccess == status, "Error calling cudaMemcpy");
-      return;
-#elif defined(__HIPCC__)
-      auto status = hipMemcpy(host, device, sizeof(T), hipMemcpyDeviceToHost);
-      flog_assert(hipSuccess == status, "Error calling hipMemcpy");
-      return;
-#else
-      flog_assert(false, "CUDA or HIP should be enabled when using toc task");
-#endif
-    }
-    *host = *device;
-  }
-};
-
-template<class T>
 struct scalar_access : send_tag {
   using value_type = T;
 
@@ -1440,22 +1414,45 @@ struct scalar_access : send_tag {
   void send(Func && f) {
     typename field<T, single>::template accessor<ro> acc;
     f(acc, util::identity());
-    if(auto * const d = acc.data()) {
-      scalar_value<value_type> dummy{{}, d, &scalar_};
+    if((device = acc.data())) {
+      auto dummy = this;
       std::forward<Func>(f)(dummy, [](auto &) { return nullptr; });
     }
   }
 
   FLECSI_INLINE_TARGET const value_type * operator->() const {
-    return &scalar_;
+    return &**this;
   }
 
   FLECSI_INLINE_TARGET const value_type & operator*() const {
-    return scalar_;
+#ifdef FLECSI_DEVICE_CODE
+    return *device; // avoid race on copy
+#else
+    if(copier)
+      std::exchange(copier, nullptr)(*this);
+    return value;
+#endif
+  }
+
+  void bind(auto s) { // from the exec machinery
+    copier = copy<typename decltype(s)::execution_space>;
   }
 
 private:
-  value_type scalar_{};
+  // This class might be replaced before we support multiple instances of a
+  // Kokkos execution-space type; for simplicity, support only the default.
+  template<class E>
+  static void copy(const scalar_access & s) {
+    E space;
+    Kokkos::deep_copy(space,
+      Kokkos::View<T *, Kokkos::HostSpace>{&s.value, 1},
+      Kokkos::View<const T *, typename E::memory_space>(s.device, 1));
+    space.fence();
+  }
+
+  const T * device = nullptr;
+  mutable void (*copier)(const scalar_access &) = nullptr;
+  mutable T value{};
 };
 } // namespace detail
 

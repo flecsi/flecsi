@@ -203,8 +203,8 @@ private:
   }
 
   template<typename T>
-  static void visit(const data::detail::scalar_value<T> & s) {
-    s.template copy<Proc>();
+  static void visit(data::detail::scalar_access<T> *& s) {
+    s->bind(processor_space_t<Proc>());
   }
 
   template<class P>
