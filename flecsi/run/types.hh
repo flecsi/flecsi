@@ -254,7 +254,7 @@ struct point_writer {
       } // if
       last = root;
 
-      dag.add(gv_, colors[static_cast<size_t>(ElementType::value) % 4]);
+      dag.add(gv_, colors[util::to_underlying(ElementType::value) % 4]);
 
       for(auto & n : dag) {
         if(n->size() == 0) {
@@ -311,7 +311,7 @@ struct point_writer {
         gv.set_node_attribute(node, "color", "black");
         gv.set_node_attribute(node, "style", "filled");
         gv.set_node_attribute(
-          node, "fillcolor", colors[static_cast<size_t>(cp.first) % 4]);
+          node, "fillcolor", colors[util::to_underlying(cp.first) % 4]);
       } // for
     } // for
 
