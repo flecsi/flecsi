@@ -79,10 +79,6 @@ authors:
     surname: Reisner
     affiliation: 1
     orcid: 0000-0002-5325-2266
-  - given-names: Christoph
-    surname: Junghans
-    affiliation: 1
-    orcid: 0000-0003-0925-1458
   - given-names: Scott
     surname: Pakin
     affiliation: 1
@@ -121,7 +117,7 @@ authors:
     surname: Waters
     affiliation: 1
     orcid: 0000-0002-6517-4445
-  - given-names: Scot
+  - given-names: Scot A.
     surname: Halverson
     affiliation: 3
   - given-names: Onur
@@ -143,7 +139,7 @@ authors:
     surname: Keim
     affiliation: 8
     orcid: 0009-0006-8688-3642
-  - given-names: Christopher
+  - given-names: Christopher M.
     surname: Malone
     affiliation: 1
   - given-names: Alex
@@ -173,6 +169,10 @@ authors:
     surname: Rasmussen
     affiliation: 11
     orcid: 0000-0002-0297-0313
+  - given-names: Christoph
+    surname: Junghans
+    affiliation: 1
+    orcid: 0000-0003-0925-1458
 affiliations:
   - name: Los Alamos National Laboratory, USA
     index: 1
@@ -205,7 +205,7 @@ header-includes:
   ```
 ---
 
-<!-- ![FleCSI logo.](flecsi.png){ width=50% }
+<!-- ![FleCSI logo.](../shared/flecsi.png){ width=50% }
 
 ---
 -->
@@ -225,7 +225,7 @@ FleCSI is designed to support the development of multiphysics simulations throug
 
 # Software description
 
-FleCSI is designed to abstract away complexity while offering fine control for high-performance computing.  The FleCSI runtime system manages initialization, execution, and shutdown. As presented in \autoref{fig:ecosystem}, the FleCSI runtime supports backends such as Legion [@bauer2012legion], HPX [@kaiser2009parallex; @Kaiser2020hpx], MPI [@mpi50], and Kokkos [@edwards2014kokkos], enabling code to remain portable across a variety of systems without manually handling the execution environment.
+FleCSI is designed to abstract away complexity while offering fine control for high-performance computing.  The FleCSI runtime system manages initialization, execution, and shutdown. As presented in \autoref{fig:ecosystem}, the FleCSI runtime supports backends such as Legion [@bauer2012legion], HPX [@kaiser2009parallex; @Kaiser2020hpx], MPI [@mpi1994standard], and Kokkos [@edwards2014kokkos], enabling code to remain portable across a variety of systems without manually handling the execution environment.
 
 FleCSI’s programming model is based on a hierarchy of parallelism: sequential, task-parallel, and data-parallel.  The relationships among these is illustrated in \autoref{fig:model}:
 
@@ -243,15 +243,17 @@ FleCSI's _control model_ comprises control points and actions and determines wha
 
 _Control points_ specify an application's sequential control flow and can include conditional branches.  For example, one control point may represent "initialization", another "repetition until convergence", and a third "finalization".
 
-Control points provide hooks for a directed acyclic graph (DAG) of _actions_ to be attached.  An action is a sequential function that defines an application's core numerics or physics routines such as "hydrodynamics" or "viscosity".  A new action can be incorporated into an application by specifying its direct dependents and dependencies (control points or other actions).  For example, if an existing application defines a "solver" action, a new developer later can create a "preconditioner" action and insert it before the solver in the DAG without having to modify any other code or interfaces.  By walking the DAG in topological order, FleCSI ensures a valid program execution.
+Control points provide hooks for a directed acyclic graph (DAG) of _actions_ to be attached.  An action is a sequential function that defines an application's core numerics or physics routines such as "hydrodynamics", "radiative diffusion", or "reaction network".  A new action can be incorporated into an application by specifying its direct dependents and dependencies (control points or other actions).  For example, if an existing application defines a "solver iteration" action, a new developer later can create a "visualization" action and insert it after "solver iteration" in the DAG without having to modify any other code or interfaces.  If other actions depend on "solver iteration", these will run concurrently with "visualization".  By walking the DAG in topological order, FleCSI ensures a valid program execution.
 
 ## Execution model
 
-Actions spawn _tasks_, which are functions that are distributed within and across the nodes of the compute cluster and that complete asynchronously.  In a computational-science application, a task typically represents updates to a data structure, such as to perform mesh stiffening and relaxing.  A task declaration includes the _fields_ of a distributed data structure that it will access (e.g., the cells, edges, and vertices of an unstructured mesh) and the access rights it requires on each field: read only, write only, or read/write.  Tasks are run concurrently according to field data dependencies.  For example, if task A reads $x$ and writes $y$, task B reads $x$ and writes $z$, and task C reads $y$ and writes $w$, then the FleCSI runtime will execute tasks A and B concurrently but require that task A finish before task C can start.
+Actions spawn _tasks_, which are functions that are distributed within and across the nodes of the compute cluster and that complete asynchronously.  In a computational-science application, a task typically represents updates to a data structure, such as to perform mesh operations (e.g., relaxation).  Because there exist run-time costs in launching tasks and moving data across a large-scale, hybrid CPU/GPU cluster, task granularity should be large enough to amortize these costs.  A rule of thumb is for tasks to have a critical-path length of about a million processor cycles.
+
+A task declaration includes the _fields_ of a distributed data structure that it will access (e.g., the cells, edges, and vertices of an unstructured mesh) and the access rights it requires on each field: read only, write only, or read/write.  Tasks are run concurrently according to field data dependencies.  For example, if task A reads $x$ and writes $y$, task B reads $x$ and writes $z$, and task C reads $y$ and writes $w$, then the FleCSI runtime will execute tasks A and B concurrently but require that task A finish before task C can start.
 
 Execution is distributed across logical units called _colors_.  Colors are analogous to MPI ranks but do not need to map 1:1 to processes.  Rather, the application chooses an appropriate number of colors for each task launch.  If colors outnumber processes then some processes simply handle more than one color.  Each color is handled by exactly one _point task_—an individual instance of a task.  While point tasks are executed on CPUs, the data for readable fields are preloaded into a specified memory space (CPU NUMA domain or GPU device memory), and the data for writable fields automatically will be communicated to dependent tasks.
 
-Point tasks process their data by launching data-parallel _kernels_ that operate on the memory space in which the field data was placed.  In a computational-science application, these typically perform element updates such as incrementing position, momentum, energy, etc.  Kernel can execute in parallel on GPUs, in parallel on CPUs (using OpenMP threads), or serially on CPUs.  Kernel code is portable across these three forms of execution; no code modifications are needed to dispatch a kernel to a CPU versus a GPU.
+Point tasks process their data by launching data-parallel _kernels_ that operate on the memory space in which the field data was placed.  In a computational-science application, these typically perform element updates such as incrementing position, momentum, energy, etc.  Kernels can execute in parallel on GPUs, in parallel on CPUs (using OpenMP threads), or serially on CPUs.  Kernel code is portable across these three forms of execution; no code modifications are needed to dispatch a kernel to a CPU versus a GPU.  This is because FleCSI arranges for a kernel's data to be available locally before the kernel is launched---in either a CPU or GPU execution space---and because FleCSI provides `forall` and `reduceall` constructs that operate consistently across execution spaces, supporting data-parallel code execution.  In cases where these constructs are too limiting, FleCSI supports _task variants_, whereby a program can provide different implementations for different execution spaces (e.g., using arbitrary Kokkos calls in the GPU execution space and explicit OpenMP pragmas in the OpenMP execution space) and let FleCSI select the appropriate variant at run time.
 
 ## Data model
 
