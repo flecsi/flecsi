@@ -6,7 +6,7 @@
 - [Paper format](https://joss.readthedocs.io/en/latest/paper.html)
 - [Paper example](https://joss.readthedocs.io/en/latest/example_paper.html)
 
-Important note: The paper should be between 250–1000 words.
+Important note: The paper should be between 750–1750 words.
 
 ## Generate the PDF
 
