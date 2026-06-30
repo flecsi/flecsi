@@ -8,9 +8,9 @@
 namespace flecsi {
 namespace flog {
 
-task_local<std::size_t> state::cur_tag;
+task_local<state::Tag> state::cur_tag;
 
-std::size_t &
+state::Tag &
 state::active_tag() {
   return *cur_tag;
 }
@@ -91,8 +91,8 @@ state::send_to_one(bool last) {
       for(Color p = 1; p < processes_; ++p) {
 
         if(source_process_ == all_processes || p == source_process_) {
-          auto remote_packets = util::serial::get1<std::vector<packet_t>>(
-            buffer.data() + offsets[p]);
+          auto remote_packets =
+            util::serial::get1<decltype(packets_)>(buffer.data() + offsets[p]);
 
           packets_.insert(packets_.end(),
             std::move_iterator(remote_packets.begin()),

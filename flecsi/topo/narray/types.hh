@@ -26,7 +26,6 @@ namespace narray_impl {
 using coord = std::vector<util::id>;
 using gcoord = std::vector<util::gid>;
 using hypercube = std::array<coord, 2>;
-using interval = std::pair<std::size_t, std::size_t>;
 using colors = std::vector<Color>;
 
 /// \cond core
@@ -180,6 +179,8 @@ struct linearize {
  \image html narray-layout.svg "Layouts for each possible orientation." width=100%
  */
 struct axis_layout {
+  using End = short;
+
   FLECSI_INLINE_TARGET axis_layout(util::id bdepth,
     util::id log,
     util::id halo_up, // depth of points communicated upward
@@ -207,7 +208,7 @@ struct axis_layout {
   /// for this color without
   /// boundary padding or ghosts.
   /// \tparam E 0 or 1 for beginning or end
-  template<short E>
+  template<End E>
   FLECSI_INLINE_TARGET util::id logical() const {
     static_assert(E == 0 || E == 1);
     return bdy[0] + gh[0] + E * log;
@@ -225,7 +226,7 @@ struct axis_layout {
   /// end can come first if an entity is shared with both neighbors.
   /// \tparam E 0 or 1 for beginning or end
   /// \endif
-  template<short E>
+  template<End E>
   FLECSI_INLINE_TARGET util::id exclusive() const {
     static_assert(E == 0 || E == 1);
     return bdy[0] + gh[0] + (E ? log - shr[1] : shr[0]);
@@ -234,7 +235,7 @@ struct axis_layout {
   /// The beginning or end index of the domain entities, including logical and
   /// ghost entities.
   /// \tparam E 0 or 1 for beginning or end
-  template<short E>
+  template<End E>
   FLECSI_INLINE_TARGET util::id ghost() const {
     static_assert(E == 0 || E == 1);
     return bdy[0] + E * (both(gh) + log);
@@ -248,7 +249,7 @@ struct axis_layout {
   ///   halo_depth_low = extended<0>();
   ///   halo_depth_high = extent() - extended<1>();\endcode
   /// \tparam E 0 or 1 for beginning or end
-  template<short E>
+  template<End E>
   FLECSI_INLINE_TARGET util::id extended() const {
     static_assert(E == 0 || E == 1);
     return gh[0] + E * (both(bdy) + log);
@@ -513,7 +514,7 @@ struct narray_base : base {
      end of a periodic axis as boundary points, not ghosts.
    \deprecated Use \c axis_color and \c axis_layout.
   */
-  enum class /* [[deprecated]] would warn internally */ domain : std::size_t {
+  enum class /* [[deprecated]] would warn internally */ domain {
     logical, ///<  the logical, i.e., the owned part of the axis
     extended, ///< the boundary padding along with the logical part
     all, ///< the ghost padding along with the logical part
@@ -575,7 +576,7 @@ struct narray_base : base {
   static std::vector<axis_definition> make_axes(const colors & color_dist,
     const gcoord & indices) {
     std::vector<axis_definition> axes;
-    for(std::size_t d = 0; d < indices.size(); d++) {
+    for(Dimension d = 0; d < indices.size(); d++) {
       flecsi::util::equal_map em{indices[d], color_dist[d]};
       axes.push_back({em});
     }

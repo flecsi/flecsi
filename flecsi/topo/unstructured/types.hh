@@ -28,8 +28,6 @@ namespace unstructured_impl {
 /// \addtogroup unstructured
 /// \{
 
-using entity_index_space = std::size_t;
-
 /*!
   Initialize a connectivity using its transpose connectivity, e.g.,
   initializing vertex-to-cell connectivity using cell-to-vertex.
@@ -45,7 +43,7 @@ transpose(
   field<util::id, data::ragged>::accessor1<privilege_repeat<ro, NI>> input,
   field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NO>>
     output) noexcept {
-  std::size_t e = 0;
+  util::id e = 0;
   for(auto && i : input) {
     for(auto v : i)
       output[v].push_back(e);
@@ -243,13 +241,13 @@ struct unstructured_base : base {
   static void set_dests(
     data::multi<field<data::intervals::Value>::accessor<wo>> aa,
     const destination_intervals & intervals) {
-    std::size_t ci = 0;
+    Color ci = 0;
     for(auto [c, a] : aa.components()) {
       auto & iv = intervals[ci++];
       flog_assert(a.span().size() == iv.size(),
         "interval size mismatch a.span ("
           << a.span().size() << ") != intervals (" << iv.size() << ")");
-      std::size_t i{0};
+      util::id i = 0;
       for(auto & it : iv) {
         a[i++] = data::intervals::make(it, c);
       } // for
@@ -261,7 +259,7 @@ struct unstructured_base : base {
     data::multi<
       field<data::copy_engine::Point>::accessor1<privilege_repeat<wo, N>>> aa,
     const source_pointers & points) {
-    std::size_t ci = 0;
+    Color ci = 0;
     for(auto & a : aa.accessors()) {
       for(auto const & [owner, ghosts] : points[ci++]) {
         for(auto const & [local_offset, remote_offset] : ghosts) {
@@ -272,7 +270,7 @@ struct unstructured_base : base {
   }
 
   static void cnx_size(std::vector<index_color> const & vic,
-    std::size_t is,
+    IndexSpace is,
     data::multi<resize::Field::accessor<wo>> aa) {
     auto it = vic.begin();
     for(auto & a : aa.accessors()) {
@@ -296,7 +294,7 @@ struct unstructured_base : base {
     auto it = vic.begin();
 
     for(auto & a : aa.accessors()) {
-      std::size_t count = 0;
+      util::id count = 0;
       for(auto & p : it++->peers) {
         count += p.second.shared.size();
       }

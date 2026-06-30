@@ -164,7 +164,7 @@ init(field<reduction_type>::accessor<wo> v) noexcept {
 int
 check(field<reduction_type>::accessor<ro> v, const int np) noexcept {
   UNIT("TASK") {
-    for(std::size_t i = 0; i < v.span().size(); ++i) {
+    for(util::id i = 0; i < v.span().size(); ++i) {
       reduction_type n = np - 1 + i;
       reduction_type t = n * (n + 1) - (i - 1) * i;
       EXPECT_EQ(v[i], t);
@@ -176,7 +176,7 @@ reduction(std::tuple<const field<reduction_type>::accessor<ro>,
   field<reduction_type>::reduction<flecsi::exec::fold::sum>> t) noexcept {
   auto & [v, r] = t;
   assert(v.span().size() == r.span().size());
-  for(std::size_t i = 0; i < v.span().size(); ++i) {
+  for(util::id i = 0; i < v.span().size(); ++i) {
     r[i](v[i]);
   }
 } // reduce_task

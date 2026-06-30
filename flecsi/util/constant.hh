@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 /// \cond core
@@ -183,6 +184,13 @@ struct key_tuple : std::tuple<typename VT::type...> {
     return std::get<keys::template index<V>>(*this);
   }
 }; // struct key_tuple
+
+// backport of C++23 std::to_underlying
+template<class E>
+constexpr std::underlying_type_t<E>
+to_underlying(E e) noexcept {
+  return static_cast<std::underlying_type_t<E>>(e);
+}
 
 /// \}
 } // namespace util

@@ -5,7 +5,7 @@
 #include "flecsi/flog.hh"
 #include "flecsi/topo/narray/interface.hh"
 
-template<std::size_t D>
+template<flecsi::Dimension D>
 struct axes_helper {};
 
 template<>
@@ -32,7 +32,7 @@ struct axes_helper<4> {
   using axes = flecsi::topo::help::has<x_axis, y_axis, z_axis, t_axis>;
 };
 
-template<std::size_t D>
+template<flecsi::Dimension D>
 struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh<D>>,
               axes_helper<D> {
   static_assert((D >= 1 && D <= 4), "Invalid dimension for testing !");

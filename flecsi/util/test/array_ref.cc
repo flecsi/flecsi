@@ -278,7 +278,7 @@ array_ref(scheduler &) {
     {
       static short four[4];
       constexpr int i = 1, n = 2;
-      constexpr util::substring_view sv((util::span(four)), i, n);
+      constexpr util::substring_view sv((std::span(four)), i, n);
       static_assert(&*sv.begin() == four + i);
       static_assert(sv.size() == n);
       static_assert(sv.begin() + n == sv.end());
@@ -296,7 +296,7 @@ array_ref(scheduler &) {
                       primes, [](int i) { return !(i % 2); }) == primes + 1);
       static_assert([] {
         int loose[std::end(primes)[-1] + 1]{}, i = 0;
-        for(auto & l : util::permutation_view(+loose, util::span(primes)))
+        for(auto & l : util::permutation_view(+loose, std::span(primes)))
           l = i++;
         return loose[13] == util::binary_index(primes, 13);
       }());

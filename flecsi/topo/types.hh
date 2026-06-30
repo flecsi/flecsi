@@ -78,7 +78,7 @@ struct lists : lists_t<typename array<P>::topology, P> {
   explicit lists(scheduler & s, Color nc)
     : lists(s, nc, typename P::entity_lists()) {}
 
-  // TODO: std::vector<std::vector<std::vector<std::size_t>>> for direct
+  // TODO: std::vector<std::vector<std::vector<util::id>>> for direct
   // coloring-based allocation?
 
 private:
@@ -221,7 +221,7 @@ template<class R>
 std::vector<data::subrow>
 rle(const R & r) {
   std::vector<data::subrow> ret;
-  std::size_t start = 0, last = 0;
+  util::id start = 0, last = 0;
   const auto out = [&] {
     if(start != last)
       ret.emplace_back(start, last);

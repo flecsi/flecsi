@@ -19,7 +19,7 @@ template<typename T, std::size_t SIZE>
 class queue {
   using value_type = T;
   std::array<value_type, SIZE> data;
-  size_t head = 0, back = 0;
+  std::size_t head = 0, back = 0;
 
 public:
   /// Push an element in the queue

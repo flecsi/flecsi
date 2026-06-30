@@ -31,15 +31,18 @@ namespace util {
 /// as read-only.  Use the \c add_row methods to modify those fields in a
 /// consistent manner.
 struct crs : util::with_index_iterator<const crs> {
+  using size_type = Color; // will be offsets::size_type
+  using value_type = util::gid;
+
   /// The rows in \c values.
   util::offsets offsets;
   /// The concatenated rows.
-  std::vector<util::gid> values;
+  std::vector<value_type> values;
 
   /// Create an empty sequence of sequences.
   crs() = default;
 
-  crs(util::offsets os, std::vector<util::gid> vs)
+  crs(util::offsets os, std::vector<value_type> vs)
     : offsets(std::move(os)), values(std::move(vs)) {}
 
   /// Append onto the \c crs (via data copy) a row of values pointed to by
@@ -64,7 +67,7 @@ struct crs : util::with_index_iterator<const crs> {
   }
 
   /// Return the number of rows.
-  std::size_t size() const {
+  size_type size() const {
     return offsets.size();
   }
 
@@ -77,10 +80,10 @@ struct crs : util::with_index_iterator<const crs> {
   /// Return a row.
   /// \return substring of \c values
   /// \{
-  util::span<const util::gid> operator[](std::size_t i) const {
+  util::span<const value_type> operator[](size_type i) const {
     return const_cast<crs &>(*this)[i];
   }
-  util::span<util::gid> operator[](std::size_t i) {
+  util::span<value_type> operator[](size_type i) {
     const auto r = offsets[i];
     return {values.data() + *r.begin(), r.size()};
   }
@@ -90,11 +93,11 @@ struct crs : util::with_index_iterator<const crs> {
 inline std::string
 expand(crs const & graph) {
   std::stringstream stream;
-  std::size_t r{0};
+  crs::size_type r{0};
   for(const auto row : graph) {
     stream << r++ << ": <";
     bool first = true;
-    for(const std::size_t i : row) {
+    for(const crs::value_type i : row) {
       if(first)
         first = false;
       else

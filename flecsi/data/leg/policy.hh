@@ -13,11 +13,9 @@
 namespace flecsi {
 namespace data {
 
-enum disjointness { compute = 0, disjoint = 1, aliased = 2 };
-
 constexpr auto
-partitionKind(disjointness dis, completeness cpt) {
-  return Legion::PartitionKind((dis + 2) % 3 + 3 * cpt);
+partitionKind(completeness cpt) { // for disjoint
+  return Legion::PartitionKind(3 * cpt);
 }
 
 // The "infinite" size used for resizable regions.
@@ -34,7 +32,7 @@ namespace leg {
 /// \{
 
 constexpr inline Legion::ProjectionID def_proj = 0;
-constexpr inline std::size_t region_dimensions = 2;
+constexpr inline int region_dimensions = 2;
 
 inline auto &
 run() {
@@ -110,10 +108,6 @@ using rect = Legion::Rect<2>;
 inline Legion::coord_t
 upper(std::size_t n) {
   return static_cast<Legion::coord_t>(n) - 1;
-}
-inline std::size_t
-bound(Legion::coord_t c) {
-  return static_cast<std::size_t>(c) + 1;
 }
 
 template<class T>
@@ -331,7 +325,7 @@ private:
                 src.root(),
                 fid,
                 src.get_color_space(),
-                partitionKind(disjoint, cpt)),
+                partitionKind(cpt)),
           (name(src.logical_partition, "?") + std::string("->")).c_str())) {}
 };
 

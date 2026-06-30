@@ -284,7 +284,7 @@ private:
     const Legion::Rect<data::leg::region_dimensions> r(dom);
 
     if(!dom.empty())
-      acc.bind(util::span(aa.ptr(Legion::Domain::DomainPointIterator(dom).p),
+      acc.bind(std::span(aa.ptr(Legion::Domain::DomainPointIterator(dom).p),
         r.hi[1] - r.lo[1] + 1));
   }
 
@@ -302,10 +302,10 @@ protected:
 private:
   Legion::Runtime * legion_runtime_;
   Legion::Context & legion_context_;
-  size_t region = 0;
   const std::vector<Legion::PhysicalRegion> & regions_;
-  size_t future_id = 0;
+  decltype(regions_.size()) region = 0;
   const std::vector<Legion::Future> & futures_;
+  decltype(futures_.size()) future_id = 0;
   const leg::bindings & which;
   std::vector<Legion::Future>::size_type single_future = 0, index_future;
 }; // struct bind_accessors

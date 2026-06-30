@@ -124,9 +124,9 @@ protected:
   };
 
   struct color_id {
-    std::size_t color;
+    Color color;
     ent_id id;
-    std::size_t from_color;
+    Color from_color;
   };
 
   static void set_dests(

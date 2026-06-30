@@ -32,10 +32,10 @@ all_to_allv(F && f, run::communicator & comm) {
 
   // NB: comm.comm().get_info() would require explicit set_info()
   auto size = run::context::instance().processes();
-  std::vector<std::vector<std::size_t>> result;
+  std::vector<std::vector<util::id>> result;
   result.reserve(size);
 
-  for(std::size_t r = 0; r < size; ++r)
+  for(Color r = 0; r < size; ++r)
     result.push_back(f(r));
 
   return all_to_all(comm.comm(), std::move(result), this_site_arg(), comm.gen())
@@ -108,7 +108,7 @@ struct copy_engine : local::copy_base {
         [&](auto const & remote_shared_entities) {
           return detail::all_to_allv(
             [&](int r) -> auto & {
-              static std::vector<std::size_t> const empty;
+              static std::vector<util::id> const empty;
               auto const it = remote_shared_entities.find(r);
               return it == remote_shared_entities.end() ? empty : it->second;
             },
@@ -150,7 +150,7 @@ struct copy_engine : local::copy_base {
             ops.push_back(get<data_type>(comm, that_site_arg(src_rank), p2p)
                 .then(::hpx::launch::sync, [&, &src = entry.second](auto && f) {
                   auto && data = f.get();
-                  for(std::size_t i = 0, n = src.size(); i < n; ++i)
+                  for(util::id i = 0, n = src.size(); i < n; ++i)
                     std::memcpy(dst + src.data()[i] * type_size,
                       data.data() + i * type_size,
                       type_size);
@@ -160,7 +160,7 @@ struct copy_engine : local::copy_base {
           const std::byte * const src = src_storage.data().data();
           for(auto const & [dst_rank, shared_indices] : p->shared_entities) {
             data_type send_buffer(shared_indices.size() * type_size);
-            for(std::size_t i = 0, n = shared_indices.size(); i < n; ++i)
+            for(util::id i = 0, n = shared_indices.size(); i < n; ++i)
               std::memcpy(send_buffer.data() + i * type_size,
                 src + shared_indices.data()[i] * type_size,
                 type_size);

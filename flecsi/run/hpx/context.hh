@@ -41,7 +41,7 @@ struct communicator {
 
 private:
   type c;
-  std::size_t g = 0;
+  task_idx g = 0;
 };
 
 // Store unique (according to C) T objects in insertion order.
@@ -264,8 +264,8 @@ public:
 private:
   std::vector<std::string> cfg;
   p2p channel;
-  std::size_t tag = 0, world = 0;
-  util::ref_count<std::size_t> out{0};
+  task_idx tag = 0, world = 0;
+  util::ref_count<task_idx> out{0};
   ::hpx::mutex out_mutex;
   ::hpx::condition_variable out_cv;
 };

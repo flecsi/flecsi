@@ -52,8 +52,8 @@ struct resize : specialization<column, resize> {
       float s = 0)
       : min(m), extra(e), lo(l), hi(h), hyst(l ? s : 1) {}
 
-    data::prefixes_base::size_request operator()(std::size_t n,
-      std::size_t cap) const {
+    data::prefixes_base::size_request operator()(util::id n,
+      util::id cap) const {
       const auto slow = [this](float a, float b) {
         return std::pow(a, hyst) * std::pow(b, 1 - hyst);
       };
@@ -63,11 +63,11 @@ struct resize : specialization<column, resize> {
           y = x;
         return y;
       };
-      const auto div = [](size_t sz, float d) -> std::size_t {
+      const auto div = [](util::id sz, float d) -> util::id {
         return lim(std::nearbyint((sz + .5f) / d));
       };
 
-      std::size_t s;
+      util::id s;
       bool req;
       if(n > hi * cap) {
         s = div(n, slow(hi, lo));
@@ -76,19 +76,19 @@ struct resize : specialization<column, resize> {
       else if(const auto lo_thr = lo * cap; n < lo_thr) {
         const auto d = slow(lo, hi);
         s = div(n, d);
-        req = div(lo_thr, d) >= std::max(min, std::size_t(lo_thr) + extra);
+        req = div(lo_thr, d) >= std::max(min, util::id(lo_thr) + extra);
       }
       else {
         const auto d = cap * std::sqrt(hi * lo); // if 0, base never matters
         s = lim(cap * std::pow(d ? n / d : 1, 2 * (1 - hyst)));
         req = false;
       }
-      const std::size_t clamp = std::max(min, n + extra);
+      const util::id clamp = std::max(min, n + extra);
       return {std::max(s, clamp), cap < clamp || (req && s != cap)};
     }
 
   private:
-    std::size_t min, extra;
+    util::id min, extra;
     float lo, hi, hyst;
   };
 };

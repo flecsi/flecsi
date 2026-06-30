@@ -7,12 +7,12 @@ using namespace flecsi;
 using namespace flecsi::data;
 using namespace flecsi::exec;
 
-using intN = field<std::array<size_t, 10>, single>;
+using intN = field<std::array<int, 10>, single>;
 const intN::definition<topo::index> array_field;
 
 void
 modify(accelerator s, intN::accessor<wo> a) noexcept {
-  s.executor().forall(i, util::span(*a)) {
+  s.executor().forall(i, std::span(*a)) {
     i = 3;
   };
 }
@@ -20,7 +20,7 @@ modify(accelerator s, intN::accessor<wo> a) noexcept {
 int
 check(intN::accessor<ro> a) noexcept {
   UNIT() {
-    for(auto i : util::span(*a)) {
+    for(auto i : std::span(*a)) {
       EXPECT_EQ(i, 3);
     }
   };
@@ -28,7 +28,7 @@ check(intN::accessor<ro> a) noexcept {
 
 void
 modify_policy(accelerator s, intN::accessor<wo> a) noexcept {
-  s.executor().threads<64, 1>().forall(i, util::span(*a)) {
+  s.executor().threads<64, 1>().forall(i, std::span(*a)) {
     i = 3;
   };
 }
@@ -36,7 +36,7 @@ modify_policy(accelerator s, intN::accessor<wo> a) noexcept {
 int
 check_policy(intN::accessor<ro> a) noexcept {
   UNIT() {
-    for(auto i : util::span(*a)) {
+    for(auto i : std::span(*a)) {
       EXPECT_EQ(i, 3);
     }
   };
@@ -54,8 +54,8 @@ constexpr I flecsi::exec::fold::sum::identity<I>{};
 int
 reduce_vec(accelerator s, intN::accessor<ro> a) noexcept {
   UNIT() {
-    size_t res =
-      s.executor().reduceall(i, up, util::span(*a), exec::fold::sum, size_t) {
+    int res =
+      s.executor().reduceall(i, up, std::span(*a), exec::fold::sum, int) {
       up(i);
     };
     EXPECT_EQ(res, 3 * a.get().size());
@@ -69,8 +69,8 @@ reduce_vec(accelerator s, intN::accessor<ro> a) noexcept {
 
 void
 mdrange_init(accelerator s, intN::accessor<wo> a) noexcept {
-  auto ar = util::span(*a);
-  util::mdspan<std::size_t, 2> md_ar(ar.data(), {5, 2});
+  auto ar = std::span(*a);
+  util::mdspan<int, 2> md_ar(ar.data(), {5, 2});
   s.executor().forall(mi, (mdiota_view(md_ar, full_range(), prefix_range{2}))) {
     auto [i, j] = mi;
     md_ar[j][i] = 3;
@@ -80,7 +80,7 @@ mdrange_init(accelerator s, intN::accessor<wo> a) noexcept {
 int
 check_mdrange(intN::accessor<ro> a) noexcept {
   UNIT() {
-    for(auto i : util::span(*a)) {
+    for(auto i : std::span(*a)) {
       EXPECT_EQ(i, 3);
     }
   };
@@ -89,13 +89,13 @@ check_mdrange(intN::accessor<ro> a) noexcept {
 int
 reduce_mdrange_vec(accelerator s, intN::accessor<rw> a) noexcept {
   UNIT() {
-    auto ar = util::span(*a);
-    util::mdspan<std::size_t, 2> md_ar(ar.data(), {5, 2});
-    size_t res = s.executor().reduceall(mi,
+    auto ar = std::span(*a);
+    util::mdspan<int, 2> md_ar(ar.data(), {5, 2});
+    int res = s.executor().reduceall(mi,
       up,
       mdiota_view(md_ar, full_range(), prefix_range{2}),
       exec::fold::sum,
-      size_t) {
+      int) {
       auto [i, j] = mi;
       up(md_ar[j][i]);
     };

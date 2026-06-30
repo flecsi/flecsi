@@ -16,7 +16,7 @@ namespace flecsi {
 /// \{
 
 namespace exec {
-enum class launch_type_t : size_t { single, index };
+enum class launch_type_t { single, index };
 }
 
 /*!

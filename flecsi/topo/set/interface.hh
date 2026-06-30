@@ -21,7 +21,7 @@ struct set_base : base {
     /// Pointer to the underlying topology
     void * ptr;
     /// Counts per color
-    std::vector<std::size_t> counts;
+    std::vector<util::id> counts;
   };
 }; // set_base
 
@@ -54,7 +54,7 @@ struct topology<Policy, set_base> : set_base {
     : p{static_cast<mesh *>(x.ptr)},
       part{make_repartitioned<Policy>(x.counts.size(),
         s,
-        [a = x.counts](std::size_t c) { return a[c]; })} {}
+        [a = x.counts](Color c) { return a[c]; })} {}
 
   Color colors() const {
 

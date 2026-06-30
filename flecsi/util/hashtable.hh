@@ -6,6 +6,8 @@
 
 #include "flecsi/flog.hh"
 #include <flecsi/util/array_ref.hh>
+
+#include <span>
 #include <utility>
 
 namespace flecsi {
@@ -59,7 +61,6 @@ public:
   }
 };
 
-// hashtable implementation based on a \c util::span.
 // This hashtable is based on span as 1D array.
 // The hashtable is iterable.
 template<class KEY, class TYPE, class HASH>
@@ -78,27 +79,29 @@ public:
 
 private:
   constexpr static std::size_t modulo_ = 334214459;
-  util::span<pair_t> span_;
+  std::span<pair_t> span_;
 
-  // Max number of search before crash
-  constexpr static std::size_t max_find_ = 10;
+  constexpr pointer lookup(const key_t & k) const {
+    size_type h = HASH::hash(k) % span_.size();
+    for(unsigned ttl = 10; ttl--;) { // max number of search before crash
+      const pointer p = span_.data() + h;
+      if(p->first == k || p->first == key_t())
+        return p;
+      h = (h + modulo_) % span_.size();
+    }
+    assert(!"hash table full");
+    return nullptr;
+  }
 
 public:
-  constexpr hashtable(const util::span<pair_t> & span) {
-    span_ = span;
-  }
+  using size_type = typename decltype(span_)::size_type;
+
+  constexpr hashtable(std::span<pair_t> span) : span_(span) {}
 
   // Find a value in the hashtable
   // While the value or a null key is not found we keep looping
   constexpr iterator find(const key_t & key) const {
-    std::size_t h = HASH::hash(key) % span_.size();
-    pointer ptr = span_.data() + h;
-    std::size_t iter = 0;
-    while(ptr->first != key && ptr->first != key_t{} && iter != max_find_) {
-      h = (h + modulo_) % span_.size();
-      ptr = span_.data() + h;
-      ++iter;
-    }
+    const pointer ptr = lookup(key);
     if(ptr->first != key) {
       return end();
     }
@@ -110,20 +113,7 @@ public:
   // conflict using modulo method.
   template<typename... ARGS>
   iterator insert(const key_t & key, ARGS &&... args) const {
-    std::size_t h = HASH::hash(key) % span_.size();
-    pointer ptr = span_.data() + h;
-    std::size_t iter = 0;
-    while(ptr->first != key && ptr->first != key_t{} && iter != max_find_) {
-      h = (h + modulo_) % span_.size();
-      ptr = span_.data() + h;
-      ++iter;
-    }
-
-    if(iter == max_find_) {
-      flog(error) << "Max iteration reached, couldn't insert element: " << key
-                  << std::endl;
-      return end();
-    }
+    pointer ptr = lookup(key);
     ptr = new(ptr) pair_t(key, {std::forward<ARGS>(args)...});
     return iterator(ptr, this);
   }
@@ -151,19 +141,19 @@ public:
   }
 
   constexpr iterator begin() const noexcept {
-    auto it = iterator(span_.begin(), this);
+    auto it = iterator(span_.data(), this);
     if(it->first == key_t{})
       ++it;
     return it;
   }
 
   constexpr iterator end() const noexcept {
-    return iterator(span_.end(), this);
+    return iterator(std::to_address(span_.end()), this);
   }
 
   // Number of elements currently stored in the hashtable
   // This computation is linear in time and should be used for debug only
-  constexpr std::size_t count_entries() const noexcept {
+  constexpr size_type count_entries() const noexcept {
     return std::distance(this->begin(), this->end());
   }
 

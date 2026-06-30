@@ -16,7 +16,7 @@ namespace flecsi {
 /// \addtogroup runtime
 /// \{
 
-enum option_attribute : size_t {
+enum option_attribute {
   option_default,
   option_implicit,
   option_zero,
@@ -206,7 +206,7 @@ public:
   template<class F = decltype((default_check))>
   program_option(const char * name,
     const char * help,
-    size_t count,
+    std::size_t count,
     F && check = default_check) {
     auto semantic_ = boost::program_options::value(&value_);
     semantic_->required();

@@ -19,7 +19,6 @@ struct htype_t {
   std::string g, h, i;
 };
 
-using pair_t = std::pair<hkey_t, htype_t>;
 using hmap_t = hashtable<hkey_t, htype_t>;
 
 [[nodiscard]] int
@@ -46,7 +45,7 @@ check(hmap_t hmap) {
       ++error;
     }
   }
-  size_t i = 0;
+  std::size_t i = 0;
   // Loop over the table and check elements
   for(auto & a : hmap) {
     if(i % 20 && a.first != i) {
@@ -72,9 +71,9 @@ hashtable_driver(scheduler &) {
   UNIT() {
     const std::size_t ht_size = 1 << 15;
 
-    std::vector<pair_t> idx_s;
+    std::vector<hmap_t::pair_t> idx_s;
     idx_s.resize(ht_size);
-    const span span_ht(idx_s);
+    const std::span span_ht(idx_s);
 
     EXPECT_EQ(assign(span_ht), 0);
     EXPECT_EQ(check(span_ht), 0);

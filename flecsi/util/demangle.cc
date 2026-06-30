@@ -29,7 +29,7 @@ strip_parameter_list(const std::string & sig) {
   }
 
   int level = 1;
-  std::size_t pos = sig.length() - 2;
+  auto pos = sig.length() - 2;
 
   while(pos > 0 && level > 0) {
     char c = sig[pos--];
@@ -53,7 +53,7 @@ strip_return_type(const std::string & sig) {
   }
 
   int tlevel = 1, blevel = 0;
-  std::size_t pos = s.length() - 2;
+  auto pos = s.length() - 2;
   bool found_space = false;
 
   while(pos > 0 && (tlevel > 0 || !found_space)) {

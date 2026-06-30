@@ -69,7 +69,7 @@ struct topology<Policy, narray_base>
   }
 
   template<index_space S>
-  static constexpr std::size_t index = index_spaces::template index<S>;
+  static constexpr IndexSpace index = index_spaces::template index<S>;
 
   template<index_space S>
   data::region & get_region() {
@@ -191,11 +191,10 @@ private:
     }
 
     using points = std::map<Color,
-      std::vector<std::pair</* local ghost offset, remote shared offset */
-        std::size_t,
-        std::size_t>>>;
+      std::vector<
+        std::pair<util::id /* ghost */, util::id /* remote shared */>>>;
 
-    using intervals = std::vector<std::pair<std::size_t, std::size_t>>;
+    using intervals = std::vector<data::subrow>;
 
     // The index_definition provides the layout of other colors to compute
     // shared offsets.
@@ -208,7 +207,7 @@ private:
       const linearize<dimension, Color> global{md.colors()};
 
       points points;
-      std::vector<std::size_t> ghost;
+      std::vector<util::id> ghost;
       for(const auto & [ngh, reg] : md.traffic(false)) {
         const auto src = md.neighbor(ngh);
         linearize<dimension> remote;
@@ -297,7 +296,7 @@ private:
                                "std::size_t limits");
               }
               return partitions;
-            }()](std::size_t i) { return p[i]; })...}},
+            }()](Color i) { return p[i]; })...}},
       plan_{{make_copy_plan<CI>(s, c.idx_colorings[index<CI>])...}},
       ragged_buffers_{{data::buffers::topology(s,
         meta_data::peers(c.idx_colorings[index<CI>]))...}} {
@@ -322,7 +321,7 @@ private:
     field<data::intervals::Value>::accessor<wo> a,
     const index_definition * idef) noexcept {
     const auto c = s.launch().index;
-    std::size_t i{0};
+    util::id i = 0;
     for(auto & it : meta_data::ghosts(*idef, c).second)
       a[i++] = data::intervals::make({it.first, it.second}, c);
   }
@@ -362,7 +361,7 @@ private:
   static void set_meta(exec::cpu s,
     typename policy_meta::Field::template accessor<wo> m,
     const coloring * c) noexcept {
-    std::size_t index{0};
+    IndexSpace index{0};
     (
       [&] {
         const auto & idef = c->idx_colorings[index++];
@@ -372,7 +371,7 @@ private:
       ...);
   }
 
-  auto & get_sizes(std::size_t i) {
+  auto & get_sizes(IndexSpace i) {
     return part_[i].sz;
   }
 
@@ -528,7 +527,7 @@ struct topology<Policy, narray_base>::access {
 
   template<class F>
   void send(F && f) {
-    std::size_t i{0};
+    IndexSpace i{0};
     for(auto & a : size_)
       f(a, [&i](auto & n) { return topo::resize::field(n.get_sizes(i++)); });
     std::forward<F>(f)(meta_, [](auto & n) { return meta_field(n.meta); });
@@ -599,7 +598,7 @@ private:
      @tparam P Value 0 denotes lower bound, and value 1 denotes upper
                bound.
     */
-  template<index_space S, Axis A, std::size_t P>
+  template<index_space S, Axis A, axis_layout::End P>
   FLECSI_INLINE_TARGET util::id logical() const {
     return get_axis<S, A>()().template logical<P>();
   }
@@ -611,7 +610,7 @@ private:
     @tparam P Value 0 denotes lower bound, and value 1 denotes upper
               bound.
    */
-  template<index_space S, Axis A, std::size_t P>
+  template<index_space S, Axis A, axis_layout::End P>
   FLECSI_INLINE_TARGET util::id extended() const {
     const axis_color & a = get_axis<S, A>();
     if constexpr(P == 0) {

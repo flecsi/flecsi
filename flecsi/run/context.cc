@@ -175,14 +175,12 @@ getopt::usage(std::string_view p) const {
   ret << "Usage: " << p << ' ';
 
   auto & pd = run::context::positional_description();
-  size_t positional_count = pd.max_total_count();
-  size_t max_label_chars = std::numeric_limits<size_t>::min();
+  const unsigned positional_count = pd.max_total_count();
+  std::size_t max_label_chars = 0;
 
-  for(size_t i{0}; i < positional_count; ++i) {
+  for(unsigned i = 0; i < positional_count; ++i) {
     ret << '<' << pd.name_for_position(i) << "> ";
-
-    const size_t size = pd.name_for_position(i).size();
-    max_label_chars = size > max_label_chars ? size : max_label_chars;
+    max_label_chars = std::max(max_label_chars, pd.name_for_position(i).size());
   } // for
 
   max_label_chars += 2;
@@ -192,7 +190,7 @@ getopt::usage(std::string_view p) const {
   if(positional_count) {
     ret << "Positional Options:\n";
 
-    for(size_t i{0}; i < pd.max_total_count(); ++i) {
+    for(unsigned i = 0; i < positional_count; ++i) {
       auto const & name = pd.name_for_position(i);
       auto help = run::context::positional_help().at(name);
       ret << "  " << name << ' ';

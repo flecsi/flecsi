@@ -7,9 +7,9 @@
 
 namespace poisson {
 
-inline flecsi::program_option<std::size_t>
+inline flecsi::program_option<flecsi::util::gid>
   x_extents("x-extents", "The x extents of the mesh.", 1);
-inline flecsi::program_option<std::size_t>
+inline flecsi::program_option<flecsi::util::gid>
   y_extents("y-extents", "The y extents of the mesh.", 1);
 inline flecsi::program_option<std::size_t> max_iterations("max-iterations",
   "max_iterations,m",

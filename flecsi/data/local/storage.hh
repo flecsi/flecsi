@@ -120,8 +120,7 @@ struct storage : detail::storage<> {
     privilege Priv = ro,
     exec::processor Proc = exec::processor::loc>
   auto as(std::size_t nelems) {
-    using return_type =
-      util::span<util::maybe_const<!privilege_write(Priv), T>>;
+    using return_type = std::span<util::maybe_const<!privilege_write(Priv), T>>;
 
     std::size_t nbytes = nelems * sizeof(T);
     if(nbytes > size()) {

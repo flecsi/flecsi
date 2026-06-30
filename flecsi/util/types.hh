@@ -17,7 +17,7 @@ namespace flecsi {
 using field_id_t = Legion::FieldID;
 using Legion::Color;
 #else
-using field_id_t = std::size_t;
+using field_id_t = unsigned;
 /// The integer type used to count topology colors, task instances, or
 /// processes.
 using Color = unsigned; // MPI uses just int

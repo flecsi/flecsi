@@ -43,7 +43,7 @@ struct sph_ntree_t
     return static_cast<std::size_t>(k.value() & ((1 << 22) - 1));
   }
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr flecsi::PrivilegeCount privilege_count = 2;
 
   using index_space = base::index_space;
   using index_spaces = base::index_spaces;
@@ -111,7 +111,7 @@ struct sph_ntree_t
   // coordinates of the entity.
   static void keys_task(sph_ntree_t::accessor<flecsi::rw, flecsi::wo> ts,
     flecsi::field<range_t>::accessor<flecsi::ro> r) noexcept {
-    for(std::size_t e = 0; e < ts.e_i.span().size(); ++e) {
+    for(flecsi::util::id e = 0; e < ts.e_i.span().size(); ++e) {
       ts.e_keys[e] = key_t(r[0], ts.e_i[e].coordinates);
     }
   }
@@ -131,8 +131,8 @@ struct sph_ntree_t
   // Feed the index space / fields with initial information for the entities
   static void init_fields(
     flecsi::data::multi<sph_ntree_t::accessor<flecsi::rw, flecsi::na>> t,
-    const std::size_t nents,
-    const std::vector<flecsi::util::id> & offsets) {
+    const flecsi::util::gid nents,
+    const std::vector<flecsi::util::gid> & offsets) {
     assert(offsets.size() == t.depth());
     flecsi::Color col = 0;
     for(auto [c, a] : t.components()) {
@@ -167,9 +167,9 @@ struct sph_ntree_t
     auto lm = flecsi::data::launch::make(s, nt);
     const auto ours = flecsi::util::equal_map(
       c.nparts_, s.runtime().processes())[s.runtime().process()];
-    std::vector<flecsi::util::id> offsets;
+    std::vector<flecsi::util::gid> offsets;
     auto b = c.entities_sizes_.begin();
-    auto o = std::accumulate(b, b + ours[0], 0);
+    auto o = std::accumulate(b, b + ours[0], flecsi::util::gid());
     for(const auto i : ours) {
       offsets.push_back(o);
       o += b[i];
@@ -190,7 +190,7 @@ struct sph_ntree_t
   }
 
   // N-Tree coloring
-  static coloring color(flecsi::Color size, flecsi::util::id nents) {
+  static coloring color(flecsi::Color size, flecsi::util::gid nents) {
     const flecsi::util::id hmap_size = 1 << 20;
     coloring c(size, hmap_size);
     for(auto bin : flecsi::util::equal_map(nents, size))

@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <random>
+#include <span>
 
 namespace flecsi {
 namespace util {
@@ -43,7 +44,8 @@ template<typename T, typename key_type>
 void
 merge(const T & ma, std::vector<key_type> & v) {
 
-  std::size_t total = 0, cur = 0, size = 0;
+  gid total = 0, cur = 0;
+  Color size = 0;
   for(auto & m : ma) {
     total += m.span().size();
     if(m.span().size())
@@ -53,7 +55,7 @@ merge(const T & ma, std::vector<key_type> & v) {
   v.resize(total);
   if(total == 0)
     return;
-  std::vector<std::size_t> heap(size);
+  std::vector<Color> heap(size);
   std::iota(heap.begin(), heap.end(), 0);
   auto h_b = heap.begin();
   auto h_e = heap.end();
@@ -66,9 +68,7 @@ merge(const T & ma, std::vector<key_type> & v) {
       end_it.push_back(m.span().end());
     }
 
-  auto comp = [&](std::size_t idx1, std::size_t idx2) {
-    return *it[idx1] > *it[idx2];
-  };
+  auto comp = [&](Color idx1, Color idx2) { return *it[idx1] > *it[idx2]; };
 
   std::make_heap(h_b, h_e, comp);
   v[cur++] = *it[heap[0]];
@@ -88,7 +88,7 @@ struct sort_base {
 protected:
   using hist_int_t = std::uint64_t;
 
-  sort_base(scheduler & s, std::size_t c)
+  sort_base(scheduler & s, Color c)
     : transfer_t(s, std::vector<std::size_t>(c, 0)),
       idx_t(s, std::vector<std::size_t>(c, 0)),
       meta_t(s, std::vector<std::size_t>(c, 1)),
@@ -115,17 +115,17 @@ protected:
   }; // struct max
 
   template<typename T>
-  static void index_sort(T * ptr, util::span<const std::size_t> schanges) {
+  static void index_sort(T * ptr, std::span<const id> schanges) {
     index_sort(reinterpret_cast<std::byte *>(ptr), schanges, sizeof(T));
   }
 
   static void index_sort(std::byte * ptr,
-    util::span<const std::size_t> schanges,
-    const int size) {
-    std::vector<std::size_t> changes(schanges.begin(), schanges.end());
+    std::span<const id> schanges,
+    const std::size_t size) {
+    std::vector<id> changes(schanges.begin(), schanges.end());
     std::vector<std::byte> data(size);
     std::byte * tmp = data.data();
-    for(std::size_t i = 0; i < changes.size(); ++i) {
+    for(id i = 0; i < changes.size(); ++i) {
       if(i == changes[i])
         continue;
       memcpy(tmp, ptr + i * size, size);
@@ -144,7 +144,7 @@ protected:
 
   static void update_sizes_copy_task(exec::cpu s,
     topo::resize::Field::accessor<wo> a,
-    field<std::size_t>::accessor<ro> cpy) noexcept {
+    field<id>::accessor<ro> cpy) noexcept {
     a = cpy[s.launch().index];
   } // update_sizes_copy_task
 
@@ -152,14 +152,14 @@ protected:
   // We could use multi-accessor like in other places but chose to use global
   // reduction for simplicity
   static void compute_copy_task(exec::cpu s,
-    field<std::size_t>::accessor<wo> transfers,
-    data::reduction_accessor<exec::fold::sum, int> copy) noexcept {
+    field<Color>::accessor<ro> transfers,
+    data::reduction_accessor<exec::fold::sum, Color> copy) noexcept {
     auto c = colors;
-    std::size_t output = s.launch().index * c;
-    for(unsigned int j = 0; j < c; ++j) {
-      int count = 0;
-      for(std::size_t i = 0; i < transfers.span().size(); ++i)
-        if(transfers[i] == j)
+    id output = s.launch().index * c;
+    for(Color j = 0; j < c; ++j) {
+      Color count = 0;
+      for(auto & t : transfers.span())
+        if(t == j)
           ++count;
       copy[output + j](count);
     }
@@ -169,16 +169,16 @@ protected:
     std::fill(v.span().begin(), v.span().end(), 0);
   } // init_hist_task
 
-  static void init_copy_task(field<int>::accessor<wo> v) noexcept {
+  static void init_copy_task(field<Color>::accessor<wo> v) noexcept {
     std::fill(v.span().begin(), v.span().end(), 0);
   }
-  static void init_sizes_task(field<std::size_t>::accessor<wo> v) noexcept {
+  static void init_sizes_task(field<id>::accessor<wo> v) noexcept {
     std::fill(v.span().begin(), v.span().end(), 0);
   }
 
   static inline const field<hist_int_t>::definition<topo::global> hist_g_f;
-  static inline const field<int>::definition<topo::global> copy_g_f;
-  static inline const field<std::size_t>::definition<topo::global> sizes_g_f;
+  static inline const field<Color>::definition<topo::global> copy_g_f;
+  static inline const field<id>::definition<topo::global> sizes_g_f;
 
   topo::global::ptr hist_g_p, copy_g_p, sizes_g_p;
 
@@ -188,18 +188,18 @@ protected:
 
   // Transfer indices
   sort_array_t::topology transfer_t;
-  const static inline field<std::size_t>::definition<sort_array_t> transfer_f;
+  const static inline field<Color>::definition<sort_array_t> transfer_f;
 
   // Indices for the sort
   sort_array_t::topology idx_t;
-  const static inline field<std::size_t>::definition<sort_array_t> indices_f;
+  const static inline field<id>::definition<sort_array_t> indices_f;
 
   sort_array_t::topology meta_t, probes_t;
 
   struct sort_color : topo::specialization<topo::color, sort_color> {};
   sort_color::topology intervals_t;
 
-  static inline std::size_t colors = 1;
+  static inline Color colors = 1; // side channel for tasks!
 
 }; // sort_base
 
@@ -216,7 +216,7 @@ protected:
 
   // Meta data
   struct meta {
-    std::size_t initial;
+    id initial;
     key_type min, max;
   };
 
@@ -234,7 +234,7 @@ protected:
   // changes.span().
   static void sort_others_task(
     field<std::byte, data::raw>::accessor1<privilege_repeat<rw, PC>> values,
-    field<std::size_t>::accessor<ro> changes,
+    field<id>::accessor<ro> changes,
     const std::size_t size) noexcept {
     index_sort(values.span().data(), changes.span(), size);
   } // sort_others_task
@@ -245,20 +245,20 @@ protected:
   // changes.span().
   static void reorder_other_task(
     field<std::byte, data::raw>::accessor1<privilege_repeat<rw, PC>> values,
-    field<std::size_t>::accessor<ro> changes,
+    field<id>::accessor<ro> changes,
     const std::size_t size) noexcept {
     auto ptr = values.span().data();
-    for(std::size_t i = 0; i < changes.span().size(); ++i)
+    for(id i = 0; i < changes.span().size(); ++i)
       memcpy(ptr + i * size, ptr + changes[i] * size, size);
   } // reorder_other_task
 
   static void sort_values_task(
     typename field<key_type>::template accessor1<privilege_repeat<rw, PC>> val,
-    field<std::size_t>::accessor<wo> idx) noexcept {
+    field<id>::accessor<wo> idx) noexcept {
     std::iota(idx.span().begin(), idx.span().end(), 0);
     std::stable_sort(idx.span().begin(),
       idx.span().end(),
-      [&val](std::size_t i1, std::size_t i2) { return val[i1] < val[i2]; });
+      [&val](id i1, id i2) { return val[i1] < val[i2]; });
     index_sort<key_type>(val.span().data(), idx.span());
   } // sort_values_task
 
@@ -266,7 +266,7 @@ protected:
     typename field<key_type>::template accessor1<privilege_repeat<rw, PC>>
       values,
     typename field<interval>::template accessor<ro> intervals,
-    field<std::size_t>::accessor<wo> changes) noexcept {
+    field<id>::accessor<wo> changes) noexcept {
     // updates changes to indices
     constexpr key_type min = std::numeric_limits<key_type>::min();
     constexpr key_type max = std::numeric_limits<key_type>::max();
@@ -274,10 +274,10 @@ protected:
     std::iota(changes.span().begin(), changes.span().end(), 0);
     // Keep all the values between my threshold
     const auto c = s.launch().index;
-    std::size_t current = 0;
+    id current = 0;
     key_type lower(c ? intervals[c - 1].lower : min);
     key_type upper(c != colors - 1 ? intervals[c].lower : max);
-    for(std::size_t i = 0; i < values.span().size(); i++) {
+    for(id i = 0; i < values.span().size(); i++) {
       if(values[i] > lower && values[i] <= upper) {
         values[current] = values[i];
         changes[current++] = i;
@@ -288,20 +288,20 @@ protected:
   static void set_pointers_task(exec::cpu s,
     typename field<data::copy_engine::Point>::template accessor1<
       privilege_repeat<wo, PC>> a,
-    field<int>::accessor<ro> copy,
+    field<Color>::accessor<ro> copy,
     typename field<meta, data::single>::template accessor<wo> m) noexcept {
     auto c = colors;
-    std::size_t cur = m->initial;
+    id cur = m->initial;
     for(unsigned int i = 0; i < c; ++i) {
       if(i == s.launch().index)
         continue;
-      std::size_t icur = 0;
-      std::size_t ptr = c * i + s.launch().index;
+      id icur = 0;
+      const id ptr = c * i + s.launch().index;
       // Sum color before my color sent
       // Basically count for each color
       for(unsigned int j = 0; j < s.launch().index; ++j)
         icur += copy[c * i + j];
-      for(int j = 0; j < copy[ptr]; ++j)
+      for(Color j = 0; j < copy[ptr]; ++j)
         a(cur++) = data::copy_engine::point(i, icur++);
     }
   } // set_pointers_task
@@ -310,11 +310,12 @@ protected:
     typename field<key_type>::template accessor1<privilege_repeat<ro, PC>>
       values,
     typename field<interval>::template accessor<rw> intervals,
-    data::reduction_accessor<exec::fold::sum, std::size_t> sizes,
-    field<std::size_t>::accessor<wo> transfers) noexcept {
+    data::reduction_accessor<exec::fold::sum, id> sizes,
+    field<Color>::accessor<wo> transfers) noexcept {
     // Count the number of values
-    std::size_t j = 0, localsize = 0;
-    for(std::size_t i = 0; i < values.span().size();) {
+    Color j = 0;
+    id localsize = 0;
+    for(id i = 0; i < values.span().size();) {
       if(j >= intervals.span().size() || values[i] <= intervals[j].lower) {
         ++localsize;
         transfers[i++] = j;
@@ -332,14 +333,14 @@ protected:
   // This function is used to count and to feed the probes (count = true/false)
   // In the first case the variable maybe_probes is not used.
   template<bool count>
-  static std::size_t probes_task(exec::cpu s,
+  static id probes_task(exec::cpu s,
     typename field<key_type>::template accessor1<privilege_repeat<ro, PC>>
       values,
     std::conditional_t<count,
       topo::resize::Field::accessor<wo>,
       typename field<key_type>::template accessor<wo>> maybe_probes,
     typename field<interval>::template accessor<ro> intervals,
-    const std::size_t totalents,
+    const gid totalents,
     const int iteration,
     const int iterations,
     const double epsilon) noexcept {
@@ -347,15 +348,15 @@ protected:
       return 0;
     std::minstd_rand mrnd(iteration + colors + s.launch().index);
     constexpr double m_rnd = static_cast<double>(std::minstd_rand::max()) + 1;
-    std::size_t nprobes = 0;
+    id nprobes = 0;
 
     const double ratio = (iteration + 1.) / iterations;
     auto c = colors;
     const double sj = std::pow((2. * std::log(c) / epsilon), ratio);
     const double proba = c * sj / totalents;
 
-    std::size_t j = 0;
-    for(unsigned int i = 0; i < c - 1; ++i) {
+    id j = 0;
+    for(Color i = 0; i < c - 1; ++i) {
       for(; j < values.span().size() && values[j] < intervals[i].upper; ++j) {
         if(values[j] > intervals[i].lower) {
           if(mrnd() / m_rnd < proba) {
@@ -374,7 +375,7 @@ protected:
     return nprobes;
   } // probes_task
 
-  static std::size_t size_task(
+  static gid size_task(
     typename field<key_type>::template accessor1<privilege_repeat<ro, PC>>
       v) noexcept {
     return v.span().size();
@@ -389,8 +390,9 @@ protected:
     sort_probes(probes, sorted_probes);
 
     std::vector<hist_int_t> local_histo(sorted_probes.size() + 1);
-    std::size_t np = sorted_probes.size(), localsize = 0, j = 0;
-    for(std::size_t i = 0; i < vals.span().size();) {
+    std::size_t np = sorted_probes.size();
+    id localsize = 0, j = 0;
+    for(id i = 0; i < vals.span().size();) {
       if(j >= np || vals[i] <= sorted_probes[j]) {
         ++localsize;
         ++i;
@@ -404,7 +406,7 @@ protected:
 
     std::partial_sum(
       local_histo.begin(), local_histo.end(), local_histo.begin());
-    for(std::size_t i = 0; i < local_histo.size(); ++i)
+    for(id i = 0; i < local_histo.size(); ++i)
       histo[i](local_histo[i]);
   } // histo_task
 
@@ -413,7 +415,7 @@ protected:
     typename field<meta, data::single>::template accessor<wo> m) noexcept {
     constexpr key_type max = std::numeric_limits<key_type>::max();
     constexpr key_type min = std::numeric_limits<key_type>::min();
-    m = {v.span().size(),
+    m = {static_cast<id>(v.span().size()),
       v.span().size() ? v.span().front() : min,
       v.span().size() ? v.span().back() : max};
   } // init_meta_task
@@ -427,25 +429,24 @@ protected:
 
   static void set_destination_task(exec::cpu s,
     field<data::intervals::Value>::accessor<wo> a,
-    field<int>::accessor<ro> copy,
+    field<Color>::accessor<ro> copy,
     typename field<meta, data::single>::template accessor<ro> m) noexcept {
     auto c = sort_base::colors;
-    std::size_t total = 0;
-    for(unsigned int i = 0; i < c; ++i)
+    id total = 0;
+    for(Color i = 0; i < c; ++i)
       if(i != s.launch().index)
         total += copy[c * i + s.launch().index];
-    std::size_t start = m->initial;
-    std::size_t stop = start + total;
-    a(0) = data::intervals::make({start, stop}, s.launch().index);
+    a(0) =
+      data::intervals::make({m->initial, m->initial + total}, s.launch().index);
   } // set_destination_task
 
   static void update_sizes_task(exec::cpu s,
     topo::resize::Field::accessor<wo> a,
-    field<int>::accessor<ro> cpy,
+    field<Color>::accessor<ro> cpy,
     typename field<meta, data::single>::template accessor<ro> m) noexcept {
     auto c = sort_base::colors;
     // Compute data that will be sent to me
-    std::size_t total = m->initial;
+    id total = m->initial;
     for(unsigned int i = 0; i < c; ++i) {
       if(i == s.launch().index)
         continue;
@@ -458,7 +459,7 @@ protected:
     typename field<interval>::template accessor<rw> intervals,
     field<hist_int_t>::accessor<ro> histo,
     data::multi<typename field<key_type>::template accessor<ro>> p,
-    const std::size_t totalents) noexcept {
+    const gid totalents) noexcept {
     constexpr key_type max = std::numeric_limits<key_type>::max();
     constexpr key_type min = std::numeric_limits<key_type>::min();
 
@@ -466,18 +467,16 @@ protected:
     sort_probes(p, sorted_probes);
 
     auto c = sort_base::colors;
-    std::vector<std::size_t> ideal(c, totalents / c);
-    for(unsigned int i = 0; i < c; ++i) {
-      if(totalents % (ideal[i] * c) > i)
-        ++ideal[i];
-      if(i > 0)
-        ideal[i] += ideal[i - 1];
-    }
-    for(std::size_t i = 0; i < intervals.span().size(); ++i) {
+    std::vector<id> ideal(c, totalents / c);
+    for(Color i = totalents % c; i--;)
+      ++ideal[i];
+    for(Color i = 1; i < c; ++i)
+      ideal[i] += ideal[i - 1];
+    for(id i = 0; i < intervals.span().size(); ++i) {
       auto & [L, U] = intervals[i];
       if(L == U)
         continue;
-      for(std::size_t j = 0; j < histo.span().size() - 1; ++j) {
+      for(id j = 0; j < histo.span().size() - 1; ++j) {
         key_type low = j == 0 ? min : sorted_probes[j - 1];
         key_type high = j == histo.span().size() ? max : sorted_probes[j];
         if(histo[j] <= ideal[i] && low > L)
@@ -592,13 +591,12 @@ public:
 
     // Global sizes
     sched->allocate(sort::sizes_g_p, sort_base::colors);
-    sched->execute<sort_base::init_sizes_task>(
-      sort::sizes_g_f(*sort::sizes_g_p));
+    const auto sizes_fh = sort::sizes_g_f(*sort::sizes_g_p);
+    sched->execute<sort_base::init_sizes_task>(sizes_fh);
     // Copy area
     sched->allocate(sort::copy_g_p, sort_base::colors * sort_base::colors);
-    sched->execute<sort_base::init_copy_task>(sort::copy_g_f(*sort::copy_g_p));
-
-    std::vector<std::size_t> sizes(sort_base::colors, 0);
+    const auto copy_fh = sort::copy_g_f(*sort::copy_g_p);
+    sched->execute<sort_base::init_copy_task>(copy_fh);
 
     // Compute total number of entities to sort
     auto fm_tsizes = sched->reduce<sort::size_task, exec::fold::sum>(values);
@@ -646,12 +644,12 @@ public:
       intervals_fh, fm_min.get(), fm_max.get());
 
     int iterations = std::log(std::log(sort_base::colors) / epsilon);
-    std::size_t tsizes = fm_tsizes.get();
+    const gid tsizes = fm_tsizes.get();
 
     // Compute splitters
     for(int i = 0; i < iterations; ++i) {
       // Count number of probes: three steps, count + resize + fill
-      std::size_t totalprobes =
+      id totalprobes =
         sched
           ->reduce<sort::template probes_task<true>, exec::fold::sum>(exec::on,
             values,
@@ -689,8 +687,6 @@ public:
         intervals_fh, hist_fh, sort::probes_f(lm_probes), tsizes);
     } // for
 
-    auto sizes_fh = sort::sizes_g_f(*sort::sizes_g_p);
-    auto copy_fh = sort::copy_g_f(*sort::copy_g_p);
     // Transfer array (destination of the entities)
     // Need to be of the same size as the array of values to sort
     auto transfer_fh = sort::transfer_f(sort::transfer_t);

@@ -48,6 +48,8 @@ namespace run {
 /// \addtogroup runtime
 /// \{
 
+using task_idx = std::size_t;
+
 struct context_t; // supplied by backend
 
 /// Exit status returned by initialization code.
@@ -172,6 +174,7 @@ struct context {
 
 private:
   struct fields {
+    // topo::IndexSpace would be circular.
     explicit fields(std::size_t n) : ff(n), used(false) {}
     std::vector<data::fields> ff; // per index space
     bool used;

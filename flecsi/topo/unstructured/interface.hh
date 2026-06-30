@@ -66,7 +66,7 @@ struct topology<Policy, unstructured_base> : unstructured_base,
   }
 
   template<index_space S>
-  static constexpr std::size_t index = index_spaces::template index<S>;
+  static constexpr IndexSpace index = index_spaces::template index<S>;
 
   template<index_space S>
   data::region & get_region() {
@@ -142,7 +142,7 @@ private:
           c.colors,
           s,
           [p = c.idx_spaces[index<VV>].partitions](
-            std::size_t i) { return p[i]; })...
+            Color i) { return p[i]; })...
         }
       },
       special_(s, c.colors),
@@ -266,7 +266,7 @@ private:
     (f(util::constant<VV>()), ...);
   }
 
-  auto & get_sizes(std::size_t i) {
+  auto & get_sizes(IndexSpace i) {
     return part_[i].sz;
   }
 
@@ -322,7 +322,7 @@ struct topology<Policy, topo::unstructured_base>::access {
   friend unstructured_base;
   template<class F>
   void send(F && f) {
-    std::size_t i = 0;
+    IndexSpace i = 0;
     for(auto & a : size_)
       f(a, [&i](auto & u) { return topo::resize::field(u.get_sizes(i++)); });
 

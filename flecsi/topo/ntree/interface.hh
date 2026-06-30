@@ -73,7 +73,7 @@ private:
     key_t hibound = key_t::root(), lobound = key_t::root();
   };
 
-  constexpr static std::size_t nchildren_ = 1 << dimension;
+  constexpr static Children nchildren_ = 1 << dimension;
 
 public:
   template<Privileges>
@@ -112,8 +112,8 @@ public:
         util::constant<share_ghosts_comms>()),
       buf(s, [&c] {
         data::buffers::coloring ret(c.nparts_);
-        for(std::size_t i_r = 0; i_r < ret.size(); ++i_r) {
-          for(std::size_t i = 0; i < c.nparts_; ++i) {
+        for(Color i_r = 0; i_r < ret.size(); ++i_r) {
+          for(Color i = 0; i < c.nparts_; ++i) {
             if(i != i_r) {
               ret[i_r].push_back(i);
             }
@@ -130,13 +130,13 @@ private:
   auto
   rep(scheduler & s, const coloring & c, const std::vector<util::id> & size) {
     return make_repartitioned<Policy, idx>(
-      c.nparts_, s, [size](std::size_t i) { return size[i]; });
+      c.nparts_, s, [size](Color i) { return size[i]; });
   }
 
   template<index_space idx>
   auto rep(scheduler & s, const coloring & c, util::id size) {
     return make_repartitioned<Policy, idx>(
-      c.nparts_, s, [size](std::size_t) { return size; });
+      c.nparts_, s, [size](Color) { return size; });
   }
 
   // Ntree mandatory fields ---------------------------------------------------
@@ -219,7 +219,7 @@ private:
 
   FLECSI_INLINE_TARGET static hmap_t map(
     typename field<hmap_pair_t>::template accessor<rw, na> hcells) {
-    return hcells.span();
+    return std::span(hcells.span());
   }
 
   static void init_meta_field(
@@ -233,7 +233,7 @@ private:
   // Add the entities in the hashmap and create needed nodes.
   // After this first step, the top tree entities and nodes are returned. These
   // will build the top tree, shared by all colors.
-  static std::array<std::size_t, 2> make_tree_local_task(
+  static std::array<util::gid, 2> make_tree_local_task(
     typename field<key_t>::template accessor<rw, na> e_keys,
     typename field<key_t>::template accessor<rw, na> n_keys,
     typename field<ntree_data>::template accessor<ro, ro> data_field,
@@ -265,11 +265,11 @@ private:
     auto root_ = hmap.find(key_t::root());
     root_->second.set_color(color);
     {
-      const std::size_t cnode = mf->local.nodes++;
+      const util::id cnode = mf->local.nodes++;
       root_->second.set_node_idx(cnode);
       n_keys(cnode) = root_->second.key();
     }
-    std::size_t current_depth = key_t::max_depth();
+    auto current_depth = key_t::max_depth();
     // Entity keys, last and current
     key_t lastekey = key_t(0);
     if(color != 0)
@@ -368,11 +368,11 @@ private:
       auto nkey = cur->key();
       if(cur->key() != key_t::root()) {
         assert(cur->idx() == 0);
-        std::size_t cnode = mf->local.nodes++;
+        const util::id cnode = mf->local.nodes++;
         cur->set_node_idx(cnode);
         n_keys(cnode) = cur->key();
       }
-      for(std::size_t j = 0; j < nchildren_; ++j) {
+      for(Children j = 0; j < nchildren_; ++j) {
         if(cur->has_child(j)) {
           auto it = hmap.find(nkey.push(j));
           if(it->second.is_node())
@@ -380,7 +380,7 @@ private:
         }
       } // for
     } // while
-    std::size_t count_ents = 0, count_nodes = 0;
+    util::gid count_ents = 0, count_nodes = 0;
     top_tree_boundaries<true>(hmap, count_ents, count_nodes);
     return {count_ents, count_nodes};
   } // make_tree
@@ -400,7 +400,7 @@ private:
     T & count_accessor_ents,
     T & count_accessor_nodes) {
 
-    [[maybe_unused]] std::size_t count_ents = 0, count_nodes = 0;
+    [[maybe_unused]] util::gid count_ents = 0, count_nodes = 0;
 
     auto color = run::context::instance().color();
     std::vector<hcell_t *> queue;
@@ -412,7 +412,7 @@ private:
         key_t nkey = cur->key();
         if(cur->is_node() && cur->is_incomplete()) {
           assert(cur->type() != 0);
-          for(std::size_t j = 0; j < nchildren_; ++j) {
+          for(Children j = 0; j < nchildren_; ++j) {
             if(cur->has_child(j)) {
               nqueue.push_back(&hmap.at(nkey.push(j)));
             }
@@ -450,7 +450,7 @@ private:
     auto parent = hmap.end();
     while((parent = hmap.find(key)) == hmap.end()) {
       parent = hmap.insert(key, key);
-      const std::size_t cnode = mf->local.nodes++;
+      const util::id cnode = mf->local.nodes++;
       parent->second.set_node_idx(cnode);
       n_keys(cnode) = key;
       parent->second.add_child(child);
@@ -462,7 +462,7 @@ private:
     parent->second.add_child(child);
   }
 
-  static void load_shared_entity(const std::size_t & c,
+  static void load_shared_entity(const Color & c,
     const key_t & k,
     hmap_t & hmap,
     typename field<meta_type, data::single>::template accessor<rw> mf,
@@ -484,7 +484,7 @@ private:
     }
   }
 
-  static void load_shared_node(const std::size_t & c,
+  static void load_shared_node(const Color & c,
     const key_t & k,
     hmap_t & hmap,
     typename field<meta_type, data::single>::template accessor<rw> mf,
@@ -604,7 +604,7 @@ private:
 
   template<index_space E = entities>
   static void copy_sizes_top_tree_task(topo::resize::Field::accessor<wo> a,
-    future<std::array<std::size_t, 2>> b) noexcept {
+    future<std::array<util::gid, 2>> b) noexcept {
     a = b.get()[E != entities];
   }
 
@@ -672,7 +672,7 @@ private:
     typename field<meta_type, data::single>::template accessor<ro> mf,
     typename field<h_s_t>::template accessor<ro, na> ids) noexcept {
     util::id idx = mf->local.ents;
-    for(std::size_t j = 0; j < mf->nents_recv_2; ++j) {
+    for(util::id j = 0; j < mf->nents_recv_2; ++j) {
       assert(ids[j].first.color() != run::context::instance().color());
       a(idx++) =
         data::copy_engine::point(ids[j].first.color(), ids[j].first.idx());
@@ -805,7 +805,7 @@ private:
     for(Color c = 0; c < run::context::instance().colors(); ++c) {
       if(c != color) {
         auto w = mv[cur].write();
-        for(std::size_t i = 0; i < f.span().size(); ++i) {
+        for(util::id i = 0; i < f.span().size(); ++i) {
           if(f[i].color == c && !w(a(f[i].id))) {
             restart(cur) = i;
             break;
@@ -825,7 +825,7 @@ private:
     for(Color c = 0; c < run::context::instance().colors(); ++c) {
       if(c != color) {
         auto w = mv[cur].write();
-        for(std::size_t i = 0; i < f.span().size(); ++i) {
+        for(util::id i = 0; i < f.span().size(); ++i) {
           if(f[i].second == c && !w(f[i])) {
             restart(cur) = i;
             break;
@@ -845,7 +845,7 @@ private:
     typename field<Color>::template accessor<rw, na> e_c) noexcept {
 
     // Read
-    std::size_t cs = run::context::instance().colors();
+    const Color cs = run::context::instance().colors();
     int cur = 0;
     util::id idx = m->local.ents;
     const auto color = run::context::instance().color();
@@ -868,7 +868,7 @@ private:
         bool done = true;
         if(restart(cur) != 0) {
           auto w = mv[cur].write();
-          for(std::size_t i = restart(c); i < f.span().size(); ++i) {
+          for(util::id i = restart(c); i < f.span().size(); ++i) {
             if(f[i].color == c && !w(a(f[i].id))) {
               restart(cur) = i;
               done = false;
@@ -892,7 +892,7 @@ private:
     data::buffers::Transfer mv,
     typename field<h_s_t>::template accessor<ro, na> f) noexcept {
     // Read
-    std::size_t cs = run::context::instance().colors();
+    const Color cs = run::context::instance().colors();
     int cur = 0;
     const auto color = run::context::instance().color();
     for(Color c = 0; c < cs; ++c) {
@@ -913,7 +913,7 @@ private:
         bool done = true;
         if(restart(cur) != 0) {
           auto w = mv[cur].write();
-          for(std::size_t i = restart(c); i < f.span().size(); ++i) {
+          for(util::id i = restart(c); i < f.span().size(); ++i) {
             if(f[i].second == c && !w(f[i])) {
               restart(cur) = i;
               done = false;
@@ -969,7 +969,7 @@ private:
     typename field<h_s_t>::template accessor<ro, na> recv) noexcept {
     auto hmap = map(hcells);
     auto c = run::context::instance().color();
-    for(std::size_t i = 0; i < mf->nents_recv_2; ++i) {
+    for(util::id i = 0; i < mf->nents_recv_2; ++i) {
       auto key = recv[i].first.key();
       auto f = hmap.find(key);
       if(f == hmap.end()) {
@@ -1244,7 +1244,7 @@ public:
   // strictly internal, we are using a const_cast to get an unprotected access
   // to the field.
   FLECSI_INLINE_TARGET hmap_t map() const {
-    return util::span<hmap_pair_t>(
+    return std::span<hmap_pair_t>(
       const_cast<hmap_pair_t *>(hcells.span().data()), hcells.span().size());
   }
 
@@ -1260,7 +1260,7 @@ public:
       // Intersection
       if(f(cur) && cur->has_child()) {
         auto nkey = cur->key();
-        for(std::size_t j = 0; j < nchildren_; ++j) {
+        for(Children j = 0; j < nchildren_; ++j) {
           if(cur->has_child(j)) {
             tqueue.push(&hmap.at(nkey.push(j)));
           } // if
@@ -1273,13 +1273,12 @@ public:
   void find_intersect_entities(T count_accessor) const {
     auto hmap = map();
     const auto cs = run::context::instance().colors();
-    [[maybe_unused]] std::size_t count = 0;
+    [[maybe_unused]] util::id count = 0;
     // Make a tree traversal per last elements in the intersection field.
     // Caution entities can be detected several time for the same neighbor.
     std::vector<std::set<hcell_t>> send_ids(cs);
-    std::size_t start = mf->local.ents;
-    std::size_t stop = start + mf->nents_recv;
-    for(std::size_t i = start; i < stop; ++i) {
+    const util::id start = mf->local.ents, stop = start + mf->nents_recv;
+    for(util::id i = start; i < stop; ++i) {
       ent_id id(i);
       auto tcolor = e_colors[i];
       assert(tcolor != run::context::instance().color());
@@ -1302,7 +1301,7 @@ public:
         hmap);
     } // for
     // Add all the std::sets to the end vector to create the copy plan
-    for(std::size_t i = 0; i < cs; ++i) {
+    for(Color i = 0; i < cs; ++i) {
       if constexpr(C)
         count_accessor[i] = send_ids[i].size();
       else {
@@ -1323,8 +1322,8 @@ public:
       count = 0;
 
     auto hmap = map();
-    for(std::size_t i = 0; i < mf->local.ents; ++i) {
-      std::set<std::size_t> send_colors;
+    for(util::id i = 0; i < mf->local.ents; ++i) {
+      std::set<Color> send_colors;
       ent_id id(i);
       traversal(
         &hmap.at(key_t::root()),
@@ -1394,7 +1393,7 @@ public:
     auto nkey = n_keys[node_id];
     auto hmap = map();
     auto cur = &(hmap.find(nkey)->second);
-    for(std::size_t j = 0; j < nchildren_; ++j) {
+    for(Children j = 0; j < nchildren_; ++j) {
       if(cur->has_child(j)) {
         auto it = hmap.find(nkey.push(j));
         if(it->second.is_ent()) {
@@ -1451,7 +1450,7 @@ public:
     auto nkey = n_keys[node_id];
     auto hmap = map();
     auto cur = &(hmap.find(nkey)->second);
-    for(std::size_t j = 0; j < nchildren_; ++j) {
+    for(Children j = 0; j < nchildren_; ++j) {
       if(cur->has_child(j)) {
         auto it = hmap.find(nkey.push(j));
         if(it->second.is_node()) {
@@ -1476,7 +1475,7 @@ public:
       tqueue.pop();
       assert(cur->is_node());
       auto nkey = cur->key();
-      for(std::size_t j = 0; j < nchildren_; ++j) {
+      for(Children j = 0; j < nchildren_; ++j) {
         if(cur->has_child(j)) {
           auto it = hmap.find(nkey.push(j));
           if(it->second.is_node()) {
@@ -1508,7 +1507,7 @@ public:
         hcell_t * cur = stk.top();
         stk.pop();
         auto nkey = cur->key();
-        for(std::size_t j = 0; j < nchildren_; ++j) {
+        for(Children j = 0; j < nchildren_; ++j) {
           if(cur->has_child(j)) {
             auto it = hmap.find(nkey.push(j));
             if(it->second.is_node()) {
@@ -1548,8 +1547,8 @@ public:
         else {
           ids.push_back(id<index_space::nodes>(cur->idx()));
         }
-        for(std::size_t j = 0; j < nchildren_; ++j) {
-          const std::size_t child =
+        for(Children j = 0; j < nchildren_; ++j) {
+          const Children child =
             nchildren_ - 1 - j; // Take children in reverse order
           if(cur->has_child(child)) {
             auto it = hmap.find(nkey.push(child));
@@ -1618,7 +1617,7 @@ public:
           node, "shape", completeness[cur->is_complete()].second);
         gv.set_node_attribute(node, "color", locality[cur->is_local()].second);
         // Add the child to the stack and add for display
-        for(std::size_t i = 0; i < nchildren_; ++i) {
+        for(Children i = 0; i < nchildren_; ++i) {
           auto it = hmap.find(cur->key().push(i));
           if(it != hmap.end()) {
             stk.push(std::pair(&it->second, node));

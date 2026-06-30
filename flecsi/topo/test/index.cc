@@ -14,7 +14,7 @@ struct Noisy {
     ++count;
   }
   Noisy * p = this;
-  static inline std::atomic<std::size_t> count;
+  static inline std::atomic<run::task_idx> count;
 };
 
 using double_field = field<double, single>;
@@ -48,7 +48,7 @@ drows(exec::cpu s, double_at::mutator<wo> mm) noexcept {
   UNIT("TASK") {
     const auto me = s.launch().index;
     const auto && m = mm[0];
-    for(std::size_t c = 0; c <= me; ++c)
+    for(Color c = 0; c <= me; ++c)
       m.try_emplace(column + c, me + c);
     for(const auto && p : m)
       EXPECT_EQ(p.first - column, p.second - me);
@@ -95,7 +95,7 @@ assign(exec::cpu s,
   flog(info) << "assign on " << i << std::endl;
   p = i;
   static_assert(std::is_same_v<decltype(r.get_offsets().span()),
-    util::span<const std::size_t>>);
+    util::span<const util::id>>);
   r[0].back() = 1;
   ++sp[0](column + i);
 } // assign
@@ -111,7 +111,7 @@ binit(boolN::mutator<wo> m) noexcept {
   };
 }
 
-std::size_t
+run::task_idx
 reset(noisy::accessor<wo> a) noexcept { // must be an MPI task for correct total
   return Noisy::count + (a->p != &*a);
 }

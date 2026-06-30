@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <iterator>
 #include <memory>
+#include <span>
 #include <stack>
 
 namespace flecsi {
@@ -171,7 +172,7 @@ private:
 template<class R, typename T>
 struct reduction_accessor : bind_tag {
   using element_type = T;
-  using size_type = typename util::span<element_type>::size_type;
+  using size_type = typename std::span<element_type>::size_type;
 
   /// Prepare to update en element.
   /// \return a callable that merges its \p T argument into the field element
@@ -179,7 +180,7 @@ struct reduction_accessor : bind_tag {
     return [&v = s[index]](const T & r) { v = R::combine(v, r); };
   }
 
-  void bind(util::span<element_type> x) { // for bind_accessors
+  void bind(std::span<element_type> x) { // for bind_accessors
     s = x;
   }
 
@@ -189,7 +190,7 @@ struct reduction_accessor : bind_tag {
   }
 
 private:
-  util::span<element_type> s;
+  std::span<element_type> s;
 };
 
 /// Accessor for potentially uninitialized memory.
@@ -200,17 +201,16 @@ struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
   using element_type = detail::element_t<DATA_TYPE, PRIVILEGES>;
 
   /// Get the allocated memory.
-  /// \return \c util::span
-  FLECSI_INLINE_TARGET auto span() const {
+  FLECSI_INLINE_TARGET util::span<element_type> span() const {
     return s;
   }
 
-  void bind(util::span<element_type> x) { // for bind_accessors
+  void bind(std::span<element_type> x) { // for bind_accessors
     s = x;
   }
 
 private:
-  util::span<element_type> s;
+  std::span<element_type> s;
 }; // struct accessor
 
 /// Accessor for ordinary fields.
@@ -270,7 +270,7 @@ struct ragged_accessor
     util::with_index_iterator<const ragged_accessor<T, P, OP>> {
   using base_type = typename ragged_accessor::accessor;
   using typename base_type::element_type;
-  using Offsets = accessor<dense, std::size_t, OP>;
+  using Offsets = accessor<dense, util::id, OP>;
   using Offset = typename Offsets::value_type;
   using size_type = typename Offsets::size_type;
   using row = util::span<element_type>;
@@ -470,7 +470,10 @@ public:
     }
 
     size_type max_size() const noexcept {
-      return overflow->buffer.max_size();
+      // C++26's std::saturating_cast:
+      return std::clamp(overflow->buffer.max_size(),
+        {},
+        {std::numeric_limits<util::id>::max()});
     }
 
     size_type capacity() const noexcept {
@@ -1209,31 +1212,31 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   /// \{
 
   /// <a></a>
-  FLECSI_INLINE_TARGET size_type size() const {
+  FLECSI_INLINE_TARGET size_type size() const noexcept {
     const auto s = this->span();
     const auto n = s.size();
     const auto i = n ? s.front().skip : 0;
     return i == n ? n : s[i].free.prev;
   }
-  FLECSI_INLINE_TARGET size_type capacity() const {
+  FLECSI_INLINE_TARGET size_type capacity() const noexcept {
     return this->span().size();
   }
-  [[nodiscard]] FLECSI_INLINE_TARGET bool empty() const {
+  [[nodiscard]] FLECSI_INLINE_TARGET bool empty() const noexcept {
     return !size();
   }
 
-  FLECSI_INLINE_TARGET iterator begin() const {
+  FLECSI_INLINE_TARGET iterator begin() const noexcept {
     const auto s = this->span();
     return {this, s.empty() || s.front().skip ? 0 : 1 + first_skip()};
   }
-  FLECSI_INLINE_TARGET iterator end() const {
+  FLECSI_INLINE_TARGET iterator end() const noexcept {
     return {this, capacity()};
   }
 
   /// Implements \c std::hive::get_iterator.
   /// \c T must be standard-layout.
   FLECSI_INLINE_TARGET iterator get_iterator_from_pointer(
-    element_type * the_pointer) const {
+    element_type * the_pointer) const noexcept {
     static_assert(std::is_standard_layout_v<Particle>);
     const auto * const p = reinterpret_cast<Particle *>(the_pointer);
     const auto ret = p - this->span().data();
@@ -1302,7 +1305,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   /// \{
 
   /// <a></a>
-  FLECSI_INLINE_TARGET void clear() const {
+  FLECSI_INLINE_TARGET void clear() const noexcept {
     if(!std::is_trivially_destructible_v<T>)
       std::destroy(this->begin(), this->end());
     init();
@@ -1349,7 +1352,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
     const Skip end = i > 1 ? rm[-1].skip : 0, // adjacent empty run lengths
       beg = i && i < n - 1 ? rm[1].skip : 0;
     if(i)
-      rm[-end].skip = rm[beg].skip = beg + end + 1; // set up new run
+      (rm - end)->skip = rm[beg].skip = beg + end + 1; // set up new run
 
     if(end)
       rm->reset(); // no links in middle of run
@@ -1388,7 +1391,7 @@ private:
   FLECSI_INLINE_TARGET void init() const {
     const auto s = this->span();
     std::uninitialized_default_construct(s.begin(), s.end());
-    if(const auto n = s.size()) {
+    if(const typename mutator::Particle::size_type n = s.size()) {
       auto & a = s.front();
       a.free = {0, 1};
       a.skip = 0;
@@ -1484,7 +1487,7 @@ struct multi : send_tag {
   /// \return a sized random-access range of color-accessor pairs
   auto components() const {
     return util::transform_view(
-      util::span(v), [](const round & r) -> std::pair<Color, const A &> {
+      std::span(v), [](const round & r) -> std::pair<Color, const A &> {
         return {r.row, r.a};
       });
   }
@@ -1525,7 +1528,7 @@ private:
   template<class V>
   static auto xform(V & v) {
     return util::transform_view(
-      util::span(v), [](auto & r) -> auto & { return r.a; });
+      std::span(v), [](auto & r) -> auto & { return r.a; });
   }
 
   std::vector<round> v;

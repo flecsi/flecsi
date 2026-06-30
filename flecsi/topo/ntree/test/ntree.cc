@@ -45,7 +45,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   static constexpr util::id max_neighbors = 13;
 
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 2;
 
   using ent_t = sort_entity<dimension, double, key_t>;
   using node_t = flecsi::topo::node<dimension, double, key_t>;

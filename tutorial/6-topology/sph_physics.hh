@@ -83,10 +83,10 @@ template<typename T>
 void
 init_base(T e,
   flecsi::util::span<flecsi::util::id> id,
-  std::size_t global_nents,
-  std::size_t offset) {
+  flecsi::util::gid global_nents,
+  flecsi::util::gid offset) {
   const double h = 1. / static_cast<double>(global_nents);
-  for(std::size_t i = 0; i < e.size(); ++i) {
+  for(typename T::size_type i = 0; i < e.size(); ++i) {
     e[i].radius = 2 * h + h / 4.;
     e[i].coordinates = h * (offset + i);
     id[i] = offset + i;
