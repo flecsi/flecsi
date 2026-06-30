@@ -324,14 +324,11 @@ struct unstructured_base : base {
       cga cgraph_shared,
       data::buffers::Transfer mv) noexcept {
       // find the number of send buffers
-      int p = 0;
-      for(auto ps : cgraph_shared) { // over peers
-        if(!ps.empty())
-          ++p;
-      }
+      int p = cgraph_shared.size();
       for(auto pg : cgraph) { // over peers
         if(!pg.empty())
-          data::buffers::ragged::read(g, mv[p++], pg);
+          data::buffers::ragged::read(g, mv[p], pg);
+        ++p;
       }
 
       // resume transfer if data was not fully packed during start
@@ -345,13 +342,14 @@ struct unstructured_base : base {
       bool sent = false;
       for(auto pg : cgraph_shared) { // over peers
         if(!pg.empty()) {
-          auto b = data::buffers::ragged{mv[p++], first};
+          auto b = data::buffers::ragged{mv[p], first};
           for(auto & ent : pg) { // send data on shared entities
             if(!b(f, ent, sent))
               return sent; // if no more data can be packed, stop sending, will
                            // be packed by xfer
           }
         }
+        ++p;
       }
       return sent;
     } // send
