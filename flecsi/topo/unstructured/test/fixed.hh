@@ -5,6 +5,7 @@
 #include "flecsi/execution.hh"
 #include "flecsi/topo/unstructured/interface.hh"
 #include "flecsi/topo/unstructured/types.hh"
+#include "flecsi/util/geometry/point.hh"
 #include "simple_definition.hh"
 
 #include <string>
@@ -39,9 +40,14 @@ struct fixed_mesh
     vertices>
     vid;
 
+  using point = flecsi::util::point<double, 2>;
+  static const inline flecsi::field<point>::definition<fixed_mesh, vertices>
+    coords;
+
   struct init {
     std::vector<std::vector<flecsi::util::gid>> cid;
     std::vector<std::vector<flecsi::util::gid>> vid;
+    std::vector<std::vector<point>> vertex_coords;
     std::vector<flecsi::util::crs> c2v_connectivity;
   };
 
@@ -97,6 +103,7 @@ struct fixed_mesh
     simple_definition sd(filename + "." + std::to_string(r.process()));
     fields.cid.push_back(std::move(sd.l2g_cells));
     fields.vid.push_back(std::move(sd.l2g_vertices));
+    fields.vertex_coords.push_back(std::move(sd.vertex_coords));
     fields.c2v_connectivity.push_back(std::move(sd.c2v));
     return {// number of global colors
       ncolors,
@@ -131,14 +138,20 @@ struct fixed_mesh
       flecsi::util::gid>::accessor<flecsi::wo, flecsi::wo, flecsi::na>> mcid,
     flecsi::data::multi<flecsi::field<
       flecsi::util::gid>::accessor<flecsi::wo, flecsi::wo, flecsi::na>> mvid,
+    flecsi::data::multi<
+      flecsi::field<point>::accessor<flecsi::wo, flecsi::wo, flecsi::na>>
+      mcoords,
     const std::vector<std::vector<flecsi::util::gid>> & cid,
-    const std::vector<std::vector<flecsi::util::gid>> & vid) {
+    const std::vector<std::vector<flecsi::util::gid>> & vid,
+    const std::vector<std::vector<point>> & coords) {
     const auto ma = m.accessors();
     auto acid = mcid.accessors();
     auto avid = mvid.accessors();
+    auto acoords = mcoords.accessors();
     for(unsigned int i = 0; i < m.depth(); ++i) {
       for(auto v : ma[i].vertices()) {
         avid[i][v] = vid[i][v];
+        acoords[i][v] = coords[i][v];
       }
       for(auto c : ma[i].cells()) {
         acid[i][c] = cid[i][c];
@@ -256,7 +269,13 @@ struct fixed_mesh
     init_list<index_space::vertices, entity_list::shared>(s, m, c);
     init_list<index_space::vertices, entity_list::ghost>(s, m, c);
 
-    execute<init_mesh_ids, mpi>(lm, cid(lm), vid(lm), fields.cid, fields.vid);
+    execute<init_mesh_ids, mpi>(lm,
+      cid(lm),
+      vid(lm),
+      coords(lm),
+      fields.cid,
+      fields.vid,
+      fields.vertex_coords);
   } // initialize
 }; // struct fixed_mesh
 
