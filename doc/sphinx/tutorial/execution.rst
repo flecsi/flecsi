@@ -107,16 +107,11 @@ An execution space parameter also controls where the task runs; ``exec::cpu`` is
   :start-at: // Task with special arguments.
   :end-at: // advance()
 
-Example 3: MPI Tasks
+Example 3: Using MPI
 ++++++++++++++++++++
 
-MPI task is an index task that has launch domain size equal to number of
-processes and index points mapped to corresponding MPI ranks.
-Executing an
-MPI task adds synchronization between Legion and MPI and, therefore,
-should only be used when one needs to call MPI library.  
-To execute an MPI task, ``flecsi::execute`` must be used, with its second template argument set to ``mpi``.
-The ``launch`` information provided is equivalent to ``process`` and ``processes``.
+A task can declare a ``comm::ref`` parameter to use an MPI communicator.
+Each point task is mapped to the corresponding MPI rank, so with ``comm::world()`` the ``launch`` information provided is equivalent to ``process`` and ``processes``.
 
 .. literalinclude:: ../../../tutorial/3-execution/3-mpi-task.cc
   :language: cpp

@@ -113,7 +113,7 @@ initialize_action(flaxpy::control_policy & policy) {
   auto & sch = policy.scheduler();
   // Specify one color per process.
   sch.allocate(policy.dist_vector_ptr,
-    flaxpy::dist_vector::mpi_coloring(sch, sch.runtime().processes()));
+    flaxpy::dist_vector::color(sch.runtime().processes()));
   sch.execute<initialize_vectors_task>(
     flecsi::exec::on, x_field(policy.vector()), y_field(policy.vector()));
 }

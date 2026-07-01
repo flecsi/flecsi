@@ -51,50 +51,28 @@ using topology = topo::topology<Topo, typename Topo::base>;
 /*!
   Execute a reduction task.
 
-  @tparam Reduction  The reduction operation type.
-  \return a \ref future providing the reduced return value
-
-  \see \c execute about parameter and argument types.
-
   \ns.
+  \deprecated Use \c scheduler::reduce with \c Attributes replacements.
  */
 template<auto & Task,
   class Reduction,
   TaskAttributes Attributes = flecsi::loc | flecsi::leaf,
   typename... Args>
-[[nodiscard]] auto reduce(Args &&...);
+[[deprecated("use scheduler::reduce")]] [[nodiscard]] auto reduce(Args &&...);
 
 /*!
   Execute a task.
 
-  @tparam TASK          The user task.
-    Its parameters must be copyable or a reference to a const, movable type.
-    Any that is a pointer must be to a const type or to a function.
-    If \a ATTRIBUTES specifies an MPI task, parameters need merely be movable,
-    though the temporary objects to which any references bind must be movable
-    and must not themselves bind references to temporaries.
   @tparam ATTRIBUTES    The task attributes mask.
-  @tparam ARGS The user-specified task arguments, implicitly converted to the
-    parameter types for \a TASK.
-    Certain FleCSI-defined parameter types accept particular, different
-    argument types that serve as selectors for information stored by the
-    backend; each type involved documents the correspondence.
-    User-defined classes can extend this mechanism by inheriting from
-    \c params_tag or \c arg_tag.
-    If a parameter and its argument are each (a reference to)
-    a \c std::vector, a \c std::optional,
-    or a \c std::tuple or \c std::variant (of the same size), their elements
-    are treated as
-    separate parameters/arguments (with the unusual corollary that a
-    `std::vector<int>` matches a parameter of type `std::vector<long>`).
-  \return a \ref future providing the value(s) returned from the task
 
   \ns.
+  \deprecated Use \c scheduler::execute with \c ATTRIBUTES replacements.
  */
 
 template<auto & TASK,
   TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::leaf,
   typename... ARGS>
+[[deprecated("use scheduler::execute")]]
 auto
 execute(ARGS &&... args) {
   return reduce<TASK, void, ATTRIBUTES>(std::forward<ARGS>(args)...);
@@ -104,7 +82,6 @@ struct runtime;
 
 /// Launches tasks according to their execution-space (template) parameters.
 /// An instance is passed to control-model actions that accept it.
-/// \note MPI tasks cannot use this interface.
 struct scheduler {
   explicit scheduler(flecsi::runtime & r) : r(r) {}
   /// Immovable.
@@ -132,19 +109,37 @@ struct scheduler {
     return reduce<F, R, false>(std::forward<AA>(aa)...);
   }
   /// Launch a task.
+  /// \tparam F Task function.
+  ///   Its parameters must be copyable or references to const, movable types.
+  ///   Any that is a pointer must be to a const type or to a function.
+  /// \param aa The user-specified task arguments, implicitly converted to the
+  ///   parameter types for \a F.
+  ///   Certain FleCSI-defined parameter types accept particular, different
+  ///   argument types that serve as selectors for information stored by the
+  ///   backend; each type involved documents the correspondence.
+  ///   User-defined classes can extend this mechanism by inheriting from
+  ///   \c params_tag or \c arg_tag.
+  ///   If a parameter and its argument are each (a reference to) a \c
+  ///   std::vector, a \c std::optional, or a \c std::tuple or \c std::variant
+  ///   (of the same size), their elements are treated as separate
+  ///   parameters/arguments (with the unusual corollary that a
+  ///   `std::vector<int>` matches a parameter of type `std::vector<long>`).
+  /// \return a \ref future providing the value(s) returned from the task
   template<auto & F, class... AA>
   auto execute(AA &&... aa) {
     return reduce<F, void>(std::forward<AA>(aa)...);
   }
   /// Execute a test task.
+  /// A test task must return an integer that is zero on success.
+  /// \return zero on (complete) success
+  /// \see \c execute about parameter and argument types.
   template<auto &, class... AA>
   [[nodiscard]] int test(AA &&...);
 
   /// Create a topology instance with specialization support.
   /// Calls the specialization's \c initialize on the topology instance.
   /// \param p where to store the topology
-  /// \param c coloring (perhaps from an \link
-  ///   topo::specialization::mpi_coloring `mpi_coloring`\endlink)
+  /// \param c coloring
   /// \param aa further specialization-specific parameters
   /// \return the new instance
   template<class T, class... AA>

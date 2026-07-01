@@ -16,6 +16,7 @@ using TaskAttributes = unsigned;
 
 /*!
   Task attribute flags.  \ns.
+  \deprecated Used only with \c flecsi::execute and \c flecsi::reduce.
  */
 
 enum task_attributes_mask_t : TaskAttributes {
@@ -25,26 +26,32 @@ enum task_attributes_mask_t : TaskAttributes {
   /// \deprecated No effect.
   idempotent [[deprecated("has no effect")]] = 0x10,
   synchronous_impl = 0x20, // implied by mpi
-  loc = 0, ///< Run on a Latency-Optimized Core (a CPU).
+  /// Run on a Latency-Optimized Core (a CPU).
+  /// \deprecated Use \c exec::cpu.
+  loc = 0,
   /// Run on a Throughput-Optimized Core (a GPU).
   /// The task function itself still runs on the host, but a GPU is reserved
   /// for its use and field data is made available there.
-  ///
-  /// \warning MPI backend: Running one process per node likely
-  ///          leads to poor performance.
+  /// \deprecated Use \c exec::gpu.
   toc,
   /// Run as an OpenMP task
   ///
   /// \note Legion backend: Can improve OpenMP task execution, since Legion
   ///       knows to assign an entire node to such a task
-  ///
-  /// \warning MPI backend: Running one process per core likely
-  ///          leads to poor performance.
+  /// \deprecated Use \c exec::omp.
   omp,
   /// Run simultaneously on all processes with field data stored on the host
   /// with the obvious color mapping;
   /// allow MPI communication among point tasks, at the cost of significant
   /// startup overhead.
+  /// \deprecated Use the needed subset of
+  ///   - \c scheduler::wait: finish previous tasks first
+  ///   - \c task_class::synchronous: wait on the task to run and let
+  ///     reference parameters bind to arguments (but pointer parameters can
+  ///     also be used to avoid copies of objects with sufficient lifetime)
+  ///   - \c exec::group: run each point task on the corresponding process and
+  ///     support mutation through parameters
+  ///   - <code>\ref communicator</code>: further, allow MPI usage
   mpi
 }; // task_attributes_mask_t
 

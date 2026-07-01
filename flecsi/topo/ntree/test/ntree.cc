@@ -69,7 +69,9 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   using freader = txt_definition<key_t, sph_ntree_t::dimension>;
 
   static void init_fields(data::multi<sph_ntree_t::accessor<wo, wo>> t,
-    freader & hd) {
+    freader * f,
+    exec::group::match) noexcept {
+    auto & hd = *f;
     for(auto [c, a] : t.components()) {
       hd.read_entities(c);
       for(auto i : a.entities()) {
@@ -88,7 +90,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     const coloring &,
     std::optional<freader> & hd) { // for syntactic convenience
     auto lm = data::launch::make(s, nt);
-    flecsi::execute<init_fields, flecsi::mpi>(lm, *hd);
+    s.execute<init_fields>(lm, &*hd, exec::group::world()).wait();
   }
 
   static void build_ntree(flecsi::scheduler & s, sph_ntree_t::topology & nt) {
@@ -295,8 +297,7 @@ ntree_driver(scheduler & s) {
 
     {
       std::optional<sph_ntree_t::freader> hd;
-      s.allocate(
-        p, sph_ntree_t::mpi_coloring(s, "coordinates.blessed", hd), hd);
+      s.allocate(p, sph_ntree_t::color("coordinates.blessed", hd), hd);
     }
     auto & sph_ntree = *p;
 

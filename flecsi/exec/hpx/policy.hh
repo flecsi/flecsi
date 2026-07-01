@@ -54,9 +54,6 @@ reduce_internal(Args &&... args) {
   // attributes associated with the arguments.
   prolog<launch::proc> bound_params(params, args...);
 
-  // Drain all current tasks before scheduling a flecsi::mpi task (the prolog
-  // handling may schedule additional tasks, like ghost-copy operations that
-  // should finish running as well).
   if constexpr(launch::mpi)
     scheduler::instance->wait();
 

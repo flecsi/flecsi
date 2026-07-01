@@ -112,11 +112,11 @@ binit(boolN::mutator<wo> m) noexcept {
 }
 
 std::size_t
-reset(noisy::accessor<wo> a) noexcept { // must be an MPI task for correct total
+reset(noisy::accessor<wo> a, exec::group::match) noexcept {
   return Noisy::count + (a->p != &*a);
 }
 void
-use_ptr(field<int *>::accessor<wo>) {} // must be an MPI task
+use_ptr(field<int *>::accessor<wo>, exec::group::match) noexcept {}
 
 // The unnamed mutator still allocates according to the growth policy.
 void
@@ -278,9 +278,10 @@ index_driver(scheduler & s) {
     EXPECT_EQ(s.test<drows>(exec::on, vfrac), 0);
     s.execute<assign>(exec::on, pressure, verts, vfrac);
     EXPECT_EQ(s.test<binit>(bool_field(pt)), 0);
-    s.execute<reset>(noise);
-    EXPECT_EQ((reduce<reset, exec::fold::sum, flecsi::mpi>(noise).get()), np);
-    execute<use_ptr, flecsi::mpi>(ptr_field(pt));
+    const auto grp = exec::group::world();
+    s.execute<reset>(noise, grp);
+    EXPECT_EQ((s.reduce<reset, exec::fold::sum>(noise, grp).get()), np);
+    s.execute<use_ptr>(ptr_field(pt), grp);
 
     // Rotate the ragged field by one color:
     buffers::topology(s,

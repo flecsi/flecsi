@@ -455,7 +455,7 @@ test_mesh(scheduler & s,
     idef.diagonals = diagonals;
     idef.full_ghosts = full_ghosts;
 
-    typename mesh<D>::topology m(s, typename mesh<D>::mpi_coloring(s, idef));
+    typename mesh<D>::topology m(s, mesh<D>::color(idef));
 
     s.execute<init_field>(exec::on, f(m));
 
@@ -510,7 +510,7 @@ narray_driver(scheduler & s) {
         idef.diagonals = true;
         idef.full_ghosts = true;
 
-        return mesh1d::mpi_coloring(s, idef);
+        return mesh1d::color(idef);
       }());
 
       s.execute<init_field>(exec::on, f1(m1));
@@ -732,7 +732,7 @@ narray_driver(scheduler & s) {
         idef.diagonals = true;
         idef.full_ghosts = true;
 
-        return mesh4d::mpi_coloring(s, idef);
+        return mesh4d::color(idef);
       }());
       EXPECT_EQ(s.test<check_4dmesh>(m4), 0);
     }

@@ -129,27 +129,30 @@ seq(const T & s, F f) noexcept {
   }(flog_info("s(")); // keep temporary alive throughout
 }
 
-void
-mpi(int * p, const short & s, int i, exec::point_mutex::lease) {
-  *p = s == i; // check argument conversions
-}
-
 } // namespace hydro
 
 namespace {
 struct synch {
-  static void task(const std::atomic<int> &) noexcept {} // immovable
+  static int task(const short & s, // check argument conversions
+    int i,
+    const std::atomic<int> & /* immovable */) noexcept {
+    return s - i;
+  }
   static constexpr bool synchronous = true;
 };
 
 void
 pm(exec::point_mutex::lease) noexcept {}
-int
-half_mpi(exec::cpu s, comm::ref c, exec::launch_domain) noexcept {
-  UNIT() {
-    EXPECT_EQ(util::mpi::size(c), s.launch().size);
-    EXPECT_EQ(util::mpi::rank(c), s.launch().index);
-  };
+void
+half_mpi(exec::cpu s,
+  comm::ref c,
+  int * fail,
+  exec::launch_domain,
+  exec::point_mutex::lease) noexcept {
+  if(util::mpi::size(c) - s.launch().size)
+    ++*fail;
+  if(util::mpi::rank(c) - s.launch().index)
+    ++*fail;
 }
 
 void
@@ -351,15 +354,16 @@ task_driver(scheduler & s) {
     s.execute<hydro::seq<V, decltype(d)>>(
       V{"It's Elementary", "Dear, Dear Data"}, d);
 
-    exec::point_mutex mut;
-    int x = 0;
-    execute<hydro::mpi, mpi>(&x, 1, 1, mut);
-    EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
-
-    s.execute<pm>(mut); // size inherited from mpi
-    EXPECT_EQ(
-      s.test<half_mpi>(exec::on, comm::world(), exec::launch_domain{np}), 0);
-    s.execute<synch>(std::atomic<int>());
+    {
+      exec::point_mutex mut;
+      int fail = 0;
+      s.execute<half_mpi>(
+         exec::on, comm::world(), &fail, exec::launch_domain{np}, mut)
+        .wait();
+      EXPECT_EQ(fail, 0);
+      s.execute<pm>(mut); // size inherited from half_mpi
+    }
+    EXPECT_EQ(s.test<synch>(1, 1, std::atomic<int>()), 0);
 
     s.execute<vb>(std::vector<bool>(1), std::vector<int>());
 

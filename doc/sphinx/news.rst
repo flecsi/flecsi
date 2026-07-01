@@ -22,7 +22,12 @@ Deprecated
 ^^^^^^^^^^
 * Execution
 
+  * ``execute`` and ``reduce`` |mdash| use ``scheduler`` versions, replacing execution-space attributes with parameters and `MPI tasks <api/user/group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a2b3397ca2a09eef67a0b395232aadd4c>`_ with :ref:`strong`
   * ``exec::launch_type_t`` |mdash| use ``future_kind`` as the type (but not for the values)
+
+* Topologies
+
+  * ``mpi_coloring`` |mdash| construct ``coloring`` objects directly, possibly with :ref:`strong` to access non-field data
 
 * Logging
   

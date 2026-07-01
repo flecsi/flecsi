@@ -70,7 +70,6 @@ reduce_internal(Args &&... args) {
     else {
       if(ds != run::context::instance().processes())
         flog_fatal("MPI backend supports only per-process index launches");
-      // Index launch (including "mpi task"): invoke user task on every process.
       if constexpr(!std::is_void_v<Reduction>) {
         static_assert(!std::is_void_v<R>, "cannot reduce void results");
 

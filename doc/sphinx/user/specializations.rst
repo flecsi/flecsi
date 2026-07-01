@@ -32,11 +32,6 @@ The enum is simply defining some names for convenience.  The
 ordering of index spaces.  These names chosen here are not special and
 carry no meaning; they are purely for the convenience of users.
 
-Coloring
-^^^^^^^^
-A specialization can define an MPI task function called ``color``, in which case an application can use ``mpi_coloring`` to launch that task to create a coloring.
-The return type is the coloring type required by its topology category; for example, ``narray`` accepts options like periodicity and ghost halo depth.
-
 Interface
 ^^^^^^^^^
 The topology accessor used by application tasks is based on an interface defined in the specialization called ``interface``.

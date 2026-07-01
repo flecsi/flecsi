@@ -200,7 +200,9 @@ struct group : data::convert_tag {
   /// greater than that of the group).
   ///
   /// Other parameters to such a task may be merely movable and can be
-  /// pointers to non-const types.
+  /// pointers to non-const types.  However, if they are references, the
+  /// temporary objects to which they bind must be movable and must not
+  /// themselves bind references to temporaries.
   struct match {};
   /// A featureless task parameter for using a \c group concurrently.
   /// Beyond the semantics for \c match, point tasks for a task using one run
@@ -897,10 +899,14 @@ struct cpu : space<cpu> {
   static constexpr processor proc = processor::loc;
 };
 /// GPU execution space.
+/// \warning MPI backend: Running one process per node likely
+///          leads to poor performance.
 struct gpu : space<gpu> {
   static constexpr processor proc = processor::toc;
 };
 /// OpenMP execution space.
+/// \warning MPI backend: Running one process per core likely
+///          leads to poor performance.
 struct omp : space<omp> {
   static constexpr processor proc = processor::omp;
 };

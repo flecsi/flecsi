@@ -29,7 +29,7 @@ struct canon : flecsi::topo::specialization<flecsi::topo::unstructured, canon> {
 
   }; // struct interface
 
-  static coloring color(std::string const &) {
+  static coloring read(std::string const &) {
     flog(info) << "invoking coloring" << std::endl;
 
     // clang-format off

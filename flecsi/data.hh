@@ -30,7 +30,7 @@ inline topo::global::slot global_topology;
 
 /*!
   Topology instance with one color per process.
-  \warning The values are not bound to processes except with MPI tasks.
+  \warning The values are not in general bound to processes.
 
   \ns.
   \deprecated Create instances as with any other topology.

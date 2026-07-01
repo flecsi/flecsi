@@ -54,7 +54,9 @@ construct(S && s, F && f) {
 
 template<class T, layout L, Privileges P, bool Span>
 void
-destroy_task(typename field<T, L>::template accessor1<P> a) {
+destroy_task(typename field<T, L>::template accessor1<P> a,
+  std::
+    conditional_t<portable_v<T>, std::nullptr_t, exec::group::match>) noexcept {
   const auto && s = [&] {
     if constexpr(Span)
       return a.span();
@@ -71,11 +73,16 @@ template<Privileges P,
   typename Topo::index_space S>
 void
 destroy(const field_reference<T, L, Topo, S> & r) {
-  execute<destroy_task<T,
-            L,
-            privilege_ghost_repeat<rw, wo, privilege_count(P)>,
-            Span>,
-    portable_v<T> ? loc | leaf : flecsi::mpi>(r);
+  scheduler::instance->execute<destroy_task<T,
+    L,
+    privilege_ghost_repeat<rw, wo, privilege_count(P)>,
+    Span>>(r, [] {
+    if constexpr(portable_v<T>)
+      return nullptr;
+    else
+      // With general groups, we'll want to record which group owns the field.
+      return exec::group::world();
+  }());
 }
 template<class T, Privileges P>
 using element_t = util::maybe_const<!privilege_write(P), T>;

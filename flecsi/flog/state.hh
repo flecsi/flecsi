@@ -30,6 +30,7 @@
 namespace flecsi {
 template<class>
 struct task_local;
+struct comm;
 
 namespace flog {
 /// \addtogroup flog
@@ -52,71 +53,9 @@ public:
   static constexpr std::size_t tag_bits = 1024;
   static constexpr Color all_processes = -1;
 
-  state(const config & cfg)
-    : verb(cfg.verbose), serialization_interval_(cfg.serialization_interval),
-      color_output_(cfg.color), strip_level_(cfg.strip_level) {
-#if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "Flog: initializing runtime"
-              << FLOG_COLOR_PLAIN << std::endl;
-#endif
-
-    // Because active tags are specified at runtime, it is
-    // necessary to maintain a map of the compile-time registered
-    // tag names to the id that they get assigned after the state
-    // initialization (register_tag). This map will be used to populate
-    // the tag_bitset_ for fast runtime comparisons of enabled tag groups.
-
-    // Note: For the time being, the map uses actual strings rather than
-    // hashes. We should consider creating a const_string_t type for
-    // constexpr string creation.
-
-    for(auto & tag : cfg.tags) {
-#ifdef FLOG_ENABLE_DEBUG
-      std::cerr << "Flog: active tag " << std::quoted(tag) << '\n';
-#endif
-      if(tag == "all")
-        tag_bitset_.set();
-      else if(const auto it = tag_map_.find(tag); it != tag_map_.end()) {
-        tag_bitset_.set(it->second);
-      }
-      else {
-        std::cerr << "FLOG WARNING: tag " << tag
-                  << " has not been registered. Ignoring this group..."
-                  << std::endl;
-      }
-    }
-
-#if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "Flog: initializing mpi state"
-              << FLOG_COLOR_PLAIN << std::endl;
-#endif
-
-    {
-      int p, np;
-      MPI_Comm_rank(MPI_COMM_WORLD, &p);
-      MPI_Comm_size(MPI_COMM_WORLD, &np);
-      process_ = p;
-      processes_ = np;
-    }
-
-    source_process_ = static_cast<Color>(cfg.process);
-
-    if(process_ == 0) {
-      flusher_thread_ = std::thread(&state::flush_packets, std::ref(*this));
-    } // if
-  }
+  explicit state(const config &);
   state(state &&) = delete; // address is known to the thread
-
-  ~state() {
-#if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "Flog: state destructor" << std::endl;
-#endif
-    send_to_one(true);
-
-    if(process_ == 0) {
-      flusher_thread_.join();
-    } // if
-  } // finalize
+  ~state();
 
   int verbose() const {
     return verb;
@@ -277,11 +216,11 @@ private:
   using clock = std::chrono::system_clock;
   using packet_t = std::pair<std::chrono::time_point<clock>, std::string>;
 
-  void flush_packets();
-  static void gather(state & s) {
-    s.send_to_one(false);
+  bool communicate() const {
+    return source_process_ && processes_ > 1;
   }
-  void send_to_one(bool last);
+  void flush_packets();
+  void send_to_one(bool last, MPI_Comm);
 
   Color source_process_, process_, processes_;
   std::thread flusher_thread_;
@@ -289,6 +228,10 @@ private:
   std::condition_variable avail;
   std::vector<packet_t> packets_;
   bool stop = false;
+
+  // To avoid circularity:
+  struct gather;
+  std::unique_ptr<comm> commp;
 }; // class state
 inline std::optional<state> state::instance_;
 

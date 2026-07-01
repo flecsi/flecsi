@@ -62,8 +62,3 @@ This guarantee makes more parallel operations correct in such a task, but it can
 
 The corresponding point tasks in each task to which a given ``comm`` is passed as an argument execute in launch order to avoid incorrectly ordered calls to MPI collectives on the communicator.
 This ordering can also reduce parallelism if the tasks use different fields; tasks that are entirely independent should use separate ``comm`` objects.
-
-MPI Tasks
-^^^^^^^^^
-An ``mpi`` task (regardless of backend) has all the properties above (including an implicit call to ``scheduler::wait``).
-Note that return values are still processed in the normal fashion and must be trivially relocatable.

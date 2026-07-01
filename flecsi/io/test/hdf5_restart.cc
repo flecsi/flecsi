@@ -115,7 +115,7 @@ restart_driver(scheduler & s) {
       Color colors{4};
       mesh1d::index_definition idef;
       idef.axes = mesh1d::base::make_axes(colors, indices);
-      return mesh1d::mpi_coloring(s, idef);
+      return mesh1d::color(idef);
     }());
     run::context::instance().add_topology(m);
 

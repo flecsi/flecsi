@@ -22,7 +22,7 @@ struct single {
 } // namespace
 
 int
-interface(exec::cpu s) {
+interface(exec::cpu s, comm::ref comm) noexcept {
   UNIT("TASK") {
     // Assumed that the test is run with 3 threads and 8 colors
     ASSERT_EQ(s.launch().size, 3lu);
@@ -48,15 +48,16 @@ interface(exec::cpu s) {
       EXPECT_EQ(off[2].size(), 3);
     }
 
-    EXPECT_EQ(util::mpi::one_to_alli([](int r) { return single{r}; }, 0).r,
+    EXPECT_EQ(
+      util::mpi::one_to_alli([](int r) { return single{r}; }, 0, comm).r,
       s.launch().index);
   };
 }
 
 int
-color_map(scheduler &) {
+color_map(scheduler & s) {
   UNIT() {
-    EXPECT_EQ((test<interface, mpi>(exec::on)), 0);
+    EXPECT_EQ(s.test<interface>(exec::on, comm::world()), 0);
   };
 }
 
