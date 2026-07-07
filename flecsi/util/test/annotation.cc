@@ -10,7 +10,7 @@
 using namespace flecsi;
 
 std::size_t
-check_custom(double val) {
+check_custom(double val, comm::ref) noexcept {
   return val * 100;
 }
 
@@ -19,7 +19,7 @@ struct test_context : util::annotation::context<test_context> {
 };
 
 void
-wait() {
+wait(comm::ref) noexcept {
   std::this_thread::sleep_for(std::chrono::milliseconds(40));
 }
 
@@ -29,6 +29,7 @@ annotation_driver(scheduler & s) {
     namespace ann = flecsi::util::annotation;
 
     const auto rank = s.runtime().process(), size = s.runtime().processes();
+    auto comm = comm::world(); // convenient bundling
 
     cali::RegionProfile rp;
     rp.start();
@@ -44,11 +45,12 @@ annotation_driver(scheduler & s) {
       auto custom_time = times.find("custom");
       ASSERT_NE(custom_time, times.end());
       auto combined_time =
-        reduce<check_custom, exec::fold::sum, mpi>(custom_time->second).get();
+        s.reduce<check_custom, exec::fold::sum>(custom_time->second, comm)
+          .get();
       EXPECT_GE(combined_time, size * (size + 1) / 2);
     }
 
-    execute<wait, mpi>();
+    s.execute<wait>(comm).wait();
 
     auto times = std::get<0>(rp.exclusive_region_times(ann::execution::name));
     auto wait_time =
@@ -76,7 +78,8 @@ annotation_driver(scheduler & s) {
       if constexpr(ann::detail_level == ann::detail::high) {
         ASSERT_NE(custom_time, times.end());
         auto combined_time =
-          reduce<check_custom, exec::fold::sum, mpi>(custom_time->second).get();
+          s.reduce<check_custom, exec::fold::sum>(custom_time->second, comm)
+            .get();
         EXPECT_GE(combined_time, size * (size + 1) / 2);
       }
       else { // test timer is not included

@@ -54,12 +54,8 @@ reduce_internal(Args &&... args) {
   // attributes associated with the arguments.
   prolog<launch::proc> bound_params(params, args...);
 
-  // Drain all current tasks before scheduling a flecsi::mpi task (the prolog
-  // handling may schedule additional tasks, like ghost-copy operations that
-  // should finish running as well).
-  if constexpr(launch::mpi) {
-    flecsi::run::context::instance().termination_detection();
-  }
+  if constexpr(launch::mpi)
+    scheduler::instance->wait();
 
   const auto delay = [&](auto && f) {
     static constexpr bool need_comm =
@@ -94,7 +90,8 @@ reduce_internal(Args &&... args) {
       std::move(bound_params)
         .template delay_execution<R>(
           util::symbol<F>(), std::move(apply_delayed_prolog)));
-    if(launch::mpi)
+    bound_params.set_future(ret.depend());
+    if(launch::sync)
       ret.wait();
     return ret;
   };
@@ -150,6 +147,12 @@ reduce_internal(Args &&... args) {
 }
 
 } // namespace exec
+
+void
+scheduler::wait() {
+  run::context::instance().termination_detection();
+}
+
 } // namespace flecsi
 
 #endif // FLECSI_EXEC_HPX_POLICY_HH

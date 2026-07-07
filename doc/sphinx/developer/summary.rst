@@ -118,7 +118,7 @@ Layouts
 ^^^^^^^
 
 The backend is expected merely to provide uninitialized storage arrays for each field and ``memcpy`` it appropriately.
-Therefore, ``sizeof(T)`` and the partition size is sufficient information to allocate it, but (if it is used with any non-MPI task) the type must be self-contained and trivially relocatable.
+Therefore, ``sizeof(T)`` and the partition size is sufficient information to allocate it, but (if it is used other than by rank-matched tasks in one memory space) the type must be self-contained and trivially relocatable.
 (This is not a formal C++ classification; note that ``std::tuple<int>`` is not trivially copyable.)
 
 This support is called the ``raw`` `layout`.
@@ -147,13 +147,10 @@ If ``L`` is ``raw``, the field is registered on the global FleCSI `context` with
 Otherwise, the ``definition`` recursively registers appropriate underlying fields (via specializations of the helper class templates ``field_base`` and ``field_register``).
 These types are defined in ``field.hh`` (but, as a principal name used by application code, ``field`` appears directly in the ``flecsi`` namespace).
 
-``topology`` objects are also caller-only; special support for creating application-level instances is provided by ``scheduler::allocate``.
+``topology`` objects are also caller-only; they are constructed from `colorings`, which are descriptions of the computational domain as ordinary C++ data rather than fields.
+Special support for creating application-level instances is provided by ``scheduler::allocate``.
 Using ``specialization::ptr`` allows deferring the initialization of a topology instance that is a member of a control policy object until an appropriate action.
 It also provides a second phase of initialization that can be used to launch tasks operating on the new topology object.
-
-Topology objects are constructed from `colorings`, which are descriptions of the computational domain as ordinary C++ data rather than fields.
-For reasons of efficiency and interoperability, these are often constructed by special `MPI tasks`.
-The class template ``coloring_slot``, defined in ``coloring.hh`` automates invoking such tasks.
 
 Access
 ^^^^^^
@@ -257,7 +254,7 @@ There is some degree of variability across FleCSI backends in how binding operat
 Explicit parallelism
 ^^^^^^^^^^^^^^^^^^^^
 
-We require movable parameter types even for an MPI task so that the Legion backend can forget the argument types rather than decay-copying them like ``std::thread``.
+We require movable parameter types even for a synchronous task so that the Legion backend can forget the argument types rather than decay-copying them like ``std::thread``.
 Moreover, their return values must follow the ordinary rules (so as to support futures and reductions).
 
 FleCSI also provides, in ``launch.hh`` and ``kernel.hh``, a wrapper interface for simple Kokkos parallel loops and reductions, including macros ``forall`` and ``reduceall`` that are followed by a lambda body (and a semicolon, since the lambda is an expression).

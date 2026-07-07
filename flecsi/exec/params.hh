@@ -40,6 +40,12 @@ protected:
       p->template issue_copy<P>(ff);
   }
 
+  template<class R>
+  static void portability(const R & r, bool gpu, bool wo) {
+    if constexpr(!data::portable_v<typename R::value_type>)
+      r.get_region().non_portable(r.fid(), gpu, wo);
+  }
+
   scheduler * sched;
   std::vector<std::function<void()>> epilog_wrappers;
 
@@ -102,7 +108,7 @@ protected:
   template<class R, typename T>
   void visit(data::reduction_accessor<R, T> &);
   /// Fill in information about task instances.
-  void visit(processor_space_t<Proc> &);
+  void visit(space_base::tasks &);
 };
 #endif
 
@@ -121,11 +127,21 @@ struct prolog : task_prolog<Proc> {
     this->template issue_copy<Proc>();
   }
 
+  void set_future(const point_mutex::Single & f) {
+    for(auto p : mutexes)
+      p->set(f);
+  }
+  void set_future(const point_mutex::Index & f) {
+    for(auto p : mutexes)
+      p->set(f);
+  }
+
 private:
   template<class A>
   auto visitor(A & a) {
-    return
-      [&](auto & p, auto && f) { visit(p, std::forward<decltype(f)>(f)(a)); };
+    return [&](auto & p, auto && f) {
+      visit(p, std::invoke(std::forward<decltype(f)>(f), a));
+    };
   }
 
   using task_prolog<Proc>::visit; // for raw accessors, futures, etc.
@@ -133,6 +149,17 @@ private:
   static void visit(data::detail::host_only &, decltype(nullptr)) {
     static_assert(Proc != flecsi::exec::processor::toc,
       "accessor type is supported only on host");
+  }
+
+  void visit(point_mutex::lease &, point_mutex & a) {
+    mutexes.push_back(&a);
+    // Register a dependency:
+    std::visit(
+      [&](auto && f) {
+        future<void> local;
+        visit(local, std::forward<decltype(f)>(f));
+      },
+      std::move(a).get());
   }
 
   template<class P, class A>
@@ -192,6 +219,8 @@ private:
   template<class P, class A>
   static std::enable_if_t<!std::is_base_of_v<data::send_tag, P>>
   visit(const P &, const A &) {} // visit
+
+  std::vector<point_mutex *> mutexes;
 };
 
 template<processor Proc>
@@ -208,6 +237,15 @@ private:
 
   auto visitor() {
     return [&](auto & p, auto &&) { visit(p); }; // Clang deems 'this' unused
+  }
+
+  void visit(processor_space_t<Proc> & s) {
+    visit(s.bind());
+  }
+
+  void visit(point_mutex::lease &) {
+    future<void> sink;
+    visit(sink); // to match prolog
   }
 
   template<class T>

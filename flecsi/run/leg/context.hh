@@ -170,12 +170,11 @@ struct context_t : context {
   } // colors
 
   param_locker params;
+  void * sync_params;
 
   //--------------------------------------------------------------------------//
   //  MPI interoperability.
   //--------------------------------------------------------------------------//
-
-  void * mpi_params;
 
   /*!
     Set the MPI user task. When control is given to the MPI runtime

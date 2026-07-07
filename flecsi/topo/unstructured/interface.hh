@@ -191,44 +191,32 @@ private:
     unstructured_base::coloring const & c) {
     constexpr PrivilegeCount NP = Policy::template privilege_count<S>;
 
-    destination_intervals intervals;
-    source_pointers pointers;
+    auto & c1 = c.idx_spaces[index<S>].colors;
+    destination_intervals intervals(c1.size());
+    source_pointers pointers(c1.size());
 
-    auto clm = data::launch::make(s, ctopo_);
+    const auto grp = exec::group::world();
+    const auto blk = exec::mapping::block();
 
-    auto const & cg = cgraph_.template get<S>();
-    auto & cgp = cg(ctopo_).get_elements();
-    execute<cgraph_size, mpi>(
-      c.idx_spaces[index<S>].colors, clm.rebind(cgp.sizes())());
+    const auto cg = cgraph_.template get<S>()(ctopo_);
+    auto & cgp = cg.get_elements();
+    s.execute<cgraph_size>(&c1, cgp.sizes(), grp, blk);
     cgp.resize();
 
-    auto const & sh = cgraph_shared_.template get<S>();
-    auto & shp = sh(ctopo_).get_elements();
-    execute<cgraph_shared_size, mpi>(
-      c.idx_spaces[index<S>].colors, clm.rebind(shp.sizes())());
+    const auto sh = cgraph_shared_.template get<S>()(ctopo_);
+    auto & shp = sh.get_elements();
+    s.execute<cgraph_shared_size>(&c1, shp.sizes(), grp, blk);
     shp.resize();
 
-    execute<idx_itvls, mpi>(
-      c.idx_spaces[index<S>].colors, intervals, pointers, cg(clm), sh(clm));
-
-    // clang-format off
-    auto dest_task = [&](auto f) {
-      // TODO: make this just once for all index spaces
-      auto lm = data::launch::make(s, f.topology());
-      execute<set_dests, mpi>(lm(f), intervals);
-    };
-
-    auto ptrs_task = [&](auto f) {
-      auto lm = data::launch::make(s, f.topology());
-      execute<set_ptrs<NP>, mpi>(lm(f), pointers);
-    };
-    // clang-format on
+    // Synchronous, so guarantees the completion of the above tasks:
+    s.execute<idx_itvls>(c1, intervals, pointers, cg, sh, grp, blk);
 
     return {s,
       *this,
       c.idx_spaces[index<S>].num_intervals,
-      dest_task,
-      ptrs_task,
+      [&](auto f) { s.execute<set_dests>(exec::on, f, &intervals, grp, blk); },
+      // This wait covers set_dests as well.
+      [&](auto f) { s.execute<set_ptrs<NP>>(f, &pointers, grp, blk).wait(); },
       util::constant<S>()};
   }
 
@@ -246,14 +234,18 @@ private:
   void allocate_connectivities(scheduler & s,
     const unstructured_base::coloring & c,
     util::key_tuple<util::key_type<VV, TT>...> const & /* deduce pack */) {
-    auto lm = data::launch::make(s, *this); // *this only for color count
     (
       [&](TT const & row) { // invoked for each from-entity
         const std::vector<index_color> & ic = c.idx_spaces[index<VV>].colors;
         for_each(
           [&](auto v) { // invoked for each to-entity
             auto & p = row.template get<v.value>()(*this).get_elements();
-            execute<cnx_size, mpi>(ic, index<v.value>, lm.rebind(p.sizes())());
+            s.execute<cnx_size>(&ic,
+               index<v.value>,
+               p.sizes(),
+               exec::group::world(),
+               exec::mapping::block())
+              .wait();
             p.resize();
           },
           typename TT::keys());

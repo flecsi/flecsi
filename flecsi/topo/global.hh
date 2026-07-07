@@ -48,7 +48,8 @@ struct detail::base<global_category> {
  */
 struct global : specialization<global_category, global> {
   /// An \c mpi_coloring can be initialized from an integer size.
-  static coloring color(util::id n) {
+  /// \deprecated Use just the argument.
+  [[deprecated("use just the argument")]] static coloring color(util::id n) {
     return n;
   }
 };

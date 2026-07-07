@@ -195,22 +195,24 @@ struct specialization : specialization_base {
   /// \deprecated Use \c topology.
   using slot = data::topology_slot<D>;
   /// The slot type for holding a \c coloring object.
-  /// \deprecated Use \c mpi_coloring.
-  using cslot [[deprecated("use mpi_coloring")]] = data::coloring_slot<D>;
+  /// \deprecated Construct \c coloring objects directly.
+  using cslot [[deprecated("construct coloring directly")]] =
+    data::coloring_slot<D>;
   /// Constructs a \c coloring in an MPI task.
   /// \note \a D must define\code
   /// static coloring color(/* ... */);
   /// \endcode
-  struct mpi_coloring {
+  /// \deprecated Construct \c coloring objects directly.
+  struct [[deprecated("construct coloring directly")]] mpi_coloring {
     /// Create the coloring object.
     /// \param aa arguments to \c D::color
     template<class... AA>
     explicit mpi_coloring(scheduler &, AA &&... aa) {
       slot.emplace(std::forward<AA>(aa)...);
     }
-    /// \deprecated Pass a \a scheduler.
+    /// For compatibility, the \c scheduler is optional.
     template<class... AA>
-    [[deprecated("pass a scheduler")]] explicit mpi_coloring(AA &&... aa)
+    explicit mpi_coloring(AA &&... aa)
       : mpi_coloring(*scheduler::instance, std::forward<AA>(aa)...) {}
 
     /// Get the resulting coloring.

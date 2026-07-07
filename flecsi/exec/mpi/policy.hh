@@ -34,7 +34,8 @@ reduce_internal(Args &&... args) {
   // replace arguments in args, for example, field_reference -> accessor.
   auto params = launch::params(std::forward<Args>(args)...);
 
-  auto storage = prolog<launch::proc>(params, args...).detach();
+  prolog<launch::proc> pro(params, args...);
+  auto storage = pro.detach();
   bind_parameters<launch::proc> bp(params, storage);
 
   run::context_t::depth_guard rg;
@@ -42,65 +43,72 @@ reduce_internal(Args &&... args) {
 
   const auto ds = launch::size(args...);
   const auto task = [&params] { return launch::call(std::move(params)); };
-  if constexpr(std::is_same_v<decltype(ds), const std::monostate>) {
-    const bool root = !flecsi::run::context::instance().process();
-    // single launch, only invoke the user task on the Root.
-    if constexpr(std::is_void_v<R>) {
-      // void return type, just invoke, no return value to broadcast
-      if(root) {
-        task();
+  auto ret = [&] {
+    if constexpr(std::is_same_v<decltype(ds), const std::monostate>) {
+      const bool root = !flecsi::run::context::instance().process();
+      // single launch, only invoke the user task on the Root.
+      if constexpr(std::is_void_v<R>) {
+        // void return type, just invoke, no return value to broadcast
+        if(root) {
+          task();
+        }
+        return future<void>{};
       }
-      return future<void>{};
+      else {
+        auto ret = future<R>::make(task, root);
+
+        test(MPI_Ibcast(ret->data(),
+          1,
+          flecsi::util::mpi::type<R>(),
+          0,
+          MPI_COMM_WORLD,
+          ret->request()));
+
+        return ret;
+      }
     }
     else {
-      auto ret = future<R>::make(task, root);
+      if(ds != run::context::instance().processes())
+        flog_fatal("MPI backend supports only per-process index launches");
+      if constexpr(!std::is_void_v<Reduction>) {
+        static_assert(!std::is_void_v<R>, "cannot reduce void results");
 
-      test(MPI_Ibcast(ret->data(),
-        1,
-        flecsi::util::mpi::type<R>(),
-        0,
-        MPI_COMM_WORLD,
-        ret->request()));
+        // A real reduce operation: every process needs to be able to access the
+        // same result through future<R>::get().
+        // 1. Call the F, get the local return value
+        auto ret = future<R>::make(task, true);
 
-      return ret;
+        // 2. Reduce the local return values with the Reduction (using its
+        // corresponding MPI_Op created by register_reduction<>()).
+        test(MPI_Iallreduce(MPI_IN_PLACE,
+          ret->data(),
+          1,
+          flecsi::util::mpi::type<R>(),
+          fold::wrap<Reduction, R>::op(),
+          MPI_COMM_WORLD,
+          ret->request()));
+
+        return ret;
+      }
+      else if constexpr(!std::is_void_v<R>)
+        return future<R, exec::launch_type_t::index>{task()};
+      else {
+        // index launch of void functions, e.g. printf("hello world");
+        task();
+        return future<void, exec::launch_type_t::index>{};
+      }
     }
-  }
-  else {
-    if(ds != run::context::instance().processes())
-      flog_fatal("MPI backend supports only per-process index launches");
-    // Index launch (including "mpi task"): invoke user task on every process.
-    if constexpr(!std::is_void_v<Reduction>) {
-      static_assert(!std::is_void_v<R>, "cannot reduce void results");
-
-      // A real reduce operation: every process needs to be able to access the
-      // same result through future<R>::get().
-      // 1. Call the F, get the local return value
-      auto ret = future<R>::make(task, true);
-
-      // 2. Reduce the local return values with the Reduction (using its
-      // corresponding MPI_Op created by register_reduction<>()).
-      test(MPI_Iallreduce(MPI_IN_PLACE,
-        ret->data(),
-        1,
-        flecsi::util::mpi::type<R>(),
-        fold::wrap<Reduction, R>::op(),
-        MPI_COMM_WORLD,
-        ret->request()));
-
-      return ret;
-    }
-    else if constexpr(!std::is_void_v<R>)
-      return future<R, exec::launch_type_t::index>{task()};
-    else {
-      // index launch of void functions, e.g. printf("hello world");
-      task();
-      return future<void, exec::launch_type_t::index>{};
-    }
-  }
+  }();
+  pro.set_future(ret.depend()); // just to get the type right
+  return ret;
 }
 
 /// \}
 } // namespace exec
+
+void
+scheduler::wait() {}
+
 } // namespace flecsi
 
 #endif

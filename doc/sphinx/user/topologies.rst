@@ -123,18 +123,8 @@ Note the different interpretations of the sizes: ``pair`` doesn't have colors an
 
 Note also that the lifetime of topology instances must be limited to the control model execution (achieved here by making them local variables).
 
-While the coloring type depends on the topology category and not the specialization, specializations for non-trivial topologies typically assist the application in constructing one.
-In simple cases, the result looks like
-
-.. code-block:: cpp
-
-  int simulation(scheduler &s) {
-    canon::topology mesh(s, canon::mpi_coloring(s, "test.txt"));
-    // ...
-  }
-
-which asks the ``canon`` specialization to interpret the *test.txt* file as a coloring for its topology category (perhaps ``unstructured``).
-The name ``mpi_coloring`` serves as a reminder that this procedure is launched as an MPI task, as is often required for it to perform collective I/O or distribute data.
+Non-trivial topologies have correspondingly complicated coloring types; for example, ``unstructured`` coloring objects are distributed over multiple processes, each of which can define multiple colors.
+Specializations for such topologies typically provide tools for constructing colorings, although they cannot define their own coloring types.
 
 .. figure:: images/mpi-coloring.svg
    :align: center

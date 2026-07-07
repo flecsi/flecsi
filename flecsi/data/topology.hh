@@ -119,6 +119,13 @@ struct region : region_base {
     return nullptr;
   }
 
+  void non_portable(field_id_t f, bool g, bool wo) {
+    if(wo)
+      gpu[f] = g;
+    else if(gpu.try_emplace(f, g).first->second != g)
+      flog_fatal("non-portable field used in multiple memory spaces");
+  }
+
   template<topo::single_space> // for convenience for simple topologies
   region & get_region() {
     return *this;
@@ -126,6 +133,7 @@ struct region : region_base {
 
 private:
   std::set<field_id_t> dirty;
+  std::map<field_id_t, bool> gpu;
 };
 
 template<class Topo, typename Topo::index_space Index = Topo::default_space()>

@@ -15,17 +15,77 @@ state::active_tag() {
   return *cur_tag;
 }
 
+state::state(const config & cfg)
+  : verb(cfg.verbose), serialization_interval_(cfg.serialization_interval),
+    color_output_(cfg.color), strip_level_(cfg.strip_level),
+    source_process_(cfg.process), process_(util::mpi::rank()),
+    processes_(util::mpi::size()),
+    commp(communicate() ? new comm(comm::world()) : nullptr) {
+#if defined(FLOG_ENABLE_DEBUG)
+  std::cerr << FLOG_COLOR_LTGRAY << "Flog: initializing runtime"
+            << FLOG_COLOR_PLAIN << std::endl;
+#endif
+
+  // Because active tags are specified at runtime, it is
+  // necessary to maintain a map of the compile-time registered
+  // tag names to the id that they get assigned after the state
+  // initialization (register_tag). This map will be used to populate
+  // the tag_bitset_ for fast runtime comparisons of enabled tag groups.
+
+  for(auto & tag : cfg.tags) {
+#ifdef FLOG_ENABLE_DEBUG
+    std::cerr << "Flog: active tag " << std::quoted(tag) << '\n';
+#endif
+    if(tag == "all")
+      tag_bitset_.set();
+    else if(const auto it = tag_map_.find(tag); it != tag_map_.end()) {
+      tag_bitset_.set(it->second);
+    }
+    else {
+      std::cerr << "FLOG WARNING: tag " << tag
+                << " has not been registered. Ignoring this group..."
+                << std::endl;
+    }
+  }
+
+#if defined(FLOG_ENABLE_DEBUG)
+  std::cerr << FLOG_COLOR_LTGRAY << "Flog: initializing mpi state"
+            << FLOG_COLOR_PLAIN << std::endl;
+#endif
+
+  if(process_ == 0) {
+    flusher_thread_ = std::thread(&state::flush_packets, std::ref(*this));
+  } // if
+}
+
+state::~state() {
+#if defined(FLOG_ENABLE_DEBUG)
+  std::cerr << FLOG_COLOR_LTGRAY << "Flog: state destructor" << std::endl;
+#endif
+  send_to_one(true, MPI_COMM_WORLD);
+
+  if(process_ == 0) {
+    flusher_thread_.join();
+  } // if
+}
+
+struct state::gather {
+  static void task(state * s, comm::ref c) noexcept {
+    s->send_to_one(false, c);
+  }
+};
+
 void
 state::flush() {
-  if(!source_process_ || processes_ == 1)
-    gather(*this); // no MPI communication needed
+  if(communicate())
+    exec::reduce_internal<gather::task, void, 0>(this, *commp);
   else
-    exec::reduce_internal<gather, void, flecsi::mpi>(*this);
+    send_to_one(false, MPI_COMM_NULL);
   tasks = 0;
 }
 
 void
-state::send_to_one(bool last) {
+state::send_to_one(bool last, MPI_Comm c) {
   using util::mpi::test;
 
   std::unique_lock lk(packets_mutex_);
@@ -40,8 +100,7 @@ state::send_to_one(bool last) {
     int bytes = data.size();
 
     if(source_process_ == all_processes) {
-      test(MPI_Gather(
-        &bytes, 1, MPI_INT, sizes.data(), 1, MPI_INT, 0, MPI_COMM_WORLD));
+      test(MPI_Gather(&bytes, 1, MPI_INT, sizes.data(), 1, MPI_INT, 0, c));
 
       if(process_ == 0) {
         int sum{0};
@@ -61,29 +120,24 @@ state::send_to_one(bool last) {
         offsets.data(),
         MPI_BYTE,
         0,
-        MPI_COMM_WORLD));
+        c));
     }
     else {
       if(process_ == 0) {
-        test(MPI_Recv(&bytes,
-          1,
-          MPI_INT,
-          source_process_,
-          0,
-          MPI_COMM_WORLD,
-          MPI_STATUS_IGNORE));
+        test(MPI_Recv(
+          &bytes, 1, MPI_INT, source_process_, 0, c, MPI_STATUS_IGNORE));
         buffer.resize(bytes);
         test(MPI_Recv(buffer.data(),
           bytes,
           MPI_BYTE,
           source_process_,
           0,
-          MPI_COMM_WORLD,
+          c,
           MPI_STATUS_IGNORE));
       }
       else if(process_ == source_process_) {
-        test(MPI_Send(&bytes, 1, MPI_INT, 0, 0, MPI_COMM_WORLD));
-        test(MPI_Send(data.data(), bytes, MPI_BYTE, 0, 0, MPI_COMM_WORLD));
+        test(MPI_Send(&bytes, 1, MPI_INT, 0, 0, c));
+        test(MPI_Send(data.data(), bytes, MPI_BYTE, 0, 0, c));
       }
     }
 

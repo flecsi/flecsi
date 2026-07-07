@@ -122,7 +122,8 @@ struct fixed_mesh
     flecsi::data::multi<flecsi::field<
       flecsi::util::gid>::accessor<flecsi::wo, flecsi::wo, flecsi::na>> mvid,
     const std::vector<std::vector<flecsi::util::gid>> & cid,
-    const std::vector<std::vector<flecsi::util::gid>> & vid) {
+    const std::vector<std::vector<flecsi::util::gid>> & vid,
+    flecsi::exec::group::match) noexcept {
     const auto ma = m.accessors();
     auto acid = mcid.accessors();
     auto avid = mvid.accessors();
@@ -144,15 +145,17 @@ struct fixed_mesh
     auto & c2v = m.get_connectivity<fixed_mesh::cells, fixed_mesh::vertices>();
     auto & v2c = m.get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>();
 
+    const auto grp = exec::group::world();
     auto lm = data::launch::make(s, m);
-    execute<topo::unstructured_impl::init_connectivity<privilege_count<cells>>,
-      mpi>(c2v(lm), fields.c2v_connectivity);
+    s.execute<
+      topo::unstructured_impl::init_connectivity<privilege_count<cells>>>(
+      c2v(lm), fields.c2v_connectivity, grp);
 
     constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
     constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
     s.execute<topo::unstructured_impl::transpose<NPC, NPV>>(c2v(m), v2c(m));
 
-    execute<init_mesh_ids, mpi>(lm, cid(lm), vid(lm), fields.cid, fields.vid);
+    s.execute<init_mesh_ids>(lm, cid(lm), vid(lm), fields.cid, fields.vid, grp);
   } // initialize
 }; // struct fixed_mesh
 

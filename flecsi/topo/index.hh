@@ -59,7 +59,7 @@ private:
     a = extent;
   }
 
-  static bool resize_required(resize::Field::accessor<ro> sz) {
+  static bool resize_required(resize::Field::accessor<ro> sz) noexcept {
     return sz->required();
   }
 

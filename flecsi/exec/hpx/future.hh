@@ -43,7 +43,8 @@ struct future_impl : future_base {
   future_impl(::hpx::shared_future<R> f, run::comms::ptr c = {}) noexcept
     : future_base(std::move(c)), future_(std::move(f)) {}
 
-  ::hpx::shared_future<void> depend() {
+  inline future<void> depend() const;
+  auto backend() const {
     return future_;
   }
 
@@ -94,7 +95,8 @@ struct future_index : future_base {
   explicit future_index(future f, run::comms::ptr c) noexcept
     : future_base(std::move(c)), future_(std::move(f)) {}
 
-  auto mine() {
+  inline flecsi::future<void, future_kind::index> depend() const;
+  auto backend() const {
     return future_;
   }
 
@@ -155,6 +157,17 @@ struct future<void, exec::launch_type_t::index> : detail::future_index<void> {
     wait();
   }
 };
+
+template<class R>
+future<void>
+detail::future_impl<R>::depend() const {
+  return future<void>(backend(), get_comms());
+}
+template<class R>
+future<void, future_kind::index>
+detail::future_index<R>::depend() const {
+  return flecsi::future<void, future_kind::index>(backend(), get_comms());
+}
 
 template<class R>
 future<std::remove_cvref_t<R>>

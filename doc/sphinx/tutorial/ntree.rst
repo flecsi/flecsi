@@ -74,7 +74,8 @@ The N-Tree setup happens in ``initialize_action``:
   :end-at: sph_ntree_t::build_ntree
 
 Firstly, the initial information about the entities is retrieved, either from a file or directly generated in the program. In this example we compute this information directly in the program. This vital information is used to create the N-Tree data structure through our SPH specialization using coordinates, mass, and radius.
-The coloring ``sph_ntree_t::mpi_coloring`` is constructed internally via the ``color`` function from the specialization. It defines how the particles are distributed among all the colors. In this example the specialization just provides a simple load-balancing scheme with an equal number of entities per color.
+The ``color`` function from the specialization defines how the particles are distributed among all the colors.
+In this example the specialization just provides a simple load-balancing scheme with an equal number of entities per color.
 ``scheduler::allocate`` creates a topology instance, filling in the ``sph_ntree_t::ptr`` argument and calling ``sph_ntree_t::initialize`` to creates the basic memory layout to input the initial particle information.
 Before generating the N-Tree data structure, we must populate the different user-defined fields.
 These fields are defined at the top of the ``ntree.cc`` file:
@@ -190,14 +191,14 @@ Tree generation and reset
 -------------------------
 
 The structure of the N-Tree is created by the ``initialize`` function.
-It launches ``init_fields`` as an MPI task to allow access to data not stored in FleCSI fields (here, just the ``offsets`` that are managed by the current process):
+It launches ``init_fields`` as a block-mapped task to allow access to data not stored in FleCSI fields (here, just the ``offsets`` that are managed by the current process):
 
 .. literalinclude:: ../../../tutorial/6-topology/ntree_sph.hh
   :language: cpp
   :start-at: void initialize
   :end-before: build_ntree
 
-It uses a launch map to support initializing a topology with a number of colors other than the number of point tasks (which must be equal to the number of processes for an MPI task).
+The task uses the execution space and ``mapping`` information to initialize the fields correctly.
 
 .. literalinclude:: ../../../tutorial/6-topology/ntree_sph.hh
   :language: cpp

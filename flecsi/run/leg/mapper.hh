@@ -197,7 +197,10 @@ public:
     if(output.target_procs.empty()) { // replicated tasks are automatic
       output.chosen_variant =
         find_variant(ctx, task.task_id, processor_kind(task.tag));
-      output.target_procs = numa_domain;
+      if(task.concurrent_task)
+        output.target_procs = {local_proc};
+      else
+        output.target_procs = numa_domain;
     }
 
     output.chosen_instances.resize(task.regions.size());

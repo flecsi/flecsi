@@ -207,25 +207,21 @@ struct unstructured_base : base {
     and pointers, respectively, are filled with this information.
    */
 
-  static void idx_itvls(std::vector<index_color> const & vic,
-    destination_intervals & intervals,
-    source_pointers & pointers,
-    data::multi<field<util::id, data::ragged>::mutator<wo>> cgraph,
-    data::multi<field<util::id, data::ragged>::mutator<wo>> cgraph_shared) {
+  struct idx_itvls {
+    static constexpr bool synchronous = true;
+    static void task(const std::vector<index_color> & vic,
+      destination_intervals & intervals,
+      source_pointers & pointers,
+      field<util::id, data::ragged>::mutator<wo> ci,
+      field<util::id, data::ragged>::mutator<wo> si,
+      exec::group::match,
+      exec::mapping::point us) noexcept {
+      const auto i = us.local().index;
+      auto & ic = vic[i];
+      intervals[i] = ic.ghost_intervals();
+      auto & pts = pointers[i];
 
-    const auto prep = [n = vic.size()](auto & v) {
-      v.clear();
-      v.reserve(n);
-    };
-    prep(intervals);
-    prep(pointers);
-    const auto ca = cgraph.accessors(), sa = cgraph_shared.accessors();
-    auto ci = ca.begin(), si = sa.begin();
-    for(auto & ic : vic) {
-      intervals.push_back(ic.ghost_intervals());
-      auto & pts = pointers.emplace_back();
-
-      auto ci1 = (*ci++).begin(), si1 = (*si++).begin();
+      auto ci1 = ci.begin(), si1 = si.begin();
       for(auto const & [global, pe] : ic.peers) {
         auto c = *ci1++, s = *si1++;
         auto & p = pts[global];
@@ -237,72 +233,63 @@ struct unstructured_base : base {
         }
         s.assign(pe.shared.begin(), pe.shared.end());
       } // for
-    } // for
-  } // idx_itvls
+    } // idx_itvls
+  };
 
-  static void set_dests(
-    data::multi<field<data::intervals::Value>::accessor<wo>> aa,
-    const destination_intervals & intervals) {
-    std::size_t ci = 0;
-    for(auto [c, a] : aa.components()) {
-      auto & iv = intervals[ci++];
-      flog_assert(a.span().size() == iv.size(),
-        "interval size mismatch a.span ("
-          << a.span().size() << ") != intervals (" << iv.size() << ")");
-      std::size_t i{0};
-      for(auto & it : iv) {
-        a[i++] = data::intervals::make(it, c);
-      } // for
+  static void set_dests(exec::cpu s,
+    field<data::intervals::Value>::accessor<wo> a,
+    const destination_intervals * intervals,
+    exec::group::match,
+    exec::mapping::point us) noexcept {
+    auto & iv = (*intervals)[us.local().index];
+    flog_assert(a.span().size() == iv.size(),
+      "interval size mismatch a.span (" << a.span().size() << ") != intervals ("
+                                        << iv.size() << ")");
+    std::size_t i{0};
+    for(auto & it : iv) {
+      a[i++] = data::intervals::make(it, s.launch().index);
     } // for
   }
 
   template<PrivilegeCount N>
   static void set_ptrs(
-    data::multi<
-      field<data::copy_engine::Point>::accessor1<privilege_repeat<wo, N>>> aa,
-    const source_pointers & points) {
-    std::size_t ci = 0;
-    for(auto & a : aa.accessors()) {
-      for(auto const & [owner, ghosts] : points[ci++]) {
-        for(auto const & [local_offset, remote_offset] : ghosts) {
-          a[local_offset] = data::copy_engine::point(owner, remote_offset);
-        } // for
+    field<data::copy_engine::Point>::accessor1<privilege_repeat<wo, N>> a,
+    const source_pointers * points,
+    exec::group::match,
+    exec::mapping::point us) noexcept {
+    for(auto const & [owner, ghosts] : (*points)[us.local().index]) {
+      for(auto const & [local_offset, remote_offset] : ghosts) {
+        a[local_offset] = data::copy_engine::point(owner, remote_offset);
       } // for
     } // for
   }
 
-  static void cnx_size(std::vector<index_color> const & vic,
+  static void cnx_size(const std::vector<index_color> * vic,
     std::size_t is,
-    data::multi<resize::Field::accessor<wo>> aa) {
-    auto it = vic.begin();
-    for(auto & a : aa.accessors()) {
-      a = it++->cnx_allocs[is];
-    }
+    resize::Field::accessor<wo> a,
+    exec::group::match,
+    exec::mapping::point us) noexcept {
+    a = (*vic)[us.local().index].cnx_allocs[is];
   }
 
   // resize ragged fields storing communication graph for ghosts
-  static void cgraph_size(std::vector<index_color> const & vic,
-    data::multi<resize::Field::accessor<wo>> aa) {
-    auto it = vic.begin();
-    for(auto & a : aa.accessors()) {
-      a = it->ghosts().size();
-      ++it;
-    }
+  static void cgraph_size(const std::vector<index_color> * vic,
+    resize::Field::accessor<wo> a,
+    exec::group::match,
+    exec::mapping::point us) noexcept {
+    a = (*vic)[us.local().index].ghosts().size();
   } // cgraph_size
 
   // resize ragged fields storing communication graph for shared
-  static void cgraph_shared_size(std::vector<index_color> const & vic,
-    data::multi<resize::Field::accessor<wo>> aa) {
-    auto it = vic.begin();
-
-    for(auto & a : aa.accessors()) {
-      std::size_t count = 0;
-      for(auto & p : it++->peers) {
-        count += p.second.shared.size();
-      }
-      a = count;
+  static void cgraph_shared_size(const std::vector<index_color> * vic,
+    resize::Field::accessor<wo> a,
+    exec::group::match,
+    exec::mapping::point us) noexcept {
+    std::size_t count = 0;
+    for(auto & p : (*vic)[us.local().index].peers) {
+      count += p.second.shared.size();
     }
-
+    a = count;
   } // cgraph_shared_size
 
   template<typename T, PrivilegeCount N>
@@ -403,7 +390,8 @@ void
 init_connectivity(
   data::multi<field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NF>>>
     mconn,
-  std::vector<util::crs> const & connectivities) {
+  std::vector<util::crs> const & connectivities,
+  exec::group::match) noexcept {
 
   auto cnxs = connectivities.begin();
   for(auto & x2y : mconn.accessors()) {

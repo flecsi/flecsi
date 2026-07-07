@@ -117,6 +117,8 @@ An index launch produces an `index future` which can also be passed to a task th
 
 Many tasks return ``void`` because their purpose is to compute new field values.
 Their futures can simply be discarded: tasks that use those field values will automatically be scheduled to run only afterwards.
+It can be useful for the control model to occasionally wait on all outstanding tasks to finish: to change a global variable, for instance.
+In that case, ``scheduler::wait`` can be used to wait on all tasks that have been launched: it is equivalent to waiting on every future so far produced.
 
 FleCSI supports reductions through the ``reduce`` function, which combines results from multiple point tasks into a single value. For instance:
 
@@ -187,23 +189,51 @@ FleCSI automatically uses the variant for the execution space where the task run
 
 Given the previous declaration, this call to ``execute`` will not attempt to use ``exec::gpu``.
 
-MPI Tasks
-+++++++++
+.. _strong:
 
-FleCSI also supports a special class of tasks known as `MPI tasks`.
-Exactly one point task for an MPI task runs on each process, like the control-model action that launched it.
+Strong Tasks
+++++++++++++
 
-MPI tasks are invoked as follows:
+In some cases, the transparent parallelism of tasks is too limiting.
+Tasks can be executed with several stronger semantics, usually with a performance cost.
+For example, when a task is passed a ``comm`` argument, it is executed once on each process (like the control model) to allow it to use MPI correctly.
+(It can use :ref:`multi-accessors` to access fields whose number of colors does not match the number of processes.)
+
+A ``mapping`` argument that is passed to a task also specifies which process runs each point task, without the restriction that exactly one point task runs on each process.
+(Only the Legion backend can make use of that relaxation.)
+Such a task can access field data in conjunction with non-field data owned by the process chosen by the ``mapping`` for that color.
+It can also (carefully) modify shared data on each process via pointers or references or use only some of the ranks of a ``comm``.
+
+If a set of index tasks that are not already ordered utilize some external resource that should not be accessed concurrently (by multiple launches), they can accept a ``point_mutex`` argument.
+The name indicates that it is the corresponding point tasks in each launch that are serialized; it is still possible for point task 0 of one launch to run concurrently with point task 1 of another (which might be mitigated with appropriate synchronization within the task).
+
+In one case, additional semantics can mitigate part of a cost: in the case where an action must wait on a task immediately after launching it, the task (class) can be declared ``synchronous`` for more flexible and efficient argument processing.
+(The interface is not otherwise affected: such a task must still be declared ``noexcept`` and executing it still returns a ``future``.)
+
+A task's parameter types both select semantics for it and are restricted by those semantics.
+Given cv-unqualified object types ``X``, movable ``M``, and copyable ``C`` and a function type ``F``, the types that can be used are as follows:
+
+all tasks
+  ``C``, ``const M&``, ``const X*``, ``F*``
+synchronous tasks
+  ``const X&``
+per-process tasks
+  ``M``, ``X*``
+synchronous, per-process tasks
+  ``X&``, ``X&&``, ``F&``, ``F&&``
+
+For example, a task could use a scratch file to communicate among its point tasks:
 
 .. code-block:: c++
 
-   flecsi::execute<quux, flecsi::mpi>(flecsi::exec::on, fr1, fr2);
+   void scratch(std::fstream f, Status *s,
+                flecsi::field<double>::accessor<flecsi::rw> a,
+                flecsi::exec::group::concurrent,
+                flecsi::exec::point_mutex::lease) noexcept { /* ... */ }
 
-.. note::
-   Unlike standard tasks, MPI tasks are invoked using the ``flecsi::`` namespace rather than a scheduler object with ``s.execute``.
-   In future versions, MPI tasks may be launched through the scheduler interface for consistency with other task types.
-
-MPI tasks can use :ref:`multi-accessors` to access fields whose number of colors does not match the number of processes.
+The non-copyable ``f`` and the writable pointer ``s`` are allowed because the ``concurrent`` parameter makes the task run once per process.
+That parameter also guarantees that the point tasks will not run sequentially (so that they can synchronize); passing the same ``point_mutex`` to multiple launches of this task guarantees that their point tasks will execute in launch order (even if ``a`` refers to a different field in each).
+Passing the stream object by value rather than by pointer avoids needing to wait on the task in the calling action before destroying it.
 
 .. _tracing:
 

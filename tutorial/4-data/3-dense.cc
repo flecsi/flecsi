@@ -36,7 +36,7 @@ void
 advance(control_policy & p) {
   auto & s = p.scheduler();
 
-  canon::mpi_coloring c(s, "test.txt");
+  auto c = canon::read("test.txt");
   canon::topology canonical(s, c), cp(s, c);
 
   auto pf = pressure(canonical), pf2 = pressure(cp);

@@ -34,48 +34,62 @@ static_assert(priv<wo, rw>());
 static_assert(priv<ro, wo, rw>());
 static_assert(priv<na, ro, wo, rw>());
 
-template<bool M, class P, class A, class T>
+template<bool M, bool S, class P, class A, class T>
 constexpr bool good =
-  std::is_same_v<decltype(exec::detail::protocol<M>::template make_parameter<P>(
-                   std::declval<A>())),
+  std::is_same_v<decltype(exec::detail::protocol<M,
+                   S>::template make_parameter<P>(std::declval<A>())),
     T>;
 using future_arg = future<int, exec::launch_type_t::index>;
 
-static_assert(good<false, long, const int &, long>);
-static_assert(good<false, const int &, int &, int>);
-static_assert(good<true, int *, int *&, int *&>);
-static_assert(good<false, const future<int> &, future_arg &&, future<int>>);
+static_assert(good<false, false, long, const int &, long>);
+static_assert(good<false, false, const int &, int &, int>);
+static_assert(good<true, false, int *, int *&, int *>);
 static_assert(
-  good<false, std::tuple<const int &>, std::tuple<int &> &, std::tuple<int>>);
+  good<false, false, const future<int> &, future_arg &&, future<int>>);
 static_assert(good<false,
+  false,
+  std::tuple<const int &>,
+  std::tuple<int &> &,
+  std::tuple<int>>);
+static_assert(good<false,
+  false,
   std::tuple<const int, future<int>>,
   std::tuple<int, future_arg> &&,
   std::tuple<int, future<int>>>);
 static_assert(good<false,
+  false,
   std::vector<std::tuple<const int &>>,
   std::vector<std::tuple<int &>> &&,
   std::vector<std::tuple<int>>>);
 
-static_assert(good<true, int &&, int &&, int &&>);
+static_assert(good<true, true, int &&, int &&, int &&>);
+static_assert(good<false,
+  true,
+  const std::exception &,
+  std::logic_error &,
+  std::logic_error &>);
+static_assert(good<false, true, const int &, int &, int &>);
+static_assert(good<false, true, long, const int &, const int &>);
+static_assert(good<false, true, const long &, const int &, long>);
 static_assert(
-  good<true, const std::exception &, std::logic_error &, std::logic_error &>);
-static_assert(good<true, const int &, int &, int &>);
-static_assert(good<true, long, const int &, const int &>);
-static_assert(good<true, const long &, const int &, long>);
-static_assert(good<true, const future<int> &, future_arg &&, future<int>>);
-static_assert(good<true,
+  good<false, true, const future<int> &, future_arg &&, future<int>>);
+static_assert(good<false,
+  true,
   std::tuple<const int, future<int>>,
   std::tuple<int, future_arg> &&,
   std::tuple<int &&, future<int>>>);
-static_assert(good<true,
+static_assert(good<false,
+  true,
   std::tuple<int, const long &>,
   std::tuple<int, int> &&,
   std::tuple<int &&, long>>);
-static_assert(good<true,
+static_assert(good<false,
+  true,
   std::vector<std::tuple<const int &>>,
   std::vector<std::tuple<int &>> &&,
   std::vector<std::tuple<int &>> &&>);
-static_assert(good<true,
+static_assert(good<false,
+  true,
   const std::vector<std::tuple<const int &>> &,
   std::vector<std::tuple<int &>> &&,
   std::vector<std::tuple<const int &>>>);
@@ -115,16 +129,44 @@ seq(const T & s, F f) noexcept {
   }(flog_info("s(")); // keep temporary alive throughout
 }
 
-void
-mpi(int * p, const short & s, int i) {
-  *p = s == i; // check argument conversions
-}
-
 } // namespace hydro
 
 namespace {
+struct synch {
+  static int task(const short & s, // check argument conversions
+    int i,
+    const std::atomic<int> & /* immovable */) noexcept {
+    return s - i;
+  }
+  static constexpr bool synchronous = true;
+};
+
+void
+pm(exec::point_mutex::lease) noexcept {}
+void
+half_mpi(exec::cpu s,
+  comm::ref c,
+  int * fail,
+  exec::launch_domain,
+  exec::point_mutex::lease) noexcept {
+  if(util::mpi::size(c) - s.launch().size)
+    ++*fail;
+  if(util::mpi::rank(c) - s.launch().index)
+    ++*fail;
+}
+
 void
 vb(const std::vector<bool> &, const std::vector<long> &) noexcept {}
+
+Color
+over(exec::group::match,
+  exec::mapping::point p,
+  exec::launch_domain,
+  std::shared_ptr<int> sp) noexcept {
+  flog_assert(sp, "moved");
+  auto & t = p.local();
+  return 2 * t.index - t.size + 1 + !t.index;
+}
 
 int
 index_task(const flecsi::runtime * r, exec::launch_domain) noexcept {
@@ -290,6 +332,7 @@ var(const std::variant<field<int>::accessor<ro>,
 int
 task_driver(scheduler & s) {
   UNIT() {
+    auto np = s.runtime().processes();
     {
       auto & c = run::context::instance();
       flog(info) << "task depth: " << c.task_depth() << std::endl;
@@ -311,20 +354,32 @@ task_driver(scheduler & s) {
     s.execute<hydro::seq<V, decltype(d)>>(
       V{"It's Elementary", "Dear, Dear Data"}, d);
 
-    int x = 0;
-    execute<hydro::mpi, mpi>(&x, 1, 1);
-    EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
+    {
+      exec::point_mutex mut;
+      int fail = 0;
+      s.execute<half_mpi>(
+         exec::on, comm::world(), &fail, exec::launch_domain{np}, mut)
+        .wait();
+      EXPECT_EQ(fail, 0);
+      s.execute<pm>(mut); // size inherited from half_mpi
+    }
+    EXPECT_EQ(s.test<synch>(1, 1, std::atomic<int>()), 0);
 
     s.execute<vb>(std::vector<bool>(1), std::vector<int>());
 
-    constexpr bool add_four = (FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
-                              (FLECSI_BACKEND != FLECSI_BACKEND_hpx);
-    EXPECT_EQ(s.test<index_task>(&s.runtime(),
-                exec::launch_domain{s.runtime().processes() + 4 * add_four}),
-      0);
+    const exec::launch_domain extra{
+      np + 4 * ((FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
+                 (FLECSI_BACKEND != FLECSI_BACKEND_hpx))};
+    EXPECT_EQ((s.reduce<over, exec::fold::sum>(exec::group::world(),
+                 exec::mapping::block(),
+                 extra,
+                 std::make_shared<int>()))
+                .get(),
+      np);
+
+    EXPECT_EQ(s.test<index_task>(&s.runtime(), extra), 0);
 
     // Test reduction
-    auto np = s.runtime().processes();
     const int vpp = 5;
     // Array of initial values per color
     arr::topology arr_s(s, arr::coloring(np, vpp));

@@ -95,11 +95,10 @@ set_driver(scheduler & s) {
 
     mesh_type::ptr p;
     mesh_type::init fields;
-    auto & mesh_underlying = s.allocate(p,
-      mesh_type::mpi_coloring(s, s.runtime(), "simple-4x4.fixed", 4, fields),
-      fields);
+    auto & mesh_underlying = s.allocate(
+      p, mesh_type::color(s.runtime(), "simple-4x4.fixed", 4, fields), fields);
     spec_setopo_t::topology spec_setopo(
-      s, spec_setopo_t::mpi_coloring(s, &mesh_underlying));
+      s, spec_setopo_t::color(&mesh_underlying));
 
     auto particle_t = particles(spec_setopo);
     s.execute<init_fields>(

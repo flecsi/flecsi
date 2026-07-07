@@ -16,7 +16,7 @@ namespace data {
 /// A \link topo::specialization::mpi_coloring `mpi_coloring`\endlink object,
 /// constructed on request.
 /// \note Usually accessed as \c Topo::cslot.
-/// \deprecated Use \c mpi_coloring directly.
+/// \deprecated Construct \c coloring objects directly.
 template<class Topo>
 struct coloring_slot {
   using color_type = typename Topo::coloring;
@@ -24,7 +24,8 @@ struct coloring_slot {
   /// Create the \c mpi_coloring.
   /// \return the created \c Topo::coloring object
   template<typename... ARGS>
-  [[deprecated("use mpi_coloring")]] color_type & allocate(ARGS &&... args) {
+  [[deprecated("construct coloring directly")]] color_type & allocate(
+    ARGS &&... args) {
     emplace(std::forward<ARGS>(args)...);
     return get();
   } // allocate

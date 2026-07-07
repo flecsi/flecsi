@@ -22,7 +22,12 @@ Deprecated
 ^^^^^^^^^^
 * Execution
 
+  * ``execute`` and ``reduce`` |mdash| use ``scheduler`` versions, replacing execution-space attributes with parameters and `MPI tasks <api/user/group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a2b3397ca2a09eef67a0b395232aadd4c>`_ with :ref:`strong`
   * ``exec::launch_type_t`` |mdash| use ``future_kind`` as the type (but not for the values)
+
+* Topologies
+
+  * ``mpi_coloring`` |mdash| construct ``coloring`` objects directly, possibly with :ref:`strong` to access non-field data
 
 * Logging
   
@@ -38,6 +43,12 @@ New features
 * Execution
 
   * A task parameter can be a ``std::optional`` of, or a ``std::variant`` that includes, a FleCSI type such as an accessor.
+  * A task class can specify that launches of it should be ``synchronous``.
+  * ``comm`` holds an MPI communicator for use in a task: in this version, only duplicates of ``MPI_COMM_WORLD``.
+  * ``exec::group`` specifies processes to use for a task: in this version, all processes only.
+  * ``exec::mapping`` specifies processes to use for each point task: in this version, only by assigning blocks of point tasks.
+  * ``exec::point_mutex`` serializes per-point-task access to non-field resources.
+  * ``scheduler::wait`` finishes all launched tasks.
   * ``future_kind`` is an alias for the type of the second ``future`` template parameter.
 
 * On-node parallelism

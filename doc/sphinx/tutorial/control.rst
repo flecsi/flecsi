@@ -317,10 +317,7 @@ methods and some private data:
     Although this example demonstrates the ability to allocate heap data
     through the control state interface, this approach must not be used
     to allocate data that will be accessed by tasks and modified during the simulation: i.e., control state data should be used only to hold global constants and/or implement the control logic of the run.
-    As a special case, MPI tasks can access and modify such objects.
-    The FleCSI data model provides other mechanisms for creating
-    and managing state data, which are documented in the :doc:`data`
-    section of this tutorial.
+    Tasks launched with certain special semantics can modify such objects, but the :doc:`data` provides other mechanisms for creating and managing state data.
 
 These interfaces are used to implement the example actions in
 *tutorial/2-control/4-state.cc*. The basic structure of the example

@@ -180,7 +180,7 @@ mapping<P>
 make(scheduler & s, topology<P> & t, const Claims & c) {
   return {s, t, c};
 }
-/// Create a \c mapping for initialization using an MPI task.
+/// Create a \c mapping for initialization using a rank-matched task.
 /// The \c Claims are constructed using \link block() `block`\endlink.
 template<class P>
 mapping<P>

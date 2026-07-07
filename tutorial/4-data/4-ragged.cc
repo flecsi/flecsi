@@ -39,7 +39,7 @@ void
 advance(control_policy & p) {
   auto & s = p.scheduler();
 
-  canon::topology mesh(s, canon::mpi_coloring(s, "4"));
+  canon::topology mesh(s, canon::read("test.txt"));
 
   const auto f = rag(mesh);
 

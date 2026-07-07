@@ -23,7 +23,7 @@ namespace flecsi::exec::leg {
 using run::leg::task;
 
 namespace detail {
-template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
+template<typename R, task<R> *, TaskAttributes, bool>
 void register_task();
 
 } // namespace detail
@@ -35,14 +35,14 @@ void register_task();
   @tparam A task attributes mask
  */
 
-template<auto & F, TaskAttributes A = loc | leaf>
+template<auto & F, TaskAttributes A, bool C>
 // 'extern' works around GCC bug #96523
 extern const Legion::TaskID task_id =
   (run::context::register_init(
-     detail::register_task<typename util::function_t<F>::return_type, F, A>),
+     detail::register_task<typename util::function_t<F>::return_type, F, A, C>),
     Legion::Runtime::generate_static_task_id());
 
-template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
+template<typename RETURN, task<RETURN> * TASK, TaskAttributes A, bool C>
 void
 detail::register_task() {
   constexpr auto processor_type = mask_to_processor_type(A);
@@ -83,7 +83,7 @@ detail::register_task() {
 
   flecsi::run::context::instance().task_names()[name] = sig;
 
-  Legion::TaskVariantRegistrar registrar(task_id<*TASK, A>, name.c_str());
+  Legion::TaskVariantRegistrar registrar(task_id<*TASK, A, C>, name.c_str());
   Legion::Processor::Kind kind;
   switch(processor_type) {
     case processor::toc:
@@ -101,6 +101,7 @@ detail::register_task() {
 
   registrar.set_leaf(A & leaf || ~A & inner);
   registrar.set_inner(A & inner);
+  registrar.set_concurrent(C);
 
   /*
     This section of conditionals is necessary because there is still
@@ -145,10 +146,19 @@ task_wrapper(const Legion::Task * task,
   using Params = typename L::Params;
   auto & c = run::context::instance();
 
-  const auto call = [&](auto && ours, const bindings & which) {
+  const auto call = [&](auto & p) {
+    auto && ours = [&p]() -> decltype(auto) {
+      if constexpr(L::matched)
+        if constexpr(L::mapped)
+          return (p.params); // avoid double-moves
+        else
+          return std::move(p.params);
+      else
+        return bind_tuple(p.params);
+    }();
     bind_parameters<L::proc>(
-      ours, runtime, context, regions, task->futures, which);
-    const auto f = [&] { return L::call(std::move(ours)); };
+      ours, runtime, context, regions, task->futures, p.which);
+    const auto f = [&] { return L::call(std::forward<decltype(ours)>(ours)); };
     if constexpr(L::mpi) {
       if constexpr(std::is_void_v<typename L::Return>)
         c.mpi_call(f);
@@ -162,19 +172,16 @@ task_wrapper(const Legion::Task * task,
       return run::task_local_base::guard(), f();
   };
 
-  if constexpr(L::mpi) {
+  if constexpr(L::sync) {
     flog_assert(!task->arglen, "unexpected task arguments");
-    auto & p = *static_cast<parameters<Params> *>(c.mpi_params);
-    return call(p.params, p.which);
+    return call(*static_cast<parameters<Params> *>(c.sync_params));
   }
-  else {
+  else
     // There is a optimization opportunity here to move
     // the elements instead of copying the last time.
-    const auto access = c.params.at(run::get1<std::size_t>(*task));
-    const auto & p = access.get<
-      parameters<typename L::protocol::template param_storage_t<Params>>>();
-    return call(bind_tuple(p.params), p.which);
-  }
+    return call(c.params.at(run::get1<std::size_t>(*task))
+        .get<parameters<
+          typename L::protocol::template param_storage_t<Params>>>());
 }
 
 /// \}
