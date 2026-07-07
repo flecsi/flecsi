@@ -55,8 +55,8 @@ If there is no execution space parameter, the task will default to CPU execution
 :ref:`field-accessors` are automatically converted from field references provided during the task launch.
 The field data they describe is placed in the correct memory space; ghost elements are updated if required by the privileges.
 
-Tasks can also handle collections of fields, using either ``std::vector`` or ``std::tuple``.
-For example, if all fields share the same type, a ``std::vector`` can be used to group them together:
+Tasks can also handle collections of fields, using ``std::vector``, ``std::array``, or ``std::tuple``.
+For example, if all fields share the same type, a ``std::vector`` (or a ``std::array``, if the number of fields is known at compile time) can be used to group them together:
 
 .. code-block:: c++
 

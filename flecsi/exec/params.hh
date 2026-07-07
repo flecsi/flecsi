@@ -193,6 +193,12 @@ private:
     for(auto & a : av)
       visit(*p++, a);
   }
+  template<class P, class A, std::size_t N>
+    requires detail::must_convert<A>::value
+  void visit(std::array<P, N> & pa, const std::array<A, N> & aa) {
+    for(std::size_t i = 0; i < N; ++i)
+      visit(pa[i], aa[i]);
+  }
   template<class... PP, class... AA>
   void visit(std::tuple<PP...> & pt, const std::tuple<AA...> & at) {
     std::apply(
@@ -254,6 +260,11 @@ private:
       visit(t);
   }
   void visit(std::vector<bool> &) {}
+  template<class T, std::size_t N>
+  void visit(std::array<T, N> & arr) {
+    for(auto & t : arr)
+      visit(t);
+  }
   template<class... TT>
   void visit(std::tuple<TT...> & t) {
     std::apply(

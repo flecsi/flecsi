@@ -13,6 +13,7 @@
 #include "flecsi/util/function_traits.hh"
 #include "flecsi/util/mpi.hh"
 
+#include <array>
 #include <cstddef>
 #include <optional>
 #include <ranges>
@@ -433,6 +434,13 @@ struct sync_storage<std::optional<P>, V, std::optional<A>> {
     std::type_identity<std::optional<sync_storage_t<P, element_t<V, A>>>>,
     replaced<std::optional<P>, V>>::type;
 };
+template<class P, std::size_t N, class V, class A>
+struct sync_storage<std::array<P, N>, V, std::array<A, N>> {
+  static constexpr bool temporary = sync_storage<P, element_t<V, A>>::temporary;
+  using type = typename std::conditional_t<temporary,
+    std::type_identity<std::array<sync_storage_t<P, element_t<V, A>>, N>>,
+    replaced<std::array<P, N>, V>>::type;
+};
 template<class P, class V, class A>
 struct sync_storage<std::vector<P>, V, std::vector<A>> {
   static constexpr bool temporary = sync_storage<P, element_t<V, A>>::temporary;
@@ -473,6 +481,10 @@ struct is_optional : std::false_type {};
 template<class T>
 struct is_optional<std::optional<T>> : std::true_type {};
 template<class>
+struct is_array : std::false_type {};
+template<class T, std::size_t N>
+struct is_array<std::array<T, N>> : std::true_type {};
+template<class>
 struct is_vector : std::false_type {};
 template<class T>
 struct is_vector<std::vector<T>> : std::true_type {};
@@ -511,6 +523,14 @@ convert(U && u) { // deep implicit conversions
       return convert<typename T::value_type>(std::forward<decltype(x)>(x));
     });
     return {t.begin(), t.end()};
+  }
+  else if constexpr(is_array<T>::value) {
+    return std::apply(
+      [](auto &&... args) {
+        return T{convert<typename T::value_type>(
+          std::forward<decltype(args)>(args))...};
+      },
+      std::forward<U>(u));
   }
   else
     return std::forward<U>(u);
@@ -574,6 +594,10 @@ struct protocol {
   template<class P>
   struct param_storage<std::optional<P>> {
     using type = std::optional<param_storage_t<P>>;
+  };
+  template<class P, std::size_t N>
+  struct param_storage<std::array<P, N>> {
+    using type = std::array<param_storage_t<P>, N>;
   };
   template<class P>
   struct param_storage<std::vector<P>> {
@@ -1176,6 +1200,50 @@ struct task_param<mapping::point> {
     return {};
   }
 };
+
+template<class P, std::size_t N>
+struct task_param<std::array<P, N>> {
+  // Copy (breaking non-const reference parameters) only if necessary:
+  template<class A>
+    requires(N != 0 && replace_argument<P, const A &>::special)
+  static auto replace(const std::array<A, N> & arr) {
+    return make(arr, std::make_index_sequence<N>{});
+  }
+
+  template<class A>
+    requires(N != 0 && replace_argument<P, A &&>::special)
+  static auto replace(std::array<A, N> && arr) {
+    return make(std::move(arr), std::make_index_sequence<N>{});
+  }
+
+private:
+  template<class T, std::size_t... Is>
+  static auto make(T && arr, std::index_sequence<Is...>) {
+    static constexpr auto fwd = []<class E>(E & x) {
+      return static_cast<detail::same_ref_t<T, E>>(x);
+    };
+    return std::array{exec::replace_argument<P>(fwd(arr[Is]))...};
+  }
+};
+template<class T, std::size_t N>
+struct must_convert<std::array<T, N>>
+  : std::conditional_t<N != 0, must_convert<T>, std::false_type> {};
+template<class P, std::size_t N, class A>
+struct launch<std::array<P, N>, std::array<A, N>> {
+  static auto get(const std::array<A, N> & arr) {
+    return apply(
+      [](auto &&... aa) {
+        return (
+          launch_combine(nullptr) | ... | launch_combine(launch<P, A>::get(aa)))
+          .value();
+      },
+      arr);
+  }
+};
+
+template<class T, std::size_t N>
+struct must_bind<std::array<T, N>>
+  : std::conditional_t<N != 0, must_bind<T>, std::false_type> {};
 
 template<class P>
 struct task_param<std::vector<P>> {
