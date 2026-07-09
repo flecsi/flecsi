@@ -39,6 +39,7 @@ struct topology {
   topology(topology &&) = delete; // some internal topologies are movable
 
   /// Return the number of colors over which the topology is partitioned.
+  /// This is not implemented by the unpartitioned \c global topology.
   Color colors() const;
 };
 #else
