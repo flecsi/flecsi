@@ -66,7 +66,7 @@ Fixed
 
 * On-node parallelism
 
-  * Host-acessible values are copied on first use.
+  * Host-accessible values are copied on first use.
 
 * Utilities
 
