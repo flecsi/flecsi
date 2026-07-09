@@ -91,13 +91,15 @@ struct copy_engine : local::copy_engine {
                 Kokkos::ViewAllocateWithoutInitializing("gather"),
                 max_shared_indices_size * type_size);
 
+            const auto gather_data = gather_buffer_device_view->data();
+
             // copy shared values to gather buffer on device in parallel,
             // for each element
             Kokkos::parallel_for(
               n_elements, KOKKOS_LAMBDA(const auto & i) {
                 // Yes, memcpy is supported on device as long as there is no
                 // std:: qualifier.
-                memcpy(gather_buffer_device_view->data() + i * type_size,
+                memcpy(gather_data + i * type_size,
                   gpu + src_indices_view[i] * type_size,
                   type_size);
               });
@@ -160,6 +162,7 @@ struct copy_engine : local::copy_engine {
             backend_storage::host_view{
               recv_buffer->data(), recv_buffer->size()});
 
+          const auto scatter_data = scatter_buffer_device_view->data();
           auto dst_indices_view = indices.template data<exec::processor::toc>();
 
           // copy ghost values from scatter buffer on device to field
@@ -167,7 +170,7 @@ struct copy_engine : local::copy_engine {
           Kokkos::parallel_for(
             n_elements, KOKKOS_LAMBDA(const auto & i) {
               memcpy(gpu + dst_indices_view[i] * type_size,
-                scatter_buffer_device_view->data() + i * type_size,
+                scatter_data + i * type_size,
                 type_size);
             });
         }
