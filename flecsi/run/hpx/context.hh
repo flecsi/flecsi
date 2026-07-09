@@ -243,7 +243,7 @@ private:
       : c(std::exchange(o.c, {})) {}
     ~outstanding_guard() {
       if(c && --c->out) {
-        (std::lock_guard(c->out_mutex));
+        (void)std::lock_guard(c->out_mutex);
         c->out_cv.notify_one();
       }
     }
