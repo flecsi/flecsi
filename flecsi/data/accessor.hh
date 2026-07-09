@@ -380,6 +380,7 @@ struct mutator<ragged, T, P>
 
 private:
   struct Overflow {
+    // We repack eagerly, so buffer is empty if del is non-zero:
     size_type del;
     std::vector<detail::Bool::maybe<T>> buffer;
   };
