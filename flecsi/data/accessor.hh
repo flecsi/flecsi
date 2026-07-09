@@ -922,6 +922,9 @@ private:
 
 public:
   /// A row handle.
+  /// The implementation is similar to \c std::flat_map from C++23.
+  /// Insertion and deletion of elements are thus most efficient for the
+  /// largest key values.
   struct row {
     using key_type = typename Field::key_type;
     using value_type = typename base_row::value_type;
@@ -1092,9 +1095,6 @@ public:
       return {i, i != r.end() && i->first == c};
     }
 
-    // We simply keep the (ragged) row sorted; this avoids the complexity of
-    // two lookaside structures and is efficient for small numbers of inserted
-    // elements and for in-order initialization.
     base_row r;
   };
 
