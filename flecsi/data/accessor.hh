@@ -360,7 +360,7 @@ struct accessor<ragged, T, P>
 /// Sizes are \ref topo::repartition::resize "applied" before launching the
 /// task.  New sizes are \ref topo::with_size::growth "chosen" for the next
 /// task based on usage.
-/// Cannot be used while tracing or in a GPU task.
+/// Cannot be used in a GPU task.
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<ragged, T, P>
@@ -904,7 +904,7 @@ public:
 };
 
 /// Mutator for sparse fields.
-/// Cannot be used while tracing or in a GPU task.
+/// Cannot be used in a GPU task.
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<sparse, T, P>
