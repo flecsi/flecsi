@@ -537,6 +537,8 @@ struct agent : executor_base<agent<S>> {
 };
 
 /// An execution space.
+/// A task is executed in the space it declares as a parameter.
+/// Pass \c exec::on as the corresponding argument.
 struct space_base : data::bind_tag, data::convert_tag {
   /// Information about a task launch.
   struct tasks {
