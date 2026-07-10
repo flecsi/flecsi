@@ -418,6 +418,7 @@ struct launch {
 
 /// An explicit launch domain size.
 struct launch_domain {
+  /// The number of point tasks to execute.
   Color size_;
 };
 
