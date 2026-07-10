@@ -786,11 +786,10 @@ struct task_param<std::vector<P>> {
 private:
   template<class T>
   static auto make(T && v) {
-    const util::transform_view<T &, decltype([](auto && x) -> decltype(auto) {
+    const auto t = std::views::transform(v, [](auto && x) -> decltype(auto) {
       return exec::replace_argument<P>(
         static_cast<detail::same_ref_t<T, decltype(x)>>(x));
-    })>
-      t(v);
+    });
     return std::vector(t.begin(), t.end());
   }
 };
