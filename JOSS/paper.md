@@ -250,7 +250,7 @@ Control points provide hooks for a directed acyclic graph (DAG) of _actions_ to 
 Actions spawn _tasks_, which are functions that are distributed within and across the nodes of the compute cluster and that complete asynchronously.
 In a computational-science application, a task typically represents updates to a data structure, such as to perform mesh operations (e.g., relaxation).
 Because there exist run-time costs in launching tasks and moving data across a large-scale, hybrid CPU/GPU cluster, task granularity should be large enough to amortize these costs.
-A rule of thumb is for tasks to execute in about 10 ms to keep the relative overhead manageable.
+A rule of thumb is for tasks to execute in no less than about 10 ms to keep the relative overhead manageable.
 
 A task declaration includes the _fields_ of a distributed data structure that it will access (defined on, say, the cells, edges, and vertices of an unstructured mesh) and the access rights it requires on each field: read only, write only, or read/write.
 Tasks are run concurrently according to field data dependencies.
