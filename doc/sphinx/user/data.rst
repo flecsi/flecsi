@@ -313,8 +313,7 @@ Field references for ``ragged`` or ``sparse`` fields provide a ``get_elements`` 
 The object returned can be used to allocate memory manually (with ``resize``) or automatically based on a heuristic (with ``growth``).
 
 The current implementation of memory management for these layouts imposes several limitations.
-First, the automatic memory allocation is incompatible with :ref:`tracing`, so ``ragged`` and ``sparse`` mutators cannot be used in a task launched during a trace.
-Ghost copies for these layouts are implemented using mutators, so they are excluded from traces as well.
+First, the automatic memory allocation is incompatible with :ref:`tracing`, so it is deferred until a trace ends (killing the process if the field runs out of space first).
 Moreover, they use further temporary allocations during a task that are incompatible with GPU execution, so they cannot be used in a ``toc`` task.
 
 .. _multi-accessors:
