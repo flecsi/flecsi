@@ -141,10 +141,10 @@ struct particle : particle_base {
   particle() {}
   // This class is indestructible; we run T's destructor when necessary.
   template<class... AA>
-  FLECSI_INLINE_TARGET link emplace(AA &&... aa) {
+  KOKKOS_INLINE_FUNCTION link emplace(AA &&... aa) {
     struct guard {
-      FLECSI_INLINE_TARGET guard(particle & p) : p(p), ret(p.free) {}
-      FLECSI_INLINE_TARGET ~guard() {
+      KOKKOS_INLINE_FUNCTION guard(particle & p) : p(p), ret(p.free) {}
+      KOKKOS_INLINE_FUNCTION ~guard() {
         if(fail)
           p.free = ret;
       }

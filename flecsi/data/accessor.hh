@@ -115,31 +115,31 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : send_tag {
   using element_type = typename base_type::element_type;
 
   /// Get the value.
-  FLECSI_INLINE_TARGET element_type & get() const {
+  KOKKOS_INLINE_FUNCTION element_type & get() const {
     return base(0);
   } // data
   /// Convert to the value.
-  FLECSI_INLINE_TARGET operator element_type &() const {
+  KOKKOS_INLINE_FUNCTION operator element_type &() const {
     return get();
   } // value
 
   /// Assign to the value.
-  FLECSI_INLINE_TARGET const accessor & operator=(
+  KOKKOS_INLINE_FUNCTION const accessor & operator=(
     const DATA_TYPE & value) const {
     return const_cast<accessor &>(*this) = value;
   } // operator=
   /// Assign to the value.
-  FLECSI_INLINE_TARGET accessor & operator=(const DATA_TYPE & value) {
+  KOKKOS_INLINE_FUNCTION accessor & operator=(const DATA_TYPE & value) {
     get() = value;
     return *this;
   } // operator=
 
   /// Get the value.
-  FLECSI_INLINE_TARGET element_type & operator*() const {
+  KOKKOS_INLINE_FUNCTION element_type & operator*() const {
     return get();
   }
   /// Access a member of the value.
-  FLECSI_INLINE_TARGET element_type * operator->() const {
+  KOKKOS_INLINE_FUNCTION element_type * operator->() const {
     return &get();
   } // operator->
 
@@ -176,7 +176,7 @@ struct reduction_accessor : bind_tag {
 
   /// Prepare to update en element.
   /// \return a callable that merges its \p T argument into the field element
-  FLECSI_INLINE_TARGET auto operator[](size_type index) const {
+  KOKKOS_INLINE_FUNCTION auto operator[](size_type index) const {
     return [&v = s[index]](const T & r) { v = R::combine(v, r); };
   }
 
@@ -185,7 +185,7 @@ struct reduction_accessor : bind_tag {
   }
 
   /// Access the underlying elements.
-  FLECSI_INLINE_TARGET util::span<element_type> span() const {
+  KOKKOS_INLINE_FUNCTION util::span<element_type> span() const {
     return s;
   }
 
@@ -201,7 +201,7 @@ struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
   using element_type = detail::element_t<DATA_TYPE, PRIVILEGES>;
 
   /// Get the allocated memory.
-  FLECSI_INLINE_TARGET util::span<element_type> span() const {
+  KOKKOS_INLINE_FUNCTION util::span<element_type> span() const {
     return s;
   }
 
@@ -222,7 +222,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
   using size_type = typename decltype(base_type().span())::size_type;
 
   /// Index with bounds checking (except with \c NDEBUG).
-  FLECSI_INLINE_TARGET typename accessor::element_type & operator()(
+  KOKKOS_INLINE_FUNCTION typename accessor::element_type & operator()(
     size_type index) const {
     const auto s = this->span();
     assert(index < s.size() && "index out of range");
@@ -230,7 +230,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
   } // operator()
 
   /// Index without bounds checking (even without \c NDEBUG).
-  FLECSI_INLINE_TARGET typename accessor::element_type & operator[](
+  KOKKOS_INLINE_FUNCTION typename accessor::element_type & operator[](
     size_type index) const {
     return this->span()[index];
   }
@@ -277,30 +277,30 @@ struct ragged_accessor
 
   /// Get the row at an index point.
   /// \return \c util::span
-  FLECSI_INLINE_TARGET row operator[](size_type i) const {
+  KOKKOS_INLINE_FUNCTION row operator[](size_type i) const {
     // Without an extra element, we must store one endpoint implicitly.
     // Storing the end usefully ignores any overallocation.
     return this->span().first(off(i)).subspan(i ? off(i - 1) : 0);
   }
   /// Return the number of rows.
-  FLECSI_INLINE_TARGET size_type size() const noexcept {
+  KOKKOS_INLINE_FUNCTION size_type size() const noexcept {
     return off.span().size();
   }
   /// Return the number of elements across all rows.
-  FLECSI_INLINE_TARGET Offset total() const noexcept {
+  KOKKOS_INLINE_FUNCTION Offset total() const noexcept {
     const auto s = off.span();
     return s.empty() ? 0 : s.back();
   }
 
   /// Get the elements without any row structure.
-  FLECSI_INLINE_TARGET util::span<element_type> span() const {
+  KOKKOS_INLINE_FUNCTION util::span<element_type> span() const {
     return get_base().span().first(total());
   }
 
   base_type & get_base() {
     return *this;
   }
-  FLECSI_INLINE_TARGET const base_type & get_base() const {
+  KOKKOS_INLINE_FUNCTION const base_type & get_base() const {
     return *this;
   }
 
@@ -873,10 +873,10 @@ public:
   /// A mapping backed by a row.  Use the \c ragged interface to iterate.
   struct row {
     using key_type = typename Field::key_type;
-    FLECSI_INLINE_TARGET row(base_row s) : s(s) {}
+    KOKKOS_INLINE_FUNCTION row(base_row s) : s(s) {}
     /// Find an element.
     /// \param c must exist
-    FLECSI_INLINE_TARGET element_type & operator()(key_type c) const {
+    KOKKOS_INLINE_FUNCTION element_type & operator()(key_type c) const {
       return util::partition_point(s, [c](const value_type & v) {
         return v.first < c;
       })->second;
@@ -887,14 +887,14 @@ public:
   };
 
   /// Get the row at an index point.
-  FLECSI_INLINE_TARGET row operator[](typename accessor::size_type i) const {
+  KOKKOS_INLINE_FUNCTION row operator[](typename accessor::size_type i) const {
     return get_base()[i];
   }
 
   base_type & get_base() {
     return *this;
   }
-  FLECSI_INLINE_TARGET const base_type & get_base() const {
+  KOKKOS_INLINE_FUNCTION const base_type & get_base() const {
     return *this;
   }
   template<class F>
@@ -1148,59 +1148,59 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
     using difference_type = std::ptrdiff_t;
     using iterator_category = std::bidirectional_iterator_tag;
 
-    FLECSI_INLINE_TARGET iterator() noexcept : iterator(nullptr, 0) {}
-    FLECSI_INLINE_TARGET iterator(const particle_accessor * a, size_type i)
+    KOKKOS_INLINE_FUNCTION iterator() noexcept : iterator(nullptr, 0) {}
+    KOKKOS_INLINE_FUNCTION iterator(const particle_accessor * a, size_type i)
       : a(a), i(i) {}
 
-    FLECSI_INLINE_TARGET reference operator*() const {
+    KOKKOS_INLINE_FUNCTION reference operator*() const {
       return a->span()[i].data;
     }
-    FLECSI_INLINE_TARGET pointer operator->() const {
+    KOKKOS_INLINE_FUNCTION pointer operator->() const {
       return &**this;
     }
 
-    FLECSI_INLINE_TARGET iterator & operator++() {
+    KOKKOS_INLINE_FUNCTION iterator & operator++() {
       const auto s = a->span();
       if(++i != s.size())
         i += s[i].skip;
       return *this;
     }
-    FLECSI_INLINE_TARGET iterator operator++(int) {
+    KOKKOS_INLINE_FUNCTION iterator operator++(int) {
       iterator ret = *this;
       ++*this;
       return ret;
     }
-    FLECSI_INLINE_TARGET iterator & operator--() {
+    KOKKOS_INLINE_FUNCTION iterator & operator--() {
       if(--i)
         i -= a->span()[i].skip;
       return *this;
     }
-    FLECSI_INLINE_TARGET iterator operator--(int) {
+    KOKKOS_INLINE_FUNCTION iterator operator--(int) {
       iterator ret = *this;
       --*this;
       return ret;
     }
 
-    FLECSI_INLINE_TARGET bool operator==(const iterator & o) const {
+    KOKKOS_INLINE_FUNCTION bool operator==(const iterator & o) const {
       return i == o.i;
     }
-    FLECSI_INLINE_TARGET bool operator!=(const iterator & o) const {
+    KOKKOS_INLINE_FUNCTION bool operator!=(const iterator & o) const {
       return i != o.i;
     }
-    FLECSI_INLINE_TARGET bool operator<(const iterator & o) const {
+    KOKKOS_INLINE_FUNCTION bool operator<(const iterator & o) const {
       return i < o.i;
     }
-    FLECSI_INLINE_TARGET bool operator<=(const iterator & o) const {
+    KOKKOS_INLINE_FUNCTION bool operator<=(const iterator & o) const {
       return i <= o.i;
     }
-    FLECSI_INLINE_TARGET bool operator>(const iterator & o) const {
+    KOKKOS_INLINE_FUNCTION bool operator>(const iterator & o) const {
       return i > o.i;
     }
-    FLECSI_INLINE_TARGET bool operator>=(const iterator & o) const {
+    KOKKOS_INLINE_FUNCTION bool operator>=(const iterator & o) const {
       return i >= o.i;
     }
 
-    FLECSI_INLINE_TARGET size_type location() const noexcept {
+    KOKKOS_INLINE_FUNCTION size_type location() const noexcept {
       return i;
     }
 
@@ -1213,30 +1213,30 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   /// \{
 
   /// <a></a>
-  FLECSI_INLINE_TARGET size_type size() const noexcept {
+  KOKKOS_INLINE_FUNCTION size_type size() const noexcept {
     const auto s = this->span();
     const auto n = s.size();
     const auto i = n ? s.front().skip : 0;
     return i == n ? n : s[i].free.prev;
   }
-  FLECSI_INLINE_TARGET size_type capacity() const noexcept {
+  KOKKOS_INLINE_FUNCTION size_type capacity() const noexcept {
     return this->span().size();
   }
-  [[nodiscard]] FLECSI_INLINE_TARGET bool empty() const noexcept {
+  [[nodiscard]] KOKKOS_INLINE_FUNCTION bool empty() const noexcept {
     return !size();
   }
 
-  FLECSI_INLINE_TARGET iterator begin() const noexcept {
+  KOKKOS_INLINE_FUNCTION iterator begin() const noexcept {
     const auto s = this->span();
     return {this, s.empty() || s.front().skip ? 0 : 1 + first_skip()};
   }
-  FLECSI_INLINE_TARGET iterator end() const noexcept {
+  KOKKOS_INLINE_FUNCTION iterator end() const noexcept {
     return {this, capacity()};
   }
 
   /// Implements \c std::hive::get_iterator.
   /// \c T must be standard-layout.
-  FLECSI_INLINE_TARGET iterator get_iterator_from_pointer(
+  KOKKOS_INLINE_FUNCTION iterator get_iterator_from_pointer(
     element_type * the_pointer) const noexcept {
     static_assert(std::is_standard_layout_v<Particle>);
     const auto * const p = reinterpret_cast<Particle *>(the_pointer);
@@ -1250,7 +1250,7 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   base_type & get_base() {
     return *this;
   }
-  FLECSI_INLINE_TARGET const base_type & get_base() const {
+  KOKKOS_INLINE_FUNCTION const base_type & get_base() const {
     return *this;
   }
 
@@ -1264,7 +1264,7 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   }
 
 protected:
-  FLECSI_INLINE_TARGET size_type
+  KOKKOS_INLINE_FUNCTION size_type
   first_skip() const { // after special first element
     const auto s = this->span();
     return s.size() == 1 ? 0 : s[1].skip;
@@ -1306,20 +1306,20 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   /// \{
 
   /// <a></a>
-  FLECSI_INLINE_TARGET void clear() const noexcept {
+  KOKKOS_INLINE_FUNCTION void clear() const noexcept {
     if(!std::is_trivially_destructible_v<T>)
       std::destroy(this->begin(), this->end());
     init();
   }
 
-  FLECSI_INLINE_TARGET iterator insert(const value_type & v) const {
+  KOKKOS_INLINE_FUNCTION iterator insert(const value_type & v) const {
     return emplace(v);
   }
-  FLECSI_INLINE_TARGET iterator insert(value_type && v) const {
+  KOKKOS_INLINE_FUNCTION iterator insert(value_type && v) const {
     return emplace(std::move(v));
   }
   template<class... AA>
-  FLECSI_INLINE_TARGET iterator emplace(AA &&... aa) const {
+  KOKKOS_INLINE_FUNCTION iterator emplace(AA &&... aa) const {
     const auto s = this->span();
     const auto n = s.size();
     assert(n && "no particle space");
@@ -1342,7 +1342,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
     return {this, ret};
   }
 
-  FLECSI_INLINE_TARGET iterator erase(const iterator & it) const {
+  KOKKOS_INLINE_FUNCTION iterator erase(const iterator & it) const {
     const auto s = this->span();
     const auto n = s.size();
     assert(n && "no particles to erase");
@@ -1389,7 +1389,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   }
 
 private:
-  FLECSI_INLINE_TARGET void init() const {
+  KOKKOS_INLINE_FUNCTION void init() const {
     const auto s = this->span();
     std::uninitialized_default_construct(s.begin(), s.end());
     if(const typename mutator::Particle::size_type n = s.size()) {
@@ -1420,11 +1420,11 @@ struct scalar_access : send_tag {
     }
   }
 
-  FLECSI_INLINE_TARGET const value_type * operator->() const {
+  KOKKOS_INLINE_FUNCTION const value_type * operator->() const {
     return &**this;
   }
 
-  FLECSI_INLINE_TARGET const value_type & operator*() const {
+  KOKKOS_INLINE_FUNCTION const value_type & operator*() const {
 #ifdef FLECSI_DEVICE_CODE
     return *device; // avoid race on copy
 #else

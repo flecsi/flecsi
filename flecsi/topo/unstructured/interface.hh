@@ -343,7 +343,7 @@ protected:
    */
 
   template<index_space S>
-  FLECSI_INLINE_TARGET auto entities() const {
+  KOKKOS_INLINE_FUNCTION auto entities() const {
     return make_ids<S>(util::iota_view<util::id>(0, *size_.template get<S>()));
   }
 
@@ -357,14 +357,14 @@ protected:
    */
 
   template<index_space To, index_space From>
-  FLECSI_INLINE_TARGET auto entities(id<From> from) const {
+  KOKKOS_INLINE_FUNCTION auto entities(id<From> from) const {
     return make_ids<To>(connectivity<From, To>()[from]);
   }
 
   /// Get a special-entities list.
   /// \return range of \c id\<I\> values
   template<index_space I, entity_list L>
-  FLECSI_INLINE_TARGET auto special_entities() const {
+  KOKKOS_INLINE_FUNCTION auto special_entities() const {
     return make_ids<I>(special_.template get<I>().template get<L>().span());
   }
 
@@ -375,7 +375,7 @@ private:
   }
 
   template<index_space F, index_space T>
-  FLECSI_INLINE_TARGET auto const & connectivity() const {
+  KOKKOS_INLINE_FUNCTION auto const & connectivity() const {
     return connect_.template get<F>().template get<T>();
   }
 

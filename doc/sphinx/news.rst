@@ -26,6 +26,7 @@ Deprecated
 
 * Utilities
 
+  * ``FLECSI_TARGET`` and ``FLECSI_INLINE_TAGET`` |mdash| use ``KOKKOS_FUNCTION`` and ``KOKKOS_INLINE_FUNCTION`` respectively
   * SFINAE hook for ``serial::traits`` |mdash| use constraints
 
 * Logging

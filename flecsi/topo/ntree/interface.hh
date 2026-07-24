@@ -217,7 +217,7 @@ private:
   /// Hashing table type
   using hmap_t = util::hashtable<key_t, hcell_t, Policy>;
 
-  FLECSI_INLINE_TARGET static hmap_t map(
+  KOKKOS_INLINE_FUNCTION static hmap_t map(
     typename field<hmap_pair_t>::template accessor<rw, na> hcells) {
     return std::span(hcells.span());
   }
@@ -1243,14 +1243,14 @@ public:
   // In order to avoid complexifying the hashtable class and since this usage is
   // strictly internal, we are using a const_cast to get an unprotected access
   // to the field.
-  FLECSI_INLINE_TARGET hmap_t map() const {
+  KOKKOS_INLINE_FUNCTION hmap_t map() const {
     return std::span<hmap_pair_t>(
       const_cast<hmap_pair_t *>(hcells.span().data()), hcells.span().size());
   }
 
   // Standard traversal function
   template<typename F, typename HT>
-  FLECSI_INLINE_TARGET void
+  KOKKOS_INLINE_FUNCTION void
   traversal(hcell_t * hcell, F && f, HT && hmap) const {
     queue_type tqueue;
     tqueue.push(hcell);
@@ -1366,7 +1366,7 @@ public:
 
   /// Return a range of all entities of a \c ntree_base::ptype_t
   template<ptype_t PT = ptype_t::exclusive>
-  FLECSI_INLINE_TARGET auto entities() const {
+  KOKKOS_INLINE_FUNCTION auto entities() const {
     if constexpr(PT == ptype_t::exclusive) {
       return make_ids<index_space::entities>(
         util::iota_view<util::id>(0, mf->local.ents));
@@ -1406,7 +1406,7 @@ public:
 
   /// Get entities interacting with an entity.
   /// This function uses the interaction functions featured in the policy.
-  FLECSI_INLINE_TARGET auto neighbors(
+  KOKKOS_INLINE_FUNCTION auto neighbors(
     const id<index_space::entities> & ent_id) const {
     auto hmap = map();
     vector_type ids;

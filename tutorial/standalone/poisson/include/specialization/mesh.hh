@@ -41,12 +41,12 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   template<class B>
   struct interface : B {
     template<mesh::axis A>
-    FLECSI_INLINE_TARGET base::axis_info axis() const {
+    KOKKOS_INLINE_FUNCTION base::axis_info axis() const {
       return B::template axis<mesh::vertices, A>();
     }
 
     template<mesh::axis A>
-    FLECSI_INLINE_TARGET auto vertices() const {
+    KOKKOS_INLINE_FUNCTION auto vertices() const {
       // The outermost layer is either ghosts or fixed boundaries:
       return flecsi::topo::make_ids<mesh::vertices>(
         flecsi::util::iota_view<flecsi::util::id>(
@@ -54,7 +54,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     template<mesh::axis A>
-    FLECSI_INLINE_TARGET auto red(flecsi::util::id row) const {
+    KOKKOS_INLINE_FUNCTION auto red(flecsi::util::id row) const {
       // The checkerboard extends across colors.  The (boundary) point with
       // global ID (0,0) is red; row is local, and 0 in the space of the
       // stride_view is the first interior vertex.
@@ -66,7 +66,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     template<mesh::axis A>
-    FLECSI_INLINE_TARGET auto black(flecsi::util::id row) const {
+    KOKKOS_INLINE_FUNCTION auto black(flecsi::util::id row) const {
       return red<A>(row + 1);
     }
 
@@ -74,20 +74,20 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       this->policy_meta() = {x, y};
     }
 
-    FLECSI_INLINE_TARGET double xdelta() const {
+    KOKKOS_INLINE_FUNCTION double xdelta() const {
       return this->policy_meta().xdelta;
     }
 
-    FLECSI_INLINE_TARGET double ydelta() const {
+    KOKKOS_INLINE_FUNCTION double ydelta() const {
       return this->policy_meta().ydelta;
     }
 
-    FLECSI_INLINE_TARGET double dxdy() const {
+    KOKKOS_INLINE_FUNCTION double dxdy() const {
       return xdelta() * ydelta();
     }
 
     template<mesh::axis A>
-    FLECSI_INLINE_TARGET double value(flecsi::util::id i) const {
+    KOKKOS_INLINE_FUNCTION double value(flecsi::util::id i) const {
       return (A == x_axis ? xdelta() : ydelta()) * axis<A>().global_id(i);
     }
   }; // struct interface

@@ -181,7 +181,7 @@ struct linearize {
 struct axis_layout {
   using End = short;
 
-  FLECSI_INLINE_TARGET axis_layout(util::id bdepth,
+  KOKKOS_INLINE_FUNCTION axis_layout(util::id bdepth,
     util::id log,
     util::id halo_up, // depth of points communicated upward
     util::id halo_down,
@@ -195,12 +195,12 @@ struct axis_layout {
   /// The local extent of this color. This is the full size including
   /// boundary depth, and ghosts. The "extent" coordinate implicitly
   /// defines a range [0, extent[.
-  FLECSI_INLINE_TARGET util::id extent() const {
+  KOKKOS_INLINE_FUNCTION util::id extent() const {
     return both(bdy) + both(gh) + log;
   }
   /// Return a range of all (local) indices.
   /// \return range of \c util::id
-  FLECSI_INLINE_TARGET auto all() const {
+  KOKKOS_INLINE_FUNCTION auto all() const {
     return util::iota_view({}, extent());
   }
 
@@ -209,13 +209,13 @@ struct axis_layout {
   /// boundary padding or ghosts.
   /// \tparam E 0 or 1 for beginning or end
   template<End E>
-  FLECSI_INLINE_TARGET util::id logical() const {
+  KOKKOS_INLINE_FUNCTION util::id logical() const {
     static_assert(E == 0 || E == 1);
     return bdy[0] + gh[0] + E * log;
   }
   /// Return a range of all logical indices.
   /// \return range of \c util::id
-  FLECSI_INLINE_TARGET auto logical() const {
+  KOKKOS_INLINE_FUNCTION auto logical() const {
     return util::iota_view(logical<0>(), logical<1>());
   }
 
@@ -227,7 +227,7 @@ struct axis_layout {
   /// \tparam E 0 or 1 for beginning or end
   /// \endif
   template<End E>
-  FLECSI_INLINE_TARGET util::id exclusive() const {
+  KOKKOS_INLINE_FUNCTION util::id exclusive() const {
     static_assert(E == 0 || E == 1);
     return bdy[0] + gh[0] + (E ? log - shr[1] : shr[0]);
   }
@@ -236,7 +236,7 @@ struct axis_layout {
   /// ghost entities.
   /// \tparam E 0 or 1 for beginning or end
   template<End E>
-  FLECSI_INLINE_TARGET util::id ghost() const {
+  KOKKOS_INLINE_FUNCTION util::id ghost() const {
     static_assert(E == 0 || E == 1);
     return bdy[0] + E * (both(gh) + log);
   }
@@ -250,13 +250,13 @@ struct axis_layout {
   ///   halo_depth_high = extent() - extended<1>();\endcode
   /// \tparam E 0 or 1 for beginning or end
   template<End E>
-  FLECSI_INLINE_TARGET util::id extended() const {
+  KOKKOS_INLINE_FUNCTION util::id extended() const {
     static_assert(E == 0 || E == 1);
     return gh[0] + E * (both(bdy) + log);
   }
   /// Return a range of all extended indices.
   /// \return range of \c util::id
-  FLECSI_INLINE_TARGET auto extended() const {
+  KOKKOS_INLINE_FUNCTION auto extended() const {
     return util::iota_view(extended<0>(), extended<1>());
   }
 
@@ -266,7 +266,7 @@ struct axis_layout {
   }
 
 private:
-  FLECSI_INLINE_TARGET static util::id both(const util::id (&a)[2]) {
+  KOKKOS_INLINE_FUNCTION static util::id both(const util::id (&a)[2]) {
     return a[0] + a[1];
   }
 
@@ -299,11 +299,11 @@ struct axis_color {
   util::gid offset;
 
   /// Whether the current color is at the low end of the axis.
-  FLECSI_INLINE_TARGET bool low() const {
+  KOKKOS_INLINE_FUNCTION bool low() const {
     return !color;
   }
   /// Whether the color is at the high end of the axis.
-  FLECSI_INLINE_TARGET bool high() const {
+  KOKKOS_INLINE_FUNCTION bool high() const {
     return color == axis.colors - 1;
   }
 
@@ -312,7 +312,7 @@ struct axis_color {
   }
 
   /// The global index for a given local index.
-  FLECSI_INLINE_TARGET util::gid global_id(util::id i) const {
+  KOKKOS_INLINE_FUNCTION util::gid global_id(util::id i) const {
     const auto al = (*this)();
     const util::id l0 = al.logical<0>(), l1 = al.logical<1>();
     return low() && i < l0     ? axis.extent - l0 + i
@@ -322,7 +322,7 @@ struct axis_color {
 
   // skin indicates the communication with diagonal neighbor colors of
   // auxiliaries associated with non-diagonal primaries.
-  FLECSI_INLINE_TARGET axis_layout operator()(bool skin = false) const {
+  KOKKOS_INLINE_FUNCTION axis_layout operator()(bool skin = false) const {
     const util::id halo_down =
       axis.hdepth + (axis.auxiliary && axis.full_ghosts);
     assert(!skin || halo_down);
@@ -338,7 +338,7 @@ struct axis_color {
 
 /// Collected information about one color along one axis.  \gpu.
 struct axis_info : axis_color {
-  FLECSI_INLINE_TARGET axis_info(const axis_color & a)
+  KOKKOS_INLINE_FUNCTION axis_info(const axis_color & a)
     : axis_color(a), layout(a()) {}
   /// Derived layout information.
   axis_layout layout;
