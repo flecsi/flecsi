@@ -20,6 +20,10 @@ Changes in v2.4.2
 
 Deprecated
 ^^^^^^^^^^
+* Runtime
+
+  * ``option_multi`` for the optional ``program_option`` constructor |mdash| has never worked
+
 * Utilities
 
   * SFINAE hook for ``serial::traits`` |mdash| use constraints

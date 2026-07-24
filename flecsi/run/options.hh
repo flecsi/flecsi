@@ -120,14 +120,14 @@ public:
     @param help    The help message for the option.
     @param values  Mechanism to set optional value attributes.  Supported keys
                    are \em option_default, \em option_implicit, \em
-                   option_zero, and \em option_multi. If an \em option_default
+                   option_zero, and (\b deprecated) \em option_multi. If an
+                   \em option_default
                    value is specified, it will be used if the \em flag is not
                    passed to the command line. If an \em option_implicit value
                    is specified, it will be used if the flag is passed to the
                    command line without a value. If \em option_zero is passed,
                    the flag will not take any values, and must have an \em
-                   option_implicit value specified. If \em option_multi is
-                   passed, the flag will take multiple values.
+                   option_implicit value specified.
     @param check   An optional, user-defined predicate to validate the option
                    passed by the user; see signature below.
 
