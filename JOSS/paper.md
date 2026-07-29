@@ -225,7 +225,7 @@ FleCSI is designed to support the development of multiphysics simulations throug
 
 # Software description
 
-FleCSI is designed to abstract away complexity while offering fine control for high-performance computing.  The FleCSI runtime system manages initialization, execution, and shutdown. As presented in \autoref{fig:ecosystem}, the FleCSI runtime supports backends such as Legion [@bauer2012legion], HPX [@kaiser2009parallex; @Kaiser2020hpx], MPI [@mpi1994standard], and Kokkos [@edwards2014kokkos], enabling code to remain portable across a variety of systems without manually handling the execution environment.
+FleCSI is designed to abstract away complexity while offering fine control for high-performance computing.  The FleCSI runtime system manages initialization, execution, and shutdown. As presented in \autoref{fig:ecosystem}, the FleCSI runtime supports backends such as Legion [@bauer2012legion], HPX [@kaiser2009parallex; @Kaiser2020hpx], MPI [@mpi50], and Kokkos [@edwards2014kokkos], enabling code to remain portable across a variety of systems without manually handling the execution environment.
 
 FleCSI’s programming model is based on a hierarchy of parallelism: sequential, task-parallel, and data-parallel.  The relationships among these is illustrated in \autoref{fig:model}:
 
