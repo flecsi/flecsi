@@ -13,6 +13,7 @@
 
 #include <cstddef>
 #include <optional>
+#include <ranges>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -290,10 +291,10 @@ convert(U && u) { // deep implicit conversions
       },
       std::forward<U>(u));
   else if constexpr(is_vector<T>::value) {
-    util::transform_view(u, [](auto && x) {
+    const auto t = std::views::transform(u, [](auto && x) {
       return convert<typename T::value_type>(std::forward<decltype(x)>(x));
     });
-    return {u.begin(), u.end()};
+    return {t.begin(), t.end()};
   }
   else
     return std::forward<U>(u);
@@ -785,11 +786,10 @@ struct task_param<std::vector<P>> {
 private:
   template<class T>
   static auto make(T && v) {
-    const util::transform_view<T &, decltype([](auto && x) -> decltype(auto) {
+    const auto t = std::views::transform(v, [](auto && x) -> decltype(auto) {
       return exec::replace_argument<P>(
         static_cast<detail::same_ref_t<T, decltype(x)>>(x));
-    })>
-      t(v);
+    });
     return std::vector(t.begin(), t.end());
   }
 };
