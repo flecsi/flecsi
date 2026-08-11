@@ -167,7 +167,7 @@ dag(scheduler & s) {
   }; // UNIT
 } // dag
 
-FLECSI_TARGET int
+KOKKOS_FUNCTION int
 no_failures() {
   UNIT() {
     ASSERT_GT(42, 3.14);
@@ -181,7 +181,7 @@ no_failures() {
   };
 }
 
-FLECSI_TARGET int
+KOKKOS_FUNCTION int
 expect_failure(int & counter) {
   UNIT() {
     EXPECT_GT(1.0, 1.0);
@@ -189,7 +189,7 @@ expect_failure(int & counter) {
   };
 }
 
-FLECSI_TARGET int
+KOKKOS_FUNCTION int
 assert_failure(int & counter) {
   UNIT() {
     ASSERT_GT('a', 'a' + 1);
@@ -197,7 +197,7 @@ assert_failure(int & counter) {
   };
 }
 
-FLECSI_TARGET int
+KOKKOS_FUNCTION int
 gpu_unit_test() {
   UNIT() {
     EXPECT_EQ(no_failures(), 0);

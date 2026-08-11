@@ -44,7 +44,7 @@ check_policy(intN::accessor<ro> a) noexcept {
 
 struct I {
   int i;
-  FLECSI_INLINE_TARGET I operator+(I o) const {
+  KOKKOS_INLINE_FUNCTION I operator+(I o) const {
     return {i + o.i};
   }
 };

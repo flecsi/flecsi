@@ -39,16 +39,16 @@ struct wrap {
 
   wrap(T & t) : v(&t) {} // like the built-in reducers
 
-  FLECSI_INLINE_TARGET static void join(T & a, const T & b) {
+  KOKKOS_INLINE_FUNCTION static void join(T & a, const T & b) {
     a = R::combine(a, b);
   }
 
-  FLECSI_INLINE_TARGET static void init(T & v) {
+  KOKKOS_INLINE_FUNCTION static void init(T & v) {
     new(&v) T(detail::identity_traits<R>::template value<T>);
   }
 
   // Kokkos doesn't actually use 'reference' from ReducerConcept.
-  FLECSI_INLINE_TARGET result_view_type view() const {
+  KOKKOS_INLINE_FUNCTION result_view_type view() const {
     return v;
   }
 
@@ -92,7 +92,7 @@ struct reducer_trait<R,
 
 template<class R, class T>
 struct reduce {
-  FLECSI_INLINE_TARGET void operator()(const T & v) const {
+  KOKKOS_INLINE_FUNCTION void operator()(const T & v) const {
     t = R::combine(t, v);
   }
   auto kokkos() const {
@@ -107,7 +107,7 @@ parallel_for(const std::string & n, const P & p, C && c, F && f) {
   Kokkos::parallel_for(n,
     p,
     [c = std::forward<C>(c), f = std::forward<F>(f)]
-    FLECSI_TARGET(util::id i) { f(c.begin()[i]); });
+    KOKKOS_FUNCTION(util::id i) { f(c.begin()[i]); });
 }
 template<class R, class T, class P, class C, class F>
 [[nodiscard]] T
@@ -118,7 +118,7 @@ parallel_reduce(const std::string & n, const P & p, C && c, F && f) {
     n,
     p,
     [c = std::forward<C>(c), f = std::forward<F>(f)]
-    FLECSI_TARGET(util::id i, T & t) { f(c.begin()[i], ref{t}); },
+    KOKKOS_FUNCTION(util::id i, T & t) { f(c.begin()[i], ref{t}); },
     ref{ret}.kokkos());
   return ret;
 }
@@ -150,11 +150,11 @@ struct sub_range {
   range_index beg;
   /// ending index which is exclusive
   range_index end;
-  FLECSI_INLINE_TARGET auto size() const {
+  KOKKOS_INLINE_FUNCTION auto size() const {
     return end - beg;
   }
 
-  FLECSI_INLINE_TARGET auto start() const {
+  KOKKOS_INLINE_FUNCTION auto start() const {
     return beg;
   }
 
@@ -166,10 +166,10 @@ struct sub_range {
 struct prefix_range {
   /// size of the range
   range_index size_len;
-  FLECSI_INLINE_TARGET auto size() const {
+  KOKKOS_INLINE_FUNCTION auto size() const {
     return size_len;
   }
-  FLECSI_INLINE_TARGET auto start() const {
+  KOKKOS_INLINE_FUNCTION auto start() const {
     return 0;
   }
   auto get(range_index) const {
@@ -185,7 +185,7 @@ struct full_range {
 };
 
 template<std::size_t... II, class... RR>
-FLECSI_INLINE_TARGET auto
+KOKKOS_INLINE_FUNCTION auto
 mdiota_view(std::index_sequence<II...>, const RR &... rr) {
   static constexpr std::size_t N = sizeof...(RR);
   return util::transform_view(
@@ -215,7 +215,7 @@ mdiota_view(std::index_sequence<II...>, const RR &... rr) {
 }
 // An extra helper is needed to use II to convert full_range objects.
 template<class M, std::size_t... II, class R>
-FLECSI_INLINE_TARGET auto
+KOKKOS_INLINE_FUNCTION auto
 mdiota_view(const M & m, std::index_sequence<II...> ii, const R & rt) {
   return mdiota_view(ii, [m, rt] { // pass ranges least-significant first
     constexpr auto J = sizeof...(II) - 1 - II;

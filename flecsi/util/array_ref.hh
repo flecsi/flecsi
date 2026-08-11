@@ -42,12 +42,12 @@ struct span {
   using iterator = pointer; // implementation-defined
   using reverse_iterator = std::reverse_iterator<iterator>;
 
-  FLECSI_INLINE_TARGET constexpr span() noexcept : span(nullptr, nullptr) {}
-  FLECSI_INLINE_TARGET constexpr span(pointer p, size_type sz)
+  KOKKOS_INLINE_FUNCTION constexpr span() noexcept : span(nullptr, nullptr) {}
+  KOKKOS_INLINE_FUNCTION constexpr span(pointer p, size_type sz)
     : span(p, p + sz) {}
-  FLECSI_INLINE_TARGET constexpr span(pointer p, pointer q) : p(p), q(q) {}
+  KOKKOS_INLINE_FUNCTION constexpr span(pointer p, pointer q) : p(p), q(q) {}
   template<std::size_t N>
-  FLECSI_INLINE_TARGET constexpr span(element_type (&a)[N]) : span(a, N) {}
+  KOKKOS_INLINE_FUNCTION constexpr span(element_type (&a)[N]) : span(a, N) {}
   /// \warning Destroying \a C leaves this object dangling if it owns its
   ///   elements.  This implementation does not check for "borrowing".
   template<class C,
@@ -55,61 +55,61 @@ struct span {
       std::remove_pointer_t<decltype(void(std::size(std::declval<C &&>())),
         std::data(std::declval<C &&>()))> (*)[],
       T (*)[]>>>
-  FLECSI_INLINE_TARGET constexpr span(C && c)
+  KOKKOS_INLINE_FUNCTION constexpr span(C && c)
     : span(std::data(c), std::size(c)) {}
-  FLECSI_INLINE_TARGET constexpr iterator begin() const noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr iterator begin() const noexcept {
     return p;
   }
 
-  FLECSI_INLINE_TARGET constexpr iterator end() const noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr iterator end() const noexcept {
     return q;
   }
 
-  FLECSI_INLINE_TARGET constexpr reverse_iterator rbegin() const noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr reverse_iterator rbegin() const noexcept {
     return reverse_iterator(end());
   }
 
-  FLECSI_INLINE_TARGET constexpr reverse_iterator rend() const noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr reverse_iterator rend() const noexcept {
     return reverse_iterator(begin());
   }
 
-  FLECSI_INLINE_TARGET constexpr reference front() const {
+  KOKKOS_INLINE_FUNCTION constexpr reference front() const {
     return *begin();
   }
 
-  FLECSI_INLINE_TARGET constexpr reference back() const {
+  KOKKOS_INLINE_FUNCTION constexpr reference back() const {
     return end()[-1];
   }
 
-  FLECSI_INLINE_TARGET constexpr reference operator[](size_type i) const {
+  KOKKOS_INLINE_FUNCTION constexpr reference operator[](size_type i) const {
     return begin()[i];
   }
 
-  FLECSI_INLINE_TARGET constexpr pointer data() const noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr pointer data() const noexcept {
     return begin();
   }
 
   // FIXME: Spurious overflow for extremely large ranges
-  FLECSI_INLINE_TARGET constexpr size_type size() const noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr size_type size() const noexcept {
     return end() - begin();
   }
 
-  FLECSI_INLINE_TARGET constexpr size_type size_bytes() const noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr size_type size_bytes() const noexcept {
     return sizeof(element_type) * size();
   }
 
-  FLECSI_INLINE_TARGET constexpr bool empty() const noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr bool empty() const noexcept {
     return begin() == end();
   }
 
-  FLECSI_INLINE_TARGET constexpr span first(size_type n) const {
+  KOKKOS_INLINE_FUNCTION constexpr span first(size_type n) const {
     return {begin(), n};
   }
 
-  FLECSI_INLINE_TARGET constexpr span last(size_type n) const {
+  KOKKOS_INLINE_FUNCTION constexpr span last(size_type n) const {
     return {end() - n, n};
   }
-  FLECSI_INLINE_TARGET constexpr span subspan(size_type i,
+  KOKKOS_INLINE_FUNCTION constexpr span subspan(size_type i,
     size_type n = -1) const {
     return {begin() + i, n == size_type(-1) ? size() - i : n};
   }
@@ -179,7 +179,7 @@ struct mdbase {
 
 protected:
   // The plain pointer can copy most data from a higher-dimensional object.
-  FLECSI_INLINE_TARGET constexpr mdbase(T * p, const size_type * s) noexcept
+  KOKKOS_INLINE_FUNCTION constexpr mdbase(T * p, const size_type * s) noexcept
     : p(p), strides() {
     for(int d = 0; d < D; d++)
       strides[d] = s[d];
@@ -231,7 +231,7 @@ struct mdspan : detail::mdbase<T, D> {
   /// Select a subset of the view.
   /// \param i index (must be smaller than `length(D-1)`)
   /// \return `mdspan<T,D-1>` or `T&` if `D` is 1
-  FLECSI_INLINE_TARGET constexpr decltype(auto) operator[](
+  KOKKOS_INLINE_FUNCTION constexpr decltype(auto) operator[](
     size_type i) const noexcept {
     assert(i < this->length(D - 1));
     const auto q = this->p + i * this->step(D - 1);
@@ -265,80 +265,82 @@ struct iota_view {
     using difference_type = I;
     using iterator_category = std::input_iterator_tag;
 
-    FLECSI_INLINE_TARGET constexpr iterator(I i = I()) : i(i) {}
+    KOKKOS_INLINE_FUNCTION constexpr iterator(I i = I()) : i(i) {}
 
-    FLECSI_INLINE_TARGET constexpr I operator*() const {
+    KOKKOS_INLINE_FUNCTION constexpr I operator*() const {
       return i;
     }
-    FLECSI_INLINE_TARGET constexpr I operator[](difference_type n) {
+    KOKKOS_INLINE_FUNCTION constexpr I operator[](difference_type n) {
       return i + n;
     }
 
-    FLECSI_INLINE_TARGET constexpr iterator & operator++() {
+    KOKKOS_INLINE_FUNCTION constexpr iterator & operator++() {
       ++i;
       return *this;
     }
-    [[nodiscard]] FLECSI_INLINE_TARGET constexpr iterator operator++(int) {
+    [[nodiscard]] KOKKOS_INLINE_FUNCTION constexpr iterator operator++(int) {
       const iterator ret = *this;
       ++*this;
       return ret;
     }
-    FLECSI_INLINE_TARGET constexpr iterator & operator--() {
+    KOKKOS_INLINE_FUNCTION constexpr iterator & operator--() {
       --i;
       return *this;
     }
-    [[nodiscard]] FLECSI_INLINE_TARGET constexpr iterator operator--(int) {
+    [[nodiscard]] KOKKOS_INLINE_FUNCTION constexpr iterator operator--(int) {
       const iterator ret = *this;
       --*this;
       return ret;
     }
-    FLECSI_INLINE_TARGET constexpr iterator & operator+=(difference_type n) {
+    KOKKOS_INLINE_FUNCTION constexpr iterator & operator+=(difference_type n) {
       i += n;
       return *this;
     }
-    FLECSI_INLINE_TARGET friend constexpr iterator operator+(difference_type n,
-      iterator i) {
+    KOKKOS_INLINE_FUNCTION friend constexpr iterator
+    operator+(difference_type n, iterator i) {
       i += n;
       return i;
     }
-    FLECSI_INLINE_TARGET constexpr iterator operator+(difference_type n) const {
+    KOKKOS_INLINE_FUNCTION constexpr iterator operator+(
+      difference_type n) const {
       return n + *this;
     }
-    FLECSI_INLINE_TARGET constexpr iterator & operator-=(difference_type n) {
+    KOKKOS_INLINE_FUNCTION constexpr iterator & operator-=(difference_type n) {
       i -= n;
       return *this;
     }
-    FLECSI_INLINE_TARGET constexpr iterator operator-(difference_type n) const {
+    KOKKOS_INLINE_FUNCTION constexpr iterator operator-(
+      difference_type n) const {
       iterator ret = *this;
       ret -= n;
       return ret;
     }
-    FLECSI_INLINE_TARGET constexpr difference_type operator-(
+    KOKKOS_INLINE_FUNCTION constexpr difference_type operator-(
       const iterator & r) const {
       return i - r.i;
     }
 
-    FLECSI_INLINE_TARGET constexpr bool operator==(
+    KOKKOS_INLINE_FUNCTION constexpr bool operator==(
       const iterator & r) const noexcept {
       return i == r.i;
     }
-    FLECSI_INLINE_TARGET constexpr bool operator!=(
+    KOKKOS_INLINE_FUNCTION constexpr bool operator!=(
       const iterator & r) const noexcept {
       return !(*this == r);
     }
-    FLECSI_INLINE_TARGET constexpr bool operator<(
+    KOKKOS_INLINE_FUNCTION constexpr bool operator<(
       const iterator & r) const noexcept {
       return i < r.i;
     }
-    FLECSI_INLINE_TARGET constexpr bool operator>(
+    KOKKOS_INLINE_FUNCTION constexpr bool operator>(
       const iterator & r) const noexcept {
       return r < *this;
     }
-    FLECSI_INLINE_TARGET constexpr bool operator<=(
+    KOKKOS_INLINE_FUNCTION constexpr bool operator<=(
       const iterator & r) const noexcept {
       return !(*this > r);
     }
-    FLECSI_INLINE_TARGET constexpr bool operator>=(
+    KOKKOS_INLINE_FUNCTION constexpr bool operator>=(
       const iterator & r) const noexcept {
       return !(*this < r);
     }
@@ -349,33 +351,33 @@ struct iota_view {
 
   iota_view() = default;
   constexpr iota_view(I b, I e) : b(b), e(e) {}
-  FLECSI_INLINE_TARGET constexpr iterator begin() const noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr iterator begin() const noexcept {
     return b;
   }
-  FLECSI_INLINE_TARGET constexpr iterator end() const noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr iterator end() const noexcept {
     return e;
   }
-  FLECSI_INLINE_TARGET constexpr bool empty() const {
+  KOKKOS_INLINE_FUNCTION constexpr bool empty() const {
     return b == e;
   }
 
-  FLECSI_INLINE_TARGET constexpr explicit operator bool() const {
+  KOKKOS_INLINE_FUNCTION constexpr explicit operator bool() const {
     return !empty();
   }
 
-  FLECSI_INLINE_TARGET constexpr auto size() const {
+  KOKKOS_INLINE_FUNCTION constexpr auto size() const {
     return e - b;
   }
 
-  FLECSI_INLINE_TARGET constexpr decltype(auto) front() const {
+  KOKKOS_INLINE_FUNCTION constexpr decltype(auto) front() const {
     return *begin();
   }
 
-  FLECSI_INLINE_TARGET constexpr decltype(auto) back() const {
+  KOKKOS_INLINE_FUNCTION constexpr decltype(auto) back() const {
     return *--end();
   }
 
-  FLECSI_INLINE_TARGET constexpr decltype(auto) operator[](I i) const {
+  KOKKOS_INLINE_FUNCTION constexpr decltype(auto) operator[](I i) const {
     return begin()[i];
   }
 
@@ -398,82 +400,83 @@ public:
   using difference_type = std::ptrdiff_t;
   using iterator_category = std::random_access_iterator_tag;
 
-  FLECSI_INLINE_TARGET index_iterator() noexcept : index_iterator(nullptr, 0) {}
-  FLECSI_INLINE_TARGET index_iterator(C * p, std::size_t i) : c(p), i(i) {}
+  KOKKOS_INLINE_FUNCTION index_iterator() noexcept
+    : index_iterator(nullptr, 0) {}
+  KOKKOS_INLINE_FUNCTION index_iterator(C * p, std::size_t i) : c(p), i(i) {}
 
-  FLECSI_INLINE_TARGET decltype(auto) operator*() const {
+  KOKKOS_INLINE_FUNCTION decltype(auto) operator*() const {
     return (*this)[0];
   }
-  FLECSI_INLINE_TARGET auto operator->() const {
+  KOKKOS_INLINE_FUNCTION auto operator->() const {
     return &**this;
   }
 
-  FLECSI_INLINE_TARGET decltype(auto) operator[](difference_type n) const {
+  KOKKOS_INLINE_FUNCTION decltype(auto) operator[](difference_type n) const {
     return (*c)[i + n];
   }
 
-  FLECSI_INLINE_TARGET index_iterator & operator++() {
+  KOKKOS_INLINE_FUNCTION index_iterator & operator++() {
     ++i;
     return *this;
   }
-  [[nodiscard]] FLECSI_INLINE_TARGET index_iterator operator++(int) {
+  [[nodiscard]] KOKKOS_INLINE_FUNCTION index_iterator operator++(int) {
     index_iterator ret = *this;
     ++*this;
     return ret;
   }
-  FLECSI_INLINE_TARGET index_iterator & operator--() {
+  KOKKOS_INLINE_FUNCTION index_iterator & operator--() {
     --i;
     return *this;
   }
-  [[nodiscard]] FLECSI_INLINE_TARGET index_iterator operator--(int) {
+  [[nodiscard]] KOKKOS_INLINE_FUNCTION index_iterator operator--(int) {
     index_iterator ret = *this;
     --*this;
     return ret;
   }
 
-  FLECSI_INLINE_TARGET index_iterator & operator+=(difference_type n) {
+  KOKKOS_INLINE_FUNCTION index_iterator & operator+=(difference_type n) {
     i += n;
     return *this;
   }
-  FLECSI_INLINE_TARGET friend index_iterator operator+(difference_type n,
+  KOKKOS_INLINE_FUNCTION friend index_iterator operator+(difference_type n,
     index_iterator i) {
     return i += n;
   }
-  FLECSI_INLINE_TARGET index_iterator operator+(difference_type n) const {
+  KOKKOS_INLINE_FUNCTION index_iterator operator+(difference_type n) const {
     return n + *this;
   }
-  FLECSI_INLINE_TARGET index_iterator & operator-=(difference_type n) {
+  KOKKOS_INLINE_FUNCTION index_iterator & operator-=(difference_type n) {
     i -= n;
     return *this;
   }
-  FLECSI_INLINE_TARGET friend index_iterator operator-(difference_type n,
+  KOKKOS_INLINE_FUNCTION friend index_iterator operator-(difference_type n,
     index_iterator i) {
     return i -= n;
   }
-  FLECSI_INLINE_TARGET index_iterator operator-(difference_type n) const {
+  KOKKOS_INLINE_FUNCTION index_iterator operator-(difference_type n) const {
     return n - *this;
   }
-  FLECSI_INLINE_TARGET difference_type operator-(
+  KOKKOS_INLINE_FUNCTION difference_type operator-(
     const index_iterator & o) const {
     return i - o.i;
   }
 
-  FLECSI_INLINE_TARGET bool operator==(const index_iterator & o) const {
+  KOKKOS_INLINE_FUNCTION bool operator==(const index_iterator & o) const {
     return i == o.i;
   }
-  FLECSI_INLINE_TARGET bool operator!=(const index_iterator & o) const {
+  KOKKOS_INLINE_FUNCTION bool operator!=(const index_iterator & o) const {
     return i != o.i;
   }
-  FLECSI_INLINE_TARGET bool operator<(const index_iterator & o) const {
+  KOKKOS_INLINE_FUNCTION bool operator<(const index_iterator & o) const {
     return i < o.i;
   }
-  FLECSI_INLINE_TARGET bool operator<=(const index_iterator & o) const {
+  KOKKOS_INLINE_FUNCTION bool operator<=(const index_iterator & o) const {
     return i <= o.i;
   }
-  FLECSI_INLINE_TARGET bool operator>(const index_iterator & o) const {
+  KOKKOS_INLINE_FUNCTION bool operator>(const index_iterator & o) const {
     return i > o.i;
   }
-  FLECSI_INLINE_TARGET bool operator>=(const index_iterator & o) const {
+  KOKKOS_INLINE_FUNCTION bool operator>=(const index_iterator & o) const {
     return i >= o.i;
   }
 
@@ -486,17 +489,17 @@ template<class D> // CRTP, but D might be const
 struct with_index_iterator {
   using iterator = index_iterator<D>;
 
-  FLECSI_INLINE_TARGET iterator begin() const noexcept {
+  KOKKOS_INLINE_FUNCTION iterator begin() const noexcept {
     return {derived(), 0};
   }
 
-  FLECSI_INLINE_TARGET iterator end() const noexcept {
+  KOKKOS_INLINE_FUNCTION iterator end() const noexcept {
     const auto * p = derived();
     return {p, p->size()};
   }
 
 private:
-  FLECSI_INLINE_TARGET D * derived() const noexcept {
+  KOKKOS_INLINE_FUNCTION D * derived() const noexcept {
     return static_cast<D *>(this);
   }
 };
@@ -531,80 +534,82 @@ public:
       : iterator({}, nullptr) {} // null F won't be used
     constexpr iterator(base_iterator p, const F * f) noexcept : p(p), f(f) {}
 
-    FLECSI_INLINE_TARGET constexpr iterator & operator++() {
+    KOKKOS_INLINE_FUNCTION constexpr iterator & operator++() {
       ++p;
       return *this;
     }
-    [[nodiscard]] FLECSI_INLINE_TARGET constexpr iterator operator++(int) {
+    [[nodiscard]] KOKKOS_INLINE_FUNCTION constexpr iterator operator++(int) {
       const iterator ret = *this;
       ++*this;
       return ret;
     }
-    FLECSI_INLINE_TARGET constexpr iterator & operator--() {
+    KOKKOS_INLINE_FUNCTION constexpr iterator & operator--() {
       --p;
       return *this;
     }
-    [[nodiscard]] FLECSI_INLINE_TARGET constexpr iterator operator--(int) {
+    [[nodiscard]] KOKKOS_INLINE_FUNCTION constexpr iterator operator--(int) {
       const iterator ret = *this;
       --*this;
       return ret;
     }
-    FLECSI_INLINE_TARGET constexpr iterator & operator+=(difference_type n) {
+    KOKKOS_INLINE_FUNCTION constexpr iterator & operator+=(difference_type n) {
       p += n;
       return *this;
     }
-    FLECSI_INLINE_TARGET friend constexpr iterator operator+(difference_type n,
-      iterator i) {
+    KOKKOS_INLINE_FUNCTION friend constexpr iterator
+    operator+(difference_type n, iterator i) {
       i += n;
       return i;
     }
-    FLECSI_INLINE_TARGET constexpr iterator operator+(difference_type n) const {
+    KOKKOS_INLINE_FUNCTION constexpr iterator operator+(
+      difference_type n) const {
       return n + *this;
     }
-    FLECSI_INLINE_TARGET constexpr iterator & operator-=(difference_type n) {
+    KOKKOS_INLINE_FUNCTION constexpr iterator & operator-=(difference_type n) {
       p -= n;
       return *this;
     }
-    FLECSI_INLINE_TARGET constexpr iterator operator-(difference_type n) const {
+    KOKKOS_INLINE_FUNCTION constexpr iterator operator-(
+      difference_type n) const {
       iterator ret = *this;
       ret -= n;
       return ret;
     }
-    FLECSI_INLINE_TARGET constexpr difference_type operator-(
+    KOKKOS_INLINE_FUNCTION constexpr difference_type operator-(
       const iterator & i) const {
       return p - i.p;
     }
 
-    FLECSI_INLINE_TARGET constexpr bool operator==(
+    KOKKOS_INLINE_FUNCTION constexpr bool operator==(
       const iterator & i) const noexcept {
       return p == i.p;
     }
-    FLECSI_INLINE_TARGET constexpr bool operator!=(
+    KOKKOS_INLINE_FUNCTION constexpr bool operator!=(
       const iterator & i) const noexcept {
       return !(*this == i);
     }
-    FLECSI_INLINE_TARGET constexpr bool operator<(
+    KOKKOS_INLINE_FUNCTION constexpr bool operator<(
       const iterator & i) const noexcept {
       return p < i.p;
     }
-    FLECSI_INLINE_TARGET constexpr bool operator>(
+    KOKKOS_INLINE_FUNCTION constexpr bool operator>(
       const iterator & i) const noexcept {
       return i < *this;
     }
-    FLECSI_INLINE_TARGET constexpr bool operator<=(
+    KOKKOS_INLINE_FUNCTION constexpr bool operator<=(
       const iterator & i) const noexcept {
       return !(*this > i);
     }
-    FLECSI_INLINE_TARGET constexpr bool operator>=(
+    KOKKOS_INLINE_FUNCTION constexpr bool operator>=(
       const iterator & i) const noexcept {
       return !(*this < i);
     }
 
-    FLECSI_INLINE_TARGET constexpr reference operator*() const {
+    KOKKOS_INLINE_FUNCTION constexpr reference operator*() const {
       return std::invoke(*f, *p);
     }
     // operator-> makes sense only for a true 'reference'
-    FLECSI_INLINE_TARGET constexpr reference operator[](
+    KOKKOS_INLINE_FUNCTION constexpr reference operator[](
       difference_type n) const {
       return *(*this + n);
     }
@@ -618,49 +623,49 @@ public:
   constexpr transform_view(C c, F f = {})
     : c(std::forward<C>(c)), f(std::move(f)) {}
 
-  FLECSI_INLINE_TARGET constexpr iterator<false> begin() noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr iterator<false> begin() noexcept {
     return {std::begin(c), &f};
   }
-  FLECSI_INLINE_TARGET constexpr iterator<true> begin() const noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr iterator<true> begin() const noexcept {
     return {std::begin(c), &f};
   }
-  FLECSI_INLINE_TARGET constexpr iterator<false> end() noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr iterator<false> end() noexcept {
     return {std::end(c), &f};
   }
-  FLECSI_INLINE_TARGET constexpr iterator<true> end() const noexcept {
+  KOKKOS_INLINE_FUNCTION constexpr iterator<true> end() const noexcept {
     return {std::end(c), &f};
   }
 
-  FLECSI_INLINE_TARGET constexpr bool empty() const {
+  KOKKOS_INLINE_FUNCTION constexpr bool empty() const {
     return std::begin(c) == std::end(c);
   }
-  FLECSI_INLINE_TARGET constexpr explicit operator bool() const {
+  KOKKOS_INLINE_FUNCTION constexpr explicit operator bool() const {
     return !empty();
   }
 
-  FLECSI_INLINE_TARGET constexpr auto size() const {
+  KOKKOS_INLINE_FUNCTION constexpr auto size() const {
     return std::distance(std::begin(c), std::end(c));
   }
 
-  FLECSI_INLINE_TARGET constexpr decltype(auto) front() {
+  KOKKOS_INLINE_FUNCTION constexpr decltype(auto) front() {
     return *begin();
   }
-  FLECSI_INLINE_TARGET constexpr decltype(auto) front() const {
+  KOKKOS_INLINE_FUNCTION constexpr decltype(auto) front() const {
     return *begin();
   }
 
-  FLECSI_INLINE_TARGET constexpr decltype(auto) back() {
+  KOKKOS_INLINE_FUNCTION constexpr decltype(auto) back() {
     return *--end();
   }
-  FLECSI_INLINE_TARGET constexpr decltype(auto) back() const {
+  KOKKOS_INLINE_FUNCTION constexpr decltype(auto) back() const {
     return *--end();
   }
 
-  FLECSI_INLINE_TARGET constexpr decltype(auto) operator[](
+  KOKKOS_INLINE_FUNCTION constexpr decltype(auto) operator[](
     typename iterator<false>::difference_type i) {
     return begin()[i];
   }
-  FLECSI_INLINE_TARGET constexpr decltype(auto) operator[](
+  KOKKOS_INLINE_FUNCTION constexpr decltype(auto) operator[](
     typename iterator<true>::difference_type i) const {
     return begin()[i];
   }
@@ -703,33 +708,33 @@ struct substring_view {
   constexpr substring_view(R r, difference_type i, difference_type n)
     : alive(std::move(r)), b(std::next(std::begin(alive), i)), n(n) {}
 
-  FLECSI_INLINE_TARGET constexpr iterator begin() const {
+  KOKKOS_INLINE_FUNCTION constexpr iterator begin() const {
     return b;
   }
-  FLECSI_INLINE_TARGET constexpr iterator end() const {
+  KOKKOS_INLINE_FUNCTION constexpr iterator end() const {
     return std::next(b, n);
   }
 
-  FLECSI_INLINE_TARGET constexpr bool empty() const {
+  KOKKOS_INLINE_FUNCTION constexpr bool empty() const {
     return !n;
   }
-  FLECSI_INLINE_TARGET constexpr explicit operator bool() const {
+  KOKKOS_INLINE_FUNCTION constexpr explicit operator bool() const {
     return n;
   }
 
-  FLECSI_INLINE_TARGET constexpr std::make_unsigned_t<difference_type>
+  KOKKOS_INLINE_FUNCTION constexpr std::make_unsigned_t<difference_type>
   size() const {
     return n;
   }
 
-  FLECSI_INLINE_TARGET constexpr decltype(auto) front() const {
+  KOKKOS_INLINE_FUNCTION constexpr decltype(auto) front() const {
     return *b;
   }
-  FLECSI_INLINE_TARGET constexpr decltype(auto) back() const {
+  KOKKOS_INLINE_FUNCTION constexpr decltype(auto) back() const {
     return b[n - 1];
   }
 
-  FLECSI_INLINE_TARGET constexpr decltype(auto) operator[](
+  KOKKOS_INLINE_FUNCTION constexpr decltype(auto) operator[](
     difference_type i) const {
     return b[i];
   }
@@ -745,7 +750,7 @@ private:
 /// \param s source range
 /// \param d destination iterator
 template<class S, class D, class F>
-FLECSI_TARGET constexpr void
+KOKKOS_FUNCTION constexpr void
 transform(S && s, D d, F && f) {
   for(auto && x : s)
     *d = f(std::forward<decltype(x)>(x)), ++d;
@@ -756,7 +761,7 @@ transform(S && s, D d, F && f) {
 /// \param r random-access range
 /// \return an iterator to the first element for which \a f returns \c false
 template<class R, class F>
-FLECSI_TARGET constexpr auto
+KOKKOS_FUNCTION constexpr auto
 partition_point(R && r, F && f) {
   auto b = std::begin(r), e = std::end(r);
   while(b != e) {
@@ -774,7 +779,7 @@ partition_point(R && r, F && f) {
 /// \param r random-access range
 template<class R,
   class T = std::remove_reference_t<decltype(*std::begin(std::declval<R>()))>>
-FLECSI_TARGET constexpr auto
+KOKKOS_FUNCTION constexpr auto
 binary_index(R && r, const T & t) {
   const auto b = std::begin(r);
   return (partition_point)(std::forward<R>(r), [&](const auto & x) {
@@ -791,7 +796,7 @@ binary_index(R && r, const T & t) {
 /// \param r range of offsets from \a b
 /// \return view of selected elements, random access iff \c R is
 template<class B, class R>
-FLECSI_TARGET constexpr auto
+KOKKOS_FUNCTION constexpr auto
 permutation_view(B b, R r) {
   return transform_view(std::move(r),
     [b = std::move(b)](const auto & i) -> decltype(auto) { return *(b + i); });

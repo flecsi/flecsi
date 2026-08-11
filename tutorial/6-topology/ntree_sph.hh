@@ -39,7 +39,7 @@ struct sph_ntree_t
   // In this hashing function we use the low bits (less than 22) to scatter the
   // leaves but gather the roots. This is particularly efficient since the roots
   // are accessed more often during the neighbor search.
-  FLECSI_INLINE_TARGET static std::size_t hash(const key_t & k) {
+  KOKKOS_INLINE_FUNCTION static std::size_t hash(const key_t & k) {
     return static_cast<std::size_t>(k.value() & ((1 << 22) - 1));
   }
   template<auto>
@@ -67,7 +67,7 @@ struct sph_ntree_t
   // In this implementation the interactions are computed using spheres.
   // If the two spheres are in contact, there is an interaction.
   template<typename T1, typename T2>
-  FLECSI_INLINE_TARGET static bool intersect(const T1 & in1, const T2 & in2) {
+  KOKKOS_INLINE_FUNCTION static bool intersect(const T1 & in1, const T2 & in2) {
     return distance(in1.coordinates, in2.coordinates) <=
            in1.radius + in2.radius;
   } // intersect

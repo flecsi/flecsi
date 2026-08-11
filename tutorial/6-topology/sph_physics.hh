@@ -17,7 +17,7 @@ const inline double rho_l = 0.125;
 const inline double rho_h = 1.;
 } // namespace constants
 
-FLECSI_INLINE_TARGET double
+KOKKOS_INLINE_FUNCTION double
 kernel(double r, double h) {
   const auto q = r / h;
   const double sigma = constants::sigma / h;
@@ -32,7 +32,7 @@ kernel(double r, double h) {
   return result;
 }
 
-FLECSI_INLINE_TARGET double
+KOKKOS_INLINE_FUNCTION double
 grad_kernel(double rij, double h) {
   const auto r = std::abs(rij);
   const auto q = r / h;
@@ -47,18 +47,18 @@ grad_kernel(double rij, double h) {
   return result;
 }
 
-FLECSI_INLINE_TARGET double
+KOKKOS_INLINE_FUNCTION double
 mu(double r, double v, double hab) {
   const double eps = constants::epsilon * hab * hab;
   return hab * r * v / (r * r + eps);
 }
 
-FLECSI_INLINE_TARGET double
+KOKKOS_INLINE_FUNCTION double
 sound_speed(double u) {
   return std::sqrt(constants::gamma * (constants::gamma - 1.) * u);
 }
 
-FLECSI_INLINE_TARGET double
+KOKKOS_INLINE_FUNCTION double
 viscosity(double r, double v, double rho_ab, double hab, double cs) {
   double visc = 0.;
   if(r * v < 0) {

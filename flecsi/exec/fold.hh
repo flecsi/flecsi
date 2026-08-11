@@ -38,7 +38,7 @@ struct reduce {
  */
 struct min {
   template<class T>
-  FLECSI_INLINE_TARGET static T combine(T a, T b) {
+  KOKKOS_INLINE_FUNCTION static T combine(T a, T b) {
     return std::min(a, b);
   }
 
@@ -57,7 +57,7 @@ public:
  */
 struct max {
   template<class T>
-  FLECSI_INLINE_TARGET static T combine(T a, T b) {
+  KOKKOS_INLINE_FUNCTION static T combine(T a, T b) {
     return std::max(a, b);
   }
 
@@ -76,7 +76,7 @@ public:
  */
 struct sum {
   template<class T>
-  FLECSI_INLINE_TARGET static T combine(T a, T b) {
+  KOKKOS_INLINE_FUNCTION static T combine(T a, T b) {
     return a + b;
   }
   template<class T>
@@ -88,7 +88,7 @@ struct sum {
  */
 struct product {
   template<class T>
-  FLECSI_INLINE_TARGET static T combine(T a, T b) {
+  KOKKOS_INLINE_FUNCTION static T combine(T a, T b) {
     return a * b;
   }
   template<class T>

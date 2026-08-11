@@ -20,8 +20,13 @@ Changes in v2.4.2
 
 Deprecated
 ^^^^^^^^^^
+* Runtime
+
+  * ``option_multi`` for the optional ``program_option`` constructor |mdash| has never worked
+
 * Utilities
 
+  * ``FLECSI_TARGET`` and ``FLECSI_INLINE_TAGET`` |mdash| use ``KOKKOS_FUNCTION`` and ``KOKKOS_INLINE_FUNCTION`` respectively
   * SFINAE hook for ``serial::traits`` |mdash| use constraints
 
 * Logging
@@ -66,7 +71,7 @@ Fixed
 
 * On-node parallelism
 
-  * Host-acessible values are copied on first use.
+  * Host-accessible values are copied on first use.
 
 * Utilities
 

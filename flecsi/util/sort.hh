@@ -98,7 +98,7 @@ protected:
 
   struct min {
     template<class T>
-    FLECSI_INLINE_TARGET static T combine(T a, T b) {
+    KOKKOS_INLINE_FUNCTION static T combine(T a, T b) {
       return std::min(a, b);
     }
     template<class T>
@@ -107,7 +107,7 @@ protected:
 
   struct max {
     template<class T>
-    FLECSI_INLINE_TARGET static T combine(T a, T b) {
+    KOKKOS_INLINE_FUNCTION static T combine(T a, T b) {
       return std::max(a, b);
     }
     template<class T>
