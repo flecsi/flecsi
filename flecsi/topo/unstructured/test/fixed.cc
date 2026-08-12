@@ -116,6 +116,23 @@ verify_mesh(exec::cpu s,
   };
 }
 
+int
+verify_bounding_box(exec::cpu s,
+  fixed_mesh::accessor<ro, ro, ro> m,
+  field<fixed_mesh::point>::accessor<ro, ro, ro> coords) noexcept {
+  UNIT("TASK") {
+    auto bbox = fixed_mesh::base::bounding_box<fixed_mesh::cells,
+      fixed_mesh::owned,
+      fixed_mesh::vertices>(m, coords);
+    const fixed_mesh::point expected_lo[] = {{0, 2}, {0, 0}, {2, 2}, {2, 0}},
+                            expected_hi[] = {{2, 4}, {2, 2}, {4, 4}, {4, 2}};
+    const auto clr = s.launch().index;
+
+    EXPECT_EQ(bbox.lower, expected_lo[clr]);
+    EXPECT_EQ(bbox.upper, expected_hi[clr]);
+  };
+}
+
 static data::launch::Claims
 rotate(Color n) {
   data::launch::Claims ret(n);
@@ -149,6 +166,9 @@ fixed_driver(scheduler & s) {
     s.execute<init_density>(mesh, density(mesh));
     s.execute<update_density>(exec::on, mesh, density(mesh));
     s.execute<check_density>(exec::on, mesh, density(mesh));
+
+    EXPECT_EQ(
+      s.test<verify_bounding_box>(exec::on, mesh, fixed_mesh::coords(mesh)), 0);
   };
 }
 

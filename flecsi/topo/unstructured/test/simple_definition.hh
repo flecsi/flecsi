@@ -5,6 +5,7 @@
 #include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/util/common.hh"
 #include "flecsi/util/crs.hh"
+#include "flecsi/util/geometry/point.hh"
 
 #include <fstream>
 #include <iterator>
@@ -64,6 +65,7 @@ public:
 
   std::vector<flecsi::util::gid> l2g_vertices;
   std::vector<flecsi::util::gid> l2g_cells;
+  std::vector<util::point<double, 2>> vertex_coords;
   util::crs c2v;
   std::map<Color, topo::unstructured_impl::peer_entities> peer_vertices;
   std::map<Color, topo::unstructured_impl::peer_entities> peer_cells;
@@ -98,6 +100,15 @@ public:
     l2g_vertices = read_values<flecsi::util::gid>(in, "vertices");
     if(l2g_vertices.size() != nvertices)
       flog_fatal("parse error: wrong number of vertices");
+
+    expect_string(in, "coordinates");
+    const util::gid owned_vertices = nvertices - ghost_vertices;
+    for(util::gid v = 0; v < owned_vertices; ++v) {
+      util::point<double, 2> coord;
+      if(!(in >> coord[0] >> coord[1]))
+        flog_fatal("parse error: expected coordinate");
+      vertex_coords.push_back(coord);
+    }
 
     expect_string(in, "cells");
     std::string line;
