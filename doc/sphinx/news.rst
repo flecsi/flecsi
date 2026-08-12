@@ -51,6 +51,7 @@ Fixed
 
 * Topologies
 
+  * Ragged ghost copies for ``unstructured`` support ghost patterns that vary by index space.
   * ``num_intervals`` in the ``unstructured`` ``index_space`` type is documented properly.
   * ``gcoord`` and ``colors`` in ``narray_base`` are documented properly.
 
