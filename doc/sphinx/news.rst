@@ -15,8 +15,8 @@ Release Notes
 
    The bullets in each such discussion are in descending order of importance.
 
-Changes in v2.4.2
-+++++++++++++++++
+Changes in v2.4.2 (August 11 2026)
+++++++++++++++++++++++++++++++++++
 
 Deprecated
 ^^^^^^^^^^
