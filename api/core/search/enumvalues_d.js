@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['ragged_0',['ragged',['../group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa35697221af7a2476da7044d38e967097',1,'flecsi::data']]],
-  ['raw_1',['raw',['../group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa58ee402b69bb1b9fe5f437ab6e82e7d5',1,'flecsi::data']]],
+  ['ragged_0',['ragged',['../group__data.html#gga18ba736185d3b51366b94e8366becce0a35697221af7a2476da7044d38e967097',1,'flecsi::data']]],
+  ['raw_1',['raw',['../group__data.html#gga18ba736185d3b51366b94e8366becce0a58ee402b69bb1b9fe5f437ab6e82e7d5',1,'flecsi::data']]],
   ['reverse_5fpostorder_2',['reverse_postorder',['../structflecsi_1_1topo_1_1ntree__base.html#a6093e8217e847bc918937063f6d19ef0afff918bb4e1b015955c3228092fd4537',1,'flecsi::topo::ntree_base']]],
   ['reverse_5fpreorder_3',['reverse_preorder',['../structflecsi_1_1topo_1_1ntree__base.html#a6093e8217e847bc918937063f6d19ef0a8bca9a40b6155139ad60d2bf5ad370d3',1,'flecsi::topo::ntree_base']]],
   ['ro_4',['ro',['../group__data.html#ggab353df4d05111feae11afb61d2b9cda1a32f3a4a7644dad86bdda30a920a5a30b',1,'flecsi']]],

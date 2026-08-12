@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial &mdash; FleCSI 2.4.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3dbc9e18" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="canonical" href="https://www.flecsi.org/tutorial.html"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=de1351e5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Runtime Model" href="tutorial/runtime.html" />
+    <link rel="prev" title="CMake Configuration Options" href="build/options.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/flecsi.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                Version: 2.4.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build &amp; Install</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-the-examples">Building the Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tutorial-examples">Tutorial Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html">Runtime Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/control.html">Control Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/execution.html">Execution Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/data.html">Data Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/parallel.html">Shared-memory parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/ntree.html">N-Tree</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/flaxpy.html">DAXPY</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/poisson.html">Poisson</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FleCSI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorial.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Link to this heading"></a></h1>
+<p>This tutorial attempts to give a basic introduction to the design
+philosophy and structure of the FleCSI programming system. Each
+subdirectory contains example codes that can be compiled with CMake.
+Details on how to build the tutorials are given below.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>The tutorial is primarily designed as an introduction for application
+developers: i.e., we do not go into the details of designing or
+implementing the specialization layer, and the discussion of core
+FleCSI features is limited to the high-level execution and data
+interfaces.</p>
+<p>Because a specialization layer is necessary to use FleCSI, we have
+provided a simple mesh interface as part of the tutorial. Users who
+are interested in the basic structure of a mesh topology
+specialization are encouraged to examine the source code in the
+<em>specialization</em> subdirectory of this tutorial.</p>
+</div>
+<hr class="docutils" />
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading"></a></h2>
+<p>The tutorial assumes that you have successfully <a class="reference internal" href="build.html"><span class="doc">installed
+FleCSI</span></a> somewhere on your system.</p>
+<p>Once you have built and installed FleCSI, add the path to your
+installation to your <em>CMAKE_PREFIX_PATH</em>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">export</span><span class="w"> </span><span class="nv">CMAKE_PREFIX_PATH</span><span class="o">=</span>/path/to/flecsi/install/dir:<span class="nv">$CMAKE_PREFIX_PATH</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="building-the-examples">
+<h2>Building the Examples<a class="headerlink" href="#building-the-examples" title="Link to this heading"></a></h2>
+<p>The tutorial uses a standard CMake build system. To configure and build
+the examples, execute the following steps from the <em>tutorial</em>
+subdirectory of the FleCSI source:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+<span class="gp">$ </span>cmake<span class="w"> </span>..
+<span class="gp">$ </span>make
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="tutorial-examples">
+<h2>Tutorial Examples<a class="headerlink" href="#tutorial-examples" title="Link to this heading"></a></h2>
+<p>The tutorial examples are designed to guide the reader through basic to
+more advanced FleCSI concepts.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/runtime.html">Runtime Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/runtime.html#example-1-minimal">Example 1: Minimal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/runtime.html#example-2-program-options">Example 2: Program Options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html#example-program">Example Program</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html#declaring-options">Declaring Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html#checking-using-options">Checking &amp; Using Options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/runtime.html#example-3-flog-flecsi-logging-utility">Example 3: Flog (FleCSI Logging Utility)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html#buffer-configuration">Buffer Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html#writing-to-buffers">Writing to Buffers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html#controlling-output-strip-levels">Controlling Output - Strip Levels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html#controlling-output-tag-groups">Controlling Output - Tag Groups</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html#flog-options">Flog Options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/runtime.html#example-4-caliper-annotations">Example 4: Caliper Annotations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html#adding-annotations">Adding Annotations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html#generating-reports">Generating Reports</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/control.html">Control Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/control.html#example-1-simple">Example 1: Simple</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/control.html#defining-control-points">Defining Control Points</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/control.html#using-the-control-interface">Using the Control Interface</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/control.html#example-2-cycles">Example 2: Cycles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/control.html#example-3-dependencies">Example 3: Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/control.html#example-4-control-state">Example 4: Control State</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/execution.html">Execution Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/execution.html#example-1-single-tasks">Example 1: Single Tasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/execution.html#example-2-index-tasks">Example 2: Index Tasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/execution.html#example-3-mpi-tasks">Example 3: MPI Tasks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/data.html">Data Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/data.html#example-1-global-data">Example 1: Global data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/data.html#example-2-index-data">Example 2: Index data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/data.html#example-3-dense-data">Example 3: Dense data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/data.html#example-4-ragged-data">Example 4: Ragged data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/parallel.html">Shared-memory parallelism</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/parallel.html#example-1-forall">Example 1: forall</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/parallel.html#example-2-reduceall">Example 2: reduceall</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/ntree.html">N-Tree</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/ntree.html#sph-sodtube">SPH sodtube</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/ntree.html#control-model">Control Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/ntree.html#n-tree-setup-and-fields">N-Tree Setup and Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/ntree.html#entities-nodes-access">Entities/Nodes Access</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/ntree.html#specialization">Specialization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/ntree.html#interactions">Interactions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/ntree.html#coloring">Coloring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/ntree.html#tree-generation-and-reset">Tree generation and reset</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/ntree.html#solver">Solver</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/flaxpy.html">DAXPY</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/flaxpy.html#preliminaries">Preliminaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/flaxpy.html#data-structures">Data structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/flaxpy.html#control-flow">Control flow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/flaxpy.html#control-model">Control model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/flaxpy.html#actions">Actions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/flaxpy.html#tasks">Tasks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/flaxpy.html#program-initialization">Program initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/flaxpy.html#usage">Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/poisson.html">Poisson</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/poisson.html#build-system">Build system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/poisson.html#control-policy">Control policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/poisson.html#main-function">Main function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/poisson.html#building-the-poisson-application">Building the Poisson application</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="build/options.html" class="btn btn-neutral float-left" title="CMake Configuration Options" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial/runtime.html" class="btn btn-neutral float-right" title="Runtime Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+
+  <style>
+    /* Contents caption */
+    .wy-menu-vertical>p.caption {
+      color: #ffffff;
+    }
+
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #e3e2db;
+    }
+    .wy-side-nav-search>div.version, .wy-nav-top>div.version {
+      color: #5f5d5f;
+    }
+
+    /* Sidebar */
+    .wy-nav-side {
+      background: #216897;
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

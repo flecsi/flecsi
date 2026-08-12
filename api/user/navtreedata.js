@@ -46,10 +46,11 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"group__unit.html",
-"structflecsi_1_1run_1_1config__base.html#af00342e65426a9ddd6cbe1859f2ecf29",
-"structflecsi_1_1util_1_1equal__map.html"
+"group__unit.html#ga01d742efe61844707528333716ee2c06",
+"structflecsi_1_1program__option.html#a47f7ce0d387a768511ff7c1cc7353cbd",
+"structflecsi_1_1topology.html#ad8660741b42d1095e7fbfa19aa082dc5"
 ];
 
-var SYNCONMSG = 'click to disable panel synchronisation';
-var SYNCOFFMSG = 'click to enable panel synchronisation';
+var SYNCONMSG = 'click to disable panel synchronization';
+var SYNCOFFMSG = 'click to enable panel synchronization';
+var LISTOFALLMEMBERS = 'List of all members';

@@ -1,12 +1,12 @@
 var searchData=
 [
-  ['ragged_0',['ragged',['../group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa35697221af7a2476da7044d38e967097',1,'flecsi::data']]],
+  ['ragged_0',['ragged',['../group__data.html#gga18ba736185d3b51366b94e8366becce0a35697221af7a2476da7044d38e967097',1,'flecsi::data']]],
   ['ragged_5faccessor_1',['ragged_accessor',['../structflecsi_1_1data_1_1ragged__accessor.html',1,'flecsi::data']]],
   ['ragged_5faccessor_3c_20t_2c_20p_2c_20privilege_5frepeat_3c_20privilege_5fdiscard_28p_29_20_3f_20wo_20_3arw_2c_20privilege_5fcount_28p_29_3e_20_3e_2',['ragged_accessor&lt; T, P, privilege_repeat&lt; privilege_discard(P) ? wo :rw, privilege_count(P)&gt; &gt;',['../structflecsi_1_1data_1_1ragged__accessor.html',1,'flecsi::data']]],
   ['ragged_5faccessor_3c_20t_2c_20p_2c_20privilege_5frepeat_3c_20ro_2c_20privilege_5fcount_28p_29_3e_20_3e_3',['ragged_accessor&lt; T, P, privilege_repeat&lt; ro, privilege_count(P)&gt; &gt;',['../structflecsi_1_1data_1_1ragged__accessor.html',1,'flecsi::data']]],
   ['range_4',['range',['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#aa027cddbb858ffa915ea2eb628e889da',1,'flecsi::topo::topology&lt; Policy, narray_base &gt;::access::range()'],['../classflecsi_1_1util_1_1morton__key.html#ad6624581fc65d4ad0f896ab908d31a51',1,'flecsi::util::morton_key::range()']]],
   ['ranges_5',['Ranges',['../group__ranges.html',1,'']]],
-  ['raw_6',['raw',['../group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa58ee402b69bb1b9fe5f437ab6e82e7d5',1,'flecsi::data']]],
+  ['raw_6',['raw',['../group__data.html#gga18ba736185d3b51366b94e8366becce0a58ee402b69bb1b9fe5f437ab6e82e7d5',1,'flecsi::data']]],
   ['reduce_7',['reduce',['../structflecsi_1_1exec_1_1fold_1_1reduce.html',1,'reduce'],['../structflecsi_1_1scheduler.html#a52ba74f5872a8cb433562942e216616f',1,'flecsi::scheduler::reduce(AA &amp;&amp;...)'],['../structflecsi_1_1scheduler.html#a52ba74f5872a8cb433562942e216616f',1,'flecsi::scheduler::reduce(AA &amp;&amp;...)'],['../structflecsi_1_1exec_1_1executor__base.html#a74fb65d2e0c6b41c748a62be3625e022',1,'flecsi::exec::executor_base::reduce()'],['../structflecsi_1_1exec_1_1executor.html#a7d8c9736526f52be9e9c8d6b71a0c95a',1,'flecsi::exec::executor::reduce()'],['../group__execution.html#gafadad11d9825d4175ac5d62db431e39e',1,'flecsi::reduce()']]],
   ['reduceall_8',['reduceall',['../group__kernel.html#ga460b12536f66e2289a119fe3fffbd9cb',1,'kernel.hh']]],
   ['reduction_9',['reduction',['../structflecsi_1_1field.html#ab2edf1e144a482b8083df98b5479cfee',1,'flecsi::field']]],

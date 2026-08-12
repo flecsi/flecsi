@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building for Darwin &mdash; FleCSI 2.4.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=3dbc9e18" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="canonical" href="https://www.flecsi.org/developer/darwin-build.html"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=de1351e5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Documentation" href="documentation.html" />
+    <link rel="prev" title="Versioning" href="versioning.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                Version: 2.4.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../developer.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="summary.html">Internal Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backend.html">Backend Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hpx-backend.html">HPX Backend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="style-guide.html">Style Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="versioning.html">Versioning</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Building for Darwin</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#recreating-continuous-integration-ci-builds">Recreating continuous integration (CI) builds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#building-on-a-local-system">Building on a local system</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="documentation.html">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FleCSI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../developer.html">Developer Guide</a></li>
+      <li class="breadcrumb-item active">Building for Darwin</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/developer/darwin-build.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="building-for-darwin">
+<h1>Building for Darwin<a class="headerlink" href="#building-for-darwin" title="Link to this heading"></a></h1>
+<p>Darwin is a testbed cluster at LANL that provides a wide variety of
+node hardware configurations.
+Our CI pipelines run on a range of hardware of this cluster and as such it is important to target the same kind of nodes during development.</p>
+<section id="recreating-continuous-integration-ci-builds">
+<h2>Recreating continuous integration (CI) builds<a class="headerlink" href="#recreating-continuous-integration-ci-builds" title="Link to this heading"></a></h2>
+<p>To avoid having to build a wide range of dependencies for the various hardware architectures, we are using a shared Spack deployment on Darwin.
+Both the CI and developers can make use of this deployment to speed up creating their development environments.</p>
+<p>In its simplest form, individual continuous integration jobs can be recreated with a FleCSI checkout on Darwin.
+Each CI job will print a highlighted message at the beginning of the log and provide instructions on how to re-create the exact configuration.</p>
+<p>These instructions include
+- the <em class="dfn">salloc</em> line for allocating the correct type of compute node to run the job
+- a few steps to initiate the build and test workflow</p>
+<p>For simplification of these instructions, we make use a LANL tool called <code class="docutils literal notranslate"><span class="pre">kessel</span> <span class="pre">&lt;https://github.com/lanl/kessel&gt;``_.</span>
+<span class="pre">``kessel</span></code> is a utility for streamlining and generalizing developer and CI workflows for both cluster and local development.
+It helps you set up a complete software stack for development and run predefined actions with it.</p>
+<p>The CI instructions include sourcing <code class="docutils literal notranslate"><span class="pre">.gitlab/kessel.sh</span></code> to create a temporary deployment copy and activate it.
+This creates a self contained, writable instance which points to a cluster-wide read-only Spack deployment as upstream.
+To create a persistent copy of such a deployment, set <code class="docutils literal notranslate"><span class="pre">KESSEL_WORKFLOW_DEPLOYMENT</span></code> to a custom location prior to sourcing that script.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">export</span><span class="w"> </span><span class="nv">KESSEL_WORKFLOW_DEPLOYMENT</span><span class="o">=</span>&lt;custom-path&gt;
+<span class="gp">$ </span><span class="nb">source</span><span class="w"> </span>.gitlab/kessel.sh
+</pre></div>
+</div>
+</section>
+<section id="building-on-a-local-system">
+<h2>Building on a local system<a class="headerlink" href="#building-on-a-local-system" title="Link to this heading"></a></h2>
+<p>Whether you want to build on a local system or don’t want to use the prebuilt Spack deployments on the Darwin cluster, the FleCSI distribution also includes a utility script <code class="docutils literal notranslate"><span class="pre">dev-setup.sh</span></code> that helps with the initial setup of a clean build environment.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/flecsi/flecsi.git
+<span class="gp">$ </span>flecsi/tools/dev-setup.sh
+</pre></div>
+</div>
+<p>This script will download both Spack and Kessel and place them in the parent directory of your FleCSI checkout.
+In addition, it places an <code class="docutils literal notranslate"><span class="pre">activate.sh</span></code> in this folder to set the necessary environment variables to make both Kessel and Spack available in your current shell.</p>
+<p>Simply source the <code class="docutils literal notranslate"><span class="pre">activate.sh</span></code> script after the script has completed.</p>
+<p>With both Spack and Kessel in place, you can then go ahead and run Kessel workflows.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="versioning.html" class="btn btn-neutral float-left" title="Versioning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="documentation.html" class="btn btn-neutral float-right" title="Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+
+  <style>
+    /* Contents caption */
+    .wy-menu-vertical>p.caption {
+      color: #ffffff;
+    }
+
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #e3e2db;
+    }
+    .wy-side-nav-search>div.version, .wy-nav-top>div.version {
+      color: #5f5d5f;
+    }
+
+    /* Sidebar */
+    .wy-nav-side {
+      background: #216897;
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

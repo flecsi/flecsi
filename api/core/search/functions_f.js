@@ -5,7 +5,7 @@ var searchData=
   ['read_2',['read',['../structflecsi_1_1data_1_1buffers_1_1ragged.html#ad9c9adc778cd3f3d416d857e6a9fba98',1,'flecsi::data::buffers::ragged']]],
   ['reduce_3',['reduce',['../structflecsi_1_1scheduler.html#a52ba74f5872a8cb433562942e216616f',1,'flecsi::scheduler::reduce(AA &amp;&amp;...)'],['../structflecsi_1_1scheduler.html#a52ba74f5872a8cb433562942e216616f',1,'flecsi::scheduler::reduce(AA &amp;&amp;...)'],['../structflecsi_1_1exec_1_1executor__base.html#a74fb65d2e0c6b41c748a62be3625e022',1,'flecsi::exec::executor_base::reduce()'],['../structflecsi_1_1exec_1_1executor.html#a7d8c9736526f52be9e9c8d6b71a0c95a',1,'flecsi::exec::executor::reduce()'],['../group__execution.html#gafadad11d9825d4175ac5d62db431e39e',1,'flecsi::reduce()']]],
   ['region_5fbase_4',['region_base',['../structflecsi_1_1data_1_1region__base.html#a0bf5b723978e651b6c9687d8db6995f3',1,'flecsi::data::region_base']]],
-  ['register_5ftag_5',['register_tag',['../classflecsi_1_1flog_1_1state.html#a0e92f82b4a4e8050447e20546cc9bed3',1,'flecsi::flog::state']]],
+  ['register_5ftag_5',['register_tag',['../classflecsi_1_1flog_1_1state.html#a0ec49ffbf125c1cd70732319099dc3bf',1,'flecsi::flog::state']]],
   ['reorder_6',['reorder',['../group__utils.html#gacc2dbba6504f66bd8814581374a95e02',1,'flecsi::util']]],
   ['reorder_5fdestructive_7',['reorder_destructive',['../group__utils.html#ga99224fc017b020065039157f96a74faa',1,'flecsi::util']]],
   ['reserve_8',['reserve',['../structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4_1_1row.html#ab7d5fd5b9533fa765e8f39f8a99bd65a',1,'flecsi::data::mutator&lt; ragged, T, P &gt;::row']]],

@@ -7,10 +7,11 @@ var searchData=
   ['partition_4',['partition',['../structflecsi_1_1data_1_1leg_1_1partition.html',1,'partition'],['../structflecsi_1_1data_1_1partition.html',1,'partition']]],
   ['peer_5fentities_5',['peer_entities',['../structflecsi_1_1topo_1_1unstructured__impl_1_1peer__entities.html',1,'flecsi::topo::unstructured_impl']]],
   ['point_5fwalker_6',['point_walker',['../structflecsi_1_1run__impl_1_1point__walker.html',1,'flecsi::run_impl']]],
-  ['policy_7',['policy',['../structflecsi_1_1topo_1_1resize_1_1policy.html',1,'flecsi::topo::resize']]],
-  ['prefix_5frange_8',['prefix_range',['../structflecsi_1_1exec_1_1prefix__range.html',1,'flecsi::exec']]],
-  ['prefixes_9',['prefixes',['../structflecsi_1_1data_1_1prefixes.html',1,'flecsi::data']]],
-  ['product_10',['product',['../structflecsi_1_1exec_1_1fold_1_1product.html',1,'flecsi::exec::fold']]],
-  ['program_5foption_11',['program_option',['../structflecsi_1_1program__option.html',1,'flecsi']]],
-  ['prolog_12',['prolog',['../structflecsi_1_1exec_1_1prolog.html',1,'flecsi::exec']]]
+  ['point_5fwalker_3c_20control_20_3e_7',['point_walker&lt; control &gt;',['../structflecsi_1_1run__impl_1_1point__walker.html',1,'flecsi::run_impl']]],
+  ['policy_8',['policy',['../structflecsi_1_1topo_1_1resize_1_1policy.html',1,'flecsi::topo::resize']]],
+  ['prefix_5frange_9',['prefix_range',['../structflecsi_1_1exec_1_1prefix__range.html',1,'flecsi::exec']]],
+  ['prefixes_10',['prefixes',['../structflecsi_1_1data_1_1prefixes.html',1,'flecsi::data']]],
+  ['product_11',['product',['../structflecsi_1_1exec_1_1fold_1_1product.html',1,'flecsi::exec::fold']]],
+  ['program_5foption_12',['program_option',['../structflecsi_1_1program__option.html',1,'flecsi']]],
+  ['prolog_13',['prolog',['../structflecsi_1_1exec_1_1prolog.html',1,'flecsi::exec']]]
 ];

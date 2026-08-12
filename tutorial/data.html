@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Model &mdash; FleCSI 2.4.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=3dbc9e18" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="canonical" href="https://www.flecsi.org/tutorial/data.html"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=de1351e5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Shared-memory parallelism" href="parallel.html" />
+    <link rel="prev" title="Execution Model" href="execution.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                Version: 2.4.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorial.html">Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../tutorial.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorial.html#building-the-examples">Building the Examples</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../tutorial.html#tutorial-examples">Tutorial Examples</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="runtime.html">Runtime Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="control.html">Control Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Model</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Data Model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#example-1-global-data">Example 1: Global data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#example-2-index-data">Example 2: Index data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#example-3-dense-data">Example 3: Dense data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#example-4-ragged-data">Example 4: Ragged data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="parallel.html">Shared-memory parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ntree.html">N-Tree</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
+<li class="toctree-l3"><a class="reference internal" href="poisson.html">Poisson</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FleCSI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorial.html">Tutorial</a></li>
+      <li class="breadcrumb-item active">Data Model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorial/data.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="data-model">
+<h1>Data Model<a class="headerlink" href="#data-model" title="Link to this heading"></a></h1>
+<p>FleCSI provides a data model that integrates with the task and kernel
+abstractions to provide easy registration and access to various data
+types with automatic dependency tracking.</p>
+<aside class="sidebar">
+<p class="sidebar-title">Field definitions in headers</p>
+<p>Declaring field definitions as <code class="docutils literal notranslate"><span class="pre">const</span></code> namespace members gives them
+internal linkage. When putting them in headers make sure to declare them
+as <code class="docutils literal notranslate"><span class="pre">inline</span> <span class="pre">const</span></code> to avoid breaking the One-Definition Rule (ODR).</p>
+</aside>
+<section id="example-1-global-data">
+<h2>Example 1: Global data<a class="headerlink" href="#example-1-global-data" title="Link to this heading"></a></h2>
+<p>Global fields are used to store global variables/objects that can be
+accessed by any task.  For the common case of only one value for each field, it
+is natural to use the <code class="docutils literal notranslate"><span class="pre">data::single</span></code> layout.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="k">using</span><span class="w"> </span><span class="n">single</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">const</span><span class="w"> </span><span class="n">single</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">global</span><span class="o">&gt;</span><span class="w"> </span><span class="n">gfield</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>To create a topology instance, declare a variable of type <code class="docutils literal notranslate"><span class="pre">topology</span></code> initialized with a scheduler and an argument appropriate to the topology called a <em class="dfn">coloring</em>.
+In general, a coloring describes the structure of a topology and its distribution among colors.
+The global topology is a special case that does not actually use colors; its “coloring” is simply a count of values for each field.</p>
+<p>One can access the field inside of the FleCSI task by passing
+topology and field accessors with <em class="dfn">access permissions</em> (<code class="docutils literal notranslate"><span class="pre">wo</span></code>/<code class="docutils literal notranslate"><span class="pre">rw</span></code>/<code class="docutils literal notranslate"><span class="pre">ro</span></code>).
+Writing to a global field requires a single task launch.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
+<span class="nf">init</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">single</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">gv</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">gv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">single</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">gv</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;global value: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">gv</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">scheduler</span><span class="p">();</span>
+<span class="w">  </span><span class="n">topo</span><span class="o">::</span><span class="n">global</span><span class="o">::</span><span class="n">topology</span><span class="w"> </span><span class="n">gtopo</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gfield</span><span class="p">(</span><span class="n">gtopo</span><span class="p">);</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="mf">42.0</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">);</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">print</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// advance()</span>
+</pre></div>
+</div>
+<p>The first task that accesses a field must do so with <code class="docutils literal notranslate"><span class="pre">wo</span></code> privileges, since there are no previous values to read.
+Field elements are default-initialized when first created; this does not give any usable value for primitive types like <code class="docutils literal notranslate"><span class="pre">double</span></code>.
+<code class="docutils literal notranslate"><span class="pre">std::fill</span></code> can be used to set an initial value if required.</p>
+</section>
+<section id="example-2-index-data">
+<h2>Example 2: Index data<a class="headerlink" href="#example-2-index-data" title="Link to this heading"></a></h2>
+<p>A field on an <code class="docutils literal notranslate"><span class="pre">index</span></code> topology stores one value for each color.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
+
+<span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="k">using</span><span class="w"> </span><span class="n">single</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">const</span><span class="w"> </span><span class="n">single</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ifield</span><span class="p">;</span>
+
+<span class="kt">void</span>
+<span class="nf">init</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">cpu</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">single</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">iv</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;initializing value on color &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">launch</span><span class="p">().</span><span class="n">index</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; of &quot;</span>
+<span class="w">              </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">launch</span><span class="p">().</span><span class="n">size</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">iv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">launch</span><span class="p">().</span><span class="n">index</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">cpu</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">single</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">iv</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;index value: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">iv</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; (color &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">launch</span><span class="p">().</span><span class="n">index</span>
+<span class="w">              </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; of &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">launch</span><span class="p">().</span><span class="n">size</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">scheduler</span><span class="p">();</span>
+<span class="w">  </span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">::</span><span class="n">topology</span><span class="w"> </span><span class="n">custom_topology</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">on</span><span class="p">,</span><span class="w"> </span><span class="n">ifield</span><span class="p">(</span><span class="n">custom_topology</span><span class="p">));</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">print</span><span class="o">&gt;</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">on</span><span class="p">,</span><span class="w"> </span><span class="n">ifield</span><span class="p">(</span><span class="n">custom_topology</span><span class="p">));</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// advance()</span>
+</pre></div>
+</div>
+</section>
+<section id="example-3-dense-data">
+<h2>Example 3: Dense data<a class="headerlink" href="#example-3-dense-data" title="Link to this heading"></a></h2>
+<p>A dense field is a field defined on a dense topology index space.  In
+this example we allocate a <code class="docutils literal notranslate"><span class="pre">pressure</span></code> field on the <code class="docutils literal notranslate"><span class="pre">cells</span></code> index space of the <code class="docutils literal notranslate"><span class="pre">canonical</span></code> topology.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">canon</span><span class="p">,</span><span class="w"> </span><span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="w"> </span><span class="n">pressure</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">canonical</span></code> topology is a very simple specialization of the <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> topology category without ghost copy support.
+(Privileges for fields with ghosts are specified as <code class="samp docutils literal notranslate"><span class="pre">&lt;</span><em><span class="pre">owned</span></em><span class="pre">,</span> <em><span class="pre">ghost</span></em><span class="pre">&gt;</span></code> or <code class="samp docutils literal notranslate"><span class="pre">&lt;</span><em><span class="pre">exclusive</span></em><span class="pre">,</span> <em><span class="pre">shared</span></em><span class="pre">,</span> <em><span class="pre">ghost</span></em><span class="pre">&gt;</span></code>, depending on the topology.)
+It illustrates the use of the <code class="docutils literal notranslate"><span class="pre">mpi_coloring</span></code> type, which applies a specialization-defined rule for specifying a coloring.
+Here, a file is the source of the mesh (for purposes of illustration).
+The resulting coloring is used to initialize two meshes <code class="docutils literal notranslate"><span class="pre">canonical</span></code> and <code class="docutils literal notranslate"><span class="pre">cp</span></code>, and the <code class="docutils literal notranslate"><span class="pre">copy</span></code> task operates on both of them at once using field accessors.
+The <code class="docutils literal notranslate"><span class="pre">init</span></code> and <code class="docutils literal notranslate"><span class="pre">print</span></code> tasks, by contrast, use a <em class="dfn">topology accessor</em> as a parameter that provides access to the structure of the mesh via the <code class="docutils literal notranslate"><span class="pre">entities</span></code> function.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
+<span class="nf">init</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">cells</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">2.0</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// for</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// init</span>
+
+<span class="kt">void</span>
+<span class="nf">copy</span><span class="p">(</span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">src</span><span class="p">,</span>
+<span class="w">  </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">dest</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">src</span><span class="p">.</span><span class="n">span</span><span class="p">();</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">copy</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="w"> </span><span class="n">dest</span><span class="p">.</span><span class="n">span</span><span class="p">().</span><span class="n">begin</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="kt">void</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">cells</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;cell &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; has pressure &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// for</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// print</span>
+
+<span class="kt">void</span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">scheduler</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">mpi_coloring</span><span class="w"> </span><span class="n">c</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test.txt&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">topology</span><span class="w"> </span><span class="n">canonical</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="p">),</span><span class="w"> </span><span class="n">cp</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">pf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pressure</span><span class="p">(</span><span class="n">canonical</span><span class="p">),</span><span class="w"> </span><span class="n">pf2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pressure</span><span class="p">(</span><span class="n">cp</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span><span class="w"> </span><span class="n">pf</span><span class="p">);</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">copy</span><span class="o">&gt;</span><span class="p">(</span><span class="n">pf</span><span class="p">,</span><span class="w"> </span><span class="n">pf2</span><span class="p">);</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">print</span><span class="o">&gt;</span><span class="p">(</span><span class="n">cp</span><span class="p">,</span><span class="w"> </span><span class="n">pf2</span><span class="p">);</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// advance()</span>
+</pre></div>
+</div>
+</section>
+<section id="example-4-ragged-data">
+<h2>Example 4: Ragged data<a class="headerlink" href="#example-4-ragged-data" title="Link to this heading"></a></h2>
+<p>A ragged field stores a variable amount of data at each index point.
+It is defined in much the same way as a dense field, but using it involves additional steps.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="n">ints</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">::</span><span class="n">ragged</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">const</span><span class="w"> </span><span class="n">ints</span><span class="o">::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">canon</span><span class="p">,</span><span class="w"> </span><span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="w"> </span><span class="n">rag</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Because the total storage required for a ragged field is not determined by the size of the index space, an amount of memory to use for elements must be specified.
+The field reference for a ragged field has a special interface for managing it.
+Here we use a simple helper task (called <code class="docutils literal notranslate"><span class="pre">allocate</span></code>) with that interface to specify a fixed, known total, although typically a heuristic overallocation is required:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// This special field type is predefined for this purpose.</span>
+<span class="kt">void</span>
+<span class="nf">allocate</span><span class="p">(</span><span class="n">topo</span><span class="o">::</span><span class="n">resize</span><span class="o">::</span><span class="n">Field</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>After executing a task to store the sizes, they must be applied with <code class="docutils literal notranslate"><span class="pre">resize</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rag</span><span class="p">(</span><span class="n">mesh</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">get_elements</span><span class="p">();</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">allocate</span><span class="o">&gt;</span><span class="p">(</span><span class="n">elem</span><span class="p">.</span><span class="n">sizes</span><span class="p">());</span>
+<span class="w">  </span><span class="n">elem</span><span class="p">.</span><span class="n">resize</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>Initializing the field, or changing the number of values stored at any point later, requires a <em class="dfn">mutator</em>.
+The interface is closely modeled on <code class="docutils literal notranslate"><span class="pre">std::vector</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Use wo to initialize any field.</span>
+<span class="kt">void</span>
+<span class="nf">init</span><span class="p">(</span><span class="n">ints</span><span class="o">::</span><span class="n">mutator</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">r</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">);</span>
+<span class="w">    </span><span class="o">++</span><span class="n">i</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Using the field is much like a dense field, with a <code class="docutils literal notranslate"><span class="pre">span</span></code> at each index point:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Accessors can modify but not create or destroy values.</span>
+<span class="kt">int</span>
+<span class="nf">total</span><span class="p">(</span><span class="n">ints</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">a</span><span class="p">)</span>
+<span class="w">    </span><span class="k">for</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">r</span><span class="p">)</span>
+<span class="w">      </span><span class="n">ret</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Tasks using either of these are launched with ordinary field references:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="n">f</span><span class="p">);</span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">reduce</span><span class="o">&lt;</span><span class="n">total</span><span class="p">,</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">sum</span><span class="o">&gt;</span><span class="p">(</span><span class="n">f</span><span class="p">).</span><span class="n">get</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">14</span><span class="p">)</span>
+<span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="n">control_policy</span><span class="o">::</span><span class="n">exception</span><span class="p">{</span><span class="mi">1</span><span class="p">};</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="execution.html" class="btn btn-neutral float-left" title="Execution Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parallel.html" class="btn btn-neutral float-right" title="Shared-memory parallelism" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+
+  <style>
+    /* Contents caption */
+    .wy-menu-vertical>p.caption {
+      color: #ffffff;
+    }
+
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #e3e2db;
+    }
+    .wy-side-nav-search>div.version, .wy-nav-top>div.version {
+      color: #5f5d5f;
+    }
+
+    /* Sidebar */
+    .wy-nav-side {
+      background: #216897;
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Specializations &mdash; FleCSI 2.4.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=3dbc9e18" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="canonical" href="https://www.flecsi.org/user/specializations.html"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=de1351e5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Utilities" href="utilities.html" />
+    <link rel="prev" title="On-node Parallelism" href="parallel.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                Version: 2.4.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../user.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="runtime.html">Runtime Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="control.html">Control Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">Data Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel.html">On-node Parallelism</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Specializations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#requirements">Requirements</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#index-spaces">Index Spaces</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#coloring">Coloring</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#interface">Interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmake.html">CMake for FleCSI client applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="programming.html">Programming Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FleCSI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../user.html">User Guide</a></li>
+      <li class="breadcrumb-item active">Specializations</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/user/specializations.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="specializations">
+<h1>Specializations<a class="headerlink" href="#specializations" title="Link to this heading"></a></h1>
+<p>A <em class="dfn">specialization</em> is a customization of a topology category to
+create an interface that is suitable for developers of a family of
+domain-specific applications.
+For example, in the Poisson tutorial a specialization of <code class="docutils literal notranslate"><span class="pre">narray</span></code> is provided to define a
+two-dimensional finite-difference domain interface required by applications
+with nearest-neighbor ghost dependencies.</p>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading"></a></h2>
+<p>The minimum required of a specialization is that it provide certain compile-time information needed to fully specify its topology category.
+For example, the <code class="docutils literal notranslate"><span class="pre">narray</span></code> topology requires a dimensionality for the array, but <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> does not because it deals not in geometry but only in generic mesh connectivity.</p>
+<section id="index-spaces">
+<h3>Index Spaces<a class="headerlink" href="#index-spaces" title="Link to this heading"></a></h3>
+<p>The index spaces that are required for a simulation depend on the numerical methods used.
+For example, finite-volume hydrodynamics methods store how much
+of certain conserved quantities is contained within each cell and compute fluxes of these conserved quantities across cell
+boundaries.  These fluxes logically live at the boundaries between
+cells, which we call faces.  Given that we need to track data both in
+cells and on faces, that tells us that we need two index spaces: one for
+cells and one for faces.  This would be declared as</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">enum</span><span class="w"> </span><span class="nc">index_space</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">cells</span><span class="p">,</span><span class="w"> </span><span class="n">faces</span><span class="w"> </span><span class="p">};</span>
+<span class="k">using</span><span class="w"> </span><span class="n">index_spaces</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">has</span><span class="o">&lt;</span><span class="n">cells</span><span class="p">,</span><span class="w"> </span><span class="n">faces</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The enum is simply defining some names for convenience.  The
+<code class="docutils literal notranslate"><span class="pre">using</span> <span class="pre">index_spaces</span></code> declaration actually specifies the number and
+ordering of index spaces.  These names chosen here are not special and
+carry no meaning; they are purely for the convenience of users.</p>
+</section>
+<section id="coloring">
+<h3>Coloring<a class="headerlink" href="#coloring" title="Link to this heading"></a></h3>
+<p>A specialization can define an MPI task function called <code class="docutils literal notranslate"><span class="pre">color</span></code>, in which case an application can use <code class="docutils literal notranslate"><span class="pre">mpi_coloring</span></code> to launch that task to create a coloring.
+The return type is the coloring type required by its topology category; for example, <code class="docutils literal notranslate"><span class="pre">narray</span></code> accepts options like periodicity and ghost halo depth.</p>
+</section>
+<section id="interface">
+<h3>Interface<a class="headerlink" href="#interface" title="Link to this heading"></a></h3>
+<p>The topology accessor used by application tasks is based on an interface defined in the specialization called <code class="docutils literal notranslate"><span class="pre">interface</span></code>.
+This class template inherits from a core topology interface and provides a set of member functions implemented in terms of <code class="docutils literal notranslate"><span class="pre">protected</span></code> members of that base class to present topology information to the application in a suitable form.
+That suitability is in part derived from using domain-specific terminology that cannot be used in the internal interface.</p>
+<p>Common interfaces include producing ranges of all index points or those of a particular kind (those on the boundary, those exclusive to the current color, <em>etc.</em>) as well as queries about a specific index point (its neighbors, its global id, <em>etc.</em>).</p>
+</section>
+</section>
+<section id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Link to this heading"></a></h2>
+<p>Specializations are defined by inheriting from the <code class="docutils literal notranslate"><span class="pre">topo::specialization</span></code> class template, naming the topology category and the specialization being defined.
+For convenience, this base class <a class="reference external" href="../api/user/structflecsi_1_1topo_1_1specialization.html">provides</a> several helpful type aliases and defaults for many of the customizable options.</p>
+<p>Additional <a class="reference external" href="../api/user/group__topology.html">class and function templates</a> are provided to assist in writing specializations.
+The class template <code class="docutils literal notranslate"><span class="pre">topo::id</span></code> exists to help prevent mistakes such as using a cell ID as if it were a vertex ID.
+<code class="docutils literal notranslate"><span class="pre">topo::make_ids</span></code> is a convenience function template to convert a range of ordinary integers into a range of <code class="docutils literal notranslate"><span class="pre">id</span></code> objects.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="parallel.html" class="btn btn-neutral float-left" title="On-node Parallelism" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="utilities.html" class="btn btn-neutral float-right" title="Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+
+  <style>
+    /* Contents caption */
+    .wy-menu-vertical>p.caption {
+      color: #ffffff;
+    }
+
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #e3e2db;
+    }
+    .wy-side-nav-search>div.version, .wy-nav-top>div.version {
+      color: #5f5d5f;
+    }
+
+    /* Sidebar */
+    .wy-nav-side {
+      background: #216897;
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

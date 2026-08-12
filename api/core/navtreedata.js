@@ -46,11 +46,12 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"group__legion-runtime.html",
+"group__legion-runtime.html#gaa7a0b5fc28afd27d5c38fdfa4a1e0243",
 "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4_1_1row.html#abae6cd3d55419f6d04ab0a16ebf5caa1",
-"structflecsi_1_1topo_1_1narray__base.html#afd208d36bba9c0773eeb8b064a1360ae",
-"structflecsi_1_1util_1_1offsets.html#a7e8a760141ec667bc700fc383f4d33d5"
+"structflecsi_1_1topo_1_1narray__base.html#a8a6287602630db6aeffcb6cf5787a216a78ae2000a3964dd5a903ab9fc5f460f8",
+"structflecsi_1_1util_1_1map__base.html#addd08b2318c4f7202fb6cf34766b849f"
 ];
 
-var SYNCONMSG = 'click to disable panel synchronisation';
-var SYNCOFFMSG = 'click to enable panel synchronisation';
+var SYNCONMSG = 'click to disable panel synchronization';
+var SYNCOFFMSG = 'click to enable panel synchronization';
+var LISTOFALLMEMBERS = 'List of all members';

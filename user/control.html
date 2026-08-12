@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control Model &mdash; FleCSI 2.4.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=3dbc9e18" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="canonical" href="https://www.flecsi.org/user/control.html"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=de1351e5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Data Model" href="data.html" />
+    <link rel="prev" title="Runtime Model" href="runtime.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                Version: 2.4.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../user.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="runtime.html">Runtime Model</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Control Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#control-flow-graphs-directed-acyclic-graphs">Control-Flow Graphs &amp; Directed Acyclic Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#flecsibility">FleCSIbility</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">Data Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel.html">On-node Parallelism</a></li>
+<li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmake.html">CMake for FleCSI client applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="programming.html">Programming Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FleCSI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../user.html">User Guide</a></li>
+      <li class="breadcrumb-item active">Control Model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/user/control.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="control-model">
+<h1>Control Model<a class="headerlink" href="#control-model" title="Link to this heading"></a></h1>
+<p>The FleCSI control model allows users to define the high-level structure
+of an application
+using a control-flow graph (CFG) of <em class="dfn">control points</em>,
+under each of which a directed acyclic graph (DAG) of <em class="dfn">actions</em> can be defined.
+Actions in turn launch <em class="dfn">tasks</em> to operate on distributed data.</p>
+<aside class="sidebar">
+<p class="sidebar-title">Control-model concepts</p>
+<p><strong>Control Points</strong> are the logical steps in a control-flow graph.
+These are not actual execution units. However, they define named
+anchors where actions can be registered that will be executed when
+the control-flow graph reaches that control point.</p>
+<p><strong>Actions</strong> are C++ functions that are executed under a control point.</p>
+<p><strong>Tasks</strong> are C++ functions launched by an action
+and that access distributed data.</p>
+</aside>
+<p>For FleCSI developers, the control model replaces the normal hard-coded
+execution structure of an application, instead providing a well-defined,
+extensible mechanism which can easily be verified and visualized.</p>
+<p>Consider the following example of a traditional <em>implicit</em> control
+model:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">step</span><span class="p">{</span><span class="mi">0</span><span class="p">},</span><span class="w"> </span><span class="n">steps</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+
+<span class="w">  </span><span class="c1">// initialization stage</span>
+<span class="w">  </span><span class="n">initialize</span><span class="p">(</span><span class="n">steps</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">while</span><span class="p">(</span><span class="n">step</span><span class="o">&lt;</span><span class="n">steps</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// simulation stages</span>
+<span class="w">    </span><span class="n">advanceA</span><span class="p">();</span>
+<span class="w">    </span><span class="n">advanceB</span><span class="p">();</span>
+<span class="w">    </span><span class="n">advanceC</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// analysis stages</span>
+<span class="w">    </span><span class="n">analyzeA</span><span class="p">();</span>
+<span class="w">    </span><span class="n">analyzeB</span><span class="p">();</span>
+<span class="w">    </span><span class="n">analyzeC</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// while</span>
+
+<span class="w">  </span><span class="c1">// finalization stage</span>
+<span class="w">  </span><span class="n">finalize</span><span class="p">();</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
+</pre></div>
+</div>
+<p>While this example is straightforward, it is also restrictive because it
+defines a single point in the application where all stages must be
+known.
+Suppose that an advanced user would like to add an <em>advance</em> or
+<em>analysis</em> stage to the simulation, e.g, to test a new algorithm or to
+customize their metrics?
+With the traditional model above, she would need to have access to the
+code base and would have to rewrite the main simulation loop with the
+new execution logic.
+This is error-prone, and worse it necessarily forces the code to
+diverge (unless every alteration to the application is vetted and
+merged).</p>
+<p>FleCSI’s control model offers a much cleaner solution, which is both
+easier for the user and safer for the core application developers.</p>
+<hr class="docutils" />
+<section id="control-flow-graphs-directed-acyclic-graphs">
+<h2>Control-Flow Graphs &amp; Directed Acyclic Graphs<a class="headerlink" href="#control-flow-graphs-directed-acyclic-graphs" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="#cfg"><span class="std std-numref">Fig. 12</span></a> shows a complete representation of a FleCSI control model.
+This figure was actually generated by a FleCSI example application using
+the <code class="docutils literal notranslate"><span class="pre">control::write_graph</span></code> function, which outputs a Dot file of the control
+model.
+The white control-point nodes in the figure (labeled <em>Control Point X</em>)
+define a control-flow graph. Notice that the control points do not form
+a DAG, i.e., they cycle (indicated by the dashed line from <em>Control
+Point 3</em> to <em>Control Point 2</em>).
+This is true in general and allows users to create complex looping
+structures within their applications.</p>
+<p>At each control point in the CFG, there are one or more actions defined:
+e.g., under <em>Control Point 2</em> are the actions <em>A</em> through <em>E</em>.
+The actions are where the actual work of the simulation is executed.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>The actions in a FleCSI control model are not tasks! The control
+model capability in FleCSI is orthogonal to Legion’s tasking model;
+i.e., they are complementary. <strong>FleCSI actions are functions that
+execute tasks!</strong> When the Legion backend to FleCSI is in use, the
+control model exposes a sequential program order to the Legion
+runtime that can be analyzed for data dependencies to increase
+concurrency and allow load balancing during execution.</p>
+</div>
+<figure class="align-center" id="id1">
+<span id="cfg"></span><a class="reference internal image-reference" href="../_images/overview.svg"><img alt="../_images/overview.svg" src="../_images/overview.svg" style="width: 90%;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 12 </span><span class="caption-text">Example FleCSI Control Model.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<aside class="sidebar">
+<p class="sidebar-title">Sequential Ordering</p>
+<figure class="align-center" id="id2">
+<span id="sequential"></span><a class="reference internal image-reference" href="../_images/sequential.svg"><img alt="../_images/sequential.svg" src="../_images/sequential.svg" style="width: 50%;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 13 </span><span class="caption-text">A valid ordering of <a class="reference internal" href="#cfg"><span class="std std-numref">Fig. 12</span></a>.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</aside>
+<p>It is important to notice that actions have dependencies and that they
+are DAGs.
+This allows the FleCSI runtime to topologically sort the actions into a
+single valid sequential ordering.
+This ordering uses the fact that the control point order is defined by a
+specialization of the core FleCSI control type.
+FleCSI then sorts each DAG of actions to create the overall sequential
+ordering (<a class="reference internal" href="#sequential"><span class="std std-numref">Fig. 13</span></a>).
+This ordering is non-unique but is deterministic for a given FleCSI
+control model; i.e., the same code and compiler version will generate
+the same ordering every time.
+<a class="reference internal" href="#sequential"><span class="std std-numref">Fig. 13</span></a> was also generated by a FleCSI example program by
+calling the <code class="docutils literal notranslate"><span class="pre">control::write_actions</span></code> function.</p>
+</section>
+<hr class="docutils" />
+<section id="flecsibility">
+<h2>FleCSIbility<a class="headerlink" href="#flecsibility" title="Link to this heading"></a></h2>
+<p>Another important attribute of the FleCSI control model is that actions
+and dependencies do not need to be defined in a centralized location in
+the code.
+This adds significant flexibility in extending the actions that a
+simulation executes.</p>
+<p>Let’s consider our advanced user who would like to add a new action:
+Because FleCSI does not force her to add actions to a static loop, she
+can instead put it in a source file that only needs to link to the
+control points definition of the application.
+She still has to build an application driver.
+However, if the application packages are primarily developed as
+libraries, this is easy to do.</p>
+<p>Inserting a new action <em>N</em> under <em>Control Point 2</em> looks something like this:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">actionN</span><span class="p">,</span><span class="w"> </span><span class="n">cp</span><span class="o">::</span><span class="n">two</span><span class="o">&gt;</span><span class="w"> </span><span class="n">action_n</span><span class="p">;</span>
+<span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">dep_na</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">action_n</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">action_a</span><span class="p">);</span>
+<span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">dep_bn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">action_b</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">action_n</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>That’s it!
+This will insert a new action that depends on action <em>A</em> and which is
+depended upon by action <em>B</em> (<a class="reference internal" href="#extension"><span class="std std-numref">Fig. 14</span></a>).
+Because of FleCSI’s data model, any data dependencies will automatically
+be honored by the runtime.
+For example, if action <em>N</em> modifies a pressure field that is used by
+action <em>B</em>, the underlying runtime will recognize this dependency and
+the data will be consistent.
+This code can also be in its own source file, which means that the
+original package does not need to be modified.
+Of course, the core application developers need to document the control
+point identifiers and actions so that our advanced user knows the
+correct names to use.
+However, this is a small cost to allow easy experimentation and
+extension of the application.</p>
+<figure class="align-center" id="id3">
+<span id="extension"></span><img alt="../_images/extension.svg" src="../_images/extension.svg" />
+<figcaption>
+<p><span class="caption-number">Fig. 14 </span><span class="caption-text">Control Model After Extension.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="runtime.html" class="btn btn-neutral float-left" title="Runtime Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="data.html" class="btn btn-neutral float-right" title="Data Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+
+  <style>
+    /* Contents caption */
+    .wy-menu-vertical>p.caption {
+      color: #ffffff;
+    }
+
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #e3e2db;
+    }
+    .wy-side-nav-search>div.version, .wy-nav-top>div.version {
+      color: #5f5d5f;
+    }
+
+    /* Sidebar */
+    .wy-nav-side {
+      background: #216897;
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

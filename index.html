@@ -1,27 +1,30 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Introduction &mdash; FleCSI 2.4.1 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Introduction &mdash; FleCSI 2.4.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3dbc9e18" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="canonical" href="http://www.flecsi.org/index.html"/>
+    <link rel="canonical" href="https://www.flecsi.org/index.html"/>
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=de1351e5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Overview" href="src/overview.html" /> 
+    <link rel="next" title="Overview" href="overview.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -37,7 +40,7 @@
               <img src="_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.4.1
+                Version: 2.4.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -49,13 +52,13 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="src/overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="src/build.html">Build &amp; Install</a></li>
-<li class="toctree-l1"><a class="reference internal" href="src/tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="src/user-guide.html">User Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="src/api.html">API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="src/developer-guide.html">Developer Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="src/team.html">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build &amp; Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
 </ul>
 
         </div>
@@ -83,13 +86,13 @@
            <div itemprop="articleBody">
              
   <section id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h1>
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
 <div class="twocol docutils container">
 <div class="leftside docutils container">
 <figure class="align-left" id="id3">
 <img alt="_images/anvil.jpg" src="_images/anvil.jpg" />
 <figcaption>
-<p><span class="caption-number">Fig. 1 </span><span class="caption-text">Taylor Anvil Impact</span><a class="headerlink" href="#id3" title="Permalink to this image"></a></p>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">Taylor Anvil Impact</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </div>
@@ -100,8 +103,7 @@ provides a very general set of infrastructure design patterns that
 can be specialized and extended to suit the needs of a broad
 variety of solver and data requirements. FleCSI currently supports
 multi-dimensional mesh topology, geometry, and adjacency
-information, as well as n-dimensional hashed-tree data structures,
-graph partitioning interfaces, and dependency closures.</p>
+information, as well as n-dimensional hashed-tree data structures.</p>
 <p>FleCSI introduces a functional programming model with control,
 execution, and data abstractions that are consistent both with MPI
 and with state-of-the-art, task-based runtimes such as Legion and
@@ -122,333 +124,336 @@ optimizations that can be applied to future architectures and
 runtimes.</p>
 <p>FleCSI’s control and execution models provide formal nomenclature
 for describing poorly understood concepts such as kernels and
-tasks. FleCSI’s data model provides a low-buy-in approach that
-makes it an attractive option for many application projects, as
-developers are not locked into particular layouts or data
-structure representations.</p>
+tasks.
+FleCSI’s data model supports extensible sets of physical fields using several data structures with automatic data movement between neighbors and to and from GPUs.</p>
 </div>
 </div>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="src/overview.html">Overview</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="src/overview.html#documentation">Documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/overview.html#namespaces">Namespaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#namespaces">Namespaces</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="src/build.html">Build &amp; Install</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="src/build.html#build-requirements">Build requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/build.html#additional-requirements-for-documentation">Additional requirements for documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build &amp; Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="build.html#build-requirements">Build requirements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="build.html#additional-requirements-for-documentation">Additional requirements for documentation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="src/build.html#getting-the-code">Getting The Code</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/build.html#spack">Spack</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/build.html#flecsi-developers">FleCSI Developers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/build.html#configuration-build">Configuration &amp; Build</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/build/options.html">CMake Configuration Options</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/build/options.html#flog-flecsi-logging-utility-options">Flog (FleCSI logging utility) options</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/build/options.html#parallelization-options">Parallelization options</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/build/options.html#documentation-options">Documentation options</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/build/options.html#miscellaneous-options">Miscellaneous options</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="src/build.html#building-the-unit-tests">Building the Unit Tests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/build.html#building-the-documentation-developers">Building the Documentation (Developers)</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="src/tutorial.html">Tutorial</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="src/tutorial.html#requirements">Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/tutorial.html#building-the-examples">Building the Examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/tutorial.html#tutorial-examples">Tutorial Examples</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/tutorial/runtime.html">Runtime Model</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/runtime.html#example-1-minimal">Example 1: Minimal</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/runtime.html#example-2-program-options">Example 2: Program Options</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#example-program">Example Program</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#declaring-options">Declaring Options</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#checking-using-options">Checking &amp; Using Options</a></li>
-</ul>
-</li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/runtime.html#example-3-flog-flecsi-logging-utility">Example 3: FLOG (FleCSI Logging Utility)</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#buffer-configuration">Buffer Configuration</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#writing-to-buffers">Writing to Buffers</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#controlling-output-strip-levels">Controlling Output - Strip Levels</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#controlling-output-tag-groups">Controlling Output - Tag Groups</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#flog-options">FLOG Options</a></li>
-</ul>
-</li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/runtime.html#example-4-caliper-annotations">Example 4: Caliper Annotations</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#adding-annotations">Adding Annotations</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#generating-reports">Generating Reports</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build.html#getting-the-code">Getting The Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build.html#spack">Spack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build.html#flecsi-developers">FleCSI Developers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build.html#configuration-build">Configuration &amp; Build</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="build/options.html">CMake Configuration Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="build/options.html#flog-flecsi-logging-utility-options">Flog (FleCSI logging utility) options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="build/options.html#parallelization-options">Parallelization options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="build/options.html#documentation-options">Documentation options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="build/options.html#miscellaneous-options">Miscellaneous options</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/tutorial/control.html">Control Model</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/control.html#control-flow-graphs-directed-acyclic-graphs">Control-Flow Graphs &amp; Directed Acyclic Graphs</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/control.html#flecsibility">FleCSIbility</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/control.html#example-1-simple">Example 1: Simple</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/control.html#defining-control-points">Defining Control Points</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/control.html#using-the-control-interface">Using the Control Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build.html#building-the-unit-tests">Building the Unit Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build.html#building-the-documentation-developers">Building the Documentation (Developers)</a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/control.html#example-2-cycles">Example 2: Cycles</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/control.html#example-3-dependencies">Example 3: Dependencies</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/control.html#example-4-control-state">Example 4: Control State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#building-the-examples">Building the Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#tutorial-examples">Tutorial Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html">Runtime Model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/runtime.html#example-1-minimal">Example 1: Minimal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/runtime.html#example-2-program-options">Example 2: Program Options</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/runtime.html#example-program">Example Program</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/runtime.html#declaring-options">Declaring Options</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/runtime.html#checking-using-options">Checking &amp; Using Options</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/tutorial/execution.html">Execution Model</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/execution.html#example-1-single-tasks">Example 1: Single Tasks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/execution.html#example-2-index-tasks">Example 2: Index Tasks</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/execution.html#launch-domains">Launch Domains</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/runtime.html#example-3-flog-flecsi-logging-utility">Example 3: Flog (FleCSI Logging Utility)</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/runtime.html#buffer-configuration">Buffer Configuration</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/runtime.html#writing-to-buffers">Writing to Buffers</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/runtime.html#controlling-output-strip-levels">Controlling Output - Strip Levels</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/runtime.html#controlling-output-tag-groups">Controlling Output - Tag Groups</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/runtime.html#flog-options">Flog Options</a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/execution.html#example-3-mpi-tasks">Example 3: MPI Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/runtime.html#example-4-caliper-annotations">Example 4: Caliper Annotations</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/runtime.html#adding-annotations">Adding Annotations</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/runtime.html#generating-reports">Generating Reports</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/tutorial/data.html">Data Model</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/data.html#example-1-global-data">Example 1: Global data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/data.html#example-2-index-data">Example 2: Index data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/data.html#example-3-dense-data">Example 3: Dense data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/data.html#example-4-ragged-data">Example 4: Ragged data</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/tutorial/parallel.html">Shared-memory parallelism</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/parallel.html#example-1-forall">Example 1: forall</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/parallel.html#example-2-reduceall">Example 2: reduceall</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/control.html">Control Model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/control.html#example-1-simple">Example 1: Simple</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/control.html#defining-control-points">Defining Control Points</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/control.html#using-the-control-interface">Using the Control Interface</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/tutorial/ntree.html">N-Tree</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/ntree.html#sph-sodtube">SPH sodtube</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/ntree.html#control-model">Control Model</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/ntree.html#n-tree-setup-and-fields">N-Tree Setup and Fields</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/ntree.html#entities-nodes-access">Entities/Nodes Access</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/control.html#example-2-cycles">Example 2: Cycles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/control.html#example-3-dependencies">Example 3: Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/control.html#example-4-control-state">Example 4: Control State</a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/ntree.html#specialization">Specialization</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/ntree.html#interactions">Interactions</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/ntree.html#coloring">Coloring</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/ntree.html#tree-generation-and-reset">Tree generation and reset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/execution.html">Execution Model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/execution.html#example-1-single-tasks">Example 1: Single Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/execution.html#example-2-index-tasks">Example 2: Index Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/execution.html#example-3-mpi-tasks">Example 3: MPI Tasks</a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/ntree.html#solver">Solver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/data.html">Data Model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/data.html#example-1-global-data">Example 1: Global data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/data.html#example-2-index-data">Example 2: Index data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/data.html#example-3-dense-data">Example 3: Dense data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/data.html#example-4-ragged-data">Example 4: Ragged data</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/tutorial/flaxpy.html">DAXPY</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/flaxpy.html#preliminaries">Preliminaries</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/flaxpy.html#data-structures">Data structures</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/flaxpy.html#control-flow">Control flow</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/flaxpy.html#control-model">Control model</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/flaxpy.html#actions">Actions</a></li>
-<li class="toctree-l5"><a class="reference internal" href="src/tutorial/flaxpy.html#tasks">Tasks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/parallel.html">Shared-memory parallelism</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/parallel.html#example-1-forall">Example 1: forall</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/parallel.html#example-2-reduceall">Example 2: reduceall</a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/flaxpy.html#program-initialization">Program initialization</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/flaxpy.html#usage">Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/ntree.html">N-Tree</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/ntree.html#sph-sodtube">SPH sodtube</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/ntree.html#control-model">Control Model</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/ntree.html#n-tree-setup-and-fields">N-Tree Setup and Fields</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/ntree.html#entities-nodes-access">Entities/Nodes Access</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/tutorial/poisson.html">Poisson</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/poisson.html#build-system">Build system</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/poisson.html#control-policy">Control policy</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/poisson.html#main-function">Main function</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/tutorial/poisson.html#building-the-poisson-application">Building the Poisson application</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/ntree.html#specialization">Specialization</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/ntree.html#interactions">Interactions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/ntree.html#coloring">Coloring</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/ntree.html#tree-generation-and-reset">Tree generation and reset</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/ntree.html#solver">Solver</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/flaxpy.html">DAXPY</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/flaxpy.html#preliminaries">Preliminaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/flaxpy.html#data-structures">Data structures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/flaxpy.html#control-flow">Control flow</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/flaxpy.html#control-model">Control model</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/flaxpy.html#actions">Actions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="tutorial/flaxpy.html#tasks">Tasks</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/flaxpy.html#program-initialization">Program initialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/flaxpy.html#usage">Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/poisson.html">Poisson</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/poisson.html#build-system">Build system</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/poisson.html#control-policy">Control policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/poisson.html#main-function">Main function</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorial/poisson.html#building-the-poisson-application">Building the Poisson application</a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="src/user-guide.html">User Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/programming.html">Programming Model</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/programming.html#data">Data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/programming.html#parallelism">Parallelism</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/programming.html#mpi-tasks">MPI Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/runtime.html">Runtime Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user/runtime.html#initialization">Initialization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/runtime.html#control-model-execution">Control Model Execution</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/data.html">Data Model</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data.html#important-concepts">Important Concepts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data.html#index-spaces">Index Spaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data.html#colors">Colors</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#ghost-elements">Ghost Elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/control.html">Control Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user/control.html#control-flow-graphs-directed-acyclic-graphs">Control-Flow Graphs &amp; Directed Acyclic Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/control.html#flecsibility">FleCSIbility</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data.html#fields">Fields</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#registration">Registration</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#layouts">Layouts</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#references">References</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#accessors">Accessors</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#mutators">Mutators</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="src/user-guide/data.html#memory">Memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/data.html">Data Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user/data.html#important-concepts">Important Concepts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/data.html#index-spaces">Index Spaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/data.html#colors">Colors</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="user/data.html#ghost-elements">Ghost Elements</a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data.html#multi-color-accessors">Multi-color accessors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/data.html#fields">Fields</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="user/data.html#registration">Registration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user/data.html#layouts">Layouts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user/data.html#references">References</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user/data.html#accessors">Accessors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user/data.html#mutators">Mutators</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="user/data.html#memory">Memory</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/topologies.html">Topologies</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/topologies.html#terminology">Terminology</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/topologies.html#index-spaces">Index Spaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/topologies.html#provided-topologies">Provided Topologies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/topologies.html#colorings">Colorings</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/execution.html">Execution Model</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/execution.html#schedulers">Schedulers</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/execution.html#tasks">Tasks</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/execution.html#callee-side">Callee Side</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/execution.html#caller-side">Caller Side</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/execution.html#futures-and-reductions">Futures and Reductions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/execution.html#mpi-tasks">MPI Tasks</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/execution.html#tracing">Tracing</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/kernels.html">On-node Parallelism</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/kernels.html#simple-parallel-loop">Simple Parallel Loop</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/kernels.html#advanced-ranges">Advanced Ranges</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/kernels.html#reductions-inside-kernels">Reductions Inside Kernels</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/kernels.html#further-executor-features">Further executor features</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/specializations.html">Specializations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/specializations.html#requirements">Requirements</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/specializations.html#index-spaces">Index Spaces</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/specializations.html#coloring">Coloring</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/specializations.html#interface">Interface</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/specializations.html#utilities">Utilities</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/utilities.html">Utilities</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/utilities.html#memory-view-utilities-span-mdspan-and-mdcolex">Memory View Utilities: span, mdspan, and mdcolex</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/utilities.html#renumbering">Renumbering</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/performance.html">Performance</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/performance.html#futures">Futures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/performance.html#tracing">Tracing</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/profiling.html">Profiling with Legion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/cmake.html">CMake for FleCSI client applications</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/cmake.html#flecsi-cmake-files">FleCSI CMake files</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/cmake.html#documentation">Documentation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/cmake.html#coverage-and-unit-testing">Coverage and Unit Testing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/cmake.html#code-formatting">Code Formatting</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/cmake.html#dependencies">Dependencies</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/cmake.html#other-files">Other files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user/data.html#multi-color-accessors">Multi-color accessors</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="user/topologies.html">Topologies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user/topologies.html#terminology">Terminology</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/topologies.html#index-spaces">Index Spaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/topologies.html#provided-topologies">Provided Topologies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/topologies.html#colorings">Colorings</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="src/api.html">API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="src/developer-guide.html">Developer Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/summary.html">Internal Summary</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/summary.html#components">Components</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#hierarchy">Hierarchy</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#compound-clients">Compound clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/execution.html">Execution Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user/execution.html#schedulers">Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/execution.html#tasks">Tasks</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="user/execution.html#callee-side">Callee Side</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user/execution.html#caller-side">Caller Side</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/summary.html#data">Data</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#task-separation">Task separation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#storage">Storage</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#layouts">Layouts</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#definition">Definition</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#access">Access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/execution.html#futures-and-reductions">Futures and Reductions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/execution.html#portable-tasks">Portable Tasks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/execution.html#mpi-tasks">MPI Tasks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/execution.html#tracing">Tracing</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/summary.html#execution">Execution</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#levels">Levels</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#task-launches">Task launches</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#explicit-parallelism">Explicit parallelism</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/parallel.html">On-node Parallelism</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user/parallel.html#parallel-loops">Parallel Loops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/parallel.html#further-executor-features">Further executor features</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/summary.html#topologies">Topologies</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#interfaces">Interfaces</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#subcomponents">Subcomponents</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/summary.html#predefined">Predefined</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/specializations.html">Specializations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user/specializations.html#requirements">Requirements</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="user/specializations.html#index-spaces">Index Spaces</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user/specializations.html#coloring">Coloring</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user/specializations.html#interface">Interface</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/summary.html#runtime-support">Runtime Support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/summary.html#utilities">Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/specializations.html#utilities">Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/backend.html">Backend Development</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/hpx-backend.html">HPX Backend</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/hpx-backend.html#overview">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/hpx-backend.html#run-module"><code class="docutils literal notranslate"><span class="pre">run</span></code> module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/hpx-backend.html#flecsi-run-context-t"><code class="docutils literal notranslate"><span class="pre">flecsi::run::context_t</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/hpx-backend.html#flecsi-task-local"><code class="docutils literal notranslate"><span class="pre">flecsi::task_local</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/utilities.html">Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user/utilities.html#multi-dimensional-arrays">Multi-dimensional arrays</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/utilities.html#renumbering">Renumbering</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/hpx-backend.html#exec-module"><code class="docutils literal notranslate"><span class="pre">exec</span></code> module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/hpx-backend.html#flecsi-exec-task-prologue-base"><code class="docutils literal notranslate"><span class="pre">flecsi::exec::task_prologue_base</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/hpx-backend.html#flecsi-exec-fold-wrap"><code class="docutils literal notranslate"><span class="pre">flecsi::exec::fold::wrap</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/hpx-backend.html#data-module"><code class="docutils literal notranslate"><span class="pre">data</span></code> module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/hpx-backend.html#flecsi-data-copy-engine"><code class="docutils literal notranslate"><span class="pre">flecsi::data::copy_engine</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/developer-guide/hpx-backend.html#flecsi-data-backend-storage"><code class="docutils literal notranslate"><span class="pre">flecsi::data::backend_storage</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/hpx-backend.html#managing-task-dependencies">Managing Task Dependencies</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/style-guide.html">Style Guide</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/style-guide.html#exceptions">Exceptions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/style-guide.html#additional-rules">Additional Rules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/style-guide.html#directory-structure">Directory Structure</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/style-guide.html#commits">Commits</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/versioning.html">Versioning</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/versioning.html#branch-types">Branch Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/versioning.html#flecsi-version-file-version-and-flecsi-version">FleCSI Version File (<code class="docutils literal notranslate"><span class="pre">.version</span></code>) and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/darwin-build.html">Building for Darwin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide/documentation.html">Documentation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/documentation.html#published">Published</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/documentation.html#doxygen">Doxygen</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/developer-guide/documentation.html#sphinx">Sphinx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/cmake.html">CMake for FleCSI client applications</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user/cmake.html#flecsi-cmake-files">FleCSI CMake files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="user/cmake.html#documentation">Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user/cmake.html#coverage-and-unit-testing">Coverage and Unit Testing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user/cmake.html#code-formatting">Code Formatting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user/cmake.html#dependencies">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user/cmake.html#other-files">Other files</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="src/team.html">Contributors</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="src/team.html#current">Current</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#ben-bergen">Ben Bergen</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#richard-berger">Richard Berger</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#jonathan-graham">Jonathan Graham</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#davis-herring">Davis Herring</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#christoph-junghans">Christoph Junghans</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#julien-loiseau">Julien Loiseau</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#maxim-moraru">Maxim Moraru</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#scott-pakin">Scott Pakin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/programming.html">Programming Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user/programming.html#data">Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/programming.html#parallelism">Parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/programming.html#mpi-tasks">MPI Tasks</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="src/team.html#alumni">Alumni</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#david-daniel">David Daniel</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#irina-demeshko">Irina Demeshko</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#charles-ferenbaugh">Charles Ferenbaugh</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#brendan-krueger">Brendan Krueger</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#sumathi-lakshmiranganatha">Sumathi Lakshmiranganatha</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#jonas-lippuner">Jonas Lippuner</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#li-ta-ollie-lo">Li-Ta (Ollie) Lo</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#nick-moss">Nick Moss</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#max-ortner">Max Ortner</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#navamita-ray">Navamita Ray</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#andrew-reisner">Andrew Reisner</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#karen-tsai">Karen Tsai</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#wei-wu">Wei Wu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/performance.html">Performance</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user/performance.html#profiling">Profiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/performance.html#futures">Futures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user/performance.html#tracing">Tracing</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/summary.html">Internal Summary</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="developer/summary.html#components">Components</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="developer/summary.html#hierarchy">Hierarchy</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="developer/summary.html#data">Data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="developer/summary.html#task-separation">Task separation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/summary.html#storage">Storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/summary.html#layouts">Layouts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/summary.html#definition">Definition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/summary.html#access">Access</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="developer/summary.html#execution">Execution</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="developer/summary.html#levels">Levels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/summary.html#task-launches">Task launches</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/summary.html#explicit-parallelism">Explicit parallelism</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="developer/summary.html#topologies">Topologies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="developer/summary.html#interfaces">Interfaces</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/summary.html#subcomponents">Subcomponents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/summary.html#predefined">Predefined</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="developer/summary.html#runtime-support">Runtime Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/summary.html#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="developer/backend.html">Backend Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/hpx-backend.html">HPX Backend</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="developer/hpx-backend.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/hpx-backend.html#run-module"><code class="docutils literal notranslate"><span class="pre">run</span></code> module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="developer/hpx-backend.html#flecsi-run-context-t"><code class="docutils literal notranslate"><span class="pre">flecsi::run::context_t</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/hpx-backend.html#flecsi-task-local"><code class="docutils literal notranslate"><span class="pre">flecsi::task_local</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="developer/hpx-backend.html#exec-module"><code class="docutils literal notranslate"><span class="pre">exec</span></code> module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="developer/hpx-backend.html#flecsi-exec-task-prolog-base"><code class="docutils literal notranslate"><span class="pre">flecsi::exec::task_prolog_base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/hpx-backend.html#flecsi-exec-fold-wrap"><code class="docutils literal notranslate"><span class="pre">flecsi::exec::fold::wrap</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="developer/hpx-backend.html#data-module"><code class="docutils literal notranslate"><span class="pre">data</span></code> module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="developer/hpx-backend.html#flecsi-data-copy-engine"><code class="docutils literal notranslate"><span class="pre">flecsi::data::copy_engine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/hpx-backend.html#flecsi-data-backend-storage"><code class="docutils literal notranslate"><span class="pre">flecsi::data::backend_storage</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="developer/hpx-backend.html#managing-task-dependencies">Managing Task Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="developer/style-guide.html">Style Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="developer/style-guide.html#exceptions">Exceptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/style-guide.html#additional-rules">Additional Rules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/style-guide.html#directory-structure">Directory Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/style-guide.html#commits">Commits</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="developer/versioning.html">Versioning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="developer/versioning.html#branch-types">Branch Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/versioning.html#flecsi-version-file-version-and-flecsi-version">FleCSI Version File (<code class="docutils literal notranslate"><span class="pre">.version</span></code>) and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="developer/darwin-build.html">Building for Darwin</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="developer/darwin-build.html#recreating-continuous-integration-ci-builds">Recreating continuous integration (CI) builds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/darwin-build.html#building-on-a-local-system">Building on a local system</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="developer/documentation.html">Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="developer/documentation.html#published">Published</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/documentation.html#doxygen">Doxygen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/documentation.html#sphinx">Sphinx</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="team.html#current">Current</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="team.html#ben-bergen">Ben Bergen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#richard-berger">Richard Berger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#jonathan-graham">Jonathan Graham</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#davis-herring">Davis Herring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#christoph-junghans">Christoph Junghans</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#julien-loiseau">Julien Loiseau</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#maxim-moraru">Maxim Moraru</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#scott-pakin">Scott Pakin</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="team.html#alumni">Alumni</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="team.html#david-daniel">David Daniel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#irina-demeshko">Irina Demeshko</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#charles-ferenbaugh">Charles Ferenbaugh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#brendan-krueger">Brendan Krueger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#sumathi-lakshmiranganatha">Sumathi Lakshmiranganatha</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#jonas-lippuner">Jonas Lippuner</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#li-ta-ollie-lo">Li-Ta (Ollie) Lo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#nick-moss">Nick Moss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#max-ortner">Max Ortner</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#navamita-ray">Navamita Ray</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#andrew-reisner">Andrew Reisner</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#karen-tsai">Karen Tsai</a></li>
+<li class="toctree-l3"><a class="reference internal" href="team.html#wei-wu">Wei Wu</a></li>
 </ul>
 </li>
 </ul>
@@ -470,7 +475,7 @@ structure representations.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="src/overview.html" class="btn btn-neutral float-right" title="Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="overview.html" class="btn btn-neutral float-right" title="Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

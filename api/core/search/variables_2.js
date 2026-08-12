@@ -5,6 +5,6 @@ var searchData=
   ['color_5fpeers_2',['color_peers',['../structflecsi_1_1topo_1_1unstructured__base_1_1coloring.html#aad75d8fdd0517e148386d1e91b7f6d73',1,'flecsi::topo::unstructured_base::coloring']]],
   ['colormap_3',['colormap',['../structflecsi_1_1topo_1_1narray__impl_1_1axis__definition.html#ac630b49fcafb075ec1d665b814711a31',1,'flecsi::topo::narray_impl::axis_definition']]],
   ['colors_4',['colors',['../structflecsi_1_1topo_1_1narray__impl_1_1axis.html#aa725a57f77829780aae4fb1e5b24ab7c',1,'flecsi::topo::narray_impl::axis::colors'],['../structflecsi_1_1topo_1_1unstructured__base_1_1coloring_1_1index__space.html#aa986b151ab15fb51d366309969110b57',1,'flecsi::topo::unstructured_base::coloring::index_space::colors'],['../structflecsi_1_1topo_1_1unstructured__base_1_1coloring.html#aa725a57f77829780aae4fb1e5b24ab7c',1,'flecsi::topo::unstructured_base::coloring::colors']]],
-  ['counts_5',['counts',['../structflecsi_1_1topo_1_1set__base_1_1coloring.html#a061d2852332f3eb9001600bd1ec007ca',1,'flecsi::topo::set_base::coloring']]],
+  ['counts_5',['counts',['../structflecsi_1_1topo_1_1set__base_1_1coloring.html#a904d94cd99274c8b8f7a3a5547e92c96',1,'flecsi::topo::set_base::coloring']]],
   ['create_5fplan_6',['create_plan',['../structflecsi_1_1topo_1_1narray__impl_1_1index__definition.html#a9489393c8b045b69e722e1587c6467ba',1,'flecsi::topo::narray_impl::index_definition']]]
 ];

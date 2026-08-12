@@ -1,6 +1,6 @@
 var group__kdtree =
 [
-    [ "BBox< DIM >", "classflecsi_1_1util_1_1BBox.html", [
+    [ "BBox&lt; DIM &gt;", "classflecsi_1_1util_1_1BBox.html", [
       [ "point_t", "classflecsi_1_1util_1_1BBox.html#a5a89553b65e62b306f22de0794b60374", null ],
       [ "size", "classflecsi_1_1util_1_1BBox.html#adf6a25e525000586fbcba3e91b944e26", null ],
       [ "center", "classflecsi_1_1util_1_1BBox.html#a87517816822e7a9e63254af57bcf4b73", null ],
@@ -9,7 +9,7 @@ var group__kdtree =
       [ "operator+=", "classflecsi_1_1util_1_1BBox.html#abe426292db483555b2067ab24b87d526", null ],
       [ "lower", "classflecsi_1_1util_1_1BBox.html#a68856a397ad0d82c87bcc6298c6e3ccf", null ]
     ] ],
-    [ "KDTree< DIM >", "structflecsi_1_1util_1_1KDTree.html", [
+    [ "KDTree&lt; DIM &gt;", "structflecsi_1_1util_1_1KDTree.html", [
       [ "boxes", "structflecsi_1_1util_1_1KDTree.html#a38f8ba2ed2db0ae64b36568684882be3", null ],
       [ "overlap", "structflecsi_1_1util_1_1KDTree.html#affebc0c61f612df925b2eb76152513f9", null ],
       [ "KDTree", "structflecsi_1_1util_1_1KDTree.html#a088f5a10c176c6e7d366cc58a8889d5a", null ],

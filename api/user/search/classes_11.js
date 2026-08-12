@@ -11,7 +11,10 @@ var searchData=
   ['topology_3c_20policy_2c_20ntree_5fbase_20_3e_8',['topology&lt; Policy, ntree_base &gt;',['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html',1,'flecsi::topo']]],
   ['topology_3c_20policy_2c_20unstructured_5fbase_20_3e_9',['topology&lt; Policy, unstructured_base &gt;',['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01unstructured__base_01_4.html',1,'flecsi::topo']]],
   ['topology_5faccessor_10',['topology_accessor',['../structflecsi_1_1data_1_1topology__accessor.html',1,'flecsi::data']]],
-  ['topology_5fslot_11',['topology_slot',['../structflecsi_1_1data_1_1topology__slot.html',1,'flecsi::data']]],
-  ['trace_12',['trace',['../structflecsi_1_1exec_1_1trace.html',1,'flecsi::exec']]],
-  ['traits_13',['traits',['../structflecsi_1_1util_1_1serial_1_1traits.html',1,'flecsi::util::serial']]]
+  ['topology_5faccessor_3c_20d_2c_20privilege_5fpack_3c_20priv_2e_2e_2e_20_3e_20_3e_11',['topology_accessor&lt; D, privilege_pack&lt; Priv... &gt; &gt;',['../structflecsi_1_1data_1_1topology__accessor.html',1,'flecsi::data']]],
+  ['topology_5faccessor_3c_20t_2c_20p_20_3e_12',['topology_accessor&lt; T, P &gt;',['../structflecsi_1_1data_1_1topology__accessor.html',1,'flecsi::data']]],
+  ['topology_5fslot_13',['topology_slot',['../structflecsi_1_1data_1_1topology__slot.html',1,'flecsi::data']]],
+  ['topology_5fslot_3c_20d_20_3e_14',['topology_slot&lt; D &gt;',['../structflecsi_1_1data_1_1topology__slot.html',1,'flecsi::data']]],
+  ['trace_15',['trace',['../structflecsi_1_1exec_1_1trace.html',1,'flecsi::exec']]],
+  ['traits_16',['traits',['../structflecsi_1_1util_1_1serial_1_1traits.html',1,'flecsi::util::serial']]]
 ];

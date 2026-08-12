@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Release Notes &mdash; FleCSI 2.4.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3dbc9e18" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="canonical" href="https://www.flecsi.org/news.html"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=de1351e5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Build &amp; Install" href="build.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/flecsi.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                Version: 2.4.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="overview.html">Overview</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="overview.html#documentation">Documentation</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Release Notes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-4-2-august-11-2026">Changes in v2.4.2 (August 11 2026)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-4-1-october-20-2025">Changes in v2.4.1 (October 20 2025)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-4-0-june-5-2025">Changes in v2.4.0 (June 5 2025)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-3-2-march-11-2025">Changes in v2.3.2 (March 11 2025)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-3-1-february-3-2025">Changes in v2.3.1 (February 3 2025)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-3-0-june-20-2024">Changes in v2.3.0 (June 20 2024)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-2-1-july-12-2023">Changes in v2.2.1 (July 12 2023)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-2-0-april-14-2023">Changes in v2.2.0 (April 14 2023)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-1-0-april-16-2021">Changes in v2.1.0 (April 16 2021)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-0-0-march-30-2021">Changes in v2.0.0 (March 30 2021)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#namespaces">Namespaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build &amp; Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FleCSI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="overview.html">Overview</a></li>
+      <li class="breadcrumb-item active">Release Notes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/news.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="release-notes">
+<h1>Release Notes<a class="headerlink" href="#release-notes" title="Link to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">flecsi::</span></code> qualification is omitted throughout.</p>
+<section id="changes-in-v2-4-2-august-11-2026">
+<h2>Changes in v2.4.2 (August 11 2026)<a class="headerlink" href="#changes-in-v2-4-2-august-11-2026" title="Link to this heading"></a></h2>
+<section id="deprecated">
+<h3>Deprecated<a class="headerlink" href="#deprecated" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Runtime</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">option_multi</span></code> for the optional <code class="docutils literal notranslate"><span class="pre">program_option</span></code> constructor — has never worked</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_TARGET</span></code> and <code class="docutils literal notranslate"><span class="pre">FLECSI_INLINE_TAGET</span></code> — use <code class="docutils literal notranslate"><span class="pre">KOKKOS_FUNCTION</span></code> and <code class="docutils literal notranslate"><span class="pre">KOKKOS_INLINE_FUNCTION</span></code> respectively</p></li>
+<li><p>SFINAE hook for <code class="docutils literal notranslate"><span class="pre">serial::traits</span></code> — use constraints</p></li>
+</ul>
+</li>
+<li><p>Logging</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">fixme</span></code> — use <code class="docutils literal notranslate"><span class="pre">flog(warn)</span></code></p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="fixed">
+<h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Runtime</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">action</span></code> objects cannot be moved (which never worked properly).</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p>Automatic resizing works properly when the lower threshold is zero.</p></li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::tuple</span></code> task parameters with elements that are references or <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> specializations are supported properly.</p></li>
+<li><p>Implicit conversions are applied to elements of <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> task arguments (as well as FleCSI-specific transformations for, say, field accessors).</p></li>
+<li><p>Top-level <em>cv</em>-qualifiers are ignored in task return types.</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p>Ragged ghost copies for <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> support ghost patterns that vary by index space.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_intervals</span></code> in the <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> <code class="docutils literal notranslate"><span class="pre">index_space</span></code> type is documented properly.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gcoord</span></code> and <code class="docutils literal notranslate"><span class="pre">colors</span></code> in <code class="docutils literal notranslate"><span class="pre">narray_base</span></code> are documented properly.</p></li>
+</ul>
+</li>
+<li><p>Legion backend</p>
+<ul>
+<li><p>MPI tasks with reference parameters support more argument conversions.
+(Part of this was a regression in 2.4.1.)</p></li>
+<li><p>CPU tasks properly make use of idle cores.</p></li>
+</ul>
+</li>
+<li><p>MPI backend</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">future&lt;void,</span> <span class="pre">exec::launch_type_t::index&gt;</span></code> task arguments are accepted.
+(For portability, note that only recent versions of Legion honor that sort of dependency.)</p></li>
+</ul>
+</li>
+<li><p>HPX backend</p>
+<ul>
+<li><p>The performance of reduction tasks and certain kinds of single tasks is significantly improved.</p></li>
+</ul>
+</li>
+<li><p>On-node parallelism</p>
+<ul>
+<li><p>Host-accessible values are copied on first use.</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">util::span</span></code> is a C++20 borrowed range.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Color</span></code> is documented properly.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="changes-in-v2-4-1-october-20-2025">
+<h2>Changes in v2.4.1 (October 20 2025)<a class="headerlink" href="#changes-in-v2-4-1-october-20-2025" title="Link to this heading"></a></h2>
+<section id="possible-incompatibilities">
+<h3>Possible incompatibilities<a class="headerlink" href="#possible-incompatibilities" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>MPI backend</p>
+<ul>
+<li><p>Fields are not zero-initialized.
+(This was never guaranteed, but in practice it changed in 2.4.0 without a release note.)</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id1">
+<h3>Deprecated<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Data</p>
+<ul>
+<li><p>That all-<code class="docutils literal notranslate"><span class="pre">wo</span></code> privileges always create new objects — set the desired state in the task.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id2">
+<h3>Fixed<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Data</p>
+<ul>
+<li><p>Vectors/tuples of ragged/sparse mutators work as task parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wo</span></code> privileges for only part of a field put those field elements in a valid but unspecified state (“moved from”); the previously documented behavior of default initialization was ever implemented only for whole fields.</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p>Writable <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> topology accessors with more than one privilege work.</p></li>
+</ul>
+</li>
+<li><p>MPI backend</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">reduction_accessor</span></code> works with GPU tasks.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="changes-in-v2-4-0-june-5-2025">
+<h2>Changes in v2.4.0 (June 5 2025)<a class="headerlink" href="#changes-in-v2-4-0-june-5-2025" title="Link to this heading"></a></h2>
+<section id="id3">
+<h3>Possible incompatibilities<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Build</p>
+<ul>
+<li><p>Kokkos is now a required build dependency.</p></li>
+<li><p>OpenMP support depends on Kokkos configuration.</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p>The automatic resizing for ragged fields no longer occurs after a manual update of the sizes.
+(This was changed without a release note in 2.3.2.)</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id4">
+<h3>Deprecated<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Build</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ENABLE_KOKKOS</span></code> — is ignored.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ENABLE_OPENMP</span></code> — is ignored.</p></li>
+</ul>
+</li>
+<li><p>Runtime</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">runtime::control</span></code> on a <code class="docutils literal notranslate"><span class="pre">const</span></code> object — use a non-<code class="docutils literal notranslate"><span class="pre">const</span></code> object</p></li>
+<li><p>existing <code class="docutils literal notranslate"><span class="pre">control::invoke</span></code> — provide a <code class="docutils literal notranslate"><span class="pre">scheduler</span></code></p></li>
+<li><p>initializing <code class="docutils literal notranslate"><span class="pre">run::call</span></code> with a nullary function — accept a <code class="docutils literal notranslate"><span class="pre">scheduler</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">process</span></code> and <code class="docutils literal notranslate"><span class="pre">processes</span></code> — use <code class="docutils literal notranslate"><span class="pre">runtime</span></code> versions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">color</span></code> and <code class="docutils literal notranslate"><span class="pre">colors</span></code> — use the <code class="docutils literal notranslate"><span class="pre">space_base</span></code> members</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">topology_slot</span></code> — use <code class="docutils literal notranslate"><span class="pre">topology</span></code> or (for movability) <code class="docutils literal notranslate"><span class="pre">ptr</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">partition_privilege_t</span></code> — use <code class="docutils literal notranslate"><span class="pre">privilege</span></code></p></li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">future&lt;R,</span> <span class="pre">index&gt;::get</span></code> — pass to a task or use <code class="docutils literal notranslate"><span class="pre">all</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make_partial</span></code> — use a lambda or <code class="docutils literal notranslate"><span class="pre">std::bind</span></code>, which can now be task arguments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">default_accelerator</span></code> — use <code class="docutils literal notranslate"><span class="pre">accelerator</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">idempotent</span></code> task attribute — has never had any effect</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">unstructured_base::coloring::index_space::entities</span></code> — omit from initialization</p></li>
+</ul>
+</li>
+<li><p>On-node parallelism</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">parallel_for</span></code>, <code class="docutils literal notranslate"><span class="pre">parallel_reduce</span></code> — use <code class="docutils literal notranslate"><span class="pre">accelerator</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">forall</span></code>, <code class="docutils literal notranslate"><span class="pre">reduceall</span></code> without an execution space — use <code class="docutils literal notranslate"><span class="pre">accelerator</span></code></p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p>nullary unit-test functions — accept a <code class="docutils literal notranslate"><span class="pre">scheduler</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">util::annotation::context::ann</span></code> — use <code class="docutils literal notranslate"><span class="pre">guard</span></code> or <code class="docutils literal notranslate"><span class="pre">rguard</span></code></p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="new-features">
+<h3>New features<a class="headerlink" href="#new-features" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Build</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_BACKEND</span></code> identifies the backend in use.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_ENABLE_FLOG</span></code> is defined as a macro if appropriate.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_CALIPER_DETAIL</span></code> reports the level of annotation detail.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_enable_mpi</span></code> no longer requires a second argument (to request the unavailable C++ bindings).</p></li>
+</ul>
+</li>
+<li><p>Runtime</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">control::invoke</span></code> accepts a <code class="docutils literal notranslate"><span class="pre">scheduler</span></code> (typically provided by <code class="docutils literal notranslate"><span class="pre">runtime::control</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">control_base::scheduler</span></code> provides access to the <code class="docutils literal notranslate"><span class="pre">scheduler</span></code> with which actions can launch tasks.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run::call</span></code> supports functions that accept a <code class="docutils literal notranslate"><span class="pre">scheduler</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">control::write_graph</span></code> and <code class="docutils literal notranslate"><span class="pre">control::write_actions</span></code> write Dot graphs of a control model.
+(This was added without a release note in 2.3.0.)</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">topology</span></code> is the type of topology instances; unlike <code class="docutils literal notranslate"><span class="pre">topology_slot</span></code>, it is immovable.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">specialization::topology</span></code> is a convenience alias for it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">specialization::ptr</span></code> is the appropriate <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code> type to hold a topology instance; like the deprecated <code class="docutils literal notranslate"><span class="pre">topology_slot</span></code>, it is movable and can defer initialization.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scheduler::allocate</span></code> fills in a <code class="docutils literal notranslate"><span class="pre">ptr</span></code> and calls <code class="docutils literal notranslate"><span class="pre">specialization::initialize</span></code> (which is not otherwise automatic) with the <code class="docutils literal notranslate"><span class="pre">scheduler</span></code> and new topology instance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get</span></code> and <code class="docutils literal notranslate"><span class="pre">operator-&gt;</span></code> in <code class="docutils literal notranslate"><span class="pre">topology_slot</span></code> access the <code class="docutils literal notranslate"><span class="pre">topology</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Mutators support tracing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">privilege</span></code> is the new name of <code class="docutils literal notranslate"><span class="pre">partition_privilege_t</span></code>.</p></li>
+<li><p>Launch map rvalues can be used to create field references.</p></li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p>Task parameters can be of a broader set of types; in particular, they need not be serializable.</p></li>
+<li><p>A task parameter can be a <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> of a FleCSI type such as a field accessor or a <code class="docutils literal notranslate"><span class="pre">std::tuple</span></code> that includes such a type (recursively).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exec::cpu</span></code>, <code class="docutils literal notranslate"><span class="pre">exec::gpu</span></code>, and <code class="docutils literal notranslate"><span class="pre">exec::omp</span></code> are task parameter types that provide task-launch information and access to a Kokkos execution <code class="docutils literal notranslate"><span class="pre">space</span></code>.
+<code class="docutils literal notranslate"><span class="pre">exec::accelerator</span></code> is the one of these preferred for parallel kernels.
+<code class="docutils literal notranslate"><span class="pre">exec::on</span></code> is a token argument to pass for them.</p>
+<ul>
+<li><p>Kokkos executors can have a number of <code class="docutils literal notranslate"><span class="pre">threads</span></code> specified to optimize GPU execution.</p></li>
+</ul>
+</li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">scheduler</span></code> launches tasks without attributes by reference to execution-space (template) parameters.</p></li>
+<li><p>Index futures provide <code class="docutils literal notranslate"><span class="pre">all</span></code> to get all results.</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">narray</span></code> specializations need not define <code class="docutils literal notranslate"><span class="pre">dimension</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unstructured_base::peer_entities</span></code> is a new type alias for convenience.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unstructured_base::coloring::index_space</span></code> can be initialized without <code class="docutils literal notranslate"><span class="pre">entities</span></code>, which is unused.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user</span></code> is a simple topology category without ghosts.
+(This was added without a release note in 2.2.0.)</p></li>
+</ul>
+</li>
+<li><p>HPX backend</p>
+<ul>
+<li><p>FleCSI now supports HPX as a runtime backend.
+However, GPU tasks are not supported with current versions of HPX.</p></li>
+</ul>
+</li>
+<li><p>On-node parallelism</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">forall</span></code> and <code class="docutils literal notranslate"><span class="pre">reduceall</span></code> may be used without a name.</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">mdspan</span></code> and <code class="docutils literal notranslate"><span class="pre">mdcolex</span></code> provide <code class="docutils literal notranslate"><span class="pre">element_type</span></code> and <code class="docutils literal notranslate"><span class="pre">value_type</span></code> type aliases.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UNIT</span></code> can be used in GPU kernels, with restrictions.</p></li>
+<li><p>Unit-test functions may accept a <code class="docutils literal notranslate"><span class="pre">scheduler</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id5">
+<h3>Fixed<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Data</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">field&lt;bool,</span> <span class="pre">data::ragged&gt;::mutator</span></code> works.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">particle</span></code> layout works on the <code class="docutils literal notranslate"><span class="pre">global</span></code> topology.</p></li>
+</ul>
+</li>
+<li><p>Legion backend</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::vector&lt;bool&gt;</span></code> can be used as a task parameter.</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p>MPI collective helpers make use of MPI-4 large count support when available.
+Overflows due to MPI-3 restrictions are trapped.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mpi::all_gatherv</span></code> works with <code class="docutils literal notranslate"><span class="pre">bool</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="changes-in-v2-3-2-march-11-2025">
+<h2>Changes in v2.3.2 (March 11 2025)<a class="headerlink" href="#changes-in-v2-3-2-march-11-2025" title="Link to this heading"></a></h2>
+<section id="id6">
+<h3>Deprecated<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Build</p>
+<ul>
+<li><p>Removed ParMETIS dependency. CMake support files will be removed.</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p>That <code class="docutils literal notranslate"><span class="pre">data.hh</span></code> includes <code class="docutils literal notranslate"><span class="pre">topology.hh</span></code> — include it directly (this was deprecated without a release note in 2.3.0)</p></li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p>That <code class="docutils literal notranslate"><span class="pre">execution.hh</span></code> includes <code class="docutils literal notranslate"><span class="pre">runtime.hh</span></code> — include it directly</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id7">
+<h3>Fixed<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>MPI backend</p>
+<ul>
+<li><p>Move-assignment of <code class="docutils literal notranslate"><span class="pre">topology_slot</span></code> works.</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p>CTAD for <code class="docutils literal notranslate"><span class="pre">mdcolex</span></code> works with any integer type.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">utilities.hh</span></code> works with Flog disabled.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="changes-in-v2-3-1-february-3-2025">
+<h2>Changes in v2.3.1 (February 3 2025)<a class="headerlink" href="#changes-in-v2-3-1-february-3-2025" title="Link to this heading"></a></h2>
+<section id="id8">
+<h3>Possible incompatibilities<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Legion backend</p>
+<ul>
+<li><p>The error of destroying a topology after <code class="docutils literal notranslate"><span class="pre">runtime::control</span></code> returns (perhaps when <code class="docutils literal notranslate"><span class="pre">main</span></code> returns) is more likely to produce a crash.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id9">
+<h3>Deprecated<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Runtime</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">threads</span></code> and <code class="docutils literal notranslate"><span class="pre">threads_per_process</span></code> — thread-based parallelism must be configured outside the process</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">EXPECT_STRCASEEQ</span></code>, <code class="docutils literal notranslate"><span class="pre">EXPECT_STRCASENE</span></code>, <code class="docutils literal notranslate"><span class="pre">ASSERT_STRCASEEQ</span></code>, and <code class="docutils literal notranslate"><span class="pre">ASSERT_STRCASENE</span></code> — use <code class="docutils literal notranslate"><span class="pre">*_STREQ</span></code> or <code class="docutils literal notranslate"><span class="pre">*_STRNE</span></code> for
+case-sensitive comparison, or write a case-insensitive comparison function and use <code class="docutils literal notranslate"><span class="pre">*_TRUE</span></code>
+or <code class="docutils literal notranslate"><span class="pre">*_FALSE</span></code> to check its output.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id10">
+<h3>Fixed<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Data</p>
+<ul>
+<li><p>Write-only multi-color <code class="docutils literal notranslate"><span class="pre">particle</span></code> accessors/mutators support non-trivial destructors.</p></li>
+<li><p>Data synchronization now utilizes the correct memory space and logic for openmp.</p></li>
+</ul>
+</li>
+<li><p>Legion backend</p>
+<ul>
+<li><p>The speed of ghost copies has been significantly improved (without losing the decreased memory usage).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ragged</span></code> or <code class="docutils literal notranslate"><span class="pre">sparse</span></code> fields do not generate spurious warnings about using uninitialized data.</p></li>
+<li><p>Tasks with a single parameter whose type is a specialization of <code class="docutils literal notranslate"><span class="pre">std::tuple</span></code> work.</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p>Arithmetic on <code class="docutils literal notranslate"><span class="pre">topo::id</span></code> objects checks types reliably.</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">dimensioned_array</span></code> construction works reliably in constant expressions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">serial::get_tuple&lt;std::tuple&lt;...&gt;&gt;</span></code> works (and produces a singleton tuple).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UNIT_CAPTURE</span></code> works properly in non-MPI tasks.</p></li>
+</ul>
+</li>
+<li><p>Topology</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ntree</span></code> initializes properly with a number of colors different from the number of processes.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="changes-in-v2-3-0-june-20-2024">
+<h2>Changes in v2.3.0 (June 20 2024)<a class="headerlink" href="#changes-in-v2-3-0-june-20-2024" title="Link to this heading"></a></h2>
+<section id="id11">
+<h3>Possible incompatibilities<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Topologies</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">narray</span></code> auxiliaries between two colors are owned by the upper color.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id12">
+<h3>Deprecated<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Build</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ENABLE_DOXYGEN_WARN</span></code> — ignored since 2.2.0</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLOG_ENABLE_COLOR_OUTPUT</span></code>, <code class="docutils literal notranslate"><span class="pre">FLOG_SERIALIZATION_INTERVAL</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">FLOG_STRIP_LEVEL</span></code> — use <code class="docutils literal notranslate"><span class="pre">flog::config</span></code></p></li>
+</ul>
+</li>
+<li><p>Runtime</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">initialize</span></code>, <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">finalize</span></code>, <code class="docutils literal notranslate"><span class="pre">run::status</span></code>, and <code class="docutils literal notranslate"><span class="pre">control::check_status</span></code> — use <code class="docutils literal notranslate"><span class="pre">runtime</span></code> and, optionally, <code class="docutils literal notranslate"><span class="pre">getopt</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">program</span></code> — use <code class="docutils literal notranslate"><span class="pre">argv</span></code> directly</p></li>
+<li><p>Use of a control policy’s <code class="docutils literal notranslate"><span class="pre">node_policy</span></code> type — remove it</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">control::execute</span></code> — use <code class="docutils literal notranslate"><span class="pre">control::invoke</span></code> or <code class="docutils literal notranslate"><span class="pre">runtime::control</span></code> with <code class="docutils literal notranslate"><span class="pre">run::control_base</span></code> and not <code class="docutils literal notranslate"><span class="pre">node_policy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">option_value</span></code> and needing one in a <code class="docutils literal notranslate"><span class="pre">program_option</span></code> validation function — accept the option type instead</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi/run/control.hh</span></code> — use <code class="docutils literal notranslate"><span class="pre">flecsi/runtime.hh</span></code></p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">coloring_slot</span></code> — use <code class="docutils literal notranslate"><span class="pre">specialization::mpi_coloring</span></code></p></li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p>Constructing a <code class="docutils literal notranslate"><span class="pre">trace</span></code> with an id — use the default constructor</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">specialization::cslot</span></code> — use <code class="docutils literal notranslate"><span class="pre">mpi_coloring</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi/topo/narray/interface.hh</span></code> — use <code class="docutils literal notranslate"><span class="pre">flecsi/topology.hh</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">narray_impl::index_definition::create_plan</span></code> — always ignored</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">narray_base::domain</span></code> and <code class="docutils literal notranslate"><span class="pre">is_low</span></code>, <code class="docutils literal notranslate"><span class="pre">is_high</span></code>, <code class="docutils literal notranslate"><span class="pre">is_interior</span></code>, <code class="docutils literal notranslate"><span class="pre">is_degenerate</span></code>, <code class="docutils literal notranslate"><span class="pre">global_id</span></code>, <code class="docutils literal notranslate"><span class="pre">size</span></code>, <code class="docutils literal notranslate"><span class="pre">range</span></code>, and <code class="docutils literal notranslate"><span class="pre">offset</span></code> in <code class="docutils literal notranslate"><span class="pre">narray::access</span></code> — use <code class="docutils literal notranslate"><span class="pre">axis</span></code></p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">util::dag</span></code>, <code class="docutils literal notranslate"><span class="pre">util::reorder</span></code>, <code class="docutils literal notranslate"><span class="pre">util::reorder_destructive</span></code>, <code class="docutils literal notranslate"><span class="pre">util::intersects</span></code>, <code class="docutils literal notranslate"><span class="pre">util::set_intersection</span></code>, <code class="docutils literal notranslate"><span class="pre">util::set_union</span></code>, <code class="docutils literal notranslate"><span class="pre">util::set_difference</span></code> — superfluous</p></li>
+<li><p>Passing binary functors to <code class="docutils literal notranslate"><span class="pre">mpi::one_to_allv</span></code>, <code class="docutils literal notranslate"><span class="pre">mpi::one_to_alli</span></code>, and <code class="docutils literal notranslate"><span class="pre">mpi::all_to_allv</span></code> — remove second parameter or use ranges</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi/util/annotation.hh</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi/util/array_ref.hh</span></code>,
+<code class="docutils literal notranslate"><span class="pre">flecsi/util/color_map.hh</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi/util/common.hh</span></code>,
+<code class="docutils literal notranslate"><span class="pre">flecsi/util/dag.hh</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi/util/demangle.hh</span></code>,
+<code class="docutils literal notranslate"><span class="pre">flecsi/util/dimensioned_array.hh</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi/util/mpi.hh</span></code>,
+<code class="docutils literal notranslate"><span class="pre">flecsi/util/reorder.hh</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi/util/serialize.hh</span></code>,
+<code class="docutils literal notranslate"><span class="pre">flecsi/util/set_intersection.hh</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi/util/set_utils.hh</span></code>,
+<code class="docutils literal notranslate"><span class="pre">flecsi/util/unit.hh</span></code> — use <code class="docutils literal notranslate"><span class="pre">flecsi/utilities.hh</span></code></p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id13">
+<h3>New features<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Build</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi/config.hh</span></code> provides information about the build of FleCSI in use.</p></li>
+<li><p>A <a class="reference internal" href="user/cmake.html"><span class="doc">CMake utility library</span></a> is provided.  (This was added without a release note in 2.2.0.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_add_target_test</span></code> is a CMake function to define tests using existing targets.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code> can use a launcher command to wrap the test execution.</p></li>
+</ul>
+</li>
+<li><p>Runtime</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">runtime.hh</span></code> provides access specifically to the runtime model.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">runtime</span></code> represents FleCSI initialization as an object.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">getopt</span></code> parses user-defined command-line options.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run::dependencies_guard</span></code> allows for application control over initialization of FleCSI dependencies.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">control::invoke</span></code> executes a control model with a policy object constructed from arguments provided.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run::call</span></code> is a trivial predefined control model.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">program_option</span></code> validation functions can accept the option value directly.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">task_names</span></code> returns a mapping of shortened registered FleCSI task names to their full signature.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">initialize</span></code> accepts <code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">char</span> <span class="pre">*</span> <span class="pre">const</span> <span class="pre">*</span></code> for better compatibility.</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">topology_slot</span></code> is now movable; empty slots may be detected with <code class="docutils literal notranslate"><span class="pre">topology_slot::is_allocated</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">test</span></code> convenience function launches unit test tasks.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trace</span></code> objects can be move-assigned.</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">specialization::mpi_coloring</span></code> creates a coloring eagerly.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">topo::make_ids&lt;S&gt;(r)</span></code> is a convenience function to convert a range <code class="docutils literal notranslate"><span class="pre">r</span></code> of ordinary integers into a range of <code class="docutils literal notranslate"><span class="pre">id&lt;S&gt;</span></code> objects.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unstructured_base::bounding_box</span></code> computes the axis-aligned bounding box of a mesh.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unstructured::special_field</span></code> is the field definition for special-entity lists.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unstructured::get_special_entities</span></code> allows access to individual special-entity lists.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">narray_base::distribute</span></code> and <code class="docutils literal notranslate"><span class="pre">narray_base::make_axes</span></code> help construct <code class="docutils literal notranslate"><span class="pre">coloring</span></code> objects.</p></li>
+<li><p>The names <code class="docutils literal notranslate"><span class="pre">axis_definition</span></code> and <code class="docutils literal notranslate"><span class="pre">index_definition</span></code> are available in <code class="docutils literal notranslate"><span class="pre">narray_base</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">axis</span></code>, <code class="docutils literal notranslate"><span class="pre">axis_color</span></code>, <code class="docutils literal notranslate"><span class="pre">axis_layout</span></code>, and <code class="docutils literal notranslate"><span class="pre">axis_info</span></code> in <code class="docutils literal notranslate"><span class="pre">narray_base</span></code> describe axes in topology accessors.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ntree</span></code> is a topology that tracks interacting particles. It only supports Legion as a backend and does not support ragged or sparse fields.</p></li>
+</ul>
+</li>
+<li><p>Legion backend</p>
+<ul>
+<li><p>Task names are now shortened for better usability in Legion profiling tools.</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">transform</span></code> applies a transformation functor to a range.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">partition_point</span></code> and <code class="docutils literal notranslate"><span class="pre">binary_index</span></code> find values in sorted ranges.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">permutation_view</span></code> accesses a subset of a range.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mpi::one_to_allv</span></code>, <code class="docutils literal notranslate"><span class="pre">mpi::one_to_alli</span></code>, and <code class="docutils literal notranslate"><span class="pre">mpi::all_to_allv</span></code> additionally accept ranges and unary functors.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">KDTree</span></code> efficiently finds intersections between shapes.</p></li>
+<li><p>Values may be included in expectation/assertion failure messages.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_DEVICE_CODE</span></code> is a macro defined during the device compilation for either CUDA or HIP.</p></li>
+</ul>
+</li>
+<li><p>Logging</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flog::config</span></code> is the collection of Flog options that can be changed at runtime.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flog::tags</span></code> returns the names of all defined tags.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id14">
+<h3>Fixed<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Build</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_add_sphinx_target</span></code> doesn’t use <code class="docutils literal notranslate"><span class="pre">-n</span></code> (which can break for references into other libraries).</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p>The size of one color of an index space can exceed <span class="math notranslate nohighlight">\(2^{32}\)</span> (if FLECSI_ID_TYPE is configured approprately).</p></li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p>Tasks may be declared <code class="docutils literal notranslate"><span class="pre">noexcept</span></code>.
+(This was fixed but not documented in 2.2.1.)</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">narray</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">index_definition::diagonals</span></code> being <code class="docutils literal notranslate"><span class="pre">false</span></code> works.
+(This was fixed but not documented in 2.2.1.)</p></li>
+<li><p>Periodic axes require equal boundary and halo depths (differing values never worked reliably).</p></li>
+<li><p>Auxiliary axes support <code class="docutils literal notranslate"><span class="pre">full_ghosts</span></code> and <code class="docutils literal notranslate"><span class="pre">periodic</span></code> properly.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unstructured</span></code> supports <code class="docutils literal notranslate"><span class="pre">num_intervals</span></code> of 0.</p></li>
+</ul>
+</li>
+<li><p>Legion backend</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">omp</span></code> tasks now work in builds with GPU support.</p></li>
+<li><p>MPI tasks properly wait on previously launched tasks.</p></li>
+<li><p>Memory usage for implementing ghost copies has been significantly reduced.</p></li>
+<li><p>Processes with multiple CPUs schedule tasks more efficiently.</p></li>
+<li><p>Launches of zero point tasks succeed (vacuously).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">--Xbackend</span> <span class="pre">-dm:memoize</span></code> option is no longer required to enable tracing.</p></li>
+</ul>
+</li>
+<li><p>On-node parallelism</p>
+<ul>
+<li><p>Custom reductions and reduced types work with Kokkos.</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">one_to_alli</span></code> no longer triggers a race condition.</p></li>
+</ul>
+</li>
+<li><p>Logging</p>
+<ul>
+<li><p>Special options like <code class="docutils literal notranslate"><span class="pre">--control-model</span></code> and <code class="docutils literal notranslate"><span class="pre">--help</span></code> work reliably.
+(This was documented but not actually implemented in 2.2.1.)</p></li>
+<li><p>Flog messages are now variable size and are no longer truncated.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="changes-in-v2-2-1-july-12-2023">
+<h2>Changes in v2.2.1 (July 12 2023)<a class="headerlink" href="#changes-in-v2-2-1-july-12-2023" title="Link to this heading"></a></h2>
+<section id="id15">
+<h3>Fixed<a class="headerlink" href="#id15" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Runtime</p>
+<ul>
+<li><p>Control policy objects are value-initialized by <code class="docutils literal notranslate"><span class="pre">run::control::execute</span></code>.</p></li>
+<li><p>Unrecognized options are properly rejected along with unrecognized positional arguments.</p></li>
+<li><p>The same exit status is used for all erroneous command lines.</p></li>
+<li><p>Control-model graphs are labeled with the program name.</p></li>
+<li><p>Control model output strips parameters, return values, wrappers, and common
+namespaces from actions for better readability.</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ragged</span></code> accessors with <code class="docutils literal notranslate"><span class="pre">wo</span></code> privileges work for GPU tasks. (The field type must still be trivially default-constructible.)</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">transform_view</span></code> supports pointers to members (though not during constant evaluation).</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="changes-in-v2-2-0-april-14-2023">
+<h2>Changes in v2.2.0 (April 14 2023)<a class="headerlink" href="#changes-in-v2-2-0-april-14-2023" title="Link to this heading"></a></h2>
+<section id="id16">
+<h3>Possible incompatibilities<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Build</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_RUNTIME_MODEL</span></code> is renamed to <code class="docutils literal notranslate"><span class="pre">FLECSI_BACKEND</span></code> (it never referred to <a class="reference internal" href="tutorial/runtime.html"><span class="doc">Runtime Model</span></a>).</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">util::mdspan::operator()</span></code> is removed (it had an inconsistent argument order).</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id17">
+<h3>Deprecated<a class="headerlink" href="#id17" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Runtime</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">control::state</span></code> — derive the control policy type from <code class="docutils literal notranslate"><span class="pre">control_base</span></code> and define actions accepting a reference to it</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run::control_point</span></code> — use <code class="docutils literal notranslate"><span class="pre">control_base::point</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run::cycle</span></code> — use <code class="docutils literal notranslate"><span class="pre">control_base::cycle</span></code></p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">global_topology</span></code> and <code class="docutils literal notranslate"><span class="pre">process_topology</span></code> — create instances of <code class="docutils literal notranslate"><span class="pre">topo::global</span></code> and <code class="docutils literal notranslate"><span class="pre">topo::index</span></code> as needed</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p>in <code class="docutils literal notranslate"><span class="pre">util::annotation</span></code>, <code class="docutils literal notranslate"><span class="pre">begin</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> — use <code class="docutils literal notranslate"><span class="pre">guard</span></code> or <code class="docutils literal notranslate"><span class="pre">rguard</span></code></p></li>
+</ul>
+</li>
+<li><p>Logging</p>
+<ul>
+<li><p>The namespace <code class="docutils literal notranslate"><span class="pre">flecsi::log</span></code> — use <code class="docutils literal notranslate"><span class="pre">flecsi::flog</span></code> instead</p></li>
+<li><p>The CMAKE option <code class="docutils literal notranslate"><span class="pre">FLOG_SERIALIZATION_THRESHOLD</span></code> is not used anymore</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id18">
+<h3>New features<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Build</p>
+<ul>
+<li><p>The HIP compiler is supported.</p></li>
+</ul>
+</li>
+<li><p>Runtime</p>
+<ul>
+<li><p>Control policies may inherit from <code class="docutils literal notranslate"><span class="pre">control_base</span></code> to be provided to actions, to allow those actions to throw <code class="docutils literal notranslate"><span class="pre">control_base::exception</span></code>, and to limit their lifetime to that of <code class="docutils literal notranslate"><span class="pre">control::execute</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">control_base::meta</span></code> defines special control points for a specialization’s use via <code class="docutils literal notranslate"><span class="pre">control::meta</span></code>.</p></li>
+<li><p>New option <code class="docutils literal notranslate"><span class="pre">--Xbackend</span></code> to pass single backend arguments. Can be used multiple times.</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">field_reference::get_elements</span></code> and associated types allow control of the storage for elements of ragged/sparse fields.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">launch::mapping</span></code> allows field data to be accessed from other colors (using <code class="docutils literal notranslate"><span class="pre">multi</span></code> task parameters) with the Legion backend.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">topology_slot::colors</span></code> reports on the number of colors for an allocated topology.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reduction_accessor</span></code> allows <code class="docutils literal notranslate"><span class="pre">dense</span></code> fields on a <code class="docutils literal notranslate"><span class="pre">global</span></code> topology to be updated collectively.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">particle</span></code> layout supports efficient creation and destruction of unordered field elements.</p></li>
+<li><p>Field definitions are copyable and may be destroyed after use.</p></li>
+<li><p>Fields may be of non-portable types so long as they are used only by MPI tasks.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">single</span></code> accessors support <code class="docutils literal notranslate"><span class="pre">-&gt;</span></code> to access the members of a field value of class type.</p></li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p>Tasks may be executed as <code class="docutils literal notranslate"><span class="pre">omp</span></code>, allowing efficient use of OpenMP.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exec::trace</span></code> improves performance of loops when used with the Legion backend.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">task_local</span></code> objects define global variables with task-local values.</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">unstructured</span></code> represents unstructured meshes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">narray</span></code> represents hyperrectangular arrays, including structured meshes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">global</span></code> topology instances may be created with sizes other than 1.
+(All elements are shared together among all point tasks in an index launch.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">util::id</span></code> and <code class="docutils literal notranslate"><span class="pre">util::gid</span></code> store topology-entity IDs.</p></li>
+</ul>
+</li>
+<li><p>MPI backend</p>
+<ul>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">toc</span></code> processor type is supported.</p></li>
+</ul>
+</li>
+<li><p>On-node parallelism</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">exec::parallel_for</span></code>, <code class="docutils literal notranslate"><span class="pre">forall</span></code>, <code class="docutils literal notranslate"><span class="pre">exec::parallel_reduce</span></code>, and <code class="docutils literal notranslate"><span class="pre">reduceall</span></code> may be used without Kokkos enabled, in which case they run serially.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exec::mdiota_view</span></code> provides support for multi dimensional ranges, with <code class="docutils literal notranslate"><span class="pre">exec::full_range</span></code>, <code class="docutils literal notranslate"><span class="pre">exec::prefix_range</span></code> and <code class="docutils literal notranslate"><span class="pre">exec::sub_range</span></code> options.</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">unit.hh</span></code> provides macros, based on Google Test, for writing unit tests in or outside of tasks.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">serial</span></code> provides a general-purpose serialization interface.
+It may be extended to allow additional types to be used as task parameters or with MPI communication.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mdcolex</span></code> accesses a multi-dimensional array using Fortran-like syntax.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mpi::one_to_alli</span></code> scatters generated and/or serialized data with bounded memory usage.</p></li>
+<li><p>MPI communication functions compute values to send in rank order and support mutable functors.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">substring_view</span></code> represents part of another range.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">equal_map</span></code> and <code class="docutils literal notranslate"><span class="pre">offsets</span></code> represent partitions of integer ranges.</p></li>
+</ul>
+</li>
+<li><p>Logging</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flog_fatal</span></code> suppresses backtraces (already unavailable if <code class="docutils literal notranslate"><span class="pre">NDEBUG</span></code> is defined) unless <code class="docutils literal notranslate"><span class="pre">FLECSI_BACKTRACE</span></code> is set in the environment.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flog</span></code> is a new name that avoids collisions with <code class="docutils literal notranslate"><span class="pre">::log</span></code> in code lacking proper namespace qualifications.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id19">
+<h3>Fixed<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Build</p>
+<ul>
+<li><p>HDF5 is supported by the CMake configuration.</p></li>
+<li><p>Caliper is supported by the MPI backend.</p></li>
+<li><p>Building with the MPI backend properly links to the threading library.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code> define to record version</p></li>
+</ul>
+</li>
+<li><p>Runtime</p>
+<ul>
+<li><p>Certain control-flow graphs compile with Graphviz support and are drawn correctly.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--backend-args</span></code> can be specified multiple times. The collected arguments are passed to the backend.</p></li>
+<li><p>MPI and Kokkos are initialized with no arguments (so that they cannot misinterpret arguments not meant for them).</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p>Mutators support write-only privileges (which, as with accessors, are necessary to properly initialize fields).</p></li>
+<li><p>Mutators work on fields over zero index points.</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p>Topology accessors that provide metadata for direct access in a <code class="docutils literal notranslate"><span class="pre">toc</span></code> task work properly when writable (although without such direct access in that case).</p></li>
+</ul>
+</li>
+<li><p>Legion backend</p>
+<ul>
+<li><p>Certain user-level fields are allocated properly.</p></li>
+<li><p>MPI tasks with reference parameters support argument conversions correctly.</p></li>
+<li><p>Errors at process termination in certain configurations are avoided.</p></li>
+<li><p>Accessors with both <code class="docutils literal notranslate"><span class="pre">wo</span></code> and <code class="docutils literal notranslate"><span class="pre">na</span></code> privileges are processed correctly.</p></li>
+</ul>
+</li>
+<li><p>MPI backend</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">exec::fold::min</span></code> and <code class="docutils literal notranslate"><span class="pre">exec::fold::max</span></code> work with <code class="docutils literal notranslate"><span class="pre">bool</span></code> (but may be slower than using another type like <code class="docutils literal notranslate"><span class="pre">int</span></code>).</p></li>
+<li><p>Index futures work properly when declared <code class="docutils literal notranslate"><span class="pre">const</span></code>.</p></li>
+<li><p>Index futures work with <code class="docutils literal notranslate"><span class="pre">bool</span></code> return type.</p></li>
+</ul>
+</li>
+<li><p>On-node parallelism</p>
+<ul>
+<li><p>More accessor and topology accessor functions are available on a device.</p></li>
+<li><p>Several uses of “iterator” in documentation have been corrected to use “range”.</p></li>
+</ul>
+</li>
+<li><p>Logging</p>
+<ul>
+<li><p>Tags work correctly in tasks executed in parallel.</p></li>
+<li><p>Messages are sorted by timestamp correctly.</p></li>
+<li><p>Exiting the process before <code class="docutils literal notranslate"><span class="pre">flecsi::finalize</span></code> does not crash.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="changes-in-v2-1-0-april-16-2021">
+<h2>Changes in v2.1.0 (April 16 2021)<a class="headerlink" href="#changes-in-v2-1-0-april-16-2021" title="Link to this heading"></a></h2>
+<section id="id20">
+<h3>New features<a class="headerlink" href="#id20" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Topologies</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">topo::help</span></code> is a convenient base class for specialization class templates that defines the non-dependent names in <code class="docutils literal notranslate"><span class="pre">specialization</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="changes-in-v2-0-0-march-30-2021">
+<h2>Changes in v2.0.0 (March 30 2021)<a class="headerlink" href="#changes-in-v2-0-0-march-30-2021" title="Link to this heading"></a></h2>
+<p>The changes between versions 1 and 2 are extensive and so are merely summarized here.
+The broadest change is that macros are used only for on-node parallelism constructs and for logging.
+Some macro arguments become template arguments.</p>
+<section id="removed">
+<h3>Removed<a class="headerlink" href="#removed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Data</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_get_client_handle</span></code> — use the topology slot directly</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_get_handles</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_get_handles_all</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_is_at</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_has_attribute_at</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_has_attribute</span></code> — will be provided differently by <code class="docutils literal notranslate"><span class="pre">io</span></code></p></li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_task</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_register_task_simple</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_register_mpi_task</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_register_mpi_task_simple</span></code> — unneeded</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">specialization_tlt_init</span></code>, <code class="docutils literal notranslate"><span class="pre">specialization_spmd_init</span></code>, <code class="docutils literal notranslate"><span class="pre">execution::driver</span></code> — the application provides <code class="docutils literal notranslate"><span class="pre">main</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_execute_task_simple</span></code> — namespaces require no special treatment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_program</span></code> — unneeded</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_global_object</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_set_global_object</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_initialize_global_object</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_get_global_object</span></code> — use non-local variables directly, with the same restrictions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_reduction_operation</span></code> — unneeded</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p>Topology element <code class="docutils literal notranslate"><span class="pre">id()</span></code> — iteration produces indices</p></li>
+<li><p>Unstructured mesh — will be reimplemented</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="other-incompatibilities">
+<h3>Other incompatibilities<a class="headerlink" href="#other-incompatibilities" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Data</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_data_client</span></code> — now topology slots</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_field</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_register_global</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_register_color</span></code> — now <code class="docutils literal notranslate"><span class="pre">field::definition</span></code>, or a container of same to implement multiple versions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_get_handle</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_get_global</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_get_color</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_get_mutator</span></code> — now <code class="docutils literal notranslate"><span class="pre">definition::operator()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data_client_handle_u&lt;T,P&gt;</span></code> — now <code class="docutils literal notranslate"><span class="pre">T::accessor&lt;P&gt;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dense_accessor</span></code>, <code class="docutils literal notranslate"><span class="pre">ragged_accessor</span></code>, <code class="docutils literal notranslate"><span class="pre">ragged_mutator</span></code>, <code class="docutils literal notranslate"><span class="pre">sparse_accessor</span></code>, <code class="docutils literal notranslate"><span class="pre">sparse_mutator</span></code> — now <code class="docutils literal notranslate"><span class="pre">definition::accessor</span></code> or <code class="docutils literal notranslate"><span class="pre">definition::mutator</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ragged</span></code> fields have a <code class="docutils literal notranslate"><span class="pre">std::vector</span></code>-like interface at each index point</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sparse</span></code> fields have a <code class="docutils literal notranslate"><span class="pre">std::map</span></code>-like interface at each index point</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_execute_task</span></code> — now <code class="docutils literal notranslate"><span class="pre">execute</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_execute_mpi_task</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_execute_mpi_task_simple</span></code> — pass <code class="docutils literal notranslate"><span class="pre">mpi</span></code> to <code class="docutils literal notranslate"><span class="pre">execute</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_execute_reduction_task</span></code> — now <code class="docutils literal notranslate"><span class="pre">reduce</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_color</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_colors</span></code> — now <code class="docutils literal notranslate"><span class="pre">color</span></code> and <code class="docutils literal notranslate"><span class="pre">colors</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_function</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_execute_function</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_function_handle</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_define_function_type</span></code> — now <code class="docutils literal notranslate"><span class="pre">exec::make_partial</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">execution::flecsi_future</span></code> — now <code class="docutils literal notranslate"><span class="pre">future</span></code>, with a simpler interface</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p>Specializations inherit from <code class="docutils literal notranslate"><span class="pre">topo::specialization</span></code> rather than from a core topology type directly.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id21">
+<h3>New features<a class="headerlink" href="#id21" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Runtime</p>
+<ul>
+<li><p>Application command-line options can be specified using the <code class="docutils literal notranslate"><span class="pre">program_option</span></code> class template and associated helper functions.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">control</span></code> class template is used to define an extensible control model for an application.</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">raw</span></code> and <code class="docutils literal notranslate"><span class="pre">single</span></code> layouts support special cases of field usage.</p></li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p>Tasks can be (specializations of) function templates.</p></li>
+<li><p>Tasks can accept parameters of dynamic size (<em>e.g.</em>, <code class="docutils literal notranslate"><span class="pre">std::vector&lt;double&gt;</span></code>), although passing large objects is inefficient.</p></li>
+<li><p>Index launches can be of any number of point tasks (determined by the task’s arguments, including <code class="docutils literal notranslate"><span class="pre">exec::launch_domain</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test</span></code> conveniently executes tasks for unit testing.</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p>Multiple user-defined topology instances may exist sequentially or simultaneously.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="overview.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="build.html" class="btn btn-neutral float-right" title="Build &amp; Install" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+
+  <style>
+    /* Contents caption */
+    .wy-menu-vertical>p.caption {
+      color: #ffffff;
+    }
+
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #e3e2db;
+    }
+    .wy-side-nav-search>div.version, .wy-nav-top>div.version {
+      color: #5f5d5f;
+    }
+
+    /* Sidebar */
+    .wy-nav-side {
+      background: #216897;
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

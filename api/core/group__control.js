@@ -1,6 +1,6 @@
 var group__control =
 [
-    [ "control< P >", "structflecsi_1_1run_1_1control.html", [
+    [ "control&lt; P &gt;", "structflecsi_1_1run_1_1control.html", [
       [ "action", "structflecsi_1_1run_1_1control_1_1action.html", [
         [ "action", "structflecsi_1_1run_1_1control_1_1action.html#a8e4800975c151b5d7262a31d6fc9bc33", null ],
         [ "action", "structflecsi_1_1run_1_1control_1_1action.html#ad3faa44febb531da0083d231773019c0", null ],
@@ -21,12 +21,12 @@ var group__control =
       [ "control_points", "structflecsi_1_1run_1_1control__policy.html#ac4dcf7b5c382a89124e702d5ef7cfe7b", null ],
       [ "control_points_enum", "structflecsi_1_1run_1_1control__policy.html#a2309a0840d8ad45940d02f91d87cadce", null ]
     ] ],
-    [ "cycle< Predicate, ControlPoints >", "structflecsi_1_1run__impl_1_1cycle.html", null ],
-    [ "point_walker< P >", "structflecsi_1_1run__impl_1_1point__walker.html", [
+    [ "cycle&lt; Predicate, ControlPoints &gt;", "structflecsi_1_1run__impl_1_1cycle.html", null ],
+    [ "point_walker&lt; P &gt;", "structflecsi_1_1run__impl_1_1point__walker.html", [
       [ "visit_type", "structflecsi_1_1run__impl_1_1point__walker.html#ae29598253c9b7665c9435d7a92c66d5e", null ]
     ] ],
-    [ "control_point", "group__control.html#gaba956285b578c3aaae8ecdce24227856", null ],
-    [ "cycle", "group__control.html#ga9b102a76468f6aadf593bae78aeb2ea5", null ],
-    [ "call", "group__control.html#gaa1a0a65019cae8cba6dbf90966eea936", null ],
-    [ "operator*", "group__control.html#ga89dbf463f9302cd6dedbf5209783fa2b", null ]
+    [ "flecsi::run::control_point", "group__control.html#gaba956285b578c3aaae8ecdce24227856", null ],
+    [ "flecsi::run::cycle", "group__control.html#ga9b102a76468f6aadf593bae78aeb2ea5", null ],
+    [ "flecsi::run::call", "group__control.html#gaa1a0a65019cae8cba6dbf90966eea936", null ],
+    [ "flecsi::run::operator*", "group__control.html#ga89dbf463f9302cd6dedbf5209783fa2b", null ]
 ];

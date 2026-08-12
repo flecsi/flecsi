@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shared-memory parallelism &mdash; FleCSI 2.4.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=3dbc9e18" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="canonical" href="https://www.flecsi.org/tutorial/parallel.html"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=de1351e5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="N-Tree" href="ntree.html" />
+    <link rel="prev" title="Data Model" href="data.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                Version: 2.4.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorial.html">Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../tutorial.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorial.html#building-the-examples">Building the Examples</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../tutorial.html#tutorial-examples">Tutorial Examples</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="runtime.html">Runtime Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="control.html">Control Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html">Data Model</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Shared-memory parallelism</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#example-1-forall">Example 1: forall</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#example-2-reduceall">Example 2: reduceall</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ntree.html">N-Tree</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
+<li class="toctree-l3"><a class="reference internal" href="poisson.html">Poisson</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FleCSI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorial.html">Tutorial</a></li>
+      <li class="breadcrumb-item active">Shared-memory parallelism</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorial/parallel.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="shared-memory-parallelism">
+<h1>Shared-memory parallelism<a class="headerlink" href="#shared-memory-parallelism" title="Link to this heading"></a></h1>
+<p>Beyond the distributed memory parallelism of topology coloring and distribution of the data across processes, FleCSI can provide parallelism within a point task.</p>
+<hr class="docutils" />
+<section id="example-1-forall">
+<h2>Example 1: forall<a class="headerlink" href="#example-1-forall" title="Link to this heading"></a></h2>
+<p>This example is a modification of the data-dense tutorial example that replaces the data copy with a <code class="docutils literal notranslate"><span class="pre">modify</span></code> task that supports Kokkos.
+The <code class="docutils literal notranslate"><span class="pre">accelerator</span></code> is an execution space that uses Kokkos parallelism on a GPU or via OpenMP if available.
+Every execution space has an <code class="docutils literal notranslate"><span class="pre">executor</span></code> that implements its parallelism (if any) via a <code class="docutils literal notranslate"><span class="pre">forall</span></code> macro that can be used as a member function.
+Note the trailing semicolon, since the parallel loop is not actually a control structure.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>With the Legion backend, OpenMP task execution can be improved with the <code class="docutils literal notranslate"><span class="pre">omp</span></code> processor type.
+Legion knows to assign an entire node to such a task.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>With the MPI backend, running one process per node with <code class="docutils literal notranslate"><span class="pre">toc</span></code> tasks or one
+process per core with <code class="docutils literal notranslate"><span class="pre">omp</span></code> tasks likely leads to poor performance.</p>
+</div>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/data.hh&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/execution.hh&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/flog.hh&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../3-execution/control.hh&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../4-data/canonical.hh&quot;</span>
+
+<span class="c1">// this tutorial is based on a 4-data/3-dense.cc tutorial example</span>
+
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
+
+<span class="k">const</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">canon</span><span class="p">,</span><span class="w"> </span><span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="w"> </span><span class="n">pressure</span><span class="p">;</span>
+
+<span class="kt">void</span>
+<span class="nf">init</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">cells</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">2.0</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// for</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// init</span>
+
+<span class="kt">void</span>
+<span class="nf">modify</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">accelerator</span><span class="w"> </span><span class="n">s</span><span class="p">,</span>
+<span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">t</span><span class="p">,</span>
+<span class="w">  </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">rw</span><span class="o">&gt;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">executor</span><span class="p">().</span><span class="n">forall</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">cells</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">  </span><span class="p">};</span>
+<span class="p">}</span>
+
+<span class="kt">void</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">cells</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;cell &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; has pressure &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// for</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// print</span>
+
+<span class="kt">void</span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">scheduler</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">topology</span><span class="w"> </span><span class="n">canonical</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">canon</span><span class="o">::</span><span class="n">mpi_coloring</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test.txt&quot;</span><span class="p">));</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">pf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pressure</span><span class="p">(</span><span class="n">canonical</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// cpu task, default</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span><span class="w"> </span><span class="n">pf</span><span class="p">);</span>
+<span class="w">  </span><span class="c1">// Automatically select an execution space based on Kokkos configuration.</span>
+<span class="w">  </span><span class="c1">// The runtime moves data between the host and device.</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">modify</span><span class="o">&gt;</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">on</span><span class="p">,</span><span class="w"> </span><span class="n">canonical</span><span class="p">,</span><span class="w"> </span><span class="n">pf</span><span class="p">);</span>
+<span class="w">  </span><span class="c1">// cpu_task</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">print</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span><span class="w"> </span><span class="n">pf</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">advance</span><span class="p">,</span><span class="w"> </span><span class="n">cp</span><span class="o">::</span><span class="n">advance</span><span class="o">&gt;</span><span class="w"> </span><span class="n">advance_action</span><span class="p">;</span>
+</pre></div>
+</div>
+</section>
+<section id="example-2-reduceall">
+<h2>Example 2: reduceall<a class="headerlink" href="#example-2-reduceall" title="Link to this heading"></a></h2>
+<p>This example instead uses <code class="docutils literal notranslate"><span class="pre">reduce1</span></code> and <code class="docutils literal notranslate"><span class="pre">reduce2</span></code> tasks that use the <code class="docutils literal notranslate"><span class="pre">reduceall</span></code> macro interface and <code class="docutils literal notranslate"><span class="pre">reduce</span></code> function template interface respectively.
+The former accepts two names declared for use in the body: the range element, as for <code class="docutils literal notranslate"><span class="pre">forall</span></code>, and a function that accepts values for the reduction.
+The latter supports further composition, such as client library interfaces that accept kernel functors; its analog for <code class="docutils literal notranslate"><span class="pre">forall</span></code> is called <code class="docutils literal notranslate"><span class="pre">for_each</span></code>.
+Any of these can have a name attached as illustrated with the <code class="docutils literal notranslate"><span class="pre">named</span></code> function.</p>
+<p><code class="docutils literal notranslate"><span class="pre">reduce2</span></code> also illustrates defining a task as a function template so that it can use an execution space chosen by FleCSI.
+For syntactic reasons, the function template is wrapped in a <code class="docutils literal notranslate"><span class="pre">struct</span></code>; it is always named <code class="docutils literal notranslate"><span class="pre">task</span></code> and has just one <code class="docutils literal notranslate"><span class="pre">auto</span></code> parameter which is the execution space.
+Note that, to let FleCSI select which specializations to instantiate, the definition of the function template must be available when the task is launched (rather than being defined in another source file).
+The application can influence that choice: here, the <code class="docutils literal notranslate"><span class="pre">gpu</span></code> execution space is taken to be undesirable and is disabled by deleting its template specialization.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/data.hh&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/execution.hh&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/flog.hh&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../3-execution/control.hh&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../4-data/canonical.hh&quot;</span>
+
+<span class="c1">// this tutorial is based on a 4-data/3-dense.cc tutorial example</span>
+
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
+
+<span class="k">const</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">canon</span><span class="p">,</span><span class="w"> </span><span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="w"> </span><span class="n">pressure</span><span class="p">;</span>
+
+<span class="kt">void</span>
+<span class="nf">init</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">cells</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">2.0</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// for</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// init</span>
+
+<span class="kt">void</span>
+<span class="nf">reduce1</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">accelerator</span><span class="w"> </span><span class="n">s</span><span class="p">,</span>
+<span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">t</span><span class="p">,</span>
+<span class="w">  </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">executor</span><span class="p">().</span><span class="n">named</span><span class="p">(</span><span class="s">&quot;reduce1&quot;</span><span class="p">).</span><span class="n">reduceall</span><span class="p">(</span>
+<span class="w">    </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="n">up</span><span class="p">,</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">cells</span><span class="p">(),</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">max</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">up</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]);</span>
+<span class="w">  </span><span class="p">};</span><span class="w"> </span><span class="c1">// forall</span>
+
+<span class="w">  </span><span class="n">flog_assert</span><span class="p">(</span><span class="n">res</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mf">6.0</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; != 6.0&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">struct</span><span class="w"> </span><span class="nc">reduce2</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="w">  </span><span class="nf">task</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">executor</span><span class="p">().</span><span class="k">template</span><span class="w"> </span><span class="n">reduce</span><span class="o">&lt;</span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">max</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">      </span><span class="n">t</span><span class="p">.</span><span class="n">cells</span><span class="p">(),</span><span class="w"> </span><span class="n">FLECSI_LAMBDA</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">up</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">up</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]);</span><span class="w"> </span><span class="p">});</span>
+
+<span class="w">    </span><span class="n">flog_assert</span><span class="p">(</span><span class="n">res</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mf">6.0</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; != 6.0&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">};</span>
+<span class="k">template</span><span class="o">&lt;&gt;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">reduce2</span><span class="o">::</span><span class="n">task</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">gpu</span><span class="p">,</span>
+<span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">delete</span><span class="p">;</span>
+
+<span class="kt">void</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">cells</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;cell &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; has pressure &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// for</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// print</span>
+
+<span class="kt">void</span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">scheduler</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">topology</span><span class="w"> </span><span class="n">canonical</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">canon</span><span class="o">::</span><span class="n">mpi_coloring</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test.txt&quot;</span><span class="p">));</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">pf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pressure</span><span class="p">(</span><span class="n">canonical</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// cpu task, default</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span><span class="w"> </span><span class="n">pf</span><span class="p">);</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">reduce1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">on</span><span class="p">,</span><span class="w"> </span><span class="n">canonical</span><span class="p">,</span><span class="w"> </span><span class="n">pf</span><span class="p">);</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">reduce2</span><span class="o">&gt;</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">on</span><span class="p">,</span><span class="w"> </span><span class="n">canonical</span><span class="p">,</span><span class="w"> </span><span class="n">pf</span><span class="p">);</span>
+<span class="w">  </span><span class="c1">// cpu_task</span>
+<span class="w">  </span><span class="n">s</span><span class="p">.</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">print</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span><span class="w"> </span><span class="n">pf</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">advance</span><span class="p">,</span><span class="w"> </span><span class="n">cp</span><span class="o">::</span><span class="n">advance</span><span class="o">&gt;</span><span class="w"> </span><span class="n">advance_action</span><span class="p">;</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="data.html" class="btn btn-neutral float-left" title="Data Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ntree.html" class="btn btn-neutral float-right" title="N-Tree" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+
+  <style>
+    /* Contents caption */
+    .wy-menu-vertical>p.caption {
+      color: #ffffff;
+    }
+
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #e3e2db;
+    }
+    .wy-side-nav-search>div.version, .wy-nav-top>div.version {
+      color: #5f5d5f;
+    }
+
+    /* Sidebar */
+    .wy-nav-side {
+      background: #216897;
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

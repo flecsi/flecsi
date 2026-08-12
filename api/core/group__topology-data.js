@@ -7,7 +7,7 @@ var group__topology_data =
     [ "buffers", "structflecsi_1_1data_1_1buffers.html", [
       [ "ragged", "structflecsi_1_1data_1_1buffers_1_1ragged.html", [
         [ "ragged", "structflecsi_1_1data_1_1buffers_1_1ragged.html#ae211d2b36d7395d849f2a9193fba9965", null ],
-        [ "operator()", "structflecsi_1_1data_1_1buffers_1_1ragged.html#a351d84db6f5def2fb25392238c76176b", null ]
+        [ "operator()", "structflecsi_1_1data_1_1buffers_1_1ragged.html#a39cbb3eb9b4266814dc56fe1b67db10b", null ]
       ] ],
       [ "Start", "structflecsi_1_1data_1_1buffers.html#ad5a2d7cb9cf01a62d5516788bf182239", null ],
       [ "Transfer", "structflecsi_1_1data_1_1buffers.html#a24355280ed2f301f1a2d0c6da7334b5e", null ]
@@ -18,7 +18,7 @@ var group__topology_data =
       [ "copy", "structflecsi_1_1data_1_1copy__engine.html#a131c7e741b59fa0749720f32a95b2213", null ]
     ] ],
     [ "copy_plan", "structflecsi_1_1data_1_1copy__plan.html", null ],
-    [ "field_reference< class, layout, Topo, index_space >", "structflecsi_1_1data_1_1field__reference.html", [
+    [ "field_reference&lt; T, L, Topo, Space &gt;", "structflecsi_1_1data_1_1field__reference.html", [
       [ "get_elements", "structflecsi_1_1data_1_1field__reference.html#a9490160bb9e5e0f0bf789b99c7c14c7f", null ],
       [ "use", "structflecsi_1_1data_1_1field__reference.html#a2e3d756598b3e1d9bedf2f23092bdaf8", null ]
     ] ],

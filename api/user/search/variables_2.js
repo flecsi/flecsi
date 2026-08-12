@@ -1,7 +1,7 @@
 var searchData=
 [
   ['cnx_5fallocs_0',['cnx_allocs',['../structflecsi_1_1topo_1_1unstructured__impl_1_1index__color.html#a486d743aa1844208084a1b8bf3a26101',1,'flecsi::topo::unstructured_impl::index_color']]],
-  ['color_1',['color',['../structflecsi_1_1topo_1_1narray__impl_1_1axis__color.html#aa5f4d1eda21c196bd8401ff73f105073',1,'flecsi::topo::narray_impl::axis_color']]],
+  ['color_1',['color',['../structflecsi_1_1flog_1_1config.html#adeba4cf126198b3d0726d1f54b9c322d',1,'flecsi::flog::config::color'],['../structflecsi_1_1topo_1_1narray__impl_1_1axis__color.html#aa5f4d1eda21c196bd8401ff73f105073',1,'flecsi::topo::narray_impl::axis_color::color']]],
   ['color_5fpeers_2',['color_peers',['../structflecsi_1_1topo_1_1unstructured__base_1_1coloring.html#aad75d8fdd0517e148386d1e91b7f6d73',1,'flecsi::topo::unstructured_base::coloring']]],
   ['colormap_3',['colormap',['../structflecsi_1_1topo_1_1narray__impl_1_1axis__definition.html#ac630b49fcafb075ec1d665b814711a31',1,'flecsi::topo::narray_impl::axis_definition']]],
   ['colors_4',['colors',['../structflecsi_1_1topo_1_1narray__impl_1_1axis.html#aa725a57f77829780aae4fb1e5b24ab7c',1,'flecsi::topo::narray_impl::axis::colors'],['../structflecsi_1_1topo_1_1unstructured__base_1_1coloring_1_1index__space.html#aa986b151ab15fb51d366309969110b57',1,'flecsi::topo::unstructured_base::coloring::index_space::colors'],['../structflecsi_1_1topo_1_1unstructured__base_1_1coloring.html#aa725a57f77829780aae4fb1e5b24ab7c',1,'flecsi::topo::unstructured_base::coloring::colors']]],

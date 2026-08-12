@@ -7,7 +7,7 @@ var searchData=
   ['make_5fpartial_4',['make_partial',['../group__execution.html#gac28f2f0eafd476e4798d91d751e90ff6',1,'flecsi']]],
   ['make_5ftree_5',['make_tree',['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html#a30f19a2df235002b8cac3b7328ec7e48',1,'flecsi::topo::topology&lt; Policy, ntree_base &gt;::make_tree(scheduler &amp;s)'],['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01ntree__base_01_4.html#a6873724d7c5164efa55cffe799c01e56',1,'flecsi::topo::topology&lt; Policy, ntree_base &gt;::make_tree(typename Policy::slot &amp;ts)']]],
   ['max_6',['max',['../classflecsi_1_1util_1_1filling__curve__key.html#ae8e1f0475c85e757cb3d48e16f912cd8',1,'flecsi::util::filling_curve_key']]],
-  ['max_5fdepth_7',['max_depth',['../classflecsi_1_1util_1_1filling__curve__key.html#ab5f8422240bf1ac3c8ef36e20a2017e7',1,'flecsi::util::filling_curve_key']]],
+  ['max_5fdepth_7',['max_depth',['../classflecsi_1_1util_1_1filling__curve__key.html#a6c8d167289924b5b1d4e005c289c7252',1,'flecsi::util::filling_curve_key']]],
   ['max_5fsize_8',['max_size',['../structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4_1_1row.html#ac2a85e463df4e95c1bf051cfb8237805',1,'flecsi::data::mutator&lt; ragged, T, P &gt;::row::max_size()'],['../structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4_1_1row.html#ac2a85e463df4e95c1bf051cfb8237805',1,'flecsi::data::mutator&lt; sparse, T, P &gt;::row::max_size()']]],
   ['mdbase_9',['mdbase',['../structflecsi_1_1util_1_1detail_1_1mdbase.html#a8ea307f2c46ad12a08fa466ee3105740',1,'flecsi::util::detail::mdbase']]],
   ['mdcolex_10',['mdcolex',['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#aa5ce6d57355fcd7986143133f5c58a5b',1,'flecsi::topo::topology&lt; Policy, narray_base &gt;::access']]],
@@ -15,7 +15,7 @@ var searchData=
   ['mdspan_12',['mdspan',['../structflecsi_1_1topo_1_1topology_3_01Policy_00_01narray__base_01_4_1_1access.html#a753aa95b55b177c8e11846fad0acf413',1,'flecsi::topo::topology&lt; Policy, narray_base &gt;::access::mdspan()'],['../structflecsi_1_1util_1_1mdspan.html#a6928d0ea351aaa082061ec5118fb71b5',1,'flecsi::util::mdspan::mdspan()'],['../structflecsi_1_1util_1_1mdspan.html#a6928d0ea351aaa082061ec5118fb71b5',1,'flecsi::util::mdspan(T *, std::array&lt; U, D &gt;) -&gt; mdspan&lt; T, D &gt;']]],
   ['midpoint_13',['midpoint',['../group__point.html#ga59b51194c76121fe231bb90ceafcdcb8',1,'flecsi::util']]],
   ['min_14',['min',['../classflecsi_1_1util_1_1filling__curve__key.html#a200f2655c704b9cb3a3963fe5453f269',1,'flecsi::util::filling_curve_key']]],
-  ['morton_5fkey_15',['morton_key',['../classflecsi_1_1util_1_1morton__key.html#a6097590195f3d3e1d2baeb7b7baf4757',1,'flecsi::util::morton_key']]],
+  ['morton_5fkey_15',['morton_key',['../classflecsi_1_1util_1_1morton__key.html#a5bece3194189d7281a7a65e614a6611c',1,'flecsi::util::morton_key']]],
   ['mpi_5fcoloring_16',['mpi_coloring',['../structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html#a9484c90f9373c9dd9b0747603c4ee099',1,'flecsi::topo::specialization::mpi_coloring::mpi_coloring(scheduler &amp;, AA &amp;&amp;... aa)'],['../structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html#a6a6436828d9e2c6b80708d33f9e101c6',1,'flecsi::topo::specialization::mpi_coloring::mpi_coloring(AA &amp;&amp;... aa)']]],
   ['my_5fkey_17',['my_key',['../structflecsi_1_1util_1_1my__key.html#af65ea3f97540f60ced2ab2197bfff539',1,'flecsi::util::my_key']]]
 ];
