@@ -1435,7 +1435,18 @@ struct scalar_access : send_tag {
   }
 
   void bind(auto s) { // from the exec machinery
-    copier = copy<typename decltype(s)::execution_space>;
+    using E = typename decltype(s)::execution_space;
+    if constexpr(Kokkos::SpaceAccessibility<Kokkos::HostSpace,
+                   typename E::memory_space>::accessible) {
+      // For host-accessible spaces (Serial/OpenMP), copy immediately to avoid
+      // racing on the mutable value member inside OpenMP parallel regions
+      value = *device;
+    }
+    else {
+      // For device-only spaces, defer copy until first access to avoid
+      // unnecessary deep_copy operations
+      copier = copy<E>;
+    }
   }
 
 private:
