@@ -112,6 +112,7 @@ authors:
     orcid: 0000-0001-7213-089X
   - given-names: Galen
     surname: Shipman
+    orcid: 0000-0001-6297-2145
     affiliation: 1
   - given-names: Jiajia
     surname: Waters
