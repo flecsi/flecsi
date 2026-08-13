@@ -119,6 +119,7 @@ authors:
     orcid: 0000-0002-6517-4445
   - given-names: Scot A.
     surname: Halverson
+    orcid: 0009-0005-1017-4682
     affiliation: 3
   - given-names: Onur
     surname: Çaylak
