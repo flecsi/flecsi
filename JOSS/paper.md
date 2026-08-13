@@ -125,7 +125,7 @@ authors:
     affiliation: 3
   - given-names: Onur
     surname: Çaylak
-    affiliation: 2
+    affiliation: 12
     orcid: 0000-0003-2410-7411
   - given-names: Peter
     surname: Brady
@@ -181,7 +181,7 @@ authors:
 affiliations:
   - name: Los Alamos National Laboratory, USA
     index: 1
-  - name: Independent researcher
+  - name: Independent researcher, USA
     index: 2
   - name: NVIDIA, USA
     index: 3
@@ -201,6 +201,8 @@ affiliations:
     index: 10
   - name: Stony Brook University, USA
     index: 11
+  - name: Independent researcher, UK
+    index: 12
 date: 6 June 2025
 bibliography: "flecsi_joss.bib"
 header-includes:
