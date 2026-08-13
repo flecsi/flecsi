@@ -27,6 +27,7 @@ authors:
   - given-names: Davis
     surname: Herring
     affiliation: 1
+    orcid: 0009-0000-2467-5537
   - given-names: Marc
     surname: Charest
     affiliation: 4
