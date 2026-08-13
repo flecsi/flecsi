@@ -144,6 +144,7 @@ authors:
   - given-names: Christopher M.
     surname: Malone
     affiliation: 1
+    orcid: 0000-0002-4045-7932
   - given-names: Alex
     surname: Villa
     affiliation: 9
