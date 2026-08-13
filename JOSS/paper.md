@@ -24,7 +24,7 @@ authors:
     surname: Demeshko
     affiliation: 3
     orcid: 0009-0001-1035-7260
-  - given-names: Davis
+  - given-names: S. Davis
     surname: Herring
     affiliation: 1
     orcid: 0009-0000-2467-5537
