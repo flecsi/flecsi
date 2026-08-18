@@ -1,0 +1,266 @@
+cff-version: "1.2.0"
+authors:
+- family-names: Bergen
+  given-names: Benjamin
+  orcid: "https://orcid.org/0009-0008-1802-4285"
+- family-names: Moss
+  given-names: Nick
+- family-names: Demeshko
+  given-names: Irina
+  orcid: "https://orcid.org/0009-0001-1035-7260"
+- family-names: Herring
+  given-names: S. Davis
+  orcid: "https://orcid.org/0009-0000-2467-5537"
+- family-names: Charest
+  given-names: Marc
+  orcid: "https://orcid.org/0000-0002-2818-1232"
+- family-names: Loiseau
+  given-names: Julien
+  orcid: "https://orcid.org/0000-0002-2116-2493"
+- family-names: Ray
+  given-names: Navamita
+  orcid: "https://orcid.org/0000-0002-8235-1706"
+- family-names: Graham
+  given-names: Jonathan
+  orcid: "https://orcid.org/0000-0003-1862-0526"
+- family-names: Kaiser
+  given-names: Hartmut
+  orcid: "https://orcid.org/0000-0002-8712-2806"
+- family-names: Lo
+  given-names: Li-Ta
+  orcid: "https://orcid.org/0000-0001-6244-9696"
+- family-names: Tsai
+  given-names: Karen
+  orcid: "https://orcid.org/0000-0003-2848-832X"
+- family-names: Ferenbaugh
+  given-names: Charles
+  orcid: "https://orcid.org/0000-0001-7908-8567"
+- family-names: Berger
+  given-names: Richard
+  orcid: "https://orcid.org/0000-0002-3044-8266"
+- family-names: Wohlbier
+  given-names: John
+  orcid: "https://orcid.org/0009-0000-8749-2762"
+- family-names: Lippuner
+  given-names: Jonas
+  orcid: "https://orcid.org/0000-0002-5936-3485"
+- family-names: Wu
+  given-names: Wei
+  orcid: "https://orcid.org/0000-0002-2750-6365"
+- family-names: Reisner
+  given-names: Andrew
+  orcid: "https://orcid.org/0000-0002-5325-2266"
+- family-names: Pakin
+  given-names: Scott
+  orcid: "https://orcid.org/0000-0002-5220-1985"
+- family-names: Krueger
+  given-names: Brendan K.
+  orcid: "https://orcid.org/0000-0002-8275-9277"
+- family-names: Spies
+  given-names: Lukas
+  orcid: "https://orcid.org/0000-0002-2063-7637"
+- family-names: Lakshmiranganatha
+  given-names: Sumathi
+  orcid: "https://orcid.org/0000-0001-8369-9387"
+- family-names: Ortner
+  given-names: Max
+  orcid: "https://orcid.org/0000-0001-9016-3708"
+- family-names: Grosset
+  given-names: Pascal
+  orcid: "https://orcid.org/0000-0003-2192-3843"
+- family-names: Gunter
+  given-names: David
+- family-names: Moraru
+  given-names: Maxim
+  orcid: "https://orcid.org/0000-0001-7213-089X"
+- family-names: Shipman
+  given-names: Galen
+  orcid: "https://orcid.org/0000-0001-6297-2145"
+- family-names: Waters
+  given-names: Jiajia
+  orcid: "https://orcid.org/0000-0002-6517-4445"
+- family-names: Halverson
+  given-names: Scot A.
+  orcid: "https://orcid.org/0009-0005-1017-4682"
+- family-names: Çaylak
+  given-names: Onur
+  orcid: "https://orcid.org/0000-0003-2410-7411"
+- family-names: Brady
+  given-names: Peter
+  orcid: "https://orcid.org/0000-0002-4906-2195"
+- family-names: Edelmann
+  given-names: Philipp V. F.
+  orcid: "https://orcid.org/0000-0001-7019-9578"
+- family-names: Delan
+  given-names: Mason
+- family-names: Keim
+  given-names: Brandon
+  orcid: "https://orcid.org/0009-0006-8688-3642"
+- family-names: Malone
+  given-names: Christopher M.
+  orcid: "https://orcid.org/0000-0002-4045-7932"
+- family-names: Villa
+  given-names: Alex
+  orcid: "https://orcid.org/0009-0000-3422-8626"
+- family-names: Holladay
+  given-names: Daniel
+  orcid: "https://orcid.org/0000-0002-0673-9741"
+- family-names: Barrack
+  given-names: Dani
+  orcid: "https://orcid.org/0000-0002-4881-0921"
+- family-names: Gupta
+  given-names: Nikunj
+  orcid: "https://orcid.org/0000-0003-0525-3667"
+- family-names: Čertík
+  given-names: Ondřej
+  orcid: "https://orcid.org/0000-0003-3968-3614"
+- family-names: Bird
+  given-names: Robert
+  orcid: "https://orcid.org/0000-0003-1228-498X"
+- family-names: Rasmussen
+  given-names: Melissa
+  orcid: "https://orcid.org/0000-0002-0297-0313"
+- family-names: Junghans
+  given-names: Christoph
+  orcid: "https://orcid.org/0000-0003-0925-1458"
+doi: 10.5281/zenodo.21897806
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Bergen
+    given-names: Benjamin
+    orcid: "https://orcid.org/0009-0008-1802-4285"
+  - family-names: Moss
+    given-names: Nick
+  - family-names: Demeshko
+    given-names: Irina
+    orcid: "https://orcid.org/0009-0001-1035-7260"
+  - family-names: Herring
+    given-names: S. Davis
+    orcid: "https://orcid.org/0009-0000-2467-5537"
+  - family-names: Charest
+    given-names: Marc
+    orcid: "https://orcid.org/0000-0002-2818-1232"
+  - family-names: Loiseau
+    given-names: Julien
+    orcid: "https://orcid.org/0000-0002-2116-2493"
+  - family-names: Ray
+    given-names: Navamita
+    orcid: "https://orcid.org/0000-0002-8235-1706"
+  - family-names: Graham
+    given-names: Jonathan
+    orcid: "https://orcid.org/0000-0003-1862-0526"
+  - family-names: Kaiser
+    given-names: Hartmut
+    orcid: "https://orcid.org/0000-0002-8712-2806"
+  - family-names: Lo
+    given-names: Li-Ta
+    orcid: "https://orcid.org/0000-0001-6244-9696"
+  - family-names: Tsai
+    given-names: Karen
+    orcid: "https://orcid.org/0000-0003-2848-832X"
+  - family-names: Ferenbaugh
+    given-names: Charles
+    orcid: "https://orcid.org/0000-0001-7908-8567"
+  - family-names: Berger
+    given-names: Richard
+    orcid: "https://orcid.org/0000-0002-3044-8266"
+  - family-names: Wohlbier
+    given-names: John
+    orcid: "https://orcid.org/0009-0000-8749-2762"
+  - family-names: Lippuner
+    given-names: Jonas
+    orcid: "https://orcid.org/0000-0002-5936-3485"
+  - family-names: Wu
+    given-names: Wei
+    orcid: "https://orcid.org/0000-0002-2750-6365"
+  - family-names: Reisner
+    given-names: Andrew
+    orcid: "https://orcid.org/0000-0002-5325-2266"
+  - family-names: Pakin
+    given-names: Scott
+    orcid: "https://orcid.org/0000-0002-5220-1985"
+  - family-names: Krueger
+    given-names: Brendan K.
+    orcid: "https://orcid.org/0000-0002-8275-9277"
+  - family-names: Spies
+    given-names: Lukas
+    orcid: "https://orcid.org/0000-0002-2063-7637"
+  - family-names: Lakshmiranganatha
+    given-names: Sumathi
+    orcid: "https://orcid.org/0000-0001-8369-9387"
+  - family-names: Ortner
+    given-names: Max
+    orcid: "https://orcid.org/0000-0001-9016-3708"
+  - family-names: Grosset
+    given-names: Pascal
+    orcid: "https://orcid.org/0000-0003-2192-3843"
+  - family-names: Gunter
+    given-names: David
+  - family-names: Moraru
+    given-names: Maxim
+    orcid: "https://orcid.org/0000-0001-7213-089X"
+  - family-names: Shipman
+    given-names: Galen
+    orcid: "https://orcid.org/0000-0001-6297-2145"
+  - family-names: Waters
+    given-names: Jiajia
+    orcid: "https://orcid.org/0000-0002-6517-4445"
+  - family-names: Halverson
+    given-names: Scot A.
+    orcid: "https://orcid.org/0009-0005-1017-4682"
+  - family-names: Çaylak
+    given-names: Onur
+    orcid: "https://orcid.org/0000-0003-2410-7411"
+  - family-names: Brady
+    given-names: Peter
+    orcid: "https://orcid.org/0000-0002-4906-2195"
+  - family-names: Edelmann
+    given-names: Philipp V. F.
+    orcid: "https://orcid.org/0000-0001-7019-9578"
+  - family-names: Delan
+    given-names: Mason
+  - family-names: Keim
+    given-names: Brandon
+    orcid: "https://orcid.org/0009-0006-8688-3642"
+  - family-names: Malone
+    given-names: Christopher M.
+    orcid: "https://orcid.org/0000-0002-4045-7932"
+  - family-names: Villa
+    given-names: Alex
+    orcid: "https://orcid.org/0009-0000-3422-8626"
+  - family-names: Holladay
+    given-names: Daniel
+    orcid: "https://orcid.org/0000-0002-0673-9741"
+  - family-names: Barrack
+    given-names: Dani
+    orcid: "https://orcid.org/0000-0002-4881-0921"
+  - family-names: Gupta
+    given-names: Nikunj
+    orcid: "https://orcid.org/0000-0003-0525-3667"
+  - family-names: Čertík
+    given-names: Ondřej
+    orcid: "https://orcid.org/0000-0003-3968-3614"
+  - family-names: Bird
+    given-names: Robert
+    orcid: "https://orcid.org/0000-0003-1228-498X"
+  - family-names: Rasmussen
+    given-names: Melissa
+    orcid: "https://orcid.org/0000-0002-0297-0313"
+  - family-names: Junghans
+    given-names: Christoph
+    orcid: "https://orcid.org/0000-0003-0925-1458"
+  date-published: 2026-08-14
+  doi: 10.21105/joss.09333
+  issn: 2475-9066
+  issue: 124
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 9333
+  title: "FleCSI: Flexible Computational Science Infrastructure"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.09333"
+  volume: 11
+title: "FleCSI: Flexible Computational Science Infrastructure"
