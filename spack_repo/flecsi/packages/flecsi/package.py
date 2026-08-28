@@ -34,7 +34,7 @@ class Flecsi(Flecsi):
         if self.run_tests and self.spec.satisfies("^ucx"):
             # UCX workaround to avoid misdetecting GPU memory as host memory
             env.set("UCX_MEMTYPE_CACHE", "n")
-        if self.spec.satisfies("^kokkos +rocm"):
+        if self.spec.satisfies("^kokkos +rocm") and not (self.spec.satisfies("%cxx=clang") or self.spec.satisfies("%cxx=rocmcc")):
             env.set("CC", self.spec["hip"].hipcc)
             env.set("CXX", self.spec["hip"].hipcc)
         if self.run_tests and self.spec.satisfies("^[virtuals=mpi]openmpi@5:"):
