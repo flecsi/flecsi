@@ -40,6 +40,7 @@ class Flecsi(Flecsi):
         if self.run_tests and self.spec.satisfies("^[virtuals=mpi]openmpi@5:"):
             # OpenMPI 5.x uses bind-to core by default, limiting us to a single core
             env.set("OMPI_MCA_hwloc_base_binding_policy", "none")
+            env.set("PRTE_MCA_bindto", "none")
 
     def cmake_args(self):
         args = super().cmake_args()
