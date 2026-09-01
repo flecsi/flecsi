@@ -6,6 +6,15 @@ include_guard(GLOBAL)
 
 macro(flecsi_set_doc_target_name name)
   set(FLECSI_DOC_TARGET ${name})
+  set(FLECSI_DOC_TARGET_IN_ALL ALL)
+  foreach(_arg ${ARGN})
+    if(_arg STREQUAL "EXCLUDE_FROM_ALL")
+      set(FLECSI_DOC_TARGET_IN_ALL "")
+    else()
+      message(FATAL_ERROR
+        "flecsi_set_doc_target_name: unknown argument '${_arg}'")
+    endif()
+  endforeach()
 endmacro()
 
 #------------------------------------------------------------------------------#
@@ -20,8 +29,12 @@ macro(_flecsi_define_doc_group_target)
     set(FLECSI_DOC_TARGET doc)
   endif()
 
+  if(NOT DEFINED FLECSI_DOC_TARGET_IN_ALL)
+    set(FLECSI_DOC_TARGET_IN_ALL ALL)
+  endif()
+
   if(NOT TARGET ${FLECSI_DOC_TARGET})
-    add_custom_target(${FLECSI_DOC_TARGET} ALL)
+    add_custom_target(${FLECSI_DOC_TARGET} ${FLECSI_DOC_TARGET_IN_ALL})
   endif()
 endmacro()
 

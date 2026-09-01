@@ -51,13 +51,19 @@ endif()
 # Documentation
 #------------------------------------------------------------------------------#
 option(ENABLE_DOCUMENTATION "Enable documentation" OFF)
+option(ENABLE_DOCUMENTATION_IN_ALL_TARGET "Make documentation build with ALL target" ON)
 set(GITHUB_PAGES_REPO "git@github.com:flecsi/flecsi.git"
     CACHE STRING "GitHub Pages repository for gh-pages branch")
 mark_as_advanced(ENABLE_DOCUMENTATION)
+mark_as_advanced(ENABLE_DOCUMENTATION_IN_ALL_TARGET)
 mark_as_advanced(GITHUB_PAGES_REPO)
 
 if(ENABLE_DOCUMENTATION)
   include(FleCSI/documentation)
+
+  if(NOT ENABLE_DOCUMENTATION_IN_ALL_TARGET)
+    flecsi_set_doc_target_name(doc EXCLUDE_FROM_ALL)
+  endif()
 
   option(ENABLE_DOXYGEN "Enable Doxygen documentation" ON)
   option(ENABLE_SPHINX  "Enable Sphinx documentation"  ON)
