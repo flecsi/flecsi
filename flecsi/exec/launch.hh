@@ -207,9 +207,9 @@ namespace detail {
 // 4. mpi_params, or the result of bind_tuple
 // 5. actual task parameter, without cv-qualification (with convert again)
 // We derive #2 from #5 and #1.  For non-MPI tasks, we derive #3 from
-// #5 and #4 from #3.  For MPI tasks, #3 is #2 unless we need a
-// "temporary" to which to bind a reference, in which case it is the type of
-// that temporary.  That situation can arise for an element type of a vector
+// #5 and #4 from #3.  For MPI tasks, #4 is identical to #5; #3 is simply #2
+// or else the type of a "temporary" to which to bind a reference.
+// That situation can arise for an element type of a vector
 // or tuple, in which case #3 is a vector/tuple of the result(s).
 
 template<class P, class A>
