@@ -31,13 +31,13 @@ class Flecsi(Flecsi):
         # build environment changes are needed for CI testing
         # compiler env vars get put into the generated build-env, which allows
         # standalones to pick up the right compiler
-        if self.run_tests and self.spec.satisfies("^ucx"):
+        if self.spec.satisfies("^ucx"):
             # UCX workaround to avoid misdetecting GPU memory as host memory
             env.set("UCX_MEMTYPE_CACHE", "n")
         if self.spec.satisfies("^kokkos +rocm") and not (self.spec.satisfies("%cxx=clang") or self.spec.satisfies("%cxx=rocmcc")):
             env.set("CC", self.spec["hip"].hipcc)
             env.set("CXX", self.spec["hip"].hipcc)
-        if self.run_tests and self.spec.satisfies("^[virtuals=mpi]openmpi@5:"):
+        if self.spec.satisfies("^[virtuals=mpi]openmpi@5:"):
             # OpenMPI 5.x uses bind-to core by default, limiting us to a single core
             env.set("OMPI_MCA_hwloc_base_binding_policy", "none")
             env.set("PRTE_MCA_bindto", "none")
