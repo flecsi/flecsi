@@ -54,6 +54,14 @@ test(int err) {
 }
 
 namespace detail {
+inline void
+e2big(std::size_t a, std::size_t b = 0) {
+  static constexpr auto cmax = std::numeric_limits<count_t>::max();
+  if(MPI_VERSION < 4 && (a > cmax || b > cmax - a))
+    flog_fatal("MPI message overflow! Try using an MPI-4 implementation for "
+               "large count support!");
+}
+
 struct vector { // for *v functions
   explicit vector(count_t n) {
     off.reserve(n);
@@ -72,11 +80,7 @@ struct vector { // for *v functions
   void put(const T & t) {
     const auto n = data.size();
     const auto s = serial::size(t);
-    const auto cmax = std::numeric_limits<count_t>::max();
-    if(MPI_VERSION < 4 && (s > cmax || n > cmax - s)) {
-      flog_fatal("MPI message overflow! Try using an MPI-4 implementation for "
-                 "large count support!");
-    }
+    e2big(n, s);
     off.emplace_back(n);
     sz.emplace_back(s);
     data.resize(n + s);
