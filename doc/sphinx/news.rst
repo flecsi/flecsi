@@ -15,6 +15,22 @@ Release Notes
 
    The bullets in each such discussion are in descending order of importance.
 
+Changes in v2.4.3
++++++++++++++++++
+
+Possible incompatibilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+* Execution
+
+  * Task parameters are destroyed after the task completes.
+    (They may survive past a future becoming ready.)
+
+Fixed
+^^^^^
+* Legion backend
+
+  * Single tasks no longer occasionally crash when used with tracing.
+
 Changes in v2.4.2 (August 11 2026)
 ++++++++++++++++++++++++++++++++++
 

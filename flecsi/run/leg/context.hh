@@ -53,39 +53,28 @@ inline constexpr Legion::MappingTagID
 /// \}
 } // namespace mapper
 
-// The number of task instances for a process to execute may become known only
-// after several task launches that share it (via tracing).
-struct task_count {
-  using type = Color;
-  using ptr = std::shared_ptr<task_count>; // to outlive trace as needed
-
-  type set(type n) {
-    // If count is engaged, this is mapper output ignored by a trace.
-    return count ? *count : count.emplace(n);
-  }
-
-private:
-  std::optional<type> count;
-};
-
 class param_locker {
   struct task {
-    task(task_count::ptr tc, util::any && p)
-      : tc(std::move(tc)), params(std::move(p)) {}
-
-    task_count::ptr tc;
-    util::ref_count<task_count::type> ref{1};
-    util::any params;
+    // On process 0 only, the number of instances to run (zero until known, if
+    // other processes get ahead) less those that have already run.
+    Color ref;
+    util::any params; // empty if this process is behind
   };
 
   using Map = std::map<task_idx, task>;
   std::mutex lock;
+  util::mpi::comm comm = util::mpi::comm::dup(MPI_COMM_WORLD);
   Map tasks;
-  task_idx id = 0;
+  task_idx id = 1;
 
   auto lease() {
     return std::unique_lock(lock);
   }
+
+  void send(task_idx i) {
+    util::mpi::send(i, 0, 0, comm);
+  }
+  void run();
 
   class guard {
     param_locker & lk;
@@ -98,26 +87,61 @@ class param_locker {
     guard(guard &&) = delete;
 
     ~guard() {
-      if(--it->second.ref)
-        lk.lease(), lk.tasks.erase(it);
+      lk.send(it->first);
     }
 
-    void post(task_count::type n) const {
-      const auto & p = it->second.tc;
-      it->second.ref += p ? p->set(n) : n;
-    }
     template<class T>
     T & get() const {
       return it->second.params.get<T>();
     }
   };
 
+  struct thread {
+    explicit thread(param_locker & p)
+      : p(p), t(&param_locker::run, std::ref(p)) {}
+    ~thread() {
+      if(!rank(p.comm))
+        p.send(0);
+    }
+
+  private:
+    param_locker & p;
+    std::jthread t;
+  };
+
 public:
-  [[nodiscard]] task_idx add(util::any && a, task_count::ptr tc) {
-    return lease(), tasks.try_emplace(id, std::move(tc), std::move(a)), id++;
+  ~param_locker() {
+    flog_assert(tasks.empty(), "abandoned parameters");
+  }
+
+  [[nodiscard]] task_idx add(util::any && a, Color n) {
+    if(n) { // otherwise no broadcast ever happens
+      if(lease(), [&] {
+           const auto [it, nu] = tasks.try_emplace(id, n, std::move(a));
+           if(!nu) {
+             auto & r = it->second.ref;
+             if(!r)
+               tasks.erase(it);
+             else {
+               it->second.params = std::move(a);
+               if(!(r += n)) {
+                 ++r; // so that send will trigger broadcast
+                 return true;
+               }
+             }
+           }
+           return false;
+         }())
+        send(id);
+    }
+    return id++;
   }
   guard at(task_idx i) {
     return lease(), guard(*this, i);
+  }
+
+  thread clean() {
+    return thread(*this);
   }
 };
 

@@ -168,8 +168,6 @@ task_wrapper(const Legion::Task * task,
     return call(p.params, p.which);
   }
   else {
-    // There is a optimization opportunity here to move
-    // the elements instead of copying the last time.
     const auto access = c.params.at(run::get1<run::task_idx>(*task));
     const auto & p = access.get<
       parameters<typename L::protocol::template param_storage_t<Params>>>();
