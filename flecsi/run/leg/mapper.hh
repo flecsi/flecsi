@@ -43,21 +43,6 @@ public:
     }
   }
 
-  void select_task_options(const Legion::Mapping::MapperContext ctx,
-    const Legion::Task & task,
-    Legion::Mapping::Mapper::TaskOptions & output) override {
-    DefaultMapper::select_task_options(ctx, task, output);
-    // Mysteriously, the top-level task has 16 bytes of argument.
-    if(task.arglen == sizeof(task_idx))
-      context::instance()
-        .params.at(get1<task_idx>(task))
-        .post(task.is_index_space
-                ? util::equal_map(
-                    task.index_domain.get_volume(), total_nodes)[node_id]
-                    .size()
-                : node_id == output.initial_proc.address_space());
-  }
-
   void select_sharding_functor(Legion::Mapping::MapperContext,
     const Legion::Task &,
     const SelectShardingFunctorInput &,

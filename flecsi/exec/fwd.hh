@@ -85,6 +85,8 @@ template<auto & Task,
     separate parameters/arguments (with the unusual corollary that a
     `std::vector<int>` matches a parameter of type `std::vector<long>`).
   \return a \ref future providing the value(s) returned from the task
+  \warning Parameters are destroyed asynchronously, perhaps after the future
+    becomes ready.
 
   \ns.
  */

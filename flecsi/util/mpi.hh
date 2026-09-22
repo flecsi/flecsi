@@ -54,6 +54,14 @@ test(int err) {
 }
 
 namespace detail {
+inline void
+e2big(std::size_t a, std::size_t b = 0) {
+  static constexpr auto cmax = std::numeric_limits<count_t>::max();
+  if(MPI_VERSION < 4 && (a > cmax || b > cmax - a))
+    flog_fatal("MPI message overflow! Try using an MPI-4 implementation for "
+               "large count support!");
+}
+
 struct vector { // for *v functions
   explicit vector(count_t n) {
     off.reserve(n);
@@ -72,11 +80,7 @@ struct vector { // for *v functions
   void put(const T & t) {
     const auto n = data.size();
     const auto s = serial::size(t);
-    const auto cmax = std::numeric_limits<count_t>::max();
-    if(MPI_VERSION < 4 && (s > cmax || n > cmax - s)) {
-      flog_fatal("MPI message overflow! Try using an MPI-4 implementation for "
-                 "large count support!");
-    }
+    e2big(n, s);
     off.emplace_back(n);
     sz.emplace_back(s);
     data.resize(n + s);
@@ -204,6 +208,11 @@ private:
 };
 
 struct comm : detail::unique<MPI_Comm_free> {
+  static comm dup(MPI_Comm c0) {
+    comm ret;
+    test(MPI_Comm_dup(c0, ret.out()));
+    return ret;
+  }
   static comm split(MPI_Comm c0, int c, int k = 0) {
     comm ret;
     test(MPI_Comm_split(c0, c, k, ret.out()));
@@ -429,6 +438,78 @@ info(MPI_Comm comm = MPI_COMM_WORLD) {
   return std::make_pair(rank(comm), size(comm));
 } // info
 
+template<auto & M = FLECSI_MPI_C(MPI_Send), class T, class... AA>
+void
+send(std::span<T> t, const AA &... aa) {
+  detail::e2big(t.size());
+  test(M(t.data(), t.size(), type<std::remove_const_t<T>>(), aa...));
+}
+template<auto & M = FLECSI_MPI_C(MPI_Send), class T, class... AA>
+void
+send(const T & t, const AA &... aa) {
+  send<M>(std::span([&t] {
+    if constexpr(bit_assignable_v<T>) {
+      static_assert(
+        bit_copyable_v<T>, "recv would be ambiguous; send with span");
+      return std::span(&t, 1);
+    }
+    else
+      return serial::put_tuple(t);
+  }()),
+    aa...);
+}
+template<class T>
+MPI_Status
+recv(std::span<T> t,
+  int src = MPI_ANY_SOURCE,
+  int tag = MPI_ANY_TAG,
+  MPI_Comm comm = MPI_COMM_WORLD) {
+  detail::e2big(t.size());
+  MPI_Status ret;
+  test(FLECSI_MPI_C(MPI_Recv)(
+    t.data(), t.size(), type<T>(), src, tag, comm, &ret));
+  return ret;
+}
+template<class T>
+std::pair<T, MPI_Status>
+recv(int = MPI_ANY_SOURCE, int = MPI_ANY_TAG, MPI_Comm = MPI_COMM_WORLD);
+template<class T>
+MPI_Status
+recv(T & t,
+  int src = MPI_ANY_SOURCE,
+  int tag = MPI_ANY_TAG,
+  MPI_Comm comm = MPI_COMM_WORLD) {
+  if constexpr(bit_assignable_v<T>)
+    return recv(std::span(&t, 1), src, tag, comm);
+  else {
+    MPI_Status ret;
+    std::tie(t, ret) = recv<T>(src, tag, comm);
+    return ret;
+  }
+}
+template<class T>
+std::pair<T, MPI_Status>
+recv(int src, int tag, MPI_Comm comm) {
+  MPI_Status s;
+  return {[&] {
+            if constexpr(bit_copyable_v<T>) {
+              T ret;
+              s = recv(ret, src, tag, comm);
+              return ret;
+            }
+            else {
+              MPI_Message m;
+              test(MPI_Mprobe(src, tag, comm, &m, &s));
+              count_t c;
+              test(FLECSI_MPI_C(MPI_Get_count)(&s, MPI_BYTE, &c));
+              std::vector<std::byte> v(c);
+              test(FLECSI_MPI_C(MPI_Mrecv)(v.data(), c, MPI_BYTE, &m, &s));
+              return serial::get1<T>(v.data());
+            }
+          }(),
+    s};
+}
+
 namespace detail {
 template<class R, class = void>
 struct make_range {
@@ -528,12 +609,7 @@ one_to_allv(R && r, MPI_Comm comm = MPI_COMM_WORLD) {
       0,
       comm));
 
-    if(rank) {
-      auto const * p = v.data.data();
-      return serial::get<return_type>(p);
-    }
-    else
-      return std::move(*mine);
+    return rank ? serial::get1<return_type>(v.data.data()) : std::move(*mine);
   }
 } // one_to_allv
 
@@ -542,13 +618,9 @@ namespace detail {
 // These two class templates serialize or not with the same interface.
 template<class T>
 struct bit_message {
-  bit_message(int, int, MPI_Comm) : p(new T) {}
   template<class I> // deferred to support prvalues
   explicit bit_message(I && i) : p(new T(*std::forward<I>(i))) {}
 
-  void * data() {
-    return p.get();
-  }
   const void * data() const {
     return p.get();
   }
@@ -557,9 +629,6 @@ struct bit_message {
   }
   std::size_t bytes() const {
     return sizeof(T);
-  }
-  T get() && {
-    return std::move(*p);
   }
   void reset() {
     p.reset();
@@ -575,21 +644,10 @@ private:
 
 template<class T>
 struct serial_message {
-  serial_message(int s, int t, MPI_Comm comm)
-    : v([&] {
-        MPI_Status st;
-        test(MPI_Probe(s, t, comm, &st));
-        int ret;
-        test(MPI_Get_count(&st, type(), &ret));
-        return ret;
-      }()) {}
   template<class I>
   explicit serial_message(I && i)
     : v(serial::put_tuple<T>(*std::forward<I>(i))) {}
 
-  void * data() {
-    return v.data();
-  }
   const void * data() const {
     return v.data();
   }
@@ -598,9 +656,6 @@ struct serial_message {
   }
   std::size_t bytes() const {
     return v.size();
-  }
-  T get() const {
-    return serial::get1<T>(v.data());
   }
   void reset() {
     decltype(v)().swap(v);
@@ -681,12 +736,8 @@ one_to_alli(R && r, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
     }
     return ret;
   }
-  else {
-    M ret(0, 0, comm);
-    test(FLECSI_MPI_C(MPI_Recv)(
-      ret.data(), ret.count(), M::type(), 0, 0, comm, MPI_STATUS_IGNORE));
-    return std::move(ret).get();
-  }
+  else
+    return recv<T>(0, 0, comm).first;
 }
 
 /*!

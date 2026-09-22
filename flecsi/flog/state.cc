@@ -31,7 +31,7 @@ state::send_to_one(bool last) {
   std::unique_lock lk(packets_mutex_);
 
   if(source_process_ != 0 && processes_ > 1) {
-    std::vector<int> sizes(process_ ? 0 : processes_), offsets(sizes);
+    std::vector<int> offsets(process_ ? 0 : processes_);
     std::vector<std::byte> data, buffer;
 
     if(process_ != 0 && active_process())
@@ -40,6 +40,7 @@ state::send_to_one(bool last) {
     int bytes = data.size();
 
     if(source_process_ == all_processes) {
+      std::vector<int> sizes = offsets;
       test(MPI_Gather(
         &bytes, 1, MPI_INT, sizes.data(), 1, MPI_INT, 0, MPI_COMM_WORLD));
 
@@ -65,25 +66,13 @@ state::send_to_one(bool last) {
     }
     else {
       if(process_ == 0) {
-        test(MPI_Recv(&bytes,
-          1,
-          MPI_INT,
-          source_process_,
-          0,
-          MPI_COMM_WORLD,
-          MPI_STATUS_IGNORE));
+        util::mpi::recv(bytes, source_process_, 0);
         buffer.resize(bytes);
-        test(MPI_Recv(buffer.data(),
-          bytes,
-          MPI_BYTE,
-          source_process_,
-          0,
-          MPI_COMM_WORLD,
-          MPI_STATUS_IGNORE));
+        util::mpi::recv(std::span(buffer), source_process_, 0);
       }
       else if(process_ == source_process_) {
-        test(MPI_Send(&bytes, 1, MPI_INT, 0, 0, MPI_COMM_WORLD));
-        test(MPI_Send(data.data(), bytes, MPI_BYTE, 0, 0, MPI_COMM_WORLD));
+        util::mpi::send(bytes, 0, 0, MPI_COMM_WORLD);
+        util::mpi::send(std::span(data), 0, 0, MPI_COMM_WORLD);
       }
     }
 
