@@ -25,7 +25,7 @@ struct ntree_base : base {
     share_ghosts_comms,
     // Buffer for the top tree entities used during the make_tree
     // phase. This is used to perform an AllGather via multi
-    // acessors.
+    // accessors.
     top_tree_ents,
     // Buffer for the top tree nodes used during the make_tree
     // phase. This is used to perform an AllGather via multi
@@ -124,9 +124,9 @@ protected:
   };
 
   struct color_id {
-    std::size_t color;
+    Color color;
     ent_id id;
-    std::size_t from_color;
+    Color from_color;
   };
 
   static void set_dests(

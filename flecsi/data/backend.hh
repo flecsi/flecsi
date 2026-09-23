@@ -17,9 +17,9 @@ namespace flecsi::data {
 /// \{
 
 // Use {} if unknown:
-enum completeness { unknown = 0, complete = 1, incomplete = 2 };
-using size2 = std::pair<std::size_t, std::size_t>; // rows, columns
-using subrow = std::pair<std::size_t, std::size_t>; // [begin, end)
+enum completeness { complete = 1, incomplete = 2 };
+using size2 = std::pair<std::size_t, util::id>; // rows, columns
+using subrow = std::pair<util::id, util::id>; // [begin, end)
 
 // The size types are independent of backend:
 struct prefixes_base {

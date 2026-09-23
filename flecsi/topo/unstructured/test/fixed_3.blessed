@@ -7,6 +7,9 @@ cell(5,5): 6 7 12 11
 cell(6,6): 7 8 13 12
 cell(10,7): 12 13 18 17
 cell(14,8): 17 18 23 22
+cells(owned): 8 9 12 13
+cells(shared): 8 9 13
+cells(ghost): 4 5 6 10 14
 
 vertex(15,0): 8 12
 vertex(16,1): 8 9 12 13
@@ -24,4 +27,6 @@ vertex(17,12): 9 13 10 14
 vertex(18,13): 10 14
 vertex(22,14): 13 14
 vertex(23,15): 14
-
+vertex(owned): 15 16 20 21
+vertex(shared): 15 16 21
+vertex(ghost): 5 6 7 8 10 11 12 13 17 18 22 23

@@ -60,13 +60,34 @@ New features
   * ``flog::flush`` is available in ``flog.hh``.
   * ``flog::add_output_stream`` no longer requires a stream identifier.
 
-Changes in v2.4.2
+Changes in v2.4.3
 +++++++++++++++++
+
+Possible incompatibilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+* Execution
+
+  * Task parameters are destroyed after the task completes.
+    (They may survive past a future becoming ready.)
+
+Fixed
+^^^^^
+* Legion backend
+
+  * Single tasks no longer occasionally crash when used with tracing.
+
+Changes in v2.4.2 (August 11 2026)
+++++++++++++++++++++++++++++++++++
 
 Deprecated
 ^^^^^^^^^^
+* Runtime
+
+  * ``option_multi`` for the optional ``program_option`` constructor |mdash| has never worked
+
 * Utilities
 
+  * ``FLECSI_TARGET`` and ``FLECSI_INLINE_TAGET`` |mdash| use ``KOKKOS_FUNCTION`` and ``KOKKOS_INLINE_FUNCTION`` respectively
   * SFINAE hook for ``serial::traits`` |mdash| use constraints
 
 * Logging
@@ -89,6 +110,12 @@ Fixed
   * Implicit conversions are applied to elements of ``std::vector`` task arguments (as well as FleCSI-specific transformations for, say, field accessors).
   * Top-level *cv*-qualifiers are ignored in task return types.
 
+* Topologies
+
+  * Ragged ghost copies for ``unstructured`` support ghost patterns that vary by index space.
+  * ``num_intervals`` in the ``unstructured`` ``index_space`` type is documented properly.
+  * ``gcoord`` and ``colors`` in ``narray_base`` are documented properly.
+
 * Legion backend
 
   * MPI tasks with reference parameters support more argument conversions.
@@ -103,6 +130,15 @@ Fixed
 * HPX backend
 
   * The performance of reduction tasks and certain kinds of single tasks is significantly improved.
+
+* On-node parallelism
+
+  * Host-accessible values are copied on first use.
+
+* Utilities
+
+  * ``util::span`` is a C++20 borrowed range.
+  * ``Color`` is documented properly.
 
 Changes in v2.4.1 (October 20 2025)
 +++++++++++++++++++++++++++++++++++

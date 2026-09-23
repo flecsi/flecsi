@@ -5,6 +5,7 @@
 #include "flecsi/execution.hh"
 #include "flecsi/topo/unstructured/interface.hh"
 #include "flecsi/topo/unstructured/types.hh"
+#include "flecsi/util/geometry/point.hh"
 #include "simple_definition.hh"
 
 #include <string>
@@ -39,9 +40,14 @@ struct fixed_mesh
     vertices>
     vid;
 
+  using point = flecsi::util::point<double, 2>;
+  static const inline flecsi::field<point>::definition<fixed_mesh, vertices>
+    coords;
+
   struct init {
     std::vector<std::vector<flecsi::util::gid>> cid;
     std::vector<std::vector<flecsi::util::gid>> vid;
+    std::vector<std::vector<point>> vertex_coords;
     std::vector<flecsi::util::crs> c2v_connectivity;
   };
 
@@ -56,6 +62,11 @@ struct fixed_mesh
       return B::template entities<index_space::cells>();
     }
 
+    template<typename B::entity_list L>
+    auto cells() const {
+      return B::template special_entities<index_space::cells, L>();
+    }
+
     template<index_space From>
     auto cells(flecsi::topo::id<From> from) const {
       return B::template entities<index_space::cells>(from);
@@ -63,6 +74,11 @@ struct fixed_mesh
 
     auto vertices() const {
       return B::template entities<index_space::vertices>();
+    }
+
+    template<typename B::entity_list L>
+    auto vertices() const {
+      return B::template special_entities<index_space::vertices, L>();
     }
 
     template<index_space From>
@@ -87,6 +103,7 @@ struct fixed_mesh
     simple_definition sd(filename + "." + std::to_string(r.process()));
     fields.cid.push_back(std::move(sd.l2g_cells));
     fields.vid.push_back(std::move(sd.l2g_vertices));
+    fields.vertex_coords.push_back(std::move(sd.vertex_coords));
     fields.c2v_connectivity.push_back(std::move(sd.c2v));
     return {// number of global colors
       ncolors,
@@ -121,15 +138,21 @@ struct fixed_mesh
       flecsi::util::gid>::accessor<flecsi::wo, flecsi::wo, flecsi::na>> mcid,
     flecsi::data::multi<flecsi::field<
       flecsi::util::gid>::accessor<flecsi::wo, flecsi::wo, flecsi::na>> mvid,
+    flecsi::data::multi<
+      flecsi::field<point>::accessor<flecsi::wo, flecsi::wo, flecsi::na>>
+      mcoords,
     const std::vector<std::vector<flecsi::util::gid>> & cid,
     const std::vector<std::vector<flecsi::util::gid>> & vid,
+    const std::vector<std::vector<point>> & coords,
     flecsi::exec::group::match) noexcept {
     const auto ma = m.accessors();
     auto acid = mcid.accessors();
     auto avid = mvid.accessors();
+    auto acoords = mcoords.accessors();
     for(unsigned int i = 0; i < m.depth(); ++i) {
       for(auto v : ma[i].vertices()) {
         avid[i][v] = vid[i][v];
+        acoords[i][v] = coords[i][v];
       }
       for(auto c : ma[i].cells()) {
         acid[i][c] = cid[i][c];
@@ -137,15 +160,96 @@ struct fixed_mesh
     }
   } // init_mesh_ids
 
+  static auto get_owned(const base::index_color & ic) {
+    using namespace flecsi;
+    std::vector<util::id> ownd;
+    std::set<util::id> ghst = ic.ghosts();
+
+    for(util::id e = 0; e < ic.entities; ++e) {
+      if(!ghst.count(e)) {
+        ownd.push_back(e);
+      }
+    }
+    return ownd;
+  }
+
+  static auto get_shared(const base::index_color & ic) {
+    std::set<flecsi::util::id> shr;
+    for(auto & p : ic.peers) {
+      shr.insert(p.second.shared.begin(), p.second.shared.end());
+    }
+    return shr;
+  }
+
+  static auto get_exclusive(const base::index_color & ic) {
+    const auto ss = get_shared(ic);
+    std::vector<flecsi::util::id> ex;
+    for(auto o : get_owned(ic))
+      if(!ss.count(o))
+        ex.push_back(o);
+    return ex;
+  }
+
+  template<entity_list E>
+  static auto get_list(const base::index_color & ic) {
+    if constexpr(E == owned) {
+      return get_owned(ic);
+    }
+    else if constexpr(E == shared) {
+      return get_shared(ic);
+    }
+    else {
+      static_assert(E == ghost);
+      return ic.ghosts();
+    }
+  }
+
+  template<entity_list E>
+  static void allocate_list(flecsi::topo::resize::Field::accessor<flecsi::wo> a,
+    const std::vector<base::index_color> * vic,
+    flecsi::exec::group::match,
+    flecsi::exec::mapping::point us) noexcept {
+    a = get_list<E>((*vic)[us.local().index]).size();
+  }
+
+  template<entity_list E>
+  static void populate_list(
+    flecsi::field<flecsi::util::id>::accessor<flecsi::wo> a,
+    const std::vector<base::index_color> * vic,
+    flecsi::exec::group::match,
+    flecsi::exec::mapping::point us) noexcept {
+    auto elements = get_list<E>((*vic)[us.local().index]);
+    std::copy(elements.begin(), elements.end(), a.span().begin());
+  }
+
+  template<index_space I, entity_list E>
+  static void init_list(flecsi::scheduler & s,
+    fixed_mesh::topology & m,
+    coloring const & c,
+    const flecsi::exec::group & grp,
+    const flecsi::exec::mapping & map) {
+    using namespace flecsi;
+    using namespace topo::unstructured_impl;
+
+    auto & el = m.get_special_entities<I, E>();
+    const auto p = &c.idx_spaces[topology::index<I>].colors;
+
+    s.execute<allocate_list<E>>(el.sizes(), p, grp, map);
+    el.resize();
+
+    s.execute<populate_list<E>>(m.special_field(el), p, grp, map).wait();
+  }
+
   static void initialize(flecsi::scheduler & s,
     fixed_mesh::topology & m,
-    coloring const &,
+    coloring const & c,
     const init & fields) {
     using namespace flecsi;
     auto & c2v = m.get_connectivity<fixed_mesh::cells, fixed_mesh::vertices>();
     auto & v2c = m.get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>();
 
     const auto grp = exec::group::world();
+    const auto blk = exec::mapping::block();
     auto lm = data::launch::make(s, m);
     s.execute<
       topo::unstructured_impl::init_connectivity<privilege_count<cells>>>(
@@ -155,7 +259,21 @@ struct fixed_mesh
     constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
     s.execute<topo::unstructured_impl::transpose<NPC, NPV>>(c2v(m), v2c(m));
 
-    s.execute<init_mesh_ids>(lm, cid(lm), vid(lm), fields.cid, fields.vid, grp);
+    init_list<index_space::cells, entity_list::owned>(s, m, c, grp, blk);
+    init_list<index_space::cells, entity_list::shared>(s, m, c, grp, blk);
+    init_list<index_space::cells, entity_list::ghost>(s, m, c, grp, blk);
+    init_list<index_space::vertices, entity_list::owned>(s, m, c, grp, blk);
+    init_list<index_space::vertices, entity_list::shared>(s, m, c, grp, blk);
+    init_list<index_space::vertices, entity_list::ghost>(s, m, c, grp, blk);
+
+    s.execute<init_mesh_ids>(lm,
+      cid(lm),
+      vid(lm),
+      coords(lm),
+      fields.cid,
+      fields.vid,
+      fields.vertex_coords,
+      grp);
   } // initialize
 }; // struct fixed_mesh
 

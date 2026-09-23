@@ -69,7 +69,7 @@ struct topology<Policy, narray_base>
   }
 
   template<index_space S>
-  static constexpr std::size_t index = index_spaces::template index<S>;
+  static constexpr IndexSpace index = index_spaces::template index<S>;
 
   template<index_space S>
   data::region & get_region() {
@@ -191,11 +191,10 @@ private:
     }
 
     using points = std::map<Color,
-      std::vector<std::pair</* local ghost offset, remote shared offset */
-        std::size_t,
-        std::size_t>>>;
+      std::vector<
+        std::pair<util::id /* ghost */, util::id /* remote shared */>>>;
 
-    using intervals = std::vector<std::pair<std::size_t, std::size_t>>;
+    using intervals = std::vector<data::subrow>;
 
     // The index_definition provides the layout of other colors to compute
     // shared offsets.
@@ -208,7 +207,7 @@ private:
       const linearize<dimension, Color> global{md.colors()};
 
       points points;
-      std::vector<std::size_t> ghost;
+      std::vector<util::id> ghost;
       for(const auto & [ngh, reg] : md.traffic(false)) {
         const auto src = md.neighbor(ngh);
         linearize<dimension> remote;
@@ -297,7 +296,7 @@ private:
                                "std::size_t limits");
               }
               return partitions;
-            }()](std::size_t i) { return p[i]; })...}},
+            }()](Color i) { return p[i]; })...}},
       plan_{{make_copy_plan<CI>(s, c.idx_colorings[index<CI>])...}},
       ragged_buffers_{{data::buffers::topology(s,
         meta_data::peers(c.idx_colorings[index<CI>]))...}} {
@@ -322,7 +321,7 @@ private:
     field<data::intervals::Value>::accessor<wo> a,
     const index_definition * idef) noexcept {
     const auto c = s.launch().index;
-    std::size_t i{0};
+    util::id i = 0;
     for(auto & it : meta_data::ghosts(*idef, c).second)
       a[i++] = data::intervals::make({it.first, it.second}, c);
   }
@@ -362,7 +361,7 @@ private:
   static void set_meta(exec::cpu s,
     typename policy_meta::Field::template accessor<wo> m,
     const coloring * c) noexcept {
-    std::size_t index{0};
+    IndexSpace index{0};
     (
       [&] {
         const auto & idef = c->idx_colorings[index++];
@@ -372,7 +371,7 @@ private:
       ...);
   }
 
-  auto & get_sizes(std::size_t i) {
+  auto & get_sizes(IndexSpace i) {
     return part_[i].sz;
   }
 
@@ -510,7 +509,7 @@ struct topology<Policy, narray_base>::access {
   /// \host, although the values in
   /// \a a are typically not.
   template<index_space S, typename T, Privileges P>
-  FLECSI_INLINE_TARGET auto mdspan(
+  KOKKOS_INLINE_FUNCTION auto mdspan(
     data::accessor<data::dense, T, P> const & a) const {
     auto const s = a.span();
     return util::mdspan(s.data(), check_extents<S>(s));
@@ -520,7 +519,7 @@ struct topology<Policy, narray_base>::access {
   /// \a a are typically not.
   /// \return \c util::mdcolex
   template<index_space S, typename T, Privileges P>
-  FLECSI_INLINE_TARGET auto mdcolex(
+  KOKKOS_INLINE_FUNCTION auto mdcolex(
     data::accessor<data::dense, T, P> const & a) const {
     const auto s = a.span();
     return util::mdcolex(s.data(), check_extents<S>(s));
@@ -528,7 +527,7 @@ struct topology<Policy, narray_base>::access {
 
   template<class F>
   void send(F && f) {
-    std::size_t i{0};
+    IndexSpace i{0};
     for(auto & a : size_)
       f(a, [&i](auto & n) { return topo::resize::field(n.get_sizes(i++)); });
     std::forward<F>(f)(meta_, [](auto & n) { return meta_field(n.meta); });
@@ -557,7 +556,7 @@ private:
    axis A.  \host.
   */
   template<index_space S, Axis A>
-  FLECSI_INLINE_TARGET util::gid global() const {
+  KOKKOS_INLINE_FUNCTION util::gid global() const {
     return get_axis<S, A>().axis.extent;
   }
 
@@ -568,17 +567,17 @@ private:
    \host.
   */
   template<index_space S, Axis A>
-  FLECSI_INLINE_TARGET util::gid offset() const {
+  KOKKOS_INLINE_FUNCTION util::gid offset() const {
     return get_axis<S, A>().offset;
   }
 
   template<index_space S, Axis A>
-  FLECSI_INLINE_TARGET util::id extent() const {
+  KOKKOS_INLINE_FUNCTION util::id extent() const {
     return get_axis<S, A>()().extent();
   }
 
   template<index_space S, auto... A>
-  FLECSI_INLINE_TARGET auto extents(util::constants<A...>) const {
+  KOKKOS_INLINE_FUNCTION auto extents(util::constants<A...>) const {
     util::key_array<util::gid, axes> ext{{extent<S, A>()...}};
     return ext;
   }
@@ -588,7 +587,7 @@ private:
     \host.
    */
   template<index_space S>
-  FLECSI_INLINE_TARGET auto extents() const {
+  KOKKOS_INLINE_FUNCTION auto extents() const {
     return extents<S>(axes());
   }
 
@@ -599,8 +598,8 @@ private:
      @tparam P Value 0 denotes lower bound, and value 1 denotes upper
                bound.
     */
-  template<index_space S, Axis A, std::size_t P>
-  FLECSI_INLINE_TARGET util::id logical() const {
+  template<index_space S, Axis A, axis_layout::End P>
+  KOKKOS_INLINE_FUNCTION util::id logical() const {
     return get_axis<S, A>()().template logical<P>();
   }
 
@@ -611,8 +610,8 @@ private:
     @tparam P Value 0 denotes lower bound, and value 1 denotes upper
               bound.
    */
-  template<index_space S, Axis A, std::size_t P>
-  FLECSI_INLINE_TARGET util::id extended() const {
+  template<index_space S, Axis A, axis_layout::End P>
+  KOKKOS_INLINE_FUNCTION util::id extended() const {
     const axis_color & a = get_axis<S, A>();
     if constexpr(P == 0) {
       return a.low() ? 0 : a().logical<P>();
@@ -623,14 +622,14 @@ private:
 protected:
   /// Get the specialization's metadata.
   /// \host.
-  FLECSI_INLINE_TARGET auto & policy_meta() const {
+  KOKKOS_INLINE_FUNCTION auto & policy_meta() const {
     return meta_->policy;
   }
 
   /// Get axis information.
   /// \host.
   template<index_space S, Axis A>
-  FLECSI_INLINE_TARGET axis_info axis() const {
+  KOKKOS_INLINE_FUNCTION axis_info axis() const {
     return get_axis<S, A>();
   }
 
@@ -641,7 +640,7 @@ protected:
    \deprecated Use \c axis_color::low.
   */
   template<index_space S, Axis A>
-  [[deprecated("use axis_color::low")]] FLECSI_INLINE_TARGET bool
+  [[deprecated("use axis_color::low")]] KOKKOS_INLINE_FUNCTION bool
   is_low() const {
     return get_axis<S, A>().low();
   }
@@ -653,7 +652,7 @@ protected:
    \deprecated Use \c axis_color::high.
   */
   template<index_space S, Axis A>
-  [[deprecated("use axis_color::high")]] FLECSI_INLINE_TARGET bool
+  [[deprecated("use axis_color::high")]] KOKKOS_INLINE_FUNCTION bool
   is_high() const {
     return get_axis<S, A>().high();
   }
@@ -666,7 +665,7 @@ protected:
   */
   template<index_space S, Axis A>
   [[deprecated("use axis_color::low and axis_color::high")]]
-  FLECSI_INLINE_TARGET bool is_interior() const {
+  KOKKOS_INLINE_FUNCTION bool is_interior() const {
     return !is_low<S, A>() && !is_high<S, A>();
   }
 
@@ -678,7 +677,7 @@ protected:
   */
   template<index_space S, Axis A>
   [[deprecated("use axis_color::low and axis_color::high")]]
-  FLECSI_INLINE_TARGET bool is_degenerate() const {
+  KOKKOS_INLINE_FUNCTION bool is_degenerate() const {
     return is_low<S, A>() && is_high<S, A>();
   }
 
@@ -690,7 +689,7 @@ protected:
      \deprecated Use \c axis_color::global_id.
   */
   template<index_space S, Axis A>
-  [[deprecated("use axis_color::global_id")]] FLECSI_INLINE_TARGET util::gid
+  [[deprecated("use axis_color::global_id")]] KOKKOS_INLINE_FUNCTION util::gid
   global_id(util::id logical_id) const {
     return get_axis<S, A>().global_id(logical_id);
   }
@@ -701,7 +700,7 @@ protected:
     \deprecated Use \c axis_layout.
   */
   template<index_space S, Axis A, domain DM>
-  [[deprecated("use axis_layout")]] FLECSI_INLINE_TARGET auto size() const {
+  [[deprecated("use axis_layout")]] KOKKOS_INLINE_FUNCTION auto size() const {
     if constexpr(DM == domain::logical) {
       return logical<S, A, 1>() - logical<S, A, 0>();
     }
@@ -743,7 +742,7 @@ protected:
      \deprecated Use \c axis_layout.
    */
   template<index_space S, Axis A, domain DM>
-  [[deprecated("use axis_layout")]] FLECSI_INLINE_TARGET auto range() const {
+  [[deprecated("use axis_layout")]] KOKKOS_INLINE_FUNCTION auto range() const {
     static_assert(DM != domain::global, "no global range");
     const auto o = offset<S, A, DM>();
     return make_ids<S>(util::iota_view<util::id>(o, o + size<S, A, DM>()));
@@ -755,7 +754,7 @@ protected:
     \deprecated Use \c axis_layout.
   */
   template<index_space S, Axis A, domain DM>
-  [[deprecated("use axis_layout")]] FLECSI_INLINE_TARGET util::gid
+  [[deprecated("use axis_layout")]] KOKKOS_INLINE_FUNCTION util::gid
   offset() const {
     if constexpr(DM == domain::logical) {
       return logical<S, A, 0>();
@@ -786,7 +785,7 @@ protected:
 
 private:
   template<index_space S, Axis A>
-  FLECSI_INLINE_TARGET const axis_color & get_axis() const {
+  KOKKOS_INLINE_FUNCTION const axis_color & get_axis() const {
     return meta_->index.template get<S>().axcol.template get<A>();
   }
 }; // struct narray<Policy>::access

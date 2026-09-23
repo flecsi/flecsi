@@ -17,7 +17,7 @@ poisson::action::solve(control_policy & cp) {
   auto & s = cp.scheduler();
   double err{std::numeric_limits<double>::max()};
 
-  std::size_t sub{100};
+  const unsigned short sub = 100;
   std::size_t ita{0};
 
   // The tracing utility traces and optimizes loops during a Legion run. In this
@@ -37,7 +37,7 @@ poisson::action::solve(control_policy & cp) {
     util::annotation::guard<util::annotation::execution,
       util::annotation::detail::low>
       aguard("poisson-cycle");
-    for(std::size_t i{0}; i < sub; ++i) {
+    for(auto i = sub; i--;) {
       s.execute<task::red>(exec::on, *cp.m, ud(*cp.m), fd(*cp.m));
       s.execute<task::black>(exec::on, *cp.m, ud(*cp.m), fd(*cp.m));
     } // for

@@ -8,9 +8,9 @@
 namespace flecsi {
 namespace flog {
 
-task_local<std::size_t> state::cur_tag;
+task_local<state::Tag> state::cur_tag;
 
-std::size_t &
+state::Tag &
 state::active_tag() {
   return *cur_tag;
 }
@@ -91,7 +91,7 @@ state::send_to_one(bool last, MPI_Comm c) {
   std::unique_lock lk(packets_mutex_);
 
   if(source_process_ != 0 && processes_ > 1) {
-    std::vector<int> sizes(process_ ? 0 : processes_), offsets(sizes);
+    std::vector<int> offsets(process_ ? 0 : processes_);
     std::vector<std::byte> data, buffer;
 
     if(process_ != 0 && active_process())
@@ -100,6 +100,7 @@ state::send_to_one(bool last, MPI_Comm c) {
     int bytes = data.size();
 
     if(source_process_ == all_processes) {
+      std::vector<int> sizes = offsets;
       test(MPI_Gather(&bytes, 1, MPI_INT, sizes.data(), 1, MPI_INT, 0, c));
 
       if(process_ == 0) {
@@ -124,20 +125,13 @@ state::send_to_one(bool last, MPI_Comm c) {
     }
     else {
       if(process_ == 0) {
-        test(MPI_Recv(
-          &bytes, 1, MPI_INT, source_process_, 0, c, MPI_STATUS_IGNORE));
+        util::mpi::recv(bytes, source_process_, 0, c);
         buffer.resize(bytes);
-        test(MPI_Recv(buffer.data(),
-          bytes,
-          MPI_BYTE,
-          source_process_,
-          0,
-          c,
-          MPI_STATUS_IGNORE));
+        util::mpi::recv(std::span(buffer), source_process_, 0, c);
       }
       else if(process_ == source_process_) {
-        test(MPI_Send(&bytes, 1, MPI_INT, 0, 0, c));
-        test(MPI_Send(data.data(), bytes, MPI_BYTE, 0, 0, c));
+        util::mpi::send(bytes, 0, 0, c);
+        util::mpi::send(std::span(data), 0, 0, c);
       }
     }
 
@@ -145,8 +139,8 @@ state::send_to_one(bool last, MPI_Comm c) {
       for(Color p = 1; p < processes_; ++p) {
 
         if(source_process_ == all_processes || p == source_process_) {
-          auto remote_packets = util::serial::get1<std::vector<packet_t>>(
-            buffer.data() + offsets[p]);
+          auto remote_packets =
+            util::serial::get1<decltype(packets_)>(buffer.data() + offsets[p]);
 
           packets_.insert(packets_.end(),
             std::move_iterator(remote_packets.begin()),

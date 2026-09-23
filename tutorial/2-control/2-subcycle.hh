@@ -33,11 +33,11 @@ struct control_policy : flecsi::run::control_base {
     Define a function to access the substep_ data member;
    */
 
-  size_t & substep() {
+  std::size_t & substep() {
     return substep_;
   }
 
-  size_t & step() {
+  std::size_t & step() {
     return step_;
   }
 
@@ -66,8 +66,7 @@ struct control_policy : flecsi::run::control_base {
     list<point<cp::initialize>, main_cycle, point<cp::finalize>>;
 
 private:
-  size_t substep_{0};
-  size_t step_{0};
+  std::size_t substep_ = 0, step_ = 0;
 };
 
 using control = flecsi::run::control<control_policy>;

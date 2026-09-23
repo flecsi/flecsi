@@ -30,7 +30,7 @@ FleCSI will define the preprocessor macro ``FLECSI_BACKEND`` as an integer :samp
 The reference backend uses Legion for these purposes, which imposes `stringent requirements <https://legion.stanford.edu/tutorial/hybrid.html>`_ on the application because of its implicit operation across processors and memory spaces.
 The conceit is that code (in FleCSI and its clients) that is compatible with Legion will also work with most other backends.
 
-The MPI backend uses MPI to transfer data; since MPI does not facilitate general allocation and task launches, these are implemented in terms of ordinary C++ constructs.
+The MPI backend uses MPI to transfer data; since MPI does not facilitate general allocation and task launches, these are implemented in terms of Kokkos and ordinary C++ constructs.
 It is not intended that it support every FleCSI feature, since some would require implementing a task system of complexity comparable to that of Legion.
 Neither is it required for using existing MPI-based libraries; Legion itself uses MPI and can be made compatible with them.
 The HPX backend also uses MPI for the data transfer; it however only supports trivial launch maps.
@@ -167,7 +167,7 @@ Mutators also have permissions: write-only mutators (re)initialize a field (to a
 Multiple permissions distinguish mutators that trigger ghost copies from those that implement them.
 
 Accessors of different layouts form a hierarchy parallel to that of field definitions.
-The ultimately underlying ``raw`` accessors merely store a ``util::span<T>``.
+The ultimately underlying ``raw`` accessors merely store a ``std::span<T>``.
 Higher-level accessors implement additional behavior, including certain automatic task launches.
 Additionally, ``ragged`` mutators are implemented in terms of the same underlying accessors as ``ragged`` accessors, and ``sparse`` mutators are in turn a wrapper around them.
 All these types are defined in ``accessor.hh``, but the (undefined) primary templates are declared in the lower-level ``field.hh``.

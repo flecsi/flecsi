@@ -19,14 +19,14 @@ struct spec_setopo_t : topo::specialization<topo::set, spec_setopo_t> {
     coloring c;
 
     c.ptr = ptr;
-    c.counts = std::vector<std::size_t>(ptr->colors(), 100);
+    c.counts = std::vector<util::id>(ptr->colors(), 100);
     return c;
   }
 };
 
 struct Particle {
   double pressure;
-  std::size_t cgid;
+  util::gid cgid;
 };
 
 using accessorm = spec_setopo_t::mesh_type::accessor<ro, ro, ro>;

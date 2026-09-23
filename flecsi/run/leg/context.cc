@@ -105,6 +105,8 @@ context_t::start(const std::function<int()> & action, bool check_args) {
   context::threads_per_process_ = 1;
   threads_ = processes() * threads_per_process_;
 
+  const auto param_clean = params.clean();
+
   Runtime::start(argv.size(), pointers(argv).data(), true, true, true);
 #ifdef GASNET_CONDUIT_MPI
   util::mpi::init::finalize = false;
@@ -126,6 +128,44 @@ context_t::start(const std::function<int()> & action, bool check_args) {
 
   return Legion::Runtime::wait_for_shutdown();
 } // context_t::start
+
+void
+param_locker::run() {
+  task_idx i;
+  const auto b = [&] {
+    util::mpi::test(MPI_Bcast(&i, 1, util::mpi::type<decltype(i)>(), 0, comm));
+  };
+  if(!rank(comm)) {
+    for(bool closed = false, done = false; !done;) {
+      recv(i, MPI_ANY_SOURCE, 0, comm);
+      if(!i) {
+        closed = true;
+        if(lease(), tasks.empty())
+          done = true;
+      }
+      else if(lease(), [&, it = tasks.try_emplace(i).first] {
+                const bool zero = !--it->second.ref;
+                if(zero) {
+                  tasks.erase(it);
+                  if(closed && tasks.empty())
+                    done = true;
+                }
+                return zero;
+              }())
+        b();
+    }
+    i = 0;
+    b();
+  }
+  else
+    while(b(), i)
+      lease(), [&] {
+        // If we haven't launched the task yet, make a blocking placeholder:
+        const auto [it, nu] = tasks.try_emplace(i);
+        if(!nu)
+          tasks.erase(it);
+      }();
+}
 
 } // namespace run
 } // namespace flecsi

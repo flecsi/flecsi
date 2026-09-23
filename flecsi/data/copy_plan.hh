@@ -202,7 +202,7 @@ struct topology<P, data::detail::buffers_base> : data::detail::buffers_base,
         Points ret(c.size());
         Color i = 0;
         for(auto & s : c) {
-          std::size_t j = 0;
+          util::id j = 0;
           for(auto & d : s)
             ret[d].push_back(data::copy_engine::point(i, j++));
           ++i;
@@ -333,21 +333,19 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
     /*! Operator to communicate field data
 
      \param rag accessor or mutator for the ragged field to be communicated
-     @param i the index i over the topology index-space of the field, e.g.,
-              cell i for an unstructured topology specialization with cells.
      \param sent set whenever any data is sent, indicating that another
        iteration of \c topology::xfer is required to receive it
 
      \return boolean indicating that row data can be fitted in the buffer.
     */
     template<class R>
-    [[nodiscard]] bool operator()(const R & rag, std::size_t i, bool & sent) {
+    [[nodiscard]] bool operator()(const R & rag, util::id i, bool & sent) {
       const auto full = [&] {
         flog_assert(sent, "no data fits");
         return false;
       };
       const auto row = rag[i];
-      const auto n = row.size();
+      const util::id n = row.size();
       if(skip > n)
         skip -= n + 1;
       else {
@@ -389,7 +387,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
       if(!r) // resumption information exists only if any rows were sent
         return;
       const auto e = ghost.end();
-      auto g = std::next(ghost.begin(), r.get<std::size_t>());
+      auto g = std::next(ghost.begin(), r.get<decltype(rows)>());
       bool resume = r();
       for(; g != e; ++g) {
         const auto row = rag[*g];
@@ -399,7 +397,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
           resume = false;
         else
           row.clear();
-        std::size_t n = r();
+        util::id n = r();
         row.reserve(row.size() + n);
         while(r && n--)
           row.push_back(r());
@@ -411,7 +409,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
     // We simply count elements sent, since many ghost visitors will be
     // sequential anyway.  To avoid ambiguity for empty rows, we also count
     // the size of a row as an element.
-    std::size_t rows = 0, skip;
+    util::id rows = 0, skip;
     Buffer::writer w;
   };
 };

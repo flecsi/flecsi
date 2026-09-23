@@ -39,6 +39,7 @@ struct topology {
   topology(topology &&) = delete; // some internal topologies are movable
 
   /// Return the number of colors over which the topology is partitioned.
+  /// This is not implemented by the unpartitioned \c global topology.
   Color colors() const;
 };
 #else
@@ -125,6 +126,8 @@ struct scheduler {
   ///   parameters/arguments (with the unusual corollary that a
   ///   `std::vector<int>` matches a parameter of type `std::vector<long>`).
   /// \return a \ref future providing the value(s) returned from the task
+  /// \warning Parameters are destroyed asynchronously, perhaps after the
+  ///   future becomes ready.
   template<auto & F, class... AA>
   auto execute(AA &&... aa) {
     return reduce<F, void>(std::forward<AA>(aa)...);

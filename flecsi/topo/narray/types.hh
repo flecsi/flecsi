@@ -26,7 +26,6 @@ namespace narray_impl {
 using coord = std::vector<util::id>;
 using gcoord = std::vector<util::gid>;
 using hypercube = std::array<coord, 2>;
-using interval = std::pair<std::size_t, std::size_t>;
 using colors = std::vector<Color>;
 
 /// \cond core
@@ -180,7 +179,9 @@ struct linearize {
  \image html narray-layout.svg "Layouts for each possible orientation." width=100%
  */
 struct axis_layout {
-  FLECSI_INLINE_TARGET axis_layout(util::id bdepth,
+  using End = short;
+
+  KOKKOS_INLINE_FUNCTION axis_layout(util::id bdepth,
     util::id log,
     util::id halo_up, // depth of points communicated upward
     util::id halo_down,
@@ -194,12 +195,12 @@ struct axis_layout {
   /// The local extent of this color. This is the full size including
   /// boundary depth, and ghosts. The "extent" coordinate implicitly
   /// defines a range [0, extent[.
-  FLECSI_INLINE_TARGET util::id extent() const {
+  KOKKOS_INLINE_FUNCTION util::id extent() const {
     return both(bdy) + both(gh) + log;
   }
   /// Return a range of all (local) indices.
   /// \return range of \c util::id
-  FLECSI_INLINE_TARGET auto all() const {
+  KOKKOS_INLINE_FUNCTION auto all() const {
     return util::iota_view({}, extent());
   }
 
@@ -207,14 +208,14 @@ struct axis_layout {
   /// for this color without
   /// boundary padding or ghosts.
   /// \tparam E 0 or 1 for beginning or end
-  template<short E>
-  FLECSI_INLINE_TARGET util::id logical() const {
+  template<End E>
+  KOKKOS_INLINE_FUNCTION util::id logical() const {
     static_assert(E == 0 || E == 1);
     return bdy[0] + gh[0] + E * log;
   }
   /// Return a range of all logical indices.
   /// \return range of \c util::id
-  FLECSI_INLINE_TARGET auto logical() const {
+  KOKKOS_INLINE_FUNCTION auto logical() const {
     return util::iota_view(logical<0>(), logical<1>());
   }
 
@@ -225,8 +226,8 @@ struct axis_layout {
   /// end can come first if an entity is shared with both neighbors.
   /// \tparam E 0 or 1 for beginning or end
   /// \endif
-  template<short E>
-  FLECSI_INLINE_TARGET util::id exclusive() const {
+  template<End E>
+  KOKKOS_INLINE_FUNCTION util::id exclusive() const {
     static_assert(E == 0 || E == 1);
     return bdy[0] + gh[0] + (E ? log - shr[1] : shr[0]);
   }
@@ -234,8 +235,8 @@ struct axis_layout {
   /// The beginning or end index of the domain entities, including logical and
   /// ghost entities.
   /// \tparam E 0 or 1 for beginning or end
-  template<short E>
-  FLECSI_INLINE_TARGET util::id ghost() const {
+  template<End E>
+  KOKKOS_INLINE_FUNCTION util::id ghost() const {
     static_assert(E == 0 || E == 1);
     return bdy[0] + E * (both(gh) + log);
   }
@@ -248,14 +249,14 @@ struct axis_layout {
   ///   halo_depth_low = extended<0>();
   ///   halo_depth_high = extent() - extended<1>();\endcode
   /// \tparam E 0 or 1 for beginning or end
-  template<short E>
-  FLECSI_INLINE_TARGET util::id extended() const {
+  template<End E>
+  KOKKOS_INLINE_FUNCTION util::id extended() const {
     static_assert(E == 0 || E == 1);
     return gh[0] + E * (both(bdy) + log);
   }
   /// Return a range of all extended indices.
   /// \return range of \c util::id
-  FLECSI_INLINE_TARGET auto extended() const {
+  KOKKOS_INLINE_FUNCTION auto extended() const {
     return util::iota_view(extended<0>(), extended<1>());
   }
 
@@ -265,7 +266,7 @@ struct axis_layout {
   }
 
 private:
-  FLECSI_INLINE_TARGET static util::id both(const util::id (&a)[2]) {
+  KOKKOS_INLINE_FUNCTION static util::id both(const util::id (&a)[2]) {
     return a[0] + a[1];
   }
 
@@ -298,11 +299,11 @@ struct axis_color {
   util::gid offset;
 
   /// Whether the current color is at the low end of the axis.
-  FLECSI_INLINE_TARGET bool low() const {
+  KOKKOS_INLINE_FUNCTION bool low() const {
     return !color;
   }
   /// Whether the color is at the high end of the axis.
-  FLECSI_INLINE_TARGET bool high() const {
+  KOKKOS_INLINE_FUNCTION bool high() const {
     return color == axis.colors - 1;
   }
 
@@ -311,7 +312,7 @@ struct axis_color {
   }
 
   /// The global index for a given local index.
-  FLECSI_INLINE_TARGET util::gid global_id(util::id i) const {
+  KOKKOS_INLINE_FUNCTION util::gid global_id(util::id i) const {
     const auto al = (*this)();
     const util::id l0 = al.logical<0>(), l1 = al.logical<1>();
     return low() && i < l0     ? axis.extent - l0 + i
@@ -321,7 +322,7 @@ struct axis_color {
 
   // skin indicates the communication with diagonal neighbor colors of
   // auxiliaries associated with non-diagonal primaries.
-  FLECSI_INLINE_TARGET axis_layout operator()(bool skin = false) const {
+  KOKKOS_INLINE_FUNCTION axis_layout operator()(bool skin = false) const {
     const util::id halo_down =
       axis.hdepth + (axis.auxiliary && axis.full_ghosts);
     assert(!skin || halo_down);
@@ -337,7 +338,7 @@ struct axis_color {
 
 /// Collected information about one color along one axis.  \gpu.
 struct axis_info : axis_color {
-  FLECSI_INLINE_TARGET axis_info(const axis_color & a)
+  KOKKOS_INLINE_FUNCTION axis_info(const axis_color & a)
     : axis_color(a), layout(a()) {}
   /// Derived layout information.
   axis_layout layout;
@@ -489,8 +490,10 @@ struct narray_base : base {
   /// The type describing an axis in a task.
   using axis_info = narray_impl::axis_info;
   using coord = narray_impl::coord;
+  /// A `std::vector<util::gid>` of overall domain sizes per axis.
   using gcoord = narray_impl::gcoord;
   using hypercube = narray_impl::hypercube;
+  /// A `std::vector<Color>` of color hyperplanes per axis.
   using colors = narray_impl::colors;
   /// The type for specifying an axis for a coloring.
   using axis_definition = narray_impl::axis_definition;
@@ -511,7 +514,7 @@ struct narray_base : base {
      end of a periodic axis as boundary points, not ghosts.
    \deprecated Use \c axis_color and \c axis_layout.
   */
-  enum class /* [[deprecated]] would warn internally */ domain : std::size_t {
+  enum class /* [[deprecated]] would warn internally */ domain {
     logical, ///<  the logical, i.e., the owned part of the axis
     extended, ///< the boundary padding along with the logical part
     all, ///< the ghost padding along with the logical part
@@ -573,7 +576,7 @@ struct narray_base : base {
   static std::vector<axis_definition> make_axes(const colors & color_dist,
     const gcoord & indices) {
     std::vector<axis_definition> axes;
-    for(std::size_t d = 0; d < indices.size(); d++) {
+    for(Dimension d = 0; d < indices.size(); d++) {
       flecsi::util::equal_map em{indices[d], color_dist[d]};
       axes.push_back({em});
     }

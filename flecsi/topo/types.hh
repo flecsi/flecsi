@@ -78,7 +78,7 @@ struct lists : lists_t<typename array<P>::topology, P> {
   explicit lists(scheduler & s, Color nc)
     : lists(s, nc, typename P::entity_lists()) {}
 
-  // TODO: std::vector<std::vector<std::vector<std::size_t>>> for direct
+  // TODO: std::vector<std::vector<std::vector<util::id>>> for direct
   // coloring-based allocation?
 
 private:
@@ -135,65 +135,65 @@ struct id {
   using difference_type = std::make_signed_t<T>;
 
   id() = default; // allow trivial default initialization
-  FLECSI_INLINE_TARGET explicit id(T t) : t(t) {}
+  KOKKOS_INLINE_FUNCTION explicit id(T t) : t(t) {}
 
   id(const id &) = default;
 
-  FLECSI_INLINE_TARGET operator T() const {
+  KOKKOS_INLINE_FUNCTION operator T() const {
     return t;
   }
 
   // Prevent assigning to transform_view results:
   id & operator=(const id &) & = default;
 
-  FLECSI_INLINE_TARGET id & operator++() & {
+  KOKKOS_INLINE_FUNCTION id & operator++() & {
     ++t;
     return *this;
   }
-  [[nodiscard]] FLECSI_INLINE_TARGET id operator++(int) & {
+  [[nodiscard]] KOKKOS_INLINE_FUNCTION id operator++(int) & {
     id ret = *this;
     ++*this;
     return ret;
   }
-  FLECSI_INLINE_TARGET id & operator--() & {
+  KOKKOS_INLINE_FUNCTION id & operator--() & {
     --t;
     return *this;
   }
-  [[nodiscard]] FLECSI_INLINE_TARGET id operator--(int) & {
+  [[nodiscard]] KOKKOS_INLINE_FUNCTION id operator--(int) & {
     id ret = *this;
     --*this;
     return ret;
   }
 
   template<typename D>
-  FLECSI_INLINE_TARGET id & operator+=(D d) & {
+  KOKKOS_INLINE_FUNCTION id & operator+=(D d) & {
     static_assert(
       std::is_integral_v<D>, "Invalid addend type for flecsi::topo::id");
     t += d;
     return *this;
   }
   template<typename D>
-  FLECSI_INLINE_TARGET id operator+(D d) const {
+  KOKKOS_INLINE_FUNCTION id operator+(D d) const {
     id c = *this;
     return c += d;
   }
   template<typename D>
-  FLECSI_INLINE_TARGET friend id operator+(D d, id i) {
+  KOKKOS_INLINE_FUNCTION friend id operator+(D d, id i) {
     return i += d;
   }
   template<typename D>
-  FLECSI_INLINE_TARGET id & operator-=(D d) & {
+  KOKKOS_INLINE_FUNCTION id & operator-=(D d) & {
     static_assert(
       std::is_integral_v<D>, "Invalid subtrahend type for flecsi::topo::id");
     t -= d;
     return *this;
   }
   template<typename D>
-  FLECSI_INLINE_TARGET id operator-(D d) const {
+  KOKKOS_INLINE_FUNCTION id operator-(D d) const {
     id c = *this;
     return c -= d;
   }
-  FLECSI_INLINE_TARGET difference_type operator-(id i) const {
+  KOKKOS_INLINE_FUNCTION difference_type operator-(id i) const {
     return difference_type(t) - difference_type(i.t);
   }
   template<typename D>
@@ -209,7 +209,7 @@ private:
 /// \param c range of integers
 /// \return a range of \c id\<S\> objects
 template<auto S, class C>
-FLECSI_INLINE_TARGET auto
+KOKKOS_INLINE_FUNCTION auto
 make_ids(C && c) {
   return util::transform_view(
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
@@ -221,7 +221,7 @@ template<class R>
 std::vector<data::subrow>
 rle(const R & r) {
   std::vector<data::subrow> ret;
-  std::size_t start = 0, last = 0;
+  util::id start = 0, last = 0;
   const auto out = [&] {
     if(start != last)
       ret.emplace_back(start, last);

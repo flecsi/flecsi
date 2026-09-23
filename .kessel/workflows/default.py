@@ -1,4 +1,4 @@
-from kessel.workflows import environment
+from kessel.workflows import environment, collapsed
 from kessel.workflows.base.spack import BuildEnvironment
 from kessel.workflows.base.cmake import CMake
 
@@ -14,6 +14,7 @@ class Default(BuildEnvironment, CMake):
     def build_noflog(self, args):
         """Build (without FLOG)"""
         cmake_args = [
+            self.define("ENABLE_DOCUMENTATION_IN_ALL_TARGET", False),
             self.define("ENABLE_FLOG", False),
             self.define("ENABLE_UNIT_TESTS", False),
             self.define("ENABLE_DEVELOPER_WARNINGS", True)
@@ -28,3 +29,7 @@ class Default(BuildEnvironment, CMake):
             self.define("ENABLE_DEVELOPER_WARNINGS", True)
         ]
         super().build(args, cmake_args)
+
+    @collapsed
+    def install(self, args):
+        super().install(args)

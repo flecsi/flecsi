@@ -41,6 +41,8 @@ reduce_internal(Args &&... args) {
   auto legion_context = Legion::Runtime::get_context();
 
   const auto domain_size = launch::size(args...);
+  static constexpr bool single =
+    std::is_same_v<decltype(domain_size), const std::monostate>;
 
   util::any any;
   auto & params =
@@ -55,9 +57,13 @@ reduce_internal(Args &&... args) {
     flecsi_context.sync_params = &sync_params.emplace(std::move(params));
   }
   else {
-    const auto t = trace::current();
-    buf = util::serial::put_tuple(
-      flecsi_context.params.add(std::move(any), t ? t->next() : nullptr));
+    buf =
+      util::serial::put_tuple(flecsi_context.params.add(std::move(any), [&] {
+        if constexpr(single)
+          return 1;
+        else
+          return domain_size;
+      }()));
   }
 
   // Replace the MPI "processor type" with an actual flag:
@@ -83,7 +89,7 @@ reduce_internal(Args &&... args) {
   };
 
   auto ret = [&] {
-    if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
+    if constexpr(single) {
       TaskLauncher launcher(task, TaskArgument(buf.data(), buf.size()));
       add(launcher);
 

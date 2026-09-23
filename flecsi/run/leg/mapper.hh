@@ -43,21 +43,6 @@ public:
     }
   }
 
-  void select_task_options(const Legion::Mapping::MapperContext ctx,
-    const Legion::Task & task,
-    Legion::Mapping::Mapper::TaskOptions & output) override {
-    DefaultMapper::select_task_options(ctx, task, output);
-    // Mysteriously, the top-level task has 16 bytes of argument.
-    if(task.arglen == sizeof(std::size_t))
-      context::instance()
-        .params.at(get1<std::size_t>(task))
-        .post(task.is_index_space
-                ? util::equal_map(
-                    task.index_domain.get_volume(), total_nodes)[node_id]
-                    .size()
-                : node_id == output.initial_proc.address_space());
-  }
-
   void select_sharding_functor(Legion::Mapping::MapperContext,
     const Legion::Task &,
     const SelectShardingFunctorInput &,
@@ -141,7 +126,7 @@ public:
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
     const Legion::LayoutConstraintSet & layout_constraints,
-    const size_t & indx) {
+    const std::size_t & indx) {
     using namespace Legion;
     using namespace Legion::Mapping;
 
@@ -160,7 +145,7 @@ public:
       {task.regions[indx].region,
         task.regions[indx + 1].region,
         task.regions[indx + 2].region});
-    for(size_t j = 0; j < 3; j++) {
+    for(int j = 0; j < 3; j++) {
       output.chosen_instances[indx + j].clear();
       output.chosen_instances[indx + j].push_back(result);
     } // for
@@ -171,7 +156,7 @@ public:
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
     const Legion::LayoutConstraintSet & layout_constraints,
-    const size_t & indx) {
+    const std::size_t & indx) {
     using namespace Legion;
     using namespace Legion::Mapping;
 
@@ -214,7 +199,7 @@ public:
         output.chosen_instances,
         missing_fields);
 
-      for(size_t indx = 0; indx < task.regions.size(); indx++) {
+      for(std::size_t indx = 0; indx < task.regions.size(); indx++) {
         // Check to see if any of the valid instances satisfy this requirement
         std::vector<Legion::Mapping::PhysicalInstance> valid_instances;
         for(auto & vi : input.valid_instances[indx])
@@ -237,7 +222,7 @@ public:
         if(missing_fields[indx].empty()) {
 #if 0 // this block is only used for compacted instances
           if(task.regions[indx].tag & mapper::exclusive_lr){
-            for(size_t j = 1; j < 3; j++)
+            for(int j = 1; j < 3; j++)
               output.chosen_instances[indx + j] = valid_instances; 
             indx = indx + 2;
           }
@@ -497,7 +482,7 @@ private:
   void create_reduction_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
-    const size_t & idx,
+    const std::size_t & idx,
     std::set<Legion::FieldID> & missing_fields) {
 
     Legion::Processor target_proc = output.target_procs[0];
@@ -507,7 +492,7 @@ private:
       runtime->find_task_layout_constraints(
         ctx, task.task_id, output.chosen_variant);
 
-    size_t footprint;
+    std::size_t footprint;
     if(!default_create_custom_instances(ctx,
          target_proc,
          target_mem,
@@ -571,7 +556,7 @@ private:
     [id = Legion::Runtime::generate_static_sharding_id()] {
       struct functor : Legion::ShardingFunctor {
       private:
-        static auto map(const Legion::Domain & d, std::size_t n) {
+        static auto map(const Legion::Domain & d, Color n) {
           const Legion::Rect<1> r = d;
           assert(!r.lo[0]);
           return util::equal_map(r.hi[0] + 1, n);

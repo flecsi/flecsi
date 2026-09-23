@@ -84,12 +84,10 @@ protected:
     p.silence();
   }
   template<typename R>
-  void visit(future<R> & single,
-    future<R, exec::launch_type_t::index> & index) {
-    auto f = index.backend();
-    dependencies(f);
+  void visit(future<R> & p, future<R, launch_type_t::index> & index) {
+    p = index.backend();
+    dependencies(p.backend());
     futures.push_back(index.get_comms());
-    single = {std::move(f), nullptr};
   }
 
 public:

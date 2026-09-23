@@ -19,7 +19,7 @@ template<typename T, std::size_t SIZE>
 class queue {
   using value_type = T;
   std::array<value_type, SIZE> data;
-  size_t head = 0, back = 0;
+  std::size_t head = 0, back = 0;
 
 public:
   /// Push an element in the queue
@@ -47,7 +47,7 @@ public:
   }
 };
 
-/// A small implementation of std::inplace_vector as proposed for C++26.
+/// A small implementation of std::inplace_vector from C++26.
 /// \gpu.
 template<typename T, std::size_t SIZE>
 class inplace_vector {

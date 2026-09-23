@@ -20,7 +20,7 @@ namespace flecsi {
 namespace exec {
 /// Selects a type of \c future.
 /// That it is a type is \b deprecated; it will become a namespace.
-enum class launch_type_t : size_t {
+enum class launch_type_t {
   /// A future from a reduction or single task.
   single,
   /// A future from a non-reduction index task.

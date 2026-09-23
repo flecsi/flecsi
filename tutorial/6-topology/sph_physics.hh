@@ -17,7 +17,7 @@ const inline double rho_l = 0.125;
 const inline double rho_h = 1.;
 } // namespace constants
 
-FLECSI_INLINE_TARGET double
+KOKKOS_INLINE_FUNCTION double
 kernel(double r, double h) {
   const auto q = r / h;
   const double sigma = constants::sigma / h;
@@ -32,7 +32,7 @@ kernel(double r, double h) {
   return result;
 }
 
-FLECSI_INLINE_TARGET double
+KOKKOS_INLINE_FUNCTION double
 grad_kernel(double rij, double h) {
   const auto r = std::abs(rij);
   const auto q = r / h;
@@ -47,18 +47,18 @@ grad_kernel(double rij, double h) {
   return result;
 }
 
-FLECSI_INLINE_TARGET double
+KOKKOS_INLINE_FUNCTION double
 mu(double r, double v, double hab) {
   const double eps = constants::epsilon * hab * hab;
   return hab * r * v / (r * r + eps);
 }
 
-FLECSI_INLINE_TARGET double
+KOKKOS_INLINE_FUNCTION double
 sound_speed(double u) {
   return std::sqrt(constants::gamma * (constants::gamma - 1.) * u);
 }
 
-FLECSI_INLINE_TARGET double
+KOKKOS_INLINE_FUNCTION double
 viscosity(double r, double v, double rho_ab, double hab, double cs) {
   double visc = 0.;
   if(r * v < 0) {
@@ -83,10 +83,10 @@ template<typename T>
 void
 init_base(T e,
   flecsi::util::span<flecsi::util::id> id,
-  std::size_t global_nents,
-  std::size_t offset) {
+  flecsi::util::gid global_nents,
+  flecsi::util::gid offset) {
   const double h = 1. / static_cast<double>(global_nents);
-  for(std::size_t i = 0; i < e.size(); ++i) {
+  for(typename T::size_type i = 0; i < e.size(); ++i) {
     e[i].radius = 2 * h + h / 4.;
     e[i].coordinates = h * (offset + i);
     id[i] = offset + i;

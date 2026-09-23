@@ -12,18 +12,20 @@ namespace topo {
 /// \addtogroup ntree
 /// \{
 
+using Children = unsigned short;
+
 /// Base type for an entry in the hashtable
 /// This type can point to either a node or an entity in the ntree.
 template<Dimension DIM, typename T, class KEY>
 class hcell_base_t {
 
   const static Dimension dimension = DIM;
-  static constexpr int nchildren_ = 1 << dimension;
+  static constexpr Children nchildren_ = 1 << dimension;
   using type_t = T;
   using key_t = KEY;
 
   /// Bit displacement for locality of entry
-  enum type_displ : int {
+  enum type_displ : Children {
     CHILD_DISPL = 0,
     LOCALITY_DISPL = nchildren_,
     REQUESTED_DISPL = (nchildren_) + 2,
@@ -118,7 +120,7 @@ public:
     return type_;
   }
 
-  constexpr bool has_child(std::size_t c) const {
+  constexpr bool has_child(Dimension c) const {
     return type_ & (1 << c);
   }
 
@@ -152,16 +154,16 @@ public:
     type_ &= ~REQUESTED_MASK;
   }
 
-  std::size_t color() const {
+  Color color() const {
     return color_;
   }
-  void set_color(std::size_t color) {
+  void set_color(Color color) {
     color_ = color;
   }
 
-  std::size_t nchildren() const {
-    std::size_t nchild = 0;
-    for(std::size_t i = 0; i < nchildren_; ++i)
+  Children nchildren() const {
+    Children nchild = 0;
+    for(Children i = 0; i < nchildren_; ++i)
       nchild += has_child(i);
     return nchild;
   }
@@ -181,7 +183,7 @@ private:
   bool is_node_ = true;
   bool is_incomplete_ = true;
   unsigned int type_ = 0;
-  std::size_t color_;
+  Color color_;
 };
 
 template<Dimension D, typename T, class K>

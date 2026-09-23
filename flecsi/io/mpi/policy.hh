@@ -76,12 +76,12 @@ struct io_interface {
     const hsize_t item_size) {
     if constexpr(W) {
       hsize_t sum_nitems = 0;
-      MPI_Allreduce(&nitems, &sum_nitems, 1, hsize_mpi_type, MPI_SUM, hcomm.c);
+      MPI_Allreduce(&nitems, &sum_nitems, 1, hsize_mpi_type, MPI_SUM, hcomm);
       checkpoint_file.create_dataset(field_name.data(), sum_nitems, item_size);
     }
 
     hsize_t displ = 0;
-    MPI_Exscan(&nitems, &displ, 1, hsize_mpi_type, MPI_SUM, hcomm.c);
+    MPI_Exscan(&nitems, &displ, 1, hsize_mpi_type, MPI_SUM, hcomm);
 
     hid_t hdf5_file_id = (hid_t)checkpoint_file.hdf5_file_id;
     checkpoint_field_data<W>(
@@ -92,7 +92,7 @@ struct io_interface {
   inline void checkpoint_data(const std::string & file_name_in) {
     using F = hdf5::file;
     std::string file_name = file_name_in + std::to_string(new_color);
-    F checkpoint_file = (W ? F::pcreate : F::popen)(file_name, hcomm.c);
+    F checkpoint_file = (W ? F::pcreate : F::popen)(file_name, hcomm);
 
     // checkpoint
     auto & context = run::context::instance();

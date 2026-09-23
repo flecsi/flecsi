@@ -21,9 +21,11 @@
 ///   functions so annotated, preventing the use of much or all of many
 ///   libraries (including the standard library).  FleCSI documents certain
 ///   classes and functions as being "supported for GPU execution".
+/// \deprecated Use \c KOKKOS_FUNCTION.
 #define FLECSI_TARGET KOKKOS_FUNCTION
 /// Make a function inline and available on a GPU.
 /// \see FLECSI_TARGET
+/// \deprecated Use \c KOKKOS_INLINE_FUNCTION.
 #define FLECSI_INLINE_TARGET KOKKOS_INLINE_FUNCTION
 
 #ifdef DOXYGEN
