@@ -17,8 +17,8 @@ log_driver(scheduler &) {
     EXPECT_EQ(flog::to_string(std::vector<bool>{false, true}), "[0, 1]");
 
     {
-      std::vector<std::vector<std::size_t>> v;
-      for(std::size_t i{0}; i < 10; ++i) {
+      std::vector<std::vector<int>> v;
+      for(int i = 0; i < 10; ++i) {
         v.push_back({0, 1, 2});
       }
 
@@ -28,8 +28,8 @@ log_driver(scheduler &) {
     }
 
     {
-      std::map<std::size_t, std::size_t> m;
-      for(std::size_t i{0}; i < 10; ++i) {
+      std::map<int, int> m;
+      for(int i = 0; i < 10; ++i) {
         m[i] = i;
       }
 
@@ -38,8 +38,8 @@ log_driver(scheduler &) {
     }
 
     {
-      std::map<std::size_t, std::vector<std::size_t>> m;
-      for(std::size_t i{0}; i < 10; ++i) {
+      std::map<int, std::vector<int>> m;
+      for(int i = 0; i < 10; ++i) {
         m[i] = {0, 1, 2};
       }
 
@@ -167,7 +167,7 @@ dag(scheduler & s) {
   }; // UNIT
 } // dag
 
-FLECSI_TARGET int
+KOKKOS_FUNCTION int
 no_failures() {
   UNIT() {
     ASSERT_GT(42, 3.14);
@@ -181,7 +181,7 @@ no_failures() {
   };
 }
 
-FLECSI_TARGET int
+KOKKOS_FUNCTION int
 expect_failure(int & counter) {
   UNIT() {
     EXPECT_GT(1.0, 1.0);
@@ -189,7 +189,7 @@ expect_failure(int & counter) {
   };
 }
 
-FLECSI_TARGET int
+KOKKOS_FUNCTION int
 assert_failure(int & counter) {
   UNIT() {
     ASSERT_GT('a', 'a' + 1);
@@ -197,7 +197,7 @@ assert_failure(int & counter) {
   };
 }
 
-FLECSI_TARGET int
+KOKKOS_FUNCTION int
 gpu_unit_test() {
   UNIT() {
     EXPECT_EQ(no_failures(), 0);

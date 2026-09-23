@@ -113,6 +113,8 @@ Standard:        Cpp11
 TabWidth:        2
 UseTab:          Never
 AttributeMacros: 
+  - KOKKOS_FUNCTION
+  - KOKKOS_INLINE_FUNCTION
   - FLECSI_TARGET
   - FLECSI_INLINE_TARGET
 

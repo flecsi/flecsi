@@ -70,7 +70,7 @@ The N-Tree setup happens in ``initialize_action``:
 
 .. literalinclude:: ../../../tutorial/6-topology/ntree.cc
   :language: cpp
-  :start-at: const int nents = sph::n_entities.value();
+  :start-at: const auto nents = sph::n_entities.value();
   :end-at: sph_ntree_t::build_ntree
 
 Firstly, the initial information about the entities is retrieved, either from a file or directly generated in the program. In this example we compute this information directly in the program. This vital information is used to create the N-Tree data structure through our SPH specialization using coordinates, mass, and radius.

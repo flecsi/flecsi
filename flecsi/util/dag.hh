@@ -115,7 +115,7 @@ struct dag : std::vector<dag_impl::node<NodePolicy> *> {
       } // if
     } // for
 
-    size_t count{0};
+    typename dag::size_type count{0};
     while(!q.empty()) {
       const auto root = q.front();
       sorted.push_back(root);

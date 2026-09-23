@@ -79,24 +79,57 @@ verify_mesh(exec::cpu s,
     auto & out = UNIT_CAPTURE();
 
     for(auto c : m.cells()) {
-      out << "cell(" << cids[c] << "," << c << "):";
+      out << "cell(" << cids[c] << ',' << c << "):";
       for(auto v : m.vertices(c)) {
-        out << " " << vids[v];
+        out << ' ' << vids[v];
       }
-      out << "\n";
+      out << '\n';
     }
-    out << "\n";
+
+    auto print_ids = [&](std::string key, auto & f, auto && s) {
+      out << key;
+      for(auto i : s) {
+        out << ' ' << f[i];
+      }
+      out << '\n';
+    };
+
+    print_ids("cells(owned):", cids, m.cells<fixed_mesh::owned>());
+    print_ids("cells(shared):", cids, m.cells<fixed_mesh::shared>());
+    print_ids("cells(ghost):", cids, m.cells<fixed_mesh::ghost>());
+    out << '\n';
 
     for(auto v : m.vertices()) {
-      out << "vertex(" << vids[v] << "," << v << "):";
+      out << "vertex(" << vids[v] << ',' << v << "):";
       for(auto c : m.cells(v)) {
-        out << " " << cids[c];
+        out << ' ' << cids[c];
       }
-      out << "\n";
+      out << '\n';
     }
-    out << "\n";
+
+    print_ids("vertex(owned):", vids, m.vertices<fixed_mesh::owned>());
+    print_ids("vertex(shared):", vids, m.vertices<fixed_mesh::shared>());
+    print_ids("vertex(ghost):", vids, m.vertices<fixed_mesh::ghost>());
+
     EXPECT_TRUE(UNIT_EQUAL_BLESSED(
       "fixed_" + std::to_string(s.launch().index) + ".blessed"));
+  };
+}
+
+int
+verify_bounding_box(exec::cpu s,
+  fixed_mesh::accessor<ro, ro, ro> m,
+  field<fixed_mesh::point>::accessor<ro, ro, ro> coords) noexcept {
+  UNIT("TASK") {
+    auto bbox = fixed_mesh::base::bounding_box<fixed_mesh::cells,
+      fixed_mesh::owned,
+      fixed_mesh::vertices>(m, coords);
+    const fixed_mesh::point expected_lo[] = {{0, 2}, {0, 0}, {2, 2}, {2, 0}},
+                            expected_hi[] = {{2, 4}, {2, 2}, {4, 4}, {4, 2}};
+    const auto clr = s.launch().index;
+
+    EXPECT_EQ(bbox.lower, expected_lo[clr]);
+    EXPECT_EQ(bbox.upper, expected_hi[clr]);
   };
 }
 
@@ -132,6 +165,9 @@ fixed_driver(scheduler & s) {
     s.execute<init_density>(mesh, density(mesh));
     s.execute<update_density>(exec::on, mesh, density(mesh));
     s.execute<check_density>(exec::on, mesh, density(mesh));
+
+    EXPECT_EQ(
+      s.test<verify_bounding_box>(exec::on, mesh, fixed_mesh::coords(mesh)), 0);
   };
 }
 

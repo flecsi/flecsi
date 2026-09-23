@@ -16,7 +16,7 @@ using mesh4d = mesh<4>;
 
 using axis_info = topo::narray_base::axis_info;
 
-template<std::size_t D, typename F>
+template<Dimension D, typename F>
 void
 field_helper(typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<wo, na> ca,
@@ -34,7 +34,7 @@ init_field(exec::cpu es, field<std::size_t>::accessor<wo, wo> ca) noexcept {
   std::fill(s.begin(), s.end(), es.launch().index);
 } // init_field
 
-template<std::size_t D>
+template<Dimension D>
 void
 update_field(exec::cpu s,
   typename mesh<D>::template accessor<ro> m,
@@ -43,7 +43,7 @@ update_field(exec::cpu s,
     m, ca, [c = s.launch().index](auto & x) { x = std::pow(10, c); });
 } // update_field
 
-template<std::size_t D>
+template<Dimension D>
 void
 print_field(typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<ro, ro> ca) noexcept {
@@ -80,7 +80,7 @@ print_field(typename mesh<D>::template accessor<ro> m,
 
 } // print_field
 
-template<std::size_t D>
+template<Dimension D>
 struct Axes {
   template<auto... A>
   static std::string data(typename mesh<D>::template accessor<ro> & m,
@@ -112,7 +112,7 @@ struct Axes {
 template<auto A>
 using cnst = util::constant<A>;
 
-template<std::size_t D>
+template<Dimension D>
 int
 check_mesh_field(exec::cpu s,
   std::string name,
@@ -253,7 +253,7 @@ using ints = field<int, data::ragged>;
 // This print task will only read the ghost values and not invoke any
 // communication. The purpose is to aid in debugging and see the sequence
 // of changes to field values as other tasks are performed.
-template<std::size_t D>
+template<Dimension D>
 void
 print_rf(exec::cpu s,
   typename mesh<D>::template accessor<ro> m,
@@ -279,11 +279,11 @@ print_rf(exec::cpu s,
   flog(info) << ss.rdbuf() << std::endl;
 } // print_rf
 
-template<std::size_t D>
+template<Dimension D>
 void
 allocate_field(field<std::size_t>::accessor<ro, ro> f,
   topo::resize::Field::accessor<wo> a,
-  std::size_t sz) noexcept {
+  util::id sz) noexcept {
   a = f.span().size() * sz;
 }
 
@@ -300,7 +300,7 @@ check(int & x, int y) {
 
 bool
 check_sz(ints::accessor<ro, ro> tf, util::id lid, std::size_t sz) {
-  return (tf[lid].size() == (std::size_t)sz);
+  return tf[lid].size() == sz;
 }
 
 bool
@@ -314,11 +314,11 @@ bool
 any_aux(const A & a, util::constants<VV...>) {
   return (a.template axis<VV>().axis.auxiliary || ...);
 }
-template<std::size_t D, bool V>
+template<Dimension D, bool V>
 int
 init_verify_rf(typename mesh<D>::template accessor<ro> m,
   std::conditional_t<V, ints::accessor<ro, ro>, ints::mutator<wo, na>> tf,
-  std::size_t sz,
+  util::id sz,
   bool diagonals) noexcept {
   UNIT("INIT_VERIFY_RAGGED_FIELD") {
     const auto ln_local = m.linear();
@@ -351,7 +351,7 @@ field<int, data::ragged>::definition<mesh3d> rf3;
 int
 check_contiguous(data::multi<mesh1d::accessor<ro>> mm) noexcept {
   UNIT() {
-    std::size_t last = 0, total = 0;
+    util::id last = 0, total = 0;
     for(auto [c, m] : mm.components()) { // presumed to be in order
       const auto a = m.axis<mesh1d::axis::x_axis>();
       const util::gid sz = a.axis.extent, off = a.offset;
@@ -391,7 +391,7 @@ check_4dmesh(mesh4d::accessor<ro> m) noexcept {
   return check4(m, mesh4d::axes());
 } // check_4dmesh
 
-template<std::size_t D, bool A>
+template<Dimension D, bool A>
 int
 value_rewrite_rf(typename mesh<D>::template accessor<ro> m,
   ints::accessor<wo, na> a) noexcept {
@@ -404,7 +404,7 @@ value_rewrite_rf(typename mesh<D>::template accessor<ro> m,
   };
 }
 
-template<std::size_t D>
+template<Dimension D>
 int
 value_rewrite_verify_rf(typename mesh<D>::template accessor<ro> m,
   ints::accessor<ro, ro> tf) noexcept {
@@ -421,7 +421,7 @@ value_rewrite_verify_rf(typename mesh<D>::template accessor<ro> m,
   };
 }
 
-template<std::size_t D>
+template<Dimension D>
 [[nodiscard]] int
 test_mesh(scheduler & s,
   topo::narray_impl::colors color_dist,
@@ -432,7 +432,7 @@ test_mesh(scheduler & s,
   std::array<bool, D> auxiliary,
   bool diagonals,
   bool full_ghosts,
-  std::size_t sz,
+  util::id sz,
   const char * verify,
   bool print_info,
   const field<std::size_t>::definition<mesh<D>> & f,
@@ -527,7 +527,7 @@ narray_driver(scheduler & s) {
       }
 
       // ragged field
-      std::size_t sz = 100;
+      util::id sz = 100;
 
       auto & tf = rf1(m1).get_elements();
       tf.growth = {0, 0, 0.25, 0.5, 1};
@@ -556,7 +556,7 @@ narray_driver(scheduler & s) {
                           std::array<bool, 2> auxiliary,
                           bool diagonals,
                           bool full_ghosts,
-                          std::size_t sz,
+                          util::id sz,
                           const char * verify,
                           bool print_info,
                           int line) {
@@ -679,7 +679,7 @@ narray_driver(scheduler & s) {
                           const mesh<3>::coord & bdepth,
                           std::array<bool, 3> periodic,
                           bool diagonals,
-                          std::size_t sz,
+                          util::id sz,
                           const char * verify,
                           int line) {
         EXPECT_EQ(test_mesh<3>(s,
@@ -764,7 +764,7 @@ coloring_driver(scheduler & s) {
         "coloring_" + name + "_" + std::to_string(s.runtime().processes()) +
         "_" + std::to_string(s.runtime().process()) + ".blessed";
       auto & out = UNIT_CAPTURE();
-      std::vector<std::size_t> color;
+      std::vector<Color> color;
       std::vector<std::string> global, extent, offset, logical, extended;
 
       auto seq = [](const auto & c) {
@@ -776,7 +776,8 @@ coloring_driver(scheduler & s) {
       for(const auto c1 : util::equal_map(
             idef.colors(), s.runtime().processes())[s.runtime().process()]) {
         const auto c3 = idef.color_indices(c1);
-        std::vector<std::size_t> g, e, o;
+        std::vector<util::gid> g, o;
+        std::vector<util::id> e;
         std::vector<std::string> log, ext;
         color.push_back(glin({c3[0], c3[1], c3[2]}));
         for(Dimension d = 0; d < 3; ++d) {

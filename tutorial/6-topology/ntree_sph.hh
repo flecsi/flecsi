@@ -39,11 +39,11 @@ struct sph_ntree_t
   // In this hashing function we use the low bits (less than 22) to scatter the
   // leaves but gather the roots. This is particularly efficient since the roots
   // are accessed more often during the neighbor search.
-  FLECSI_INLINE_TARGET static std::size_t hash(const key_t & k) {
+  KOKKOS_INLINE_FUNCTION static std::size_t hash(const key_t & k) {
     return static_cast<std::size_t>(k.value() & ((1 << 22) - 1));
   }
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr flecsi::PrivilegeCount privilege_count = 2;
 
   using index_space = base::index_space;
   using index_spaces = base::index_spaces;
@@ -67,7 +67,7 @@ struct sph_ntree_t
   // In this implementation the interactions are computed using spheres.
   // If the two spheres are in contact, there is an interaction.
   template<typename T1, typename T2>
-  FLECSI_INLINE_TARGET static bool intersect(const T1 & in1, const T2 & in2) {
+  KOKKOS_INLINE_FUNCTION static bool intersect(const T1 & in1, const T2 & in2) {
     return distance(in1.coordinates, in2.coordinates) <=
            in1.radius + in2.radius;
   } // intersect
@@ -107,11 +107,11 @@ struct sph_ntree_t
   }
 
   // Compute the keys (aka filling curve) for each entities.
-  // The keys are cnmputed using the domain (min/max coordinates) and the
+  // The keys are computed using the domain (min/max coordinates) and the
   // coordinates of the entity.
   static void keys_task(sph_ntree_t::accessor<flecsi::rw, flecsi::wo> ts,
     flecsi::field<range_t>::accessor<flecsi::ro> r) noexcept {
-    for(std::size_t e = 0; e < ts.e_i.span().size(); ++e) {
+    for(flecsi::util::id e = 0; e < ts.e_i.span().size(); ++e) {
       ts.e_keys[e] = key_t(r[0], ts.e_i[e].coordinates);
     }
   }
@@ -131,8 +131,8 @@ struct sph_ntree_t
   // Feed the index space / fields with initial information for the entities
   static void init_fields(flecsi::exec::cpu s,
     sph_ntree_t::accessor<flecsi::rw, flecsi::na> a,
-    const std::size_t nents,
-    const std::vector<flecsi::util::id> & offsets,
+    const flecsi::util::gid nents,
+    const std::vector<flecsi::util::gid> & offsets,
     flecsi::exec::group::match,
     flecsi::exec::mapping::point us) noexcept {
     std::fill(
@@ -166,9 +166,9 @@ struct sph_ntree_t
     flecsi::util::id nents) {
     const auto ours = flecsi::util::equal_map(
       c.nparts_, s.runtime().processes())[s.runtime().process()];
-    std::vector<flecsi::util::id> offsets;
+    std::vector<flecsi::util::gid> offsets;
     auto b = c.entities_sizes_.begin();
-    auto o = std::accumulate(b, b + ours[0], 0);
+    auto o = std::accumulate(b, b + ours[0], flecsi::util::gid());
     for(const auto i : ours) {
       offsets.push_back(o);
       o += b[i];
@@ -194,7 +194,7 @@ struct sph_ntree_t
   }
 
   // N-Tree coloring
-  static coloring color(flecsi::Color size, flecsi::util::id nents) {
+  static coloring color(flecsi::Color size, flecsi::util::gid nents) {
     const flecsi::util::id hmap_size = 1 << 20;
     coloring c(size, hmap_size);
     for(auto bin : flecsi::util::equal_map(nents, size))

@@ -24,7 +24,7 @@ with_return() noexcept {
 // Task with non-trivial parameter.
 
 int
-nontrivial_parameter(const std::vector<size_t> & v) noexcept {
+nontrivial_parameter(const std::vector<int> & v) noexcept {
   std::stringstream ss;
   int retval{0};
   ss << "Parameter values: ";
@@ -79,7 +79,7 @@ advance(control_policy & p) {
   // Pointers/references must be to const.
 
   {
-    std::vector<size_t> v = {0, 1, 1, 2, 3, 5, 8, 13, 21, 34};
+    std::vector<int> v = {0, 1, 1, 2, 3, 5, 8, 13, 21, 34};
     auto future = s.execute<nontrivial_parameter>(v);
     flog(info) << "Sum is " << future.get() << std::endl;
   } // scope

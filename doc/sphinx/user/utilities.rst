@@ -4,31 +4,18 @@ FleCSI provides a number of utilities that are frequently helpful in writing act
 
 .. _ranges:
 
-Memory View Utilities: span, mdspan, and mdcolex
-++++++++++++++++++++++++++++++++++++++++++++++++
+Multi-dimensional arrays
+++++++++++++++++++++++++
 
-FleCSI provides a set of utilities for managing and iterating over memory in structured ways: ``span``, ``mdspan``, and ``mdcolex``.
+FleCSI provides utilities for structured memory access: ``mdspan`` and ``mdcolex``.
 
 .. note::
 
-   ``span``, ``mdspan``, and ``mdcolex`` are GPU-compatible and can be used inside ``forall`` and ``reduceall`` constructs.
+   ``mdspan`` and ``mdcolex`` are GPU-compatible and can be used inside ``forall`` and ``reduceall`` constructs.
 
-These types allow applications to express access patterns for flat or multidimensional data in a portable and readable manner without sacrificing performance.
+These types allow applications to express access patterns for multidimensional data in a portable and readable manner without sacrificing performance.
 
-The ``span`` type represents a non-owning view over a contiguous block of memory.
-Similar to ``std::span`` in C++20, it provides access to 1D arrays and works with any container that provides a pointer and a size or with FleCSI accessors.
-
-For example:
-
-.. code-block:: c++
-
-   void span_task(field<double>::accessor<ro> p) noexcept {
-     for(auto &v: p.span()) {
-       v += 1;
-     }
-   }
-
-Building on ``span``, the ``mdspan`` type (based on a subset of ``std::mdspan`` in C++23) extends this concept to support multidimensional indexing.
+The ``mdspan`` type (based on a subset of ``std::mdspan`` in C++23) extends the concept of ``std::span`` to support multidimensional indexing.
 It provides a way to treat flat memory as an N-dimensional array, by specifying the extents in each dimension at construction.
 ``mdspan`` supports access using parentheses, which makes it much easier to write readable and structured computational code.
 
@@ -47,7 +34,7 @@ For example, with a 3D buffer:
 
 This abstraction removes the need to compute manual offsets and makes scientific applications with logically multidimensional data easier to write and debug.
 
-Finally, the ``mdcolex`` type is a variant of ``mdspan`` with reversed indices.
+The ``mdcolex`` type is a variant of ``mdspan`` with reversed indices.
 While mdspan uses a row-major layout, mdcolex reverses the index traversal order, producing column-major order.
 
 For example:

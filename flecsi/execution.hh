@@ -50,6 +50,8 @@ struct task_local
 #endif
 ;
 
+/// \}
+
 template<class V, class R, class... AA>
 auto
 scheduler::reduce(AA &&... aa) {
@@ -102,6 +104,9 @@ scheduler::allocate(std::unique_ptr<topology<T>> & p,
   T::initialize(*this, *p, c, std::forward<AA>(aa)...);
   return *p;
 }
+
+/// \addtogroup execution
+/// \{
 
 template<auto & Task,
   class Reduction,

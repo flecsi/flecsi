@@ -36,7 +36,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   using index_spaces = flecsi::topo::ntree_base::index_spaces;
   using ttype_t = flecsi::topo::ntree_base::ttype_t;
 
-  FLECSI_INLINE_TARGET static std::size_t hash(const key_t & k) {
+  KOKKOS_INLINE_FUNCTION static std::size_t hash(const key_t & k) {
     return static_cast<std::size_t>(k.value() & ((1 << 22) - 1));
   }
 
@@ -45,7 +45,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   static constexpr util::id max_neighbors = 13;
 
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 2;
 
   using ent_t = sort_entity<dimension, double, key_t>;
   using node_t = flecsi::topo::node<dimension, double, key_t>;
@@ -161,7 +161,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   } // compute_centroid
 
   template<typename T1, typename T2>
-  FLECSI_INLINE_TARGET static bool intersect(const T1 & in1, const T2 & in2) {
+  KOKKOS_INLINE_FUNCTION static bool intersect(const T1 & in1, const T2 & in2) {
     double dist = distance(in1.coordinates, in2.coordinates);
     return dist <= in1.radius + in2.radius;
   }
@@ -174,7 +174,7 @@ const field<flecsi::util::id>::definition<sph_ntree_t,
   sph_ntree_t::base::entities>
   id_check;
 
-FLECSI_INLINE_TARGET ngb_array_t::iterator
+KOKKOS_INLINE_FUNCTION ngb_array_t::iterator
 find(ngb_array_t::iterator it,
   ngb_array_t::iterator end,
   const std::pair<util::id, bool> & v) {
@@ -185,7 +185,7 @@ find(ngb_array_t::iterator it,
   return it;
 }
 
-FLECSI_INLINE_TARGET bool
+KOKKOS_INLINE_FUNCTION bool
 verify_neighbors(flecsi::topo::id<flecsi::topo::ntree_base::entities> e,
   sph_ntree_t::accessor<rw, ro> t) {
 

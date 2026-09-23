@@ -197,12 +197,12 @@ struct tag {
   /// Create a tag.
   tag(const char * label) : id(state::register_tag(label)) {}
 
-  std::size_t operator+() const {
+  state::Tag operator+() const {
     return id;
   }
 
 private:
-  std::size_t id;
+  state::Tag id;
 }; // struct tag
 const inline tag unscoped_tag("unscoped");
 
@@ -223,7 +223,7 @@ struct guard {
   }
 
 private:
-  std::size_t prev;
+  state::Tag prev;
 }; // struct guard
 
 /// Get all defined tags.

@@ -47,7 +47,7 @@ stream(const T & t, const char * what) {
 template<class T>
 struct not_fn { // default-constructed std::not_fn
   template<class... AA>
-  FLECSI_TARGET bool operator()(AA &&... aa) const {
+  KOKKOS_FUNCTION bool operator()(AA &&... aa) const {
     return !T()(std::forward<AA>(aa)...);
   }
 };
@@ -58,7 +58,7 @@ struct state_base {
   state_base(state_base &&) = delete;
 
   template<class F>
-  FLECSI_TARGET int operator->*(F && f) { // highest binary precedence
+  KOKKOS_FUNCTION int operator->*(F && f) { // highest binary precedence
     std::forward<F>(f)();
     return result_;
   }
@@ -143,7 +143,7 @@ private:
 
 struct string_compare {
   using not_fn = detail::not_fn<string_compare>;
-  FLECSI_TARGET bool operator()(const char * lhs, const char * rhs) const {
+  KOKKOS_FUNCTION bool operator()(const char * lhs, const char * rhs) const {
     if(lhs == nullptr) {
       return rhs == nullptr;
     }
@@ -152,7 +152,7 @@ struct string_compare {
     }
     return my_strcmp(lhs, rhs) == 0;
   }
-  FLECSI_TARGET int my_strcmp(const char * lhs, const char * rhs) const {
+  KOKKOS_FUNCTION int my_strcmp(const char * lhs, const char * rhs) const {
     for(; *lhs == *rhs; ++lhs, ++rhs) {
       if(*lhs == '\0') {
         return 0;
@@ -184,12 +184,12 @@ struct gpu_state_t : state_base {
     template<class T>
     label(const T &); // not implemented, host-only
   };
-  FLECSI_TARGET gpu_state_t(const char * const name, label) : name_{name} {}
-  FLECSI_TARGET ~gpu_state_t() {
+  KOKKOS_FUNCTION gpu_state_t(const char * const name, label) : name_{name} {}
+  KOKKOS_FUNCTION ~gpu_state_t() {
     printf("TEST %s %s\n", (result_ == 0) ? "PASSED" : "FAILED", name_);
   }
   template<class Comparator, bool A, class T1, class T2>
-  FLECSI_TARGET bool compare(const T1 & value1,
+  KOKKOS_FUNCTION bool compare(const T1 & value1,
     const T2 & value2,
     const char * string1,
     const char * op,
@@ -212,7 +212,7 @@ struct gpu_state_t : state_base {
     return ret;
   }
   template<bool A>
-  FLECSI_TARGET bool
+  KOKKOS_FUNCTION bool
   test(bool value, const char * string, const char * file, int line) {
     if(!value) {
       printf("%s FAILED: '%s' at %s:%d\n",
@@ -224,10 +224,10 @@ struct gpu_state_t : state_base {
     }
     return value;
   }
-  FLECSI_TARGET gpu_state_t & stringstream() {
+  KOKKOS_FUNCTION gpu_state_t & stringstream() {
     return *this;
   }
-  FLECSI_TARGET void operator>>=(const gpu_state_t &) {}
+  KOKKOS_FUNCTION void operator>>=(const gpu_state_t &) {}
   template<class T>
   gpu_state_t & operator<<(const T &); // not implemented, host-only
 

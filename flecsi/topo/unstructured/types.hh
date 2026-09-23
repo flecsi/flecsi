@@ -28,8 +28,6 @@ namespace unstructured_impl {
 /// \addtogroup unstructured
 /// \{
 
-using entity_index_space = std::size_t;
-
 /*!
   Initialize a connectivity using its transpose connectivity, e.g.,
   initializing vertex-to-cell connectivity using cell-to-vertex.
@@ -45,7 +43,7 @@ transpose(
   field<util::id, data::ragged>::accessor1<privilege_repeat<ro, NI>> input,
   field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NO>>
     output) noexcept {
-  std::size_t e = 0;
+  util::id e = 0;
   for(auto && i : input) {
     for(auto v : i)
       output[v].push_back(e);
@@ -179,7 +177,7 @@ struct unstructured_base : base {
       /// with one additional color on low-ranked processes as needed.
       std::vector<index_color> colors;
 
-      // number of ghost intervals over all colors
+      /// Number of ghost intervals over all colors.
       std::vector<std::size_t> num_intervals;
     };
 
@@ -245,7 +243,7 @@ struct unstructured_base : base {
     flog_assert(a.span().size() == iv.size(),
       "interval size mismatch a.span (" << a.span().size() << ") != intervals ("
                                         << iv.size() << ")");
-    std::size_t i{0};
+    util::id i = 0;
     for(auto & it : iv) {
       a[i++] = data::intervals::make(it, s.launch().index);
     } // for
@@ -265,7 +263,7 @@ struct unstructured_base : base {
   }
 
   static void cnx_size(const std::vector<index_color> * vic,
-    std::size_t is,
+    IndexSpace is,
     resize::Field::accessor<wo> a,
     exec::group::match,
     exec::mapping::point us) noexcept {
@@ -285,7 +283,7 @@ struct unstructured_base : base {
     resize::Field::accessor<wo> a,
     exec::group::match,
     exec::mapping::point us) noexcept {
-    std::size_t count = 0;
+    util::id count = 0;
     for(auto & p : (*vic)[us.local().index].peers) {
       count += p.second.shared.size();
     }
@@ -313,14 +311,11 @@ struct unstructured_base : base {
       cga cgraph_shared,
       data::buffers::Transfer mv) noexcept {
       // find the number of send buffers
-      int p = 0;
-      for(auto ps : cgraph_shared) { // over peers
-        if(!ps.empty())
-          ++p;
-      }
+      int p = cgraph_shared.size();
       for(auto pg : cgraph) { // over peers
         if(!pg.empty())
-          data::buffers::ragged::read(g, mv[p++], pg);
+          data::buffers::ragged::read(g, mv[p], pg);
+        ++p;
       }
 
       // resume transfer if data was not fully packed during start
@@ -334,13 +329,14 @@ struct unstructured_base : base {
       bool sent = false;
       for(auto pg : cgraph_shared) { // over peers
         if(!pg.empty()) {
-          auto b = data::buffers::ragged{mv[p++], first};
+          auto b = data::buffers::ragged{mv[p], first};
           for(auto & ent : pg) { // send data on shared entities
             if(!b(f, ent, sent))
               return sent; // if no more data can be packed, stop sending, will
                            // be packed by xfer
           }
         }
+        ++p;
       }
       return sent;
     } // send

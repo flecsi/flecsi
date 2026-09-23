@@ -44,7 +44,7 @@ struct field {
 
 private:
   storage_ptr s;
-  std::size_t n;
+  std::size_t n; // wide to support T erased as std::byte
 };
 
 struct region_impl : std::enable_shared_from_this<region_impl> {
@@ -139,7 +139,7 @@ struct partition {
     return *r;
   }
 
-  void resize(std::size_t n) {
+  void resize(util::id n) {
     if(n > r->size().second)
       throw std::out_of_range("partition larger than region");
     nelems = n;
@@ -147,7 +147,7 @@ struct partition {
 
 private:
   region_impl * r;
-  size_t nelems = 0; // for this process
+  util::id nelems = 0; // for this process
 };
 
 using storages = std::vector<field>;
@@ -229,7 +229,7 @@ private:
 
 struct intervals {
   using Value = subrow; // [begin, end)
-  static Value make(subrow r, std::size_t = 0) {
+  static Value make(subrow r, Color = 0) {
     return r;
   }
 
@@ -242,7 +242,8 @@ struct intervals {
     // Make sure the task that is writing to the field has finished running
     f.storage().synchronize();
     // Eagerly read field data, which might legitimately change later.
-    ghost_ranges = to_vector(f.as<Value>());
+    const auto s = f.as<Value>();
+    ghost_ranges.assign(s.begin(), s.end());
     if(auto iter = std::max_element(ghost_ranges.begin(),
          ghost_ranges.end(),
          [](Value x, Value y) { return x.second < y.second; });
@@ -259,7 +260,7 @@ struct intervals {
 
   // Locally cached metadata on ranges of ghost index.
   std::vector<Value> ghost_ranges;
-  std::size_t max_end = 0; // size of prefix containing all ranges
+  util::id max_end = 0; // size of prefix containing all ranges
 };
 
 } // namespace data

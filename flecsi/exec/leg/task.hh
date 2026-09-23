@@ -177,9 +177,7 @@ task_wrapper(const Legion::Task * task,
     return call(*static_cast<parameters<Params> *>(c.sync_params));
   }
   else
-    // There is a optimization opportunity here to move
-    // the elements instead of copying the last time.
-    return call(c.params.at(run::get1<std::size_t>(*task))
+    return call(c.params.at(run::get1<run::task_idx>(*task))
         .get<parameters<
           typename L::protocol::template param_storage_t<Params>>>());
 }

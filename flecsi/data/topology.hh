@@ -79,8 +79,7 @@ struct region : region_base {
   region(size2 s, util::key_type<S, Topo>)
     : region_base(s,
         run::context::field_info_store<Topo, S>(),
-        (util::type<Topo>() + '[' +
-          std::to_string(static_cast<std::underlying_type_t<decltype(S)>>(S)) +
+        (util::type<Topo>() + '[' + std::to_string(util::to_underlying(S)) +
           ']')
           .c_str()) {}
 

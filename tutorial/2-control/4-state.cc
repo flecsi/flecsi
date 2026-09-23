@@ -23,7 +23,7 @@ initialize(control_policy & policy) {
 
   control_policy::int_custom & values = policy.values();
 
-  for(std::size_t i{0}; i < 10; ++i) {
+  for(int i = 0; i < 10; ++i) {
     values[i] = 20 - i;
   } // for
 

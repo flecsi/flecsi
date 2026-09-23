@@ -16,7 +16,7 @@ namespace data {
   The interface for each is provided by an \c accessor.
  */
 
-enum layout : size_t {
+enum layout {
   raw, ///< Uninitialized memory with no objects constructed or destroyed.
   single, ///< Access to the single element of an array.
   dense, ///< Ordinary array of objects.

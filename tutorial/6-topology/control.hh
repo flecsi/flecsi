@@ -6,7 +6,7 @@
 namespace sph {
 
 // Program options with default values
-inline flecsi::program_option<std::size_t> n_entities("#entities",
+inline flecsi::program_option<flecsi::util::gid> n_entities("#entities",
   "ents,e",
   "The number of entities.",
   {{flecsi::option_default, 100}});

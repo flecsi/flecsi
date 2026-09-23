@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <iterator>
 #include <memory>
+#include <span>
 #include <stack>
 
 namespace flecsi {
@@ -121,31 +122,31 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : send_tag {
   using element_type = typename base_type::element_type;
 
   /// Get the value.
-  FLECSI_INLINE_TARGET element_type & get() const {
+  KOKKOS_INLINE_FUNCTION element_type & get() const {
     return base(0);
   } // data
   /// Convert to the value.
-  FLECSI_INLINE_TARGET operator element_type &() const {
+  KOKKOS_INLINE_FUNCTION operator element_type &() const {
     return get();
   } // value
 
   /// Assign to the value.
-  FLECSI_INLINE_TARGET const accessor & operator=(
+  KOKKOS_INLINE_FUNCTION const accessor & operator=(
     const DATA_TYPE & value) const {
     return const_cast<accessor &>(*this) = value;
   } // operator=
   /// Assign to the value.
-  FLECSI_INLINE_TARGET accessor & operator=(const DATA_TYPE & value) {
+  KOKKOS_INLINE_FUNCTION accessor & operator=(const DATA_TYPE & value) {
     get() = value;
     return *this;
   } // operator=
 
   /// Get the value.
-  FLECSI_INLINE_TARGET element_type & operator*() const {
+  KOKKOS_INLINE_FUNCTION element_type & operator*() const {
     return get();
   }
   /// Access a member of the value.
-  FLECSI_INLINE_TARGET element_type * operator->() const {
+  KOKKOS_INLINE_FUNCTION element_type * operator->() const {
     return &get();
   } // operator->
 
@@ -178,25 +179,25 @@ private:
 template<class R, typename T>
 struct reduction_accessor : bind_tag {
   using element_type = T;
-  using size_type = typename util::span<element_type>::size_type;
+  using size_type = typename std::span<element_type>::size_type;
 
   /// Prepare to update en element.
   /// \return a callable that merges its \p T argument into the field element
-  FLECSI_INLINE_TARGET auto operator[](size_type index) const {
+  KOKKOS_INLINE_FUNCTION auto operator[](size_type index) const {
     return [&v = s[index]](const T & r) { v = R::combine(v, r); };
   }
 
-  void bind(util::span<element_type> x) { // for bind_accessors
+  void bind(std::span<element_type> x) { // for bind_accessors
     s = x;
   }
 
   /// Access the underlying elements.
-  FLECSI_INLINE_TARGET util::span<element_type> span() const {
+  KOKKOS_INLINE_FUNCTION util::span<element_type> span() const {
     return s;
   }
 
 private:
-  util::span<element_type> s;
+  std::span<element_type> s;
 };
 
 /// Accessor for potentially uninitialized memory.
@@ -207,17 +208,16 @@ struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
   using element_type = detail::element_t<DATA_TYPE, PRIVILEGES>;
 
   /// Get the allocated memory.
-  /// \return \c util::span
-  FLECSI_INLINE_TARGET auto span() const {
+  KOKKOS_INLINE_FUNCTION util::span<element_type> span() const {
     return s;
   }
 
-  void bind(util::span<element_type> x) { // for bind_accessors
+  void bind(std::span<element_type> x) { // for bind_accessors
     s = x;
   }
 
 private:
-  util::span<element_type> s;
+  std::span<element_type> s;
 }; // struct accessor
 
 /// Accessor for ordinary fields.
@@ -229,7 +229,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
   using size_type = typename decltype(base_type().span())::size_type;
 
   /// Index with bounds checking (except with \c NDEBUG).
-  FLECSI_INLINE_TARGET typename accessor::element_type & operator()(
+  KOKKOS_INLINE_FUNCTION typename accessor::element_type & operator()(
     size_type index) const {
     const auto s = this->span();
     assert(index < s.size() && "index out of range");
@@ -237,7 +237,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
   } // operator()
 
   /// Index without bounds checking (even without \c NDEBUG).
-  FLECSI_INLINE_TARGET typename accessor::element_type & operator[](
+  KOKKOS_INLINE_FUNCTION typename accessor::element_type & operator[](
     size_type index) const {
     return this->span()[index];
   }
@@ -277,37 +277,37 @@ struct ragged_accessor
     util::with_index_iterator<const ragged_accessor<T, P, OP>> {
   using base_type = typename ragged_accessor::accessor;
   using typename base_type::element_type;
-  using Offsets = accessor<dense, std::size_t, OP>;
+  using Offsets = accessor<dense, util::id, OP>;
   using Offset = typename Offsets::value_type;
   using size_type = typename Offsets::size_type;
   using row = util::span<element_type>;
 
   /// Get the row at an index point.
   /// \return \c util::span
-  FLECSI_INLINE_TARGET row operator[](size_type i) const {
+  KOKKOS_INLINE_FUNCTION row operator[](size_type i) const {
     // Without an extra element, we must store one endpoint implicitly.
     // Storing the end usefully ignores any overallocation.
     return this->span().first(off(i)).subspan(i ? off(i - 1) : 0);
   }
   /// Return the number of rows.
-  FLECSI_INLINE_TARGET size_type size() const noexcept {
+  KOKKOS_INLINE_FUNCTION size_type size() const noexcept {
     return off.span().size();
   }
   /// Return the number of elements across all rows.
-  FLECSI_INLINE_TARGET Offset total() const noexcept {
+  KOKKOS_INLINE_FUNCTION Offset total() const noexcept {
     const auto s = off.span();
     return s.empty() ? 0 : s.back();
   }
 
   /// Get the elements without any row structure.
-  FLECSI_INLINE_TARGET util::span<element_type> span() const {
+  KOKKOS_INLINE_FUNCTION util::span<element_type> span() const {
     return get_base().span().first(total());
   }
 
   base_type & get_base() {
     return *this;
   }
-  FLECSI_INLINE_TARGET const base_type & get_base() const {
+  KOKKOS_INLINE_FUNCTION const base_type & get_base() const {
     return *this;
   }
 
@@ -367,7 +367,7 @@ struct accessor<ragged, T, P>
 /// Sizes are \ref topo::repartition::resize "applied" before launching the
 /// task.  New sizes are \ref topo::with_size::growth "chosen" for the next
 /// task based on usage.
-/// Cannot be used while tracing or in a GPU task.
+/// Cannot be used in a GPU task.
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<ragged, T, P>
@@ -387,6 +387,7 @@ struct mutator<ragged, T, P>
 
 private:
   struct Overflow {
+    // We repack eagerly, so buffer is empty if del is non-zero:
     size_type del;
     std::vector<detail::Bool::maybe<T>> buffer;
   };
@@ -428,9 +429,9 @@ private:
   }; // struct raw_row
 
 public:
-  /// A row handle.  Provides the \c std::vector interface, with the important
-  /// difference that there is no guarantee of contiguity between memory
-  /// locations.
+  /// A row handle.
+  /// \warning Unlike for \c std::vector, there is no guarantee of contiguity
+  ///   between memory locations.
   struct row : util::with_index_iterator<const row>, private raw_row {
     using value_type = T;
     using typename raw_row::size_type;
@@ -477,7 +478,10 @@ public:
     }
 
     size_type max_size() const noexcept {
-      return overflow->buffer.max_size();
+      // C++26's std::saturating_cast:
+      return std::clamp(overflow->buffer.max_size(),
+        {},
+        {std::numeric_limits<util::id>::max()});
     }
 
     size_type capacity() const noexcept {
@@ -876,10 +880,10 @@ public:
   /// A mapping backed by a row.  Use the \c ragged interface to iterate.
   struct row {
     using key_type = typename Field::key_type;
-    FLECSI_INLINE_TARGET row(base_row s) : s(s) {}
+    KOKKOS_INLINE_FUNCTION row(base_row s) : s(s) {}
     /// Find an element.
     /// \param c must exist
-    FLECSI_INLINE_TARGET element_type & operator()(key_type c) const {
+    KOKKOS_INLINE_FUNCTION element_type & operator()(key_type c) const {
       return util::partition_point(s, [c](const value_type & v) {
         return v.first < c;
       })->second;
@@ -890,14 +894,14 @@ public:
   };
 
   /// Get the row at an index point.
-  FLECSI_INLINE_TARGET row operator[](typename accessor::size_type i) const {
+  KOKKOS_INLINE_FUNCTION row operator[](typename accessor::size_type i) const {
     return get_base()[i];
   }
 
   base_type & get_base() {
     return *this;
   }
-  FLECSI_INLINE_TARGET const base_type & get_base() const {
+  KOKKOS_INLINE_FUNCTION const base_type & get_base() const {
     return *this;
   }
   template<class F>
@@ -908,7 +912,7 @@ public:
 };
 
 /// Mutator for sparse fields.
-/// Cannot be used while tracing or in a GPU task.
+/// Cannot be used in a GPU task.
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<sparse, T, P>
@@ -926,6 +930,9 @@ private:
 
 public:
   /// A row handle.
+  /// The implementation is similar to \c std::flat_map from C++23.
+  /// Insertion and deletion of elements are thus most efficient for the
+  /// largest key values.
   struct row {
     using key_type = typename Field::key_type;
     using value_type = typename base_row::value_type;
@@ -1096,9 +1103,6 @@ public:
       return {i, i != r.end() && i->first == c};
     }
 
-    // We simply keep the (ragged) row sorted; this avoids the complexity of
-    // two lookaside structures and is efficient for small numbers of inserted
-    // elements and for in-order initialization.
     base_row r;
   };
 
@@ -1151,59 +1155,59 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
     using difference_type = std::ptrdiff_t;
     using iterator_category = std::bidirectional_iterator_tag;
 
-    FLECSI_INLINE_TARGET iterator() noexcept : iterator(nullptr, 0) {}
-    FLECSI_INLINE_TARGET iterator(const particle_accessor * a, size_type i)
+    KOKKOS_INLINE_FUNCTION iterator() noexcept : iterator(nullptr, 0) {}
+    KOKKOS_INLINE_FUNCTION iterator(const particle_accessor * a, size_type i)
       : a(a), i(i) {}
 
-    FLECSI_INLINE_TARGET reference operator*() const {
+    KOKKOS_INLINE_FUNCTION reference operator*() const {
       return a->span()[i].data;
     }
-    FLECSI_INLINE_TARGET pointer operator->() const {
+    KOKKOS_INLINE_FUNCTION pointer operator->() const {
       return &**this;
     }
 
-    FLECSI_INLINE_TARGET iterator & operator++() {
+    KOKKOS_INLINE_FUNCTION iterator & operator++() {
       const auto s = a->span();
       if(++i != s.size())
         i += s[i].skip;
       return *this;
     }
-    FLECSI_INLINE_TARGET iterator operator++(int) {
+    KOKKOS_INLINE_FUNCTION iterator operator++(int) {
       iterator ret = *this;
       ++*this;
       return ret;
     }
-    FLECSI_INLINE_TARGET iterator & operator--() {
+    KOKKOS_INLINE_FUNCTION iterator & operator--() {
       if(--i)
         i -= a->span()[i].skip;
       return *this;
     }
-    FLECSI_INLINE_TARGET iterator operator--(int) {
+    KOKKOS_INLINE_FUNCTION iterator operator--(int) {
       iterator ret = *this;
       --*this;
       return ret;
     }
 
-    FLECSI_INLINE_TARGET bool operator==(const iterator & o) const {
+    KOKKOS_INLINE_FUNCTION bool operator==(const iterator & o) const {
       return i == o.i;
     }
-    FLECSI_INLINE_TARGET bool operator!=(const iterator & o) const {
+    KOKKOS_INLINE_FUNCTION bool operator!=(const iterator & o) const {
       return i != o.i;
     }
-    FLECSI_INLINE_TARGET bool operator<(const iterator & o) const {
+    KOKKOS_INLINE_FUNCTION bool operator<(const iterator & o) const {
       return i < o.i;
     }
-    FLECSI_INLINE_TARGET bool operator<=(const iterator & o) const {
+    KOKKOS_INLINE_FUNCTION bool operator<=(const iterator & o) const {
       return i <= o.i;
     }
-    FLECSI_INLINE_TARGET bool operator>(const iterator & o) const {
+    KOKKOS_INLINE_FUNCTION bool operator>(const iterator & o) const {
       return i > o.i;
     }
-    FLECSI_INLINE_TARGET bool operator>=(const iterator & o) const {
+    KOKKOS_INLINE_FUNCTION bool operator>=(const iterator & o) const {
       return i >= o.i;
     }
 
-    FLECSI_INLINE_TARGET size_type location() const noexcept {
+    KOKKOS_INLINE_FUNCTION size_type location() const noexcept {
       return i;
     }
 
@@ -1212,36 +1216,35 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
     size_type i;
   };
 
-  // This interface is a subset of that proposed for std::hive.
+  /// \name std::hive operations
+  /// \{
 
-  /// Get the number of extant particles.
-  FLECSI_INLINE_TARGET size_type size() const {
+  /// <a></a>
+  KOKKOS_INLINE_FUNCTION size_type size() const noexcept {
     const auto s = this->span();
     const auto n = s.size();
     const auto i = n ? s.front().skip : 0;
     return i == n ? n : s[i].free.prev;
   }
-  /// Get the maximum number of particles.
-  FLECSI_INLINE_TARGET size_type capacity() const {
+  KOKKOS_INLINE_FUNCTION size_type capacity() const noexcept {
     return this->span().size();
   }
-  /// Test whether any particles exist.
-  [[nodiscard]] FLECSI_INLINE_TARGET bool empty() const {
+  [[nodiscard]] KOKKOS_INLINE_FUNCTION bool empty() const noexcept {
     return !size();
   }
 
-  FLECSI_INLINE_TARGET iterator begin() const {
+  KOKKOS_INLINE_FUNCTION iterator begin() const noexcept {
     const auto s = this->span();
     return {this, s.empty() || s.front().skip ? 0 : 1 + first_skip()};
   }
-  FLECSI_INLINE_TARGET iterator end() const {
+  KOKKOS_INLINE_FUNCTION iterator end() const noexcept {
     return {this, capacity()};
   }
 
-  /// Get an iterator that refers to a particle.
+  /// Implements \c std::hive::get_iterator.
   /// \c T must be standard-layout.
-  FLECSI_INLINE_TARGET iterator get_iterator_from_pointer(
-    element_type * the_pointer) const {
+  KOKKOS_INLINE_FUNCTION iterator get_iterator_from_pointer(
+    element_type * the_pointer) const noexcept {
     static_assert(std::is_standard_layout_v<Particle>);
     const auto * const p = reinterpret_cast<Particle *>(the_pointer);
     const auto ret = p - this->span().data();
@@ -1249,11 +1252,12 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
     assert(!p->skip != !ret && "field slot is empty");
     return iterator(this, ret);
   }
+  /// \}
 
   base_type & get_base() {
     return *this;
   }
-  FLECSI_INLINE_TARGET const base_type & get_base() const {
+  KOKKOS_INLINE_FUNCTION const base_type & get_base() const {
     return *this;
   }
 
@@ -1267,7 +1271,7 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   }
 
 protected:
-  FLECSI_INLINE_TARGET size_type
+  KOKKOS_INLINE_FUNCTION size_type
   first_skip() const { // after special first element
     const auto s = this->span();
     return s.size() == 1 ? 0 : s[1].skip;
@@ -1288,6 +1292,7 @@ struct accessor<particle, T, P> : particle_accessor<T, P, false> {
 /// \gpu; however, insertions and deletions are not thread-safe.
 /// Iterators are invalidated only if their particle is removed.
 /// \tparam P if write-only, all particles are discarded
+/// \warning Unlike for \c std::hive, insertion fails beyond `capacity()`.
 template<class T, Privileges P>
 struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   static_assert(privilege_write(P), "mutators cannot be read-only");
@@ -1304,28 +1309,24 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   // tables, accessor could provide it instead of having this class at all.
   // However, the natural wo semantics differ between the two cases.
 
-  /// Remove all particles.
-  FLECSI_INLINE_TARGET void clear() const {
+  /// \name std::hive operations
+  /// \{
+
+  /// <a></a>
+  KOKKOS_INLINE_FUNCTION void clear() const noexcept {
     if(!std::is_trivially_destructible_v<T>)
       std::destroy(this->begin(), this->end());
     init();
   }
 
-  /// Add a particle.
-  /// \see emplace
-  FLECSI_INLINE_TARGET iterator insert(const value_type & v) const {
+  KOKKOS_INLINE_FUNCTION iterator insert(const value_type & v) const {
     return emplace(v);
   }
-  /// Add a particle by moving.
-  /// \see emplace
-  FLECSI_INLINE_TARGET iterator insert(value_type && v) const {
+  KOKKOS_INLINE_FUNCTION iterator insert(value_type && v) const {
     return emplace(std::move(v));
   }
-  /// Create an element, in constant time.
-  /// It is unspecified where it appears in the sequence.
-  /// \return an iterator to the new element
   template<class... AA>
-  FLECSI_INLINE_TARGET iterator emplace(AA &&... aa) const {
+  KOKKOS_INLINE_FUNCTION iterator emplace(AA &&... aa) const {
     const auto s = this->span();
     const auto n = s.size();
     assert(n && "no particle space");
@@ -1348,9 +1349,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
     return {this, ret};
   }
 
-  /// Remove an element, in constant time.
-  /// \return an iterator past the removed element
-  FLECSI_INLINE_TARGET iterator erase(const iterator & it) const {
+  KOKKOS_INLINE_FUNCTION iterator erase(const iterator & it) const {
     const auto s = this->span();
     const auto n = s.size();
     assert(n && "no particles to erase");
@@ -1361,7 +1360,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
     const Skip end = i > 1 ? rm[-1].skip : 0, // adjacent empty run lengths
       beg = i && i < n - 1 ? rm[1].skip : 0;
     if(i)
-      rm[-end].skip = rm[beg].skip = beg + end + 1; // set up new run
+      (rm - end)->skip = rm[beg].skip = beg + end + 1; // set up new run
 
     if(end)
       rm->reset(); // no links in middle of run
@@ -1387,6 +1386,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
 
     return iterator(this, 1 + (i ? i + beg : this->first_skip()));
   }
+  /// \}
 
   template<class F>
   void send(F && f) {
@@ -1396,10 +1396,10 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   }
 
 private:
-  FLECSI_INLINE_TARGET void init() const {
+  KOKKOS_INLINE_FUNCTION void init() const {
     const auto s = this->span();
     std::uninitialized_default_construct(s.begin(), s.end());
-    if(const auto n = s.size()) {
+    if(const typename mutator::Particle::size_type n = s.size()) {
       auto & a = s.front();
       a.free = {0, 1};
       a.skip = 0;
@@ -1414,32 +1414,6 @@ private:
 
 namespace detail {
 template<class T>
-struct scalar_value : bind_tag {
-  const T * device;
-  T * host;
-
-  // The backend knows what value of P to provide when processing this as a
-  // "task parameter" and thus whether 'device' is really a device pointer.
-  template<exec::processor P>
-  void copy() const {
-    if constexpr(P == exec::processor::toc) {
-#if defined(__NVCC__) || defined(__CUDACC__)
-      auto status = cudaMemcpy(host, device, sizeof(T), cudaMemcpyDeviceToHost);
-      flog_assert(cudaSuccess == status, "Error calling cudaMemcpy");
-      return;
-#elif defined(__HIPCC__)
-      auto status = hipMemcpy(host, device, sizeof(T), hipMemcpyDeviceToHost);
-      flog_assert(hipSuccess == status, "Error calling hipMemcpy");
-      return;
-#else
-      flog_assert(false, "CUDA or HIP should be enabled when using toc task");
-#endif
-    }
-    *host = *device;
-  }
-};
-
-template<class T>
 struct scalar_access : send_tag {
   using value_type = T;
 
@@ -1447,22 +1421,56 @@ struct scalar_access : send_tag {
   void send(Func && f) {
     typename field<T, single>::template accessor<ro> acc;
     f(acc, util::identity());
-    if(auto * const d = acc.data()) {
-      scalar_value<value_type> dummy{{}, d, &scalar_};
+    if((device = acc.data())) {
+      auto dummy = this;
       std::forward<Func>(f)(dummy, [](auto &) { return nullptr; });
     }
   }
 
-  FLECSI_INLINE_TARGET const value_type * operator->() const {
-    return &scalar_;
+  KOKKOS_INLINE_FUNCTION const value_type * operator->() const {
+    return &**this;
   }
 
-  FLECSI_INLINE_TARGET const value_type & operator*() const {
-    return scalar_;
+  KOKKOS_INLINE_FUNCTION const value_type & operator*() const {
+#ifdef FLECSI_DEVICE_CODE
+    return *device; // avoid race on copy
+#else
+    if(copier)
+      std::exchange(copier, nullptr)(*this);
+    return value;
+#endif
+  }
+
+  void bind(auto s) { // from the exec machinery
+    using E = decltype(s.executor().kokkos());
+    if constexpr(Kokkos::SpaceAccessibility<Kokkos::HostSpace,
+                   typename E::memory_space>::accessible) {
+      // For host-accessible spaces (Serial/OpenMP), copy immediately to avoid
+      // racing on the mutable value member inside OpenMP parallel regions
+      value = *device;
+    }
+    else {
+      // For device-only spaces, defer copy until first access to avoid
+      // unnecessary deep_copy operations
+      copier = copy<E>;
+    }
   }
 
 private:
-  value_type scalar_{};
+  // This class might be replaced before we support multiple instances of a
+  // Kokkos execution-space type; for simplicity, support only the default.
+  template<class E>
+  static void copy(const scalar_access & s) {
+    E space;
+    Kokkos::deep_copy(space,
+      Kokkos::View<T *, Kokkos::HostSpace>{&s.value, 1},
+      Kokkos::View<const T *, typename E::memory_space>(s.device, 1));
+    space.fence();
+  }
+
+  const T * device = nullptr;
+  mutable void (*copier)(const scalar_access &) = nullptr;
+  mutable T value{};
 };
 } // namespace detail
 
@@ -1498,7 +1506,7 @@ struct multi : send_tag {
   /// \return a sized random-access range of color-accessor pairs
   auto components() const {
     return util::transform_view(
-      util::span(v), [](const round & r) -> std::pair<Color, const A &> {
+      std::span(v), [](const round & r) -> std::pair<Color, const A &> {
         return {r.row, r.a};
       });
   }
@@ -1539,7 +1547,7 @@ private:
   template<class V>
   static auto xform(V & v) {
     return util::transform_view(
-      util::span(v), [](auto & r) -> auto & { return r.a; });
+      std::span(v), [](auto & r) -> auto & { return r.a; });
   }
 
   std::vector<round> v;

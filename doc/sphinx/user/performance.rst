@@ -86,7 +86,7 @@ Below presents a proper implementation of the tracing:
 
   using namespace flecsi;
 
-  std::size_t sub{3};
+  const unsigned short sub = 3;
   std::size_t ita{0};
 
   static exec::trace t;
@@ -94,7 +94,7 @@ Below presents a proper implementation of the tracing:
 
   do {
     auto g = t.make_guard();
-    for(std::size_t i{0}; i < sub; ++i) {
+    for(auto i = sub; i--;) {
       s.execute<task::red>(m, ud(m), fd(m));
       s.execute<task::black>(m, ud(m), fd(m));
     }

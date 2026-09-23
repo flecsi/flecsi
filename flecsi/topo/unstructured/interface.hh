@@ -66,7 +66,7 @@ struct topology<Policy, unstructured_base> : unstructured_base,
   }
 
   template<index_space S>
-  static constexpr std::size_t index = index_spaces::template index<S>;
+  static constexpr IndexSpace index = index_spaces::template index<S>;
 
   template<index_space S>
   data::region & get_region() {
@@ -142,7 +142,7 @@ private:
           c.colors,
           s,
           [p = c.idx_spaces[index<VV>].partitions](
-            std::size_t i) { return p[i]; })...
+            Color i) { return p[i]; })...
         }
       },
       special_(s, c.colors),
@@ -258,7 +258,7 @@ private:
     (f(util::constant<VV>()), ...);
   }
 
-  auto & get_sizes(std::size_t i) {
+  auto & get_sizes(IndexSpace i) {
     return part_[i].sz;
   }
 
@@ -314,7 +314,7 @@ struct topology<Policy, topo::unstructured_base>::access {
   friend unstructured_base;
   template<class F>
   void send(F && f) {
-    std::size_t i = 0;
+    IndexSpace i = 0;
     for(auto & a : size_)
       f(a, [&i](auto & u) { return topo::resize::field(u.get_sizes(i++)); });
 
@@ -331,11 +331,11 @@ protected:
     Return an index space as a range.
     \host.
 
-    \return range of \c id\<IndexSpace\> values
+    \return range of \c id\<S\> values
    */
 
   template<index_space S>
-  FLECSI_INLINE_TARGET auto entities() const {
+  KOKKOS_INLINE_FUNCTION auto entities() const {
     return make_ids<S>(util::iota_view<util::id>(0, *size_.template get<S>()));
   }
 
@@ -349,14 +349,14 @@ protected:
    */
 
   template<index_space To, index_space From>
-  FLECSI_INLINE_TARGET auto entities(id<From> from) const {
+  KOKKOS_INLINE_FUNCTION auto entities(id<From> from) const {
     return make_ids<To>(connectivity<From, To>()[from]);
   }
 
   /// Get a special-entities list.
   /// \return range of \c id\<I\> values
   template<index_space I, entity_list L>
-  FLECSI_INLINE_TARGET auto special_entities() const {
+  KOKKOS_INLINE_FUNCTION auto special_entities() const {
     return make_ids<I>(special_.template get<I>().template get<L>().span());
   }
 
@@ -367,7 +367,7 @@ private:
   }
 
   template<index_space F, index_space T>
-  FLECSI_INLINE_TARGET auto const & connectivity() const {
+  KOKKOS_INLINE_FUNCTION auto const & connectivity() const {
     return connect_.template get<F>().template get<T>();
   }
 

@@ -5,7 +5,7 @@
 #define FLECSI_UTIL_MPI_HH
 
 #include "flecsi/config.hh"
-#include "flecsi/util/array_ref.hh" // span
+#include "flecsi/util/array_ref.hh"
 #include "flecsi/util/serialize.hh"
 
 #include <algorithm>
@@ -17,6 +17,7 @@
 #include <memory>
 #include <numeric>
 #include <optional>
+#include <span>
 #include <stack>
 #include <type_traits>
 
@@ -53,6 +54,14 @@ test(int err) {
 }
 
 namespace detail {
+inline void
+e2big(std::size_t a, std::size_t b = 0) {
+  static constexpr auto cmax = std::numeric_limits<count_t>::max();
+  if(MPI_VERSION < 4 && (a > cmax || b > cmax - a))
+    flog_fatal("MPI message overflow! Try using an MPI-4 implementation for "
+               "large count support!");
+}
+
 struct vector { // for *v functions
   explicit vector(count_t n) {
     off.reserve(n);
@@ -71,11 +80,7 @@ struct vector { // for *v functions
   void put(const T & t) {
     const auto n = data.size();
     const auto s = serial::size(t);
-    const auto cmax = std::numeric_limits<count_t>::max();
-    if(MPI_VERSION < 4 && (s > cmax || n > cmax - s)) {
-      flog_fatal("MPI message overflow! Try using an MPI-4 implementation for "
-                 "large count support!");
-    }
+    e2big(n, s);
     off.emplace_back(n);
     sz.emplace_back(s);
     data.resize(n + s);
@@ -83,7 +88,74 @@ struct vector { // for *v functions
     serial::put(p, t);
   }
 };
+
+// Since keyvals are just ints and some MPI implementations use int for all
+// handles, use the destructor as the tag:
+template<auto &>
+struct traits; // undefined
+template<>
+struct traits<MPI_Comm_free> {
+  static inline const MPI_Comm null = MPI_COMM_NULL;
+};
+template<>
+struct traits<MPI_Comm_free_keyval> {
+  static inline const int null = MPI_KEYVAL_INVALID;
+};
+template<>
+struct traits<MPI_Type_free> {
+  static inline const MPI_Datatype null = MPI_DATATYPE_NULL;
+};
+template<>
+struct traits<MPI_Op_free> {
+  static inline const MPI_Op null = MPI_OP_NULL;
+};
+
+template<auto & F>
+struct unique {
+protected:
+  static constexpr auto & null = detail::traits<F>::null;
+  using type = std::remove_cvref_t<decltype(null)>;
+
+  unique() = default;
+  unique(unique && u) noexcept {
+    std::swap(h, u.h);
+  }
+  ~unique() {
+    if(*this)
+      test(F(&h));
+  }
+
+  unique & operator=(unique && u) & noexcept {
+    unique sink(std::move(u));
+    std::swap(h, sink.h);
+    return *this;
+  }
+
+  type * out() noexcept {
+    return &h;
+  }
+
+public:
+  explicit operator bool() const noexcept {
+    return h != null;
+  }
+  operator type() const noexcept {
+    return h;
+  }
+
+private:
+  type h = null;
+};
 } // namespace detail
+
+struct keyval : detail::unique<MPI_Comm_free_keyval> {
+  keyval() = default;
+  explicit keyval(MPI_Comm_copy_attr_function * cp = MPI_COMM_NULL_COPY_FN,
+    MPI_Comm_delete_attr_function * rm = MPI_COMM_NULL_DELETE_FN,
+    void * s = nullptr) {
+    test(MPI_Comm_create_keyval(cp, rm, out(), s));
+  }
+};
 
 struct init {
   init(int argc, char ** argv) {
@@ -123,17 +195,11 @@ struct finalizer {
 
 private:
   finalizer() {
-    int k;
-    test(MPI_Comm_create_keyval(
-      MPI_COMM_NULL_COPY_FN,
-      [](MPI_Comm, int, void * a, void *) {
-        delete static_cast<finalizer *>(a);
-        return MPI_SUCCESS;
-      },
-      &k,
-      nullptr));
+    const keyval k(MPI_COMM_NULL_COPY_FN, [](MPI_Comm, int, void * a, void *) {
+      delete static_cast<finalizer *>(a);
+      return MPI_SUCCESS;
+    });
     test(MPI_Comm_set_attr(MPI_COMM_SELF, k, this));
-    test(MPI_Comm_free_keyval(&k));
   }
   finalizer(finalizer &&) = delete; // MPI knows our address
 
@@ -141,92 +207,36 @@ private:
   std::vector<any> v;
 };
 
-struct comm {
-  MPI_Comm c = MPI_COMM_NULL;
-
-  comm() = default;
-  comm(comm && o) noexcept {
-    std::swap(c, o.c);
+struct comm : detail::unique<MPI_Comm_free> {
+  static comm dup(MPI_Comm c0) {
+    comm ret;
+    test(MPI_Comm_dup(c0, ret.out()));
+    return ret;
   }
-  ~comm() {
-    if(*this)
-      test(MPI_Comm_free(&c));
-  }
-  comm & operator=(comm o) & noexcept {
-    std::swap(c, o.c);
-    return *this;
-  }
-  explicit operator bool() const noexcept {
-    return c != MPI_COMM_NULL;
-  }
-
   static comm split(MPI_Comm c0, int c, int k = 0) {
     comm ret;
-    test(MPI_Comm_split(c0, c, k, &ret.c));
+    test(MPI_Comm_split(c0, c, k, ret.out()));
     return ret;
   }
 };
 
-struct datatype {
+struct datatype : detail::unique<MPI_Type_free> {
   datatype() = default;
   template<class F>
   explicit datatype(F && f) {
+    auto & d = *out();
     std::forward<F>(f)(d);
     // The pointer really shouldn't be necessary, but this usage is correct
     // even if MPI writes through it.
     test(MPI_Type_commit(&d));
   }
-  datatype(datatype && x) noexcept {
-    std::swap(d, x.d);
-  }
-  ~datatype() {
-    if(*this)
-      MPI_Type_free(&d);
-  }
-
-  datatype & operator=(datatype x) & noexcept {
-    std::swap(d, x.d);
-    return *this;
-  }
-  explicit operator bool() const noexcept {
-    return d != MPI_DATATYPE_NULL;
-  }
-
-  operator MPI_Datatype() const {
-    return d;
-  }
-
-private:
-  MPI_Datatype d = MPI_DATATYPE_NULL;
 };
 
-struct op {
+struct op : detail::unique<MPI_Op_free> {
   op() = default;
   explicit op(MPI_User_function f, bool comm = true) {
-    util::mpi::test(MPI_Op_create(f, comm, &o));
+    util::mpi::test(MPI_Op_create(f, comm, out()));
   }
-  op(op && x) noexcept {
-    std::swap(o, x.o);
-  }
-  ~op() {
-    if(*this)
-      MPI_Op_free(&o);
-  }
-
-  op & operator=(op x) & noexcept {
-    std::swap(o, x.o);
-    return *this;
-  }
-  explicit operator bool() const noexcept {
-    return o != MPI_OP_NULL;
-  }
-
-  operator MPI_Op() const {
-    return o;
-  }
-
-private:
-  MPI_Op o = MPI_OP_NULL;
 };
 
 // This is a workaround for a bug in Cray MPICH.
@@ -428,6 +438,78 @@ info(MPI_Comm comm = MPI_COMM_WORLD) {
   return std::make_pair(rank(comm), size(comm));
 } // info
 
+template<auto & M = FLECSI_MPI_C(MPI_Send), class T, class... AA>
+void
+send(std::span<T> t, const AA &... aa) {
+  detail::e2big(t.size());
+  test(M(t.data(), t.size(), type<std::remove_const_t<T>>(), aa...));
+}
+template<auto & M = FLECSI_MPI_C(MPI_Send), class T, class... AA>
+void
+send(const T & t, const AA &... aa) {
+  send<M>(std::span([&t] {
+    if constexpr(bit_assignable_v<T>) {
+      static_assert(
+        bit_copyable_v<T>, "recv would be ambiguous; send with span");
+      return std::span(&t, 1);
+    }
+    else
+      return serial::put_tuple(t);
+  }()),
+    aa...);
+}
+template<class T>
+MPI_Status
+recv(std::span<T> t,
+  int src = MPI_ANY_SOURCE,
+  int tag = MPI_ANY_TAG,
+  MPI_Comm comm = MPI_COMM_WORLD) {
+  detail::e2big(t.size());
+  MPI_Status ret;
+  test(FLECSI_MPI_C(MPI_Recv)(
+    t.data(), t.size(), type<T>(), src, tag, comm, &ret));
+  return ret;
+}
+template<class T>
+std::pair<T, MPI_Status>
+recv(int = MPI_ANY_SOURCE, int = MPI_ANY_TAG, MPI_Comm = MPI_COMM_WORLD);
+template<class T>
+MPI_Status
+recv(T & t,
+  int src = MPI_ANY_SOURCE,
+  int tag = MPI_ANY_TAG,
+  MPI_Comm comm = MPI_COMM_WORLD) {
+  if constexpr(bit_assignable_v<T>)
+    return recv(std::span(&t, 1), src, tag, comm);
+  else {
+    MPI_Status ret;
+    std::tie(t, ret) = recv<T>(src, tag, comm);
+    return ret;
+  }
+}
+template<class T>
+std::pair<T, MPI_Status>
+recv(int src, int tag, MPI_Comm comm) {
+  MPI_Status s;
+  return {[&] {
+            if constexpr(bit_copyable_v<T>) {
+              T ret;
+              s = recv(ret, src, tag, comm);
+              return ret;
+            }
+            else {
+              MPI_Message m;
+              test(MPI_Mprobe(src, tag, comm, &m, &s));
+              count_t c;
+              test(FLECSI_MPI_C(MPI_Get_count)(&s, MPI_BYTE, &c));
+              std::vector<std::byte> v(c);
+              test(FLECSI_MPI_C(MPI_Mrecv)(v.data(), c, MPI_BYTE, &m, &s));
+              return serial::get1<T>(v.data());
+            }
+          }(),
+    s};
+}
+
 namespace detail {
 template<class R, class = void>
 struct make_range {
@@ -527,12 +609,7 @@ one_to_allv(R && r, MPI_Comm comm = MPI_COMM_WORLD) {
       0,
       comm));
 
-    if(rank) {
-      auto const * p = v.data.data();
-      return serial::get<return_type>(p);
-    }
-    else
-      return std::move(*mine);
+    return rank ? serial::get1<return_type>(v.data.data()) : std::move(*mine);
   }
 } // one_to_allv
 
@@ -541,13 +618,9 @@ namespace detail {
 // These two class templates serialize or not with the same interface.
 template<class T>
 struct bit_message {
-  bit_message(int, int, MPI_Comm) : p(new T) {}
   template<class I> // deferred to support prvalues
   explicit bit_message(I && i) : p(new T(*std::forward<I>(i))) {}
 
-  void * data() {
-    return p.get();
-  }
   const void * data() const {
     return p.get();
   }
@@ -556,9 +629,6 @@ struct bit_message {
   }
   std::size_t bytes() const {
     return sizeof(T);
-  }
-  T get() && {
-    return std::move(*p);
   }
   void reset() {
     p.reset();
@@ -574,21 +644,10 @@ private:
 
 template<class T>
 struct serial_message {
-  serial_message(int s, int t, MPI_Comm comm)
-    : v([&] {
-        MPI_Status st;
-        test(MPI_Probe(s, t, comm, &st));
-        int ret;
-        test(MPI_Get_count(&st, type(), &ret));
-        return ret;
-      }()) {}
   template<class I>
   explicit serial_message(I && i)
     : v(serial::put_tuple<T>(*std::forward<I>(i))) {}
 
-  void * data() {
-    return v.data();
-  }
   const void * data() const {
     return v.data();
   }
@@ -597,9 +656,6 @@ struct serial_message {
   }
   std::size_t bytes() const {
     return v.size();
-  }
-  T get() const {
-    return serial::get1<T>(v.data());
   }
   void reset() {
     decltype(v)().swap(v);
@@ -669,7 +725,7 @@ one_to_alli(R && r, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
           test(MPI_Waitsome(
             req.size(), req.data(), &count, done.data(), MPI_STATUSES_IGNORE));
           // Clear data for completed sends:
-          for(auto j : util::span(done).first(count)) {
+          for(auto j : std::span(done).first(count)) {
             auto & w = val[j];
             used -= w.bytes();
             w.reset();
@@ -680,12 +736,8 @@ one_to_alli(R && r, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
     }
     return ret;
   }
-  else {
-    M ret(0, 0, comm);
-    test(FLECSI_MPI_C(MPI_Recv)(
-      ret.data(), ret.count(), M::type(), 0, 0, comm, MPI_STATUS_IGNORE));
-    return std::move(ret).get();
-  }
+  else
+    return recv<T>(0, 0, comm).first;
 }
 
 /*!

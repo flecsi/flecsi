@@ -36,20 +36,20 @@ operator<<(std::ostream & os, const sort_entity<DIM, T, KEY> & e) {
   return os;
 }
 
-template<typename KEY, int DIM>
+template<typename KEY, flecsi::Dimension DIM>
 class txt_definition {
 public:
-  static constexpr int dim = DIM;
+  static constexpr flecsi::Dimension dim = DIM;
   using key_t = KEY;
   using point_t = flecsi::util::point<double, DIM>;
   using ent_t = sort_entity<DIM, double, key_t>;
   using range_t = std::array<point_t, 2>;
 
-  txt_definition(const std::string & filename, const int size) {
+  txt_definition(const std::string & filename, const flecsi::Color size) {
     read_sizes_(filename, size);
   }
 
-  void read_entities(int c) {
+  void read_entities(flecsi::Color c) {
     nlocal_entities_ = distribution_[c];
     entities_.resize(nlocal_entities_);
 
@@ -59,8 +59,8 @@ public:
     myfile_.seekg(position);
 
     // Coordinates, ignore the other colors
-    for(size_t i = 0; i < nlocal_entities_; ++i) {
-      for(int j = 0; j < dim; ++j)
+    for(flecsi::util::id i = 0; i < nlocal_entities_; ++i) {
+      for(flecsi::Dimension j = 0; j < dim; ++j)
         myfile_ >> entities_[i].coordinates_[j];
     }
 
@@ -68,7 +68,7 @@ public:
     myfile_.seekg(position);
 
     // Radius
-    for(size_t i = 0; i < nlocal_entities_; ++i)
+    for(flecsi::util::id i = 0; i < nlocal_entities_; ++i)
       myfile_ >> entities_[i].radius_;
 
     position = 2 + nglobal_entities_ * lineC + nglobal_entities_ * lineR +
@@ -76,27 +76,28 @@ public:
     myfile_.seekg(position);
 
     // Mass
-    for(size_t i = 0; i < nlocal_entities_; ++i)
+    for(flecsi::util::id i = 0; i < nlocal_entities_; ++i)
       myfile_ >> entities_[i].mass_;
 
     // Ids
-    for(size_t i = offset_[c], k = 0; i < offset_[c + 1]; ++i, ++k)
+    for(flecsi::util::gid i = offset_[c], k = 0; i < offset_[c + 1]; ++i, ++k)
       entities_[k].id_ = i;
 
     // Generate the keys
-    for(size_t i = 0; i < nlocal_entities_; ++i)
+    for(flecsi::util::id i = 0; i < nlocal_entities_; ++i)
       entities_[i].key_ = key_t(range_, entities_[i].coordinates_);
   }
 
-  size_t global_num_entities() const {
+  flecsi::util::gid global_num_entities() const {
     return nglobal_entities_;
   }
 
-  size_t distribution() const {
+  flecsi::Color distribution() const {
     return entities_.size();
   }
 
-  std::pair<size_t, size_t> offset(const int & i) const {
+  std::pair<flecsi::util::gid, flecsi::util::gid> offset(
+    const flecsi::Color & i) const {
     return std::pair(offset_[i], offset_[i + 1]);
   }
 
@@ -104,7 +105,7 @@ public:
     return entities_;
   }
 
-  ent_t & entities(const int & i) {
+  ent_t & entities(const flecsi::Color & i) {
     return entities_[i];
   }
 
@@ -115,23 +116,23 @@ private:
     myfile_.seekg(position);
 
     point_t p;
-    for(int j = 0; j < dim; ++j) {
+    for(flecsi::Dimension j = 0; j < dim; ++j) {
       myfile_ >> p[j];
     }
 
     range_[0] = range_[1] = p;
-    for(size_t i = 1; i < nglobal_entities_; ++i) {
-      for(int j = 0; j < dim; ++j) {
+    for(flecsi::util::gid i = 1; i < nglobal_entities_; ++i) {
+      for(flecsi::Dimension j = 0; j < dim; ++j) {
         myfile_ >> p[j];
       }
-      for(int d = 0; d < dim; ++d) {
+      for(flecsi::Dimension d = 0; d < dim; ++d) {
         range_[1][d] = std::max(range_[1][d], p[d] + 1);
         range_[0][d] = std::min(range_[0][d], p[d] - 1);
       }
     }
   } // compute_range
 
-  void read_sizes_(const std::string & filename, const int size) {
+  void read_sizes_(const std::string & filename, const flecsi::Color size) {
     // For now read all particles?
     myfile_ = std::ifstream(filename);
     if(myfile_.fail()) {
@@ -142,15 +143,15 @@ private:
 
     offset_.resize(size + 1, 0);
     distribution_.resize(size, 0);
-    int nlocal_entities = nglobal_entities_ / size; // per color
-    int lm = nglobal_entities_ % size;
-    for(int i = 0; i < size; ++i) {
+    const flecsi::util::id nlocal_entities = nglobal_entities_ / size,
+                           lm = nglobal_entities_ % size;
+    for(flecsi::Color i = 0; i < size; ++i) {
       distribution_[i] = nlocal_entities;
       if(i < lm)
         ++distribution_[i];
     }
 
-    for(int i = 1; i < size + 1; ++i) {
+    for(flecsi::Color i = 1; i <= size; ++i) {
       offset_[i] = distribution_[i - 1] + offset_[i - 1];
     }
 
@@ -160,10 +161,10 @@ private:
   std::ifstream myfile_;
   range_t range_;
   std::vector<ent_t> entities_;
-  size_t nglobal_entities_;
-  size_t nlocal_entities_;
+  flecsi::util::gid nglobal_entities_;
+  flecsi::util::id nlocal_entities_;
   std::vector<flecsi::util::id> distribution_;
-  std::vector<flecsi::util::id> offset_;
+  std::vector<flecsi::util::gid> offset_;
 
 }; // class txt_definition
 

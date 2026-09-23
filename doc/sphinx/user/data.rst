@@ -296,7 +296,7 @@ Layouts that support those operations provide `mutators` for the purpose:
 
 * A ``ragged`` mutator provides an interface at each index point based on ``std::vector``.
 * A ``sparse`` mutator provides an interface at each index point based on ``std::map``.
-* A ``particle`` mutator provides an interface based on C++'s proposed ``std::hive`` for efficient insertion and deletion of field values.
+* A ``particle`` mutator provides an interface for the entire field based on (one block of a) ``std::hive`` (from C++26).
 
 Just like an accessor, a mutator corresponds to a field reference argument and has privileges.
 The first access to a field with any of these layouts must use a write-only mutator to initialize it to the appropriate empty state.
@@ -313,8 +313,7 @@ Field references for ``ragged`` or ``sparse`` fields provide a ``get_elements`` 
 The object returned can be used to allocate memory manually (with ``resize``) or automatically based on a heuristic (with ``growth``).
 
 The current implementation of memory management for these layouts imposes several limitations.
-First, the automatic memory allocation is incompatible with :ref:`tracing`, so ``ragged`` and ``sparse`` mutators cannot be used in a task launched during a trace.
-Ghost copies for these layouts are implemented using mutators, so they are excluded from traces as well.
+First, the automatic memory allocation is incompatible with :ref:`tracing`, so it is deferred until a trace ends (killing the process if the field runs out of space first).
 Moreover, they use further temporary allocations during a task that are incompatible with GPU execution, so they cannot be used in a ``toc`` task.
 
 .. _multi-accessors:

@@ -15,6 +15,7 @@
 
 #include <cstddef>
 #include <optional>
+#include <ranges>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -246,7 +247,7 @@ struct comm : data::convert_tag {
 
     /// Use in MPI calls.
     operator MPI_Comm() const {
-      return p->c;
+      return *p;
     }
 
     template<class F>
@@ -268,9 +269,8 @@ struct comm : data::convert_tag {
 
   /// Return an object holding a duplicate of \c MPI_COMM_WORLD.
   static comm world() {
-    auto ret = std::make_shared<util::mpi::comm>();
-    util::mpi::test(MPI_Comm_dup(MPI_COMM_WORLD, &ret->c));
-    return ret;
+    return std::make_shared<util::mpi::comm>(
+      util::mpi::comm::dup(MPI_COMM_WORLD));
   }
 
   ref use() const {
@@ -507,10 +507,10 @@ convert(U && u) { // deep implicit conversions
     return u ? T(convert<typename T::value_type>(*std::forward<decltype(u)>(u)))
              : std::nullopt;
   else if constexpr(is_vector<T>::value) {
-    util::transform_view(u, [](auto && x) {
+    const auto t = std::views::transform(u, [](auto && x) {
       return convert<typename T::value_type>(std::forward<decltype(x)>(x));
     });
-    return {u.begin(), u.end()};
+    return {t.begin(), t.end()};
   }
   else
     return std::forward<U>(u);
@@ -686,6 +686,7 @@ struct launch {
 
 /// An explicit launch domain size.
 struct launch_domain {
+  /// The number of point tasks to execute.
   Color size_;
 };
 
@@ -857,6 +858,8 @@ struct agent : executor_base<S, agent<S>> {
 };
 
 /// An execution space.
+/// A task is executed in the space it declares as a parameter.
+/// Pass \c exec::on as the corresponding argument.
 struct space_base : data::bind_tag, data::convert_tag {
   /// Information about a task launch.
   struct tasks {
@@ -1191,11 +1194,10 @@ struct task_param<std::vector<P>> {
 private:
   template<class T>
   static auto make(T && v) {
-    const util::transform_view<T &, decltype([](auto && x) -> decltype(auto) {
+    const auto t = std::views::transform(v, [](auto && x) -> decltype(auto) {
       return exec::replace_argument<P>(
         static_cast<detail::same_ref_t<T, decltype(x)>>(x));
-    })>
-      t(v);
+    });
     return std::vector(t.begin(), t.end());
   }
 };

@@ -30,15 +30,15 @@ class filling_curve_key {
 public:
   /// Integer type used to represent the key
   using int_t = T;
+  using Depth = unsigned short;
 
 protected:
-  static constexpr std::size_t bits_ =
+  static constexpr Depth bits_ =
     sizeof(int_t) * CHAR_BIT; // Maximum number of bits for representation
-  static constexpr std::size_t max_depth_ =
+  static constexpr Depth max_depth_ =
     (bits_ - 1) / dimension; // Maximum depth reachable regarding the size of
                              // the memory word used
-  static constexpr std::size_t leading_zeros =
-    bits_ - (max_depth_ * dimension + 1);
+  static constexpr Depth leading_zeros = bits_ - (max_depth_ * dimension + 1);
 
   /// Value of the filling curve key.
   /// int_t is used as a bit-field to represent the filling curve key.
@@ -54,7 +54,7 @@ public:
   constexpr explicit filling_curve_key(int_t value) : value_(value) {}
 
   /// Max depth possible for this type of key
-  static constexpr std::size_t max_depth() {
+  static constexpr Depth max_depth() {
     return max_depth_;
   }
   /// Smallest value possible at max_depth
@@ -72,7 +72,7 @@ public:
     return DERIVED(int_t(1));
   }
   /// Find the depth of the current key
-  std::size_t depth() const {
+  Depth depth() const {
     return max_depth_ - (__builtin_clz(value_) - leading_zeros) / dimension;
   }
   /// Push bits onto the end of this key
@@ -95,7 +95,7 @@ public:
     return value_ & ((1 << dimension) - 1);
   }
   /// Pop the depth d bits from the end of this key
-  void pop(std::size_t d) {
+  void pop(Depth d) {
     value_ >>= d * dimension;
   }
   /// Return the parent of this key (depth - 1)
@@ -179,6 +179,7 @@ struct my_key : filling_curve_key<DIM, T, my_key<DIM, T>> {
 template<Dimension DIM, typename T>
 class hilbert_key : public filling_curve_key<DIM, T, hilbert_key<DIM, T>> {
 public:
+  using typename hilbert_key::filling_curve_key::Depth;
   using typename hilbert_key::filling_curve_key::int_t;
   /// Point type to represent coordinates.
   using point_t = flecsi::util::point<double, DIM>;
@@ -200,7 +201,7 @@ public:
   /// \param depth The depth at which to generate the key.
   hilbert_key(const std::array<point_t, 2> & range,
     const point_t & p,
-    const std::size_t depth = max_depth_) {
+    const Depth depth = max_depth_) {
     *this = hilbert_key::min();
     assert(depth <= max_depth_);
     std::array<int_t, dimension> coords;
@@ -395,6 +396,7 @@ template<Dimension DIM, typename T>
 class morton_key : public filling_curve_key<DIM, T, morton_key<DIM, T>> {
 
 public:
+  using typename morton_key::filling_curve_key::Depth;
   using typename morton_key::filling_curve_key::int_t;
   /// Point type to represent coordinates.
   using point_t = flecsi::util::point<double, DIM>;
@@ -414,7 +416,7 @@ public:
   /// \param depth The depth at which to generate the key.
   morton_key(const std::array<point_t, 2> & range,
     const point_t & p,
-    const std::size_t depth = max_depth_) {
+    const Depth depth = max_depth_) {
     *this = morton_key::min();
     assert(depth <= max_depth_);
     std::array<int_t, dimension> coords;
@@ -427,8 +429,8 @@ public:
           (p[i] - min) / scale *
           static_cast<double>((int_t(1) << (bits_ - 1) / dimension))));
     } // for
-    std::size_t k = 0;
-    for(std::size_t i = max_depth_ - depth; i < max_depth_; ++i) {
+    Depth k = 0;
+    for(Depth i = max_depth_ - depth; i < max_depth_; ++i) {
       for(Dimension j = 0; j < dimension; ++j) {
         int_t bit = (coords[j] & int_t(1) << i) >> i;
         value_ |= bit << (k * dimension + j);
@@ -444,7 +446,7 @@ public:
     std::array<int_t, dimension> coords;
     coords.fill(int_t(0));
     int_t id = value_;
-    std::size_t d = 0;
+    Depth d = 0;
     while(id >> dimension != int_t(0)) {
       for(Dimension j = 0; j < dimension; ++j) {
         coords[j] |= (((int_t(1) << j) & id) >> j) << d;
@@ -476,7 +478,7 @@ public:
     std::array<int_t, dimension> coords;
     coords.fill(int_t(0));
     int_t id = value_;
-    std::size_t d = 0;
+    Depth d = 0;
     while(id != root) {
       for(Dimension j = 0; j < dimension; ++j) {
         coords[j] |= (((int_t(1) << j) & id) >> j) << d;
@@ -486,7 +488,7 @@ public:
     }
     for(Dimension i = 0; i < dimension; ++i) {
       // apply the reduction
-      for(std::size_t j = d; j > 0; --j) {
+      for(Depth j = d; j > 0; --j) {
         double nu = (result[0][i] + result[1][i]) / 2.;
         if(coords[i] & (int_t(1) << j - 1)) {
           result[0][i] = nu;
