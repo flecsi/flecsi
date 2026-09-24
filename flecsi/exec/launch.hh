@@ -315,7 +315,7 @@ struct param_helper {
 };
 template<bool M>
 struct protocol {
-  template<class P, class = void>
+  template<class P>
   struct param_storage : param_helper<M, P> {};
   template<class P>
   using param_storage_t = typename param_storage<P>::type;
