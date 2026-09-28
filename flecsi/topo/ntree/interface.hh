@@ -654,27 +654,15 @@ private:
     }
   }
 
+  template<util::id meta_type::* M>
   static void copy_sizes_neighbors_task(topo::resize::Field::accessor<wo> a,
+    typename field<meta_type, data::single>::template accessor<rw> mf,
     field<util::id>::accessor<ro, ro> b) noexcept {
-    a = std::accumulate(b.span().begin(), b.span().end(), util::id{0});
-  }
-
-  static void set_nrequests_recv_task(
-    typename field<meta_type, data::single>::template accessor<rw> mf,
-    field<util::id>::accessor<ro, na> b) noexcept {
-    mf->nrequests_recv =
-      std::accumulate(b.span().begin() + run::context::instance().colors(),
-        b.span().end(),
-        util::id{0});
-  }
-
-  static void set_nneighbors_recv_task(
-    typename field<meta_type, data::single>::template accessor<rw> mf,
-    field<util::id>::accessor<ro, na> b) noexcept {
-    mf->nneighbors_recv =
-      std::accumulate(b.span().begin() + run::context::instance().colors(),
-        b.span().end(),
-        util::id{0});
+    const auto sp = b.span();
+    const auto mid = sp.begin() + run::context::instance().colors();
+    const util::id recv = std::accumulate(mid, sp.end(), util::id{0});
+    mf.get().*M = recv;
+    a = std::accumulate(sp.begin(), mid, util::id{0}) + recv;
   }
 
   static void set_dests_neighbors(field<data::intervals::Value>::accessor<wo> a,
@@ -915,14 +903,10 @@ public:
       // Triggers a copy on share_ghosts_comms_field which we use to compute
       // dimensions for send/receive
       auto & p = get_partition<share_ghosts_cid_comm>();
-      s.execute<copy_sizes_neighbors_task>(
-        p.sizes(), share_ghosts_comms_field(*this));
+      s.execute<copy_sizes_neighbors_task<&meta_type::nrequests_recv>>(
+        p.sizes(), meta_field(this->meta), share_ghosts_comms_field(*this));
       p.resize();
     }
-
-    // Update meta field with #entities to receive
-    s.execute<set_nrequests_recv_task>(
-      meta_field(this->meta), share_ghosts_comms_field(*this));
 
     // Populate the buffer
     s.execute<find_local_task<false>>(
@@ -967,14 +951,10 @@ public:
     {
       //  Triggers a copy of sizes and resize buffers
       auto & p = get_partition<share_ghosts_buffer_comm>();
-      s.execute<copy_sizes_neighbors_task>(
-        p.sizes(), share_ghosts_comms_field(*this));
+      s.execute<copy_sizes_neighbors_task<&meta_type::nneighbors_recv>>(
+        p.sizes(), meta_field(this->meta), share_ghosts_comms_field(*this));
       p.resize();
     }
-
-    // Update meta field with #entities to receive
-    s.execute<set_nneighbors_recv_task>(
-      meta_field(this->meta), share_ghosts_comms_field(*this));
 
     // Populate the buffer
     s.execute<find_distant_task<false>>(
