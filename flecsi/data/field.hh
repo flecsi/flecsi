@@ -337,6 +337,9 @@ struct field : data::detail::field_base<T, L> {
     using Topology = Topo;
     using Field = field;
 
+    /// The field reference type produced by this definition type.
+    using Reference = field::Reference<Topo, Space>;
+
     /// Return a reference to a field instance.
     /// \param t topology instance (must be allocated)
     /// \deprecated Pass the instance directly (perhaps with `t.get()`).
@@ -346,12 +349,12 @@ struct field : data::detail::field_base<T, L> {
     }
     /// Return a reference to a field instance.
     /// \param t topology instance
-    Reference<Topo, Space> operator()(typename Topo::topology & t) const {
+    Reference operator()(typename Topo::topology & t) const {
       return {this->fid, t};
     }
     template<class P>
     std::enable_if_t<std::is_same_v<typename P::Base, Topo>,
-      Reference<P, Space>>
+      field::Reference<P, Space>>
     operator()(topo::borrow_category<P> & t) const {
       return {this->fid, t};
     }

@@ -39,6 +39,7 @@ New features
 
   * ``params_tag`` is a base class for user-defined classes that are a composition of task-parameter types (like field accessors).
   * ``arg_tag`` is a base class for user-defined classes that specifiy custom handling as a task argument.
+  * ``field::definition::Reference`` is the type of field references obtained from the field definition.
 
 * Execution
 
@@ -51,6 +52,11 @@ New features
   * ``scheduler::wait`` finishes all launched tasks.
   * ``future_kind`` is an alias for the type of the second ``future`` template parameter.
 
+* Topologies
+
+  * ``topo::repartition::resize_with`` applies sizes chosen by a callable.
+  * ``topo::resize::Reference`` is the type of field references for the sizes field.
+    
 * On-node parallelism
 
   * ``executor_base::kokkos`` returns the Kokkos execution space object used for launching kernels.

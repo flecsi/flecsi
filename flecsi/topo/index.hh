@@ -36,6 +36,14 @@ struct repartition : with_size, data::prefixes, with_cleanup, virtual_base {
     set_rsz_required(false);
   }
 
+  /// Apply a callable to the sizes (to launch a task to set them).
+  /// \param f called with a field reference for them
+  template<typename F>
+  void resize_with(F && f) {
+    std::forward<F>(f)(sizes());
+    resize();
+  }
+
   bool maybe_resize() {
     const bool ret = rsz_required.get();
     if(ret)
