@@ -2,6 +2,9 @@
 # Copyright (C) 2016, Triad National Security, LLC
 # All rights reserved
 #------------------------------------------------------------------------------#
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
 
 #------------------------------------------------------------------------------#
 # FleCSI options.
@@ -29,33 +32,33 @@ endif()
 # Handle TPLs
 #------------------------------------------------------------------------------#
 
-find_package(Boost REQUIRED COMPONENTS @BOOST_COMPONENTS@ CONFIG)
+find_dependency(Boost COMPONENTS @BOOST_COMPONENTS@ CONFIG)
 
-find_package(Threads REQUIRED)
-find_package(MPI COMPONENTS C CXX REQUIRED)
+find_dependency(Threads)
+find_dependency(MPI COMPONENTS C CXX)
 
 if(@ENABLE_HDF5@)
-  find_package(HDF5 REQUIRED)
+  find_dependency(HDF5)
 endif()
 
 if(FleCSI_BACKEND STREQUAL "legion")
-  find_package(Legion REQUIRED)
+  find_dependency(Legion)
 endif()
 
 if(FleCSI_BACKEND STREQUAL "hpx")
-  find_package(HPX REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
+  find_dependency(HPX NO_CMAKE_PACKAGE_REGISTRY)
 endif()
 
 include(FleCSI/kokkos)
-find_package(Kokkos COMPONENTS separable_compilation REQUIRED)
+find_dependency(Kokkos COMPONENTS separable_compilation)
 _flecsi_check_kokkos_compiler()
 
 if(NOT "@CALIPER_DETAIL@" STREQUAL "none")
-  find_package(caliper REQUIRED)
+  find_dependency(caliper)
 endif()
 
 if(@ENABLE_GRAPHVIZ@)
-  find_package(Graphviz REQUIRED)
+  find_dependency(Graphviz)
 endif()
 
 

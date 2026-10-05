@@ -327,8 +327,11 @@ if(ENABLE_LIBRARY)
       "${FLOG_CONFIG_CODE}\nset(${_variableName} \"${${_variableName}}\")")
   endforeach()
 
-  configure_file(${PROJECT_SOURCE_DIR}/cmake/FleCSI/FleCSIConfig.cmake.in
-    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSIConfig.cmake @ONLY)
+  include(CMakePackageConfigHelpers)
+  configure_package_config_file(${PROJECT_SOURCE_DIR}/cmake/FleCSI/FleCSIConfig.cmake.in
+    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSIConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/FleCSI
+  )
 
   install(
     FILES ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSIConfig.cmake
@@ -380,7 +383,6 @@ if(ENABLE_LIBRARY)
       VERSION ${FleCSI_VERSION}
   )
 
-  include(CMakePackageConfigHelpers)
   write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/FleCSIConfigVersion.cmake
     VERSION ${FleCSI_VERSION}
