@@ -34,6 +34,9 @@ class Flecsi(Flecsi):
         if self.spec.satisfies("^ucx"):
             # UCX workaround to avoid misdetecting GPU memory as host memory
             env.set("UCX_MEMTYPE_CACHE", "n")
+            # UCX workaround for bad intra-node performance
+            # See https://github.com/openucx/ucx/issues/11986
+            env.set("UCX_MAX_RNDV_RAILS", "1")
         if self.spec.satisfies("^kokkos +rocm") and not (self.spec.satisfies("%cxx=clang") or self.spec.satisfies("%cxx=rocmcc")):
             env.set("CC", self.spec["hip"].hipcc)
             env.set("CXX", self.spec["hip"].hipcc)
