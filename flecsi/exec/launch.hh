@@ -217,14 +217,22 @@ struct replaced {
   using type = decltype(exec::replace_argument<P>(std::declval<A>()));
 };
 
-// An approximation of C++23's std::reference_converts_from_temporary:
+template<class To, class From> // from C++23
+constexpr bool reference_converts_from_temporary_v =
+  std::is_reference_v<To> && std::is_convertible_v<From, To> &&
+  !(std::is_reference_v<From> &&
+    // Take advantage of any (backported) tuple-initialization check:
+    std::conditional_t<
+      std::is_convertible_v<std::tuple<int>, std::tuple<const long &>>,
+      std::is_convertible<std::add_pointer_t<From>, std::add_pointer_t<To>>,
+      std::is_convertible<std::tuple<From>, std::tuple<To>>>::value);
 template<class P, class A>
 constexpr bool temporary_v =
-  ((std::is_lvalue_reference_v<P> &&
-     std::is_const_v<std::remove_reference_t<P>>) ||
-    std::is_rvalue_reference_v<P>) &&
-  !std::is_convertible_v<std::add_pointer_t<typename replaced<P, A>::type>,
-    std::add_pointer_t<P>>;
+  reference_converts_from_temporary_v<P, A> ||
+  (((std::is_lvalue_reference_v<P> &&
+      std::is_const_v<std::remove_reference_t<P>>) ||
+     std::is_rvalue_reference_v<P>) &&
+    !std::is_convertible_v<A, P>); // convert<> may be required
 
 template<class R, class T>
 using same_ref_t = std::conditional_t<std::is_lvalue_reference_v<R>, T &, T &&>;
@@ -234,7 +242,8 @@ using element_t = same_ref_t<C,
 
 template<class P, class A, class D = std::decay_t<A>>
 struct sync_storage {
-  static constexpr bool temporary = temporary_v<P, A>;
+  static constexpr bool temporary =
+    temporary_v<P, typename replaced<P, A>::type>;
   static_assert(
     !temporary || std::is_move_constructible_v<std::remove_reference_t<P>>,
     "references to non-movable types must bind directly");

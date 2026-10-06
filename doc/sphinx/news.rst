@@ -31,6 +31,7 @@ Fixed
 
   * Elements of ``std::vector`` task arguments can be moved into their parameters.
   * User-defined conversions can be used to produce ``std::tuple`` or ``std::vector`` task parameters (that do not contain FleCSI types).
+  * With a sufficiently modern standard library implementation, user-defined conversions can produce const or rvalue references for MPI tasks.
 
 * Legion backend
 
