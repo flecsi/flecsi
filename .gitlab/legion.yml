@@ -60,7 +60,7 @@ openmpi-legion-gasnet-mpi-rocm:
   stage: Legion backend
   extends: [.darwin_regular_job, .build_and_test]
   variables:
-    SPACK_ENV_NAME: legion/gasnet/rocm/openmpi-mpi-mi250-gcc-debug
+    SPACK_ENV_NAME: legion/gasnet/rocm/openmpi-mpi-mi250-rocmcc-debug
     PARTITIONS: shared-gpu-amd-mi250
     JOB_CONSTRAINTS: ""
     ARCHIVE_SPACK_ENV: "yes"
