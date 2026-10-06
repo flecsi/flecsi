@@ -283,14 +283,15 @@ convert_tuple(std::tuple<TT...> *, UU &&... uu) {
 template<class T, class U>
 T
 convert(U && u) { // deep implicit conversions
-  if constexpr(is_tuple<T>::value) // not references
+  using D = std::remove_cvref_t<U>; // NB: T is untransformed
+  if constexpr(is_tuple<T>::value && is_tuple<D>::value)
     return apply(
       [](auto &&... xx) {
         return convert_tuple(
           static_cast<T *>(nullptr), std::forward<decltype(xx)>(xx)...);
       },
       std::forward<U>(u));
-  else if constexpr(is_vector<T>::value) {
+  else if constexpr(is_vector<T>::value && is_vector<D>::value) {
     const auto t = std::views::transform(u, [](auto && x) { // && for bool
       return convert<typename T::value_type>(
         static_cast<same_ref_t<U &&, std::remove_reference_t<decltype(x)>>>(x));

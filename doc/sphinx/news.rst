@@ -30,6 +30,7 @@ Fixed
 * Execution
 
   * Elements of ``std::vector`` task arguments can be moved into their parameters.
+  * User-defined conversions can be used to produce ``std::tuple`` or ``std::vector`` task parameters (that do not contain FleCSI types).
 
 * Legion backend
 
