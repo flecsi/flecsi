@@ -291,8 +291,9 @@ convert(U && u) { // deep implicit conversions
       },
       std::forward<U>(u));
   else if constexpr(is_vector<T>::value) {
-    const auto t = std::views::transform(u, [](auto && x) {
-      return convert<typename T::value_type>(std::forward<decltype(x)>(x));
+    const auto t = std::views::transform(u, [](auto && x) { // && for bool
+      return convert<typename T::value_type>(
+        static_cast<same_ref_t<U &&, std::remove_reference_t<decltype(x)>>>(x));
     });
     return {t.begin(), t.end()};
   }
@@ -790,8 +791,8 @@ private:
   template<class T>
   static auto make(T && v) {
     const auto t = std::views::transform(v, [](auto && x) -> decltype(auto) {
-      return exec::replace_argument<P>(
-        static_cast<detail::same_ref_t<T, decltype(x)>>(x));
+      return exec::replace_argument<P>(static_cast<
+        detail::same_ref_t<T &&, std::remove_reference_t<decltype(x)>>>(x));
     });
     return std::vector(t.begin(), t.end());
   }

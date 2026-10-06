@@ -27,6 +27,10 @@ Possible incompatibilities
 
 Fixed
 ^^^^^
+* Execution
+
+  * Elements of ``std::vector`` task arguments can be moved into their parameters.
+
 * Legion backend
 
   * Single tasks no longer occasionally crash when used with tracing.

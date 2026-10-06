@@ -123,8 +123,15 @@ mpi(int * p, const short & s, int i) {
 } // namespace hydro
 
 namespace {
-void
-vb(const std::vector<bool> &, const std::vector<long> &) noexcept {}
+int
+vb(const std::vector<bool> &,
+  const std::vector<long> &,
+  const std::vector<std::unique_ptr<const int>> & u) noexcept {
+  UNIT() {
+    ASSERT_FALSE(u.empty());
+    EXPECT_EQ(*u.front(), 3);
+  };
+}
 
 int
 index_task(const flecsi::runtime * r, exec::launch_domain) noexcept {
@@ -225,7 +232,12 @@ task_driver(scheduler & s) {
     execute<hydro::mpi, mpi>(&x, 1, 1);
     EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
 
-    s.execute<vb>(std::vector<bool>(1), std::vector<int>());
+    {
+      std::vector<std::unique_ptr<int>> u;
+      u.push_back(std::make_unique<int>(3));
+      EXPECT_EQ(
+        s.test<vb>(std::vector<bool>(1), std::vector<int>(), std::move(u)), 0);
+    }
 
     constexpr bool add_four = (FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
                               (FLECSI_BACKEND != FLECSI_BACKEND_hpx);
