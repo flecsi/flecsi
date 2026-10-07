@@ -26,6 +26,8 @@ struct resize : specialization<column, resize> {
   /// that is assignable from and convertible to an integer
   using Field = data::prefixes_base::Field;
   static const Field::definition<resize> field;
+  /// The reference type corresponding to the field for storing sizes.
+  using FieldReference = decltype(field)::Reference;
 
   /// A heuristic for automatically resizing a partition.
   /// Each new size is derived from the current size and amount of it used.
@@ -101,7 +103,7 @@ struct with_size { // separate to control initialization order
     : sz(s, n), growth(p), rsz_required(make_future(false)) {}
   /// Access the sizes.
   /// \return field reference for \c resize::Field
-  auto sizes() {
+  resize::FieldReference sizes() {
     return resize::field(sz);
   }
   void set_rsz_required(bool r) {

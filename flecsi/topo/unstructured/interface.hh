@@ -199,14 +199,14 @@ private:
     const auto blk = exec::mapping::block();
 
     const auto cg = cgraph_.template get<S>()(ctopo_);
-    auto & cgp = cg.get_elements();
-    s.execute<cgraph_size>(&c1, cgp.sizes(), grp, blk);
-    cgp.resize();
+    cg.get_elements().resize_with([&](resize::FieldReference sz) {
+      s.execute<cgraph_size>(&c1, sz, grp, blk);
+    });
 
     const auto sh = cgraph_shared_.template get<S>()(ctopo_);
-    auto & shp = sh.get_elements();
-    s.execute<cgraph_shared_size>(&c1, shp.sizes(), grp, blk);
-    shp.resize();
+    sh.get_elements().resize_with([&](resize::FieldReference sz) {
+      s.execute<cgraph_shared_size>(&c1, sz, grp, blk);
+    });
 
     // Synchronous, so guarantees the completion of the above tasks:
     s.execute<idx_itvls>(c1, intervals, pointers, cg, sh, grp, blk);
@@ -239,14 +239,15 @@ private:
         const std::vector<index_color> & ic = c.idx_spaces[index<VV>].colors;
         for_each(
           [&](auto v) { // invoked for each to-entity
-            auto & p = row.template get<v.value>()(*this).get_elements();
-            s.execute<cnx_size>(&ic,
-               index<v.value>,
-               p.sizes(),
-               exec::group::world(),
-               exec::mapping::block())
-              .wait();
-            p.resize();
+            row.template get<v.value>()(*this).get_elements().resize_with(
+              [&](resize::FieldReference sz) {
+                s.execute<cnx_size>(&ic,
+                   index<v.value>,
+                   sz,
+                   exec::group::world(),
+                   exec::mapping::block())
+                  .wait();
+              });
           },
           typename TT::keys());
       }(connect_.template get<VV>()),

@@ -43,9 +43,8 @@ advance(control_policy & p) {
 
   const auto f = rag(mesh);
 
-  auto & elem = f.get_elements();
-  s.execute<allocate>(elem.sizes());
-  elem.resize();
+  f.get_elements().resize_with(
+    [&](topo::resize::FieldReference sz) { s.execute<allocate>(sz); });
   s.execute<init>(f);
   if(s.reduce<total, exec::fold::sum>(f).get() != 14)
     throw control_policy::exception{1};

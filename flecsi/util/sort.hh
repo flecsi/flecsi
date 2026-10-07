@@ -601,9 +601,10 @@ public:
     // Compute total number of entities to sort
     auto fm_tsizes = sched->reduce<sort::size_task, exec::fold::sum>(values);
     // Resize the index array to fit the values
-    sched->execute<sort::copy_sizes_task>(
-      sort::idx_t.sizes(), tt.template get_partition<space>().sizes());
-    sort::idx_t.resize();
+    sort::idx_t.resize_with([&](topo::resize::FieldReference sz) {
+      sched->execute<sort::copy_sizes_task>(
+        sz, tt.template get_partition<space>().sizes());
+    });
 
     // Local sort
     sched->execute<sort::sort_values_task>(
@@ -690,11 +691,11 @@ public:
     // Transfer array (destination of the entities)
     // Need to be of the same size as the array of values to sort
     auto transfer_fh = sort::transfer_f(sort::transfer_t);
-    // Copy the same sizes as the topology
-    sched->execute<sort::copy_sizes_task>(
-      sort::transfer_t.sizes(), tt.template get_partition<space>().sizes());
-    // Apply resize
-    sort::transfer_t.resize();
+    // Use the same sizes as the topology
+    sort::transfer_t.resize_with([&](topo::resize::FieldReference sz) {
+      sched->execute<sort::copy_sizes_task>(
+        sz, tt.template get_partition<space>().sizes());
+    });
 
     // Init transfer: who goes where from initial values + reduce sizes
     sched->execute<sort::update_transfer_task>(
@@ -703,12 +704,13 @@ public:
 
     // Resize values' partition to have room for the copies
     // This could be changed to use a buffer
-    sched->execute<sort::update_sizes_task>(
-      exec::on, tt.template get_partition<space>().sizes(), copy_fh, meta_fh);
-    tt.template get_partition<space>().resize();
-    sched->execute<sort::update_sizes_task>(
-      exec::on, sort::idx_t.sizes(), copy_fh, meta_fh);
-    sort::idx_t.resize();
+    tt.template get_partition<space>().resize_with(
+      [&](topo::resize::FieldReference sz) {
+        sched->execute<sort::update_sizes_task>(exec::on, sz, copy_fh, meta_fh);
+      });
+    sort::idx_t.resize_with([&](topo::resize::FieldReference sz) {
+      sched->execute<sort::update_sizes_task>(exec::on, sz, copy_fh, meta_fh);
+    });
 
     sched->execute<sort::fake_initialize>(values);
     for(auto & af : apply_fields) {
@@ -749,12 +751,13 @@ public:
     }
 
     // Resize
-    sched->execute<sort::update_sizes_copy_task>(
-      exec::on, tt.template get_partition<space>().sizes(), sizes_fh);
-    tt.template get_partition<space>().resize();
-    sched->execute<sort::update_sizes_copy_task>(
-      exec::on, sort::idx_t.sizes(), sizes_fh);
-    sort::idx_t.resize();
+    tt.template get_partition<space>().resize_with(
+      [&](topo::resize::FieldReference sz) {
+        sched->execute<sort::update_sizes_copy_task>(exec::on, sz, sizes_fh);
+      });
+    sort::idx_t.resize_with([&](topo::resize::FieldReference sz) {
+      sched->execute<sort::update_sizes_copy_task>(exec::on, sz, sizes_fh);
+    });
 
     sched->execute<sort::fake_initialize>(values);
     for(auto & af : apply_fields) {

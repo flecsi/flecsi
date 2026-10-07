@@ -560,31 +560,29 @@ private:
     mf->cp_nnodes_tt = total_nodes;
   }
 
-  static void increase_size_task(topo::resize::Field::accessor<rw> a,
-    util::id v) {
+  static void increase_size_task(resize::Field::accessor<rw> a, util::id v) {
     a = a.get() + v;
   }
 
-  static void resize_entities_update_meta_task(
-    topo::resize::Field::accessor<rw> a,
+  static void resize_entities_update_meta_task(resize::Field::accessor<rw> a,
     typename field<meta_type, data::single>::template accessor<rw>
       mf) noexcept {
     a = mf->local.ents + mf->nents_recv_2;
   }
 
-  static void copy_sizes_meta_top_tree_task(topo::resize::Field::accessor<wo> a,
+  static void copy_sizes_meta_top_tree_task(resize::Field::accessor<wo> a,
     typename field<meta_type, data::single>::template accessor<ro>
       mf) noexcept {
     a = mf->local.ents + mf->cp_nents_tt;
   }
 
-  static void copy_sizes_meta_task(topo::resize::Field::accessor<wo> a,
+  static void copy_sizes_meta_task(resize::Field::accessor<wo> a,
     typename field<meta_type, data::single>::template accessor<ro>
       mf) noexcept {
     a = mf->local.ents;
   }
 
-  static void copy_sizes_task(topo::resize::Field::accessor<wo> a,
+  static void copy_sizes_task(resize::Field::accessor<wo> a,
     field<util::id>::accessor<ro, ro> b) noexcept {
     a = std::accumulate(b.span().begin(),
       b.span().begin() + run::context::instance().colors(),
@@ -592,7 +590,7 @@ private:
   } // copy_sizes_task
 
   template<bool C>
-  static void copy_sizes_resize_task(topo::resize::Field::accessor<rw> a,
+  static void copy_sizes_resize_task(resize::Field::accessor<rw> a,
     typename field<meta_type, data::single>::template accessor<ro> mf,
     field<util::id>::accessor<ro, na> b) noexcept {
     const auto color = run::context::instance().color();
@@ -603,7 +601,7 @@ private:
   }
 
   template<index_space E = entities>
-  static void copy_sizes_top_tree_task(topo::resize::Field::accessor<wo> a,
+  static void copy_sizes_top_tree_task(resize::Field::accessor<wo> a,
     future<std::array<util::gid, 2>> b) noexcept {
     a = b.get()[E != entities];
   }
@@ -718,17 +716,13 @@ public:
       hcells(*this),
       meta_field(this->meta));
 
-    {
-      auto & p = get_partition<top_tree_ents>();
-      s.execute<copy_sizes_top_tree_task<entities>>(p.sizes(), fm_top_tree);
-      p.resize();
-    }
+    get_partition<top_tree_ents>().resize_with([&](resize::FieldReference sz) {
+      s.execute<copy_sizes_top_tree_task<entities>>(sz, fm_top_tree);
+    });
 
-    {
-      auto & p = get_partition<top_tree_nodes>();
-      s.execute<copy_sizes_top_tree_task<nodes>>(p.sizes(), fm_top_tree);
-      p.resize();
-    }
+    get_partition<top_tree_nodes>().resize_with([&](resize::FieldReference sz) {
+      s.execute<copy_sizes_top_tree_task<nodes>>(sz, fm_top_tree);
+    });
 
     s.execute<fill_top_tree_task>(
       hcells(*this), top_tree_ents_field(*this), top_tree_nodes_field(*this));
@@ -744,12 +738,9 @@ public:
       top_tree_ents_field(lm_top_tree),
       top_tree_nodes_field(lm_top_tree));
 
-    {
-      auto & p = get_partition<entities>();
-      s.execute<copy_sizes_meta_top_tree_task>(
-        p.sizes(), meta_field(this->meta));
-      p.resize();
-    }
+    get_partition<entities>().resize_with([&](resize::FieldReference sz) {
+      s.execute<copy_sizes_meta_top_tree_task>(sz, meta_field(this->meta));
+    });
 
     // Fake initialization for the new ghosts
     for(auto & f : run::context::field_info_store<Policy, entities>()) {
@@ -1003,23 +994,20 @@ public:
     // Find entities that will be used
     s.execute<find_local_task<true>>(*this, share_ghosts_comms_field(*this));
 
-    {
-      auto & p = get_partition<share_ghosts_cid_comm>();
-      s.execute<copy_sizes_task>(p.sizes(), share_ghosts_comms_field(*this));
-      p.resize();
-    }
+    get_partition<share_ghosts_cid_comm>().resize_with(
+      [&](resize::FieldReference sz) {
+        s.execute<copy_sizes_task>(sz, share_ghosts_comms_field(*this));
+      });
 
     s.execute<find_local_task<false>>(
       *this, share_ghosts_cid_comm_field(*this));
 
     s.execute<reset_ghosts>(meta_field(this->meta), hcells(*this));
 
-    {
-      auto & p = get_partition<entities>();
+    get_partition<entities>().resize_with([&](resize::FieldReference sz) {
       s.execute<copy_sizes_resize_task<true>>(
-        p.sizes(), meta_field(this->meta), share_ghosts_comms_field(*this));
-      p.resize();
-    }
+        sz, meta_field(this->meta), share_ghosts_comms_field(*this));
+    });
 
     s.execute<xfer_entities_req_start>(e_i(*this),
       comms_field(*this),
@@ -1039,22 +1027,20 @@ public:
     s.execute<find_distant_task<true>>(*this, share_ghosts_comms_field(*this));
 
     // Resize share_ghosts_buffer_comm_field
-    {
-      auto & p = get_partition<share_ghosts_buffer_comm>();
-      s.execute<copy_sizes_task>(p.sizes(), share_ghosts_comms_field(*this));
-      p.resize();
-    }
+    get_partition<share_ghosts_buffer_comm>().resize_with(
+      [&](resize::FieldReference sz) {
+        s.execute<copy_sizes_task>(sz, share_ghosts_comms_field(*this));
+      });
     // Now fill info
     s.execute<find_distant_task<false>>(
       *this, share_ghosts_buffer_comm_field(*this));
 
     // Resize
-    {
-      auto & p = get_partition<share_ghosts_distant_buffer_comm>();
-      s.execute<copy_sizes_resize_task<false>>(
-        p.sizes(), meta_field(this->meta), share_ghosts_comms_field(*this));
-      p.resize();
-    }
+    get_partition<share_ghosts_distant_buffer_comm>().resize_with(
+      [&](resize::FieldReference sz) {
+        s.execute<copy_sizes_resize_task<false>>(
+          sz, meta_field(this->meta), share_ghosts_comms_field(*this));
+      });
 
     // Perform buffered copy
     s.execute<xfer_entities_cp_start>(
@@ -1074,12 +1060,9 @@ public:
       meta_field(this->meta),
       share_ghosts_distant_buffer_comm_field(*this));
 
-    {
-      auto & p = get_partition<entities>();
-      s.execute<resize_entities_update_meta_task>(
-        p.sizes(), meta_field(this->meta));
-      p.resize();
-    }
+    get_partition<entities>().resize_with([&](resize::FieldReference sz) {
+      s.execute<resize_entities_update_meta_task>(sz, meta_field(this->meta));
+    });
 
     // create copy plan for ghosts entities
     auto entities_dests_task = [&](auto f) {
@@ -1140,10 +1123,10 @@ public:
     cp_entities.reset();
 
     // Resize the entities
-    auto & p = get_partition<entities>();
     std::vector<util::id> nents_rz(colors());
-    s.execute<copy_sizes_meta_task>(p.sizes(), meta_field(this->meta));
-    p.resize();
+    get_partition<entities>().resize_with([&](resize::FieldReference sz) {
+      s.execute<copy_sizes_meta_task>(sz, meta_field(this->meta));
+    });
   }
   /// \deprecated Pass a \c scheduler.
   [[deprecated("pass a scheduler")]] static void reset(

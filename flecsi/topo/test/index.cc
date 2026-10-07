@@ -257,8 +257,9 @@ index_driver(scheduler & s) {
     const auto alloc = [&s](auto f) {
       auto & p = f.get_elements();
       p.growth = {0, 0, 0.25, 0.5, 1};
-      s.execute<allocate>(exec::on, p.sizes());
-      p.resize();
+      p.resize_with([&](topo::resize::FieldReference sz) {
+        s.execute<allocate>(exec::on, sz);
+      });
     };
     topo::index::topology pt(s, s.runtime().processes());
     const auto pressure = pressure_field(pt);
@@ -299,8 +300,9 @@ index_driver(scheduler & s) {
     // Duplicate work to support the MPI backend:
     trivial_array::topology a(s, trivial_array::coloring(np, 12));
     EXPECT_EQ(s.test<part>(exec::on, particles(a)), 0);
-    s.execute<allocate>(exec::on, arag(a).get_elements().sizes());
-    arag(a).get_elements().resize();
+    arag(a).get_elements().resize_with([&](topo::resize::FieldReference sz) {
+      s.execute<allocate>(exec::on, sz);
+    });
 
     auto lm = launch::make(
       s, a, launch::robin(a.colors(), std::max(np / process_fraction, {1})));
