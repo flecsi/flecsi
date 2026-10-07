@@ -36,6 +36,7 @@ Fixed
 * Legion backend
 
   * Single tasks no longer occasionally crash when used with tracing.
+  * Implicit conversions work for ``std::vector`` parameters for MPI tasks.
 
 Changes in v2.4.2 (August 11 2026)
 ++++++++++++++++++++++++++++++++++

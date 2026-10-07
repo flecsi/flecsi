@@ -76,6 +76,10 @@ static_assert(good<true,
   std::vector<std::tuple<int &>> &&,
   std::vector<std::tuple<int &>> &&>);
 static_assert(good<true,
+  std::vector<std::tuple<const long &>>,
+  std::vector<std::tuple<int &>> &&,
+  std::vector<std::tuple<long>>>);
+static_assert(good<true,
   const std::vector<std::tuple<const int &>> &,
   std::vector<std::tuple<int &>> &&,
   std::vector<std::tuple<const int &>>>);
@@ -235,6 +239,9 @@ task_driver(scheduler & s) {
       // This is incompatible with libc++ at least through 23.1.0:
       util::convert([&]() -> int & { return x; }));
     EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
+    execute<*[](std::vector<long>,
+               std::vector<std::tuple<const long &>>) noexcept {},
+      mpi>(std::vector<int>(), std::vector<std::tuple<int>>());
 
     {
       std::vector<std::unique_ptr<int>> u;

@@ -122,7 +122,8 @@ struct parameters {
   parameters(P p) : params(std::move(p)) {}
   template<class Q>
   parameters(parameters<Q> && q)
-    : params(std::move(q.params)), which(std::move(q.which)) {}
+    : params(exec::detail::convert<P>(std::move(q.params))),
+      which(std::move(q.which)) {}
 
   P params;
   bindings which;
