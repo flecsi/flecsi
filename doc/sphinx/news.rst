@@ -46,7 +46,8 @@ New features
   * A task parameter can be a ``std::optional`` of, a ``std::array`` of, or a ``std::variant`` that includes, a FleCSI type such as an accessor.
   * A task class can specify that launches of it should be ``synchronous``.
   * ``comm`` holds an MPI communicator for use in a task: in this version, only duplicates of ``MPI_COMM_WORLD``.
-  * ``exec::group`` specifies processes to use for a task: in this version, all processes only.
+  * ``exec::group`` specifies processes to use for a task.
+    Except with the Legion backend, only the set of all processes may be used.
   * ``exec::mapping`` specifies processes to use for each point task: in this version, only by assigning blocks of point tasks.
   * ``exec::point_mutex`` serializes per-point-task access to non-field resources.
   * ``scheduler::wait`` finishes all launched tasks.
