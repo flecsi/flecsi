@@ -17,7 +17,6 @@ class Default(BuildEnvironment, CMake):
             self.define("ENABLE_DOCUMENTATION_IN_ALL_TARGET", False),
             self.define("ENABLE_FLOG", False),
             self.define("ENABLE_UNIT_TESTS", False),
-            self.define("ENABLE_DEVELOPER_WARNINGS", True)
         ]
         super().build(args, cmake_args)
 
@@ -26,7 +25,6 @@ class Default(BuildEnvironment, CMake):
         cmake_args = [
             self.define("ENABLE_FLOG", True),
             self.define("ENABLE_UNIT_TESTS", True),
-            self.define("ENABLE_DEVELOPER_WARNINGS", True)
         ]
         super().build(args, cmake_args)
 
