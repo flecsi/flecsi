@@ -36,6 +36,9 @@ class Flecsi(Flecsi):
         if self.spec.satisfies("^ucx"):
             # UCX workaround to avoid misdetecting GPU memory as host memory
             env.set("UCX_MEMTYPE_CACHE", "n")
+            # UCX workaround for bad intra-node performance
+            # See https://github.com/openucx/ucx/issues/11986
+            env.set("UCX_MAX_RNDV_RAILS", "1")
         if self.spec.satisfies("^kokkos +rocm") and not (self.spec.satisfies("%cxx=clang") or self.spec.satisfies("%cxx=rocmcc")):
             env.set("CC", self.spec["hip"].hipcc)
             env.set("CXX", self.spec["hip"].hipcc)
@@ -47,6 +50,7 @@ class Flecsi(Flecsi):
     def cmake_args(self):
         args = super().cmake_args()
         args.append(self.define_from_variant("ENABLE_FORMAT", "format"))
+        args.append(self.define("ENABLE_DEVELOPER_WARNINGS", True))
         if self.spec.satisfies("+format"):
             args.append(self.define("ClangFormat_EXECUTABLE", Path(self.spec["llvm"].prefix.bin) / "clang-format"))
         return args
