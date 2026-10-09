@@ -48,6 +48,7 @@ class Flecsi(Flecsi):
     def cmake_args(self):
         args = super().cmake_args()
         args.append(self.define_from_variant("ENABLE_FORMAT", "format"))
+        args.append(self.define("ENABLE_DEVELOPER_WARNINGS", True))
         if self.spec.satisfies("+format"):
             args.append(self.define("ClangFormat_EXECUTABLE", Path(self.spec["llvm"].prefix.bin) / "clang-format"))
         return args
