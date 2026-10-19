@@ -94,6 +94,27 @@ static_assert(good<false,
   std::vector<std::tuple<int &>> &&,
   std::vector<std::tuple<const int &>>>);
 
+static_assert(good<false,
+  false,
+  std::array<std::tuple<const int &>, 3>,
+  std::array<std::tuple<int &>, 3> &&,
+  std::array<std::tuple<int>, 3>>);
+static_assert(good<false,
+  false,
+  std::array<std::tuple<int, future<int>>, 2>,
+  std::array<std::tuple<int, future_arg>, 2> &&,
+  std::array<std::tuple<int, future<int>>, 2>>);
+static_assert(good<true,
+  true,
+  std::array<std::tuple<const int &>, 3>,
+  std::array<std::tuple<int &>, 3> &&,
+  std::array<std::tuple<int &>, 3> &&>);
+static_assert(good<true,
+  true,
+  const std::array<std::tuple<const int &>, 2> &,
+  std::array<std::tuple<int &>, 2> &&,
+  std::array<std::tuple<const int &>, 2>>);
+
 // ---------------
 namespace hydro {
 
@@ -198,8 +219,8 @@ init_array(exec::cpu s,
   }
 }
 void
-init(field<reduction_type>::accessor<wo> v) noexcept {
-  for(auto & vv : v.span()) {
+init(std::array<field<reduction_type>::accessor<wo>, 1> v) noexcept {
+  for(auto & vv : v[0].span()) {
     vv = 0;
   }
 }
@@ -389,7 +410,7 @@ task_driver(scheduler & s) {
     topo::global::topology gl_arr_s(s, vpp);
     auto vals = gl_arr_f(gl_arr_s);
     // Init reduction array to 0
-    s.execute<init>(vals);
+    s.execute<init>(std::array{vals});
     for(int i = 0; i < 2; ++i)
       s.execute<reduction>(std::tuple(arr_vals, vals));
     EXPECT_EQ(s.test<check>(vals, np), 0);

@@ -121,9 +121,9 @@ struct scheduler {
   ///   User-defined classes can extend this mechanism by inheriting from
   ///   \c params_tag or \c arg_tag.
   ///   If a parameter and its argument are each (a reference to) a \c
-  ///   std::vector, a \c std::optional, or a \c std::tuple or \c std::variant
-  ///   (of the same size), their elements are treated as separate
-  ///   parameters/arguments (with the unusual corollary that a
+  ///   std::vector, a \c std::optional, or a \c std::array, \c std::tuple or
+  ///   \c std::variant (of the same size), their elements are treated as
+  ///   separate parameters/arguments (with the unusual corollary that a
   ///   `std::vector<int>` matches a parameter of type `std::vector<long>`).
   /// \return a \ref future providing the value(s) returned from the task
   /// \warning Parameters are destroyed asynchronously, perhaps after the
