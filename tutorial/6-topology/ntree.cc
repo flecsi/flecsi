@@ -105,7 +105,7 @@ output_task(exec::cpu s,
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
     std::ostringstream oss;
     oss << std::setw(3) << std::setfill('0') << nfile;
-    t.graphviz_draw(oss.str());
+    t.graphviz_draw(s, oss.str());
 #endif
   }
   return 0;

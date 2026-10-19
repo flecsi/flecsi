@@ -109,7 +109,8 @@ public:
         task<set_ptrs_share_ghosts_comms>(s),
         util::constant<share_ghosts_comms>()) {
     // Initialize the meta_field
-    s.execute<init_meta_field>(meta_field(this->meta), c.entities_sizes_);
+    s.execute<init_meta_field>(
+      exec::on, meta_field(this->meta), c.entities_sizes_);
   }
 
 private:
@@ -204,10 +205,10 @@ private:
     return std::span(hcells.span());
   }
 
-  static void init_meta_field(
+  static void init_meta_field(exec::cpu s,
     typename field<meta_type, data::single>::template accessor<wo> mf,
     const std::vector<util::id> & size) noexcept {
-    mf->local.ents = size[run::context::instance().color()];
+    mf->local.ents = size[s.launch().index];
   }
 
   // ----------------------- Top Tree Construction Tasks -----------------------
@@ -215,7 +216,7 @@ private:
   // Add the entities in the hashmap and create needed nodes.
   // After this first step, the top tree entities and nodes are returned. These
   // will build the top tree, shared by all colors.
-  static std::array<util::gid, 2> make_tree_local_task(
+  static std::array<util::gid, 2> make_tree_local_task(exec::cpu s,
     typename field<key_t>::template accessor<rw, na> e_keys,
     typename field<key_t>::template accessor<rw, na> n_keys,
     typename field<ntree_data>::template accessor<ro, ro> data_field,
@@ -226,8 +227,7 @@ private:
     auto hmap = map(hcells);
 
     // Create the tree
-    const Color size = run::context::instance().colors(),
-                color = run::context::instance().color();
+    const Color size = s.launch().size, color = s.launch().index;
 
     flog_assert(e_keys.span().end() ==
                   std::unique(e_keys.span().begin(), e_keys.span().end()),
@@ -363,28 +363,29 @@ private:
       } // for
     } // while
     util::gid count_ents = 0, count_nodes = 0;
-    top_tree_boundaries<true>(hmap, count_ents, count_nodes);
+    top_tree_boundaries<true>(color, hmap, count_ents, count_nodes);
     return {count_ents, count_nodes};
   } // make_tree
 
-  static void fill_top_tree_task(
+  static void fill_top_tree_task(exec::cpu s,
     typename field<hmap_pair_t>::template accessor<rw, na> hcells,
     typename field<hcell_t>::template accessor<wo, wo> top_tree_ents_field,
     typename field<hcell_t>::template accessor<wo, wo>
       top_tree_nodes_field) noexcept {
     auto hmap = map(hcells);
-    top_tree_boundaries<false>(hmap, top_tree_ents_field, top_tree_nodes_field);
+    top_tree_boundaries<false>(
+      s.launch().index, hmap, top_tree_ents_field, top_tree_nodes_field);
   }
 
   // Template to return if we count or fill the index space
   template<bool C, typename T>
-  static void top_tree_boundaries(hmap_t & hmap,
+  static void top_tree_boundaries(Color color,
+    hmap_t & hmap,
     T & count_accessor_ents,
     T & count_accessor_nodes) {
 
     [[maybe_unused]] util::gid count_ents = 0, count_nodes = 0;
 
-    auto color = run::context::instance().color();
     std::vector<hcell_t *> queue;
     std::vector<hcell_t *> nqueue;
     queue.push_back(&hmap.find(key_t::root())->second);
@@ -490,7 +491,7 @@ private:
   // Add the top tree to the local tree.
   // First step is to load the top tree entities and nodes.
   // The new sizes are then returned to create the copy plan for the top tree.
-  static void make_tree_distributed_task(
+  static void make_tree_distributed_task(exec::cpu s,
     typename field<key_t>::template accessor<rw, na> n_keys,
     typename field<meta_type, data::single>::template accessor<rw> mf,
     typename field<ntree_data>::template accessor<rw, na> data_field,
@@ -502,7 +503,7 @@ private:
 
     auto hmap = map(hcell);
     util::id total_ents = 0, total_nodes = 0;
-    const auto color = run::context::instance().color();
+    const auto color = s.launch().index;
     for(auto & m : ents_cells_multi.accessors()) {
       for(auto & c : m.span()) {
         if(c.color() == color)
@@ -567,14 +568,13 @@ private:
   }
 
   template<bool C>
-  static void copy_sizes_resize_task(topo::resize::Field::accessor<rw> a,
+  static void copy_sizes_resize_task(exec::cpu s,
+    topo::resize::Field::accessor<rw> a,
     typename field<meta_type, data::single>::template accessor<ro> mf,
     field<util::id>::accessor<ro, na> b) noexcept {
-    const auto color = run::context::instance().color();
+    const auto color = s.launch().index;
     a = (C ? mf->local.ents : 0) + b[color] +
-        std::accumulate(b.span().begin() + run::context::instance().colors(),
-          b.span().end(),
-          0);
+        std::accumulate(b.span().begin() + s.launch().size, b.span().end(), 0);
   }
 
   template<index_space E = entities>
@@ -606,34 +606,33 @@ private:
 
   // Copy plan: set destination sizes
   template<index_space IS = entities>
-  static void set_destination_meta_top_tree(
+  static void set_destination_meta_top_tree(exec::cpu s,
     field<data::intervals::Value>::accessor<wo> a,
     typename field<meta_type, data::single>::template accessor<ro>
       mf) noexcept {
     const auto n = IS == entities ? mf->local.ents : mf->local.nodes;
     a(0) = data::intervals::make(
       {n, n + (IS == entities ? mf->cp_nents_tt : mf->cp_nnodes_tt)},
-      run::context::instance().color());
+      s.launch().index);
   }
 
   // Copy plan: set destination sizes
-  static void set_destination_meta(
+  static void set_destination_meta(exec::cpu s,
     field<data::intervals::Value>::accessor<wo> a,
     typename field<meta_type, data::single>::template accessor<ro>
       mf) noexcept {
     a(0) = data::intervals::make(
-      {mf->local.ents, mf->local.ents + mf->nneighbors_recv},
-      run::context::instance().color());
+      {mf->local.ents, mf->local.ents + mf->nneighbors_recv}, s.launch().index);
   }
 
   // Copy plan: set pointers for top tree
   template<index_space IS = entities>
-  static void set_top_tree_ptrs(
+  static void set_top_tree_ptrs(exec::cpu s,
     field<data::copy_engine::Point>::accessor<wo, wo> a,
     typename field<meta_type, data::single>::template accessor<ro> mf,
     data::multi<typename field<hcell_t>::template accessor<ro, na>>
       hcells_multi) noexcept {
-    const auto i = run::context::instance().color();
+    const auto i = s.launch().index;
     util::id idx = IS == entities ? mf->local.ents : mf->local.nodes;
     for(auto & m : hcells_multi.accessors())
       for(auto & c : m.span())
@@ -641,46 +640,47 @@ private:
           a(idx++) = data::copy_engine::point(c.color(), c.idx());
   }
 
-  static void set_entities_ptrs(
+  static void set_entities_ptrs(exec::cpu s,
     field<data::copy_engine::Point>::accessor<wo, wo> a,
     typename field<meta_type, data::single>::template accessor<ro> mf,
     typename field<h_s_t>::template accessor<ro, ro> ids) noexcept {
     util::id idx = mf->local.ents;
     const util::id off = ids.span().size() - mf->nneighbors_recv;
     for(util::id j = 0; j < mf->nneighbors_recv; ++j) {
-      assert(ids[off + j].first.color() != run::context::instance().color());
+      assert(ids[off + j].first.color() != s.launch().index);
       a(idx++) = data::copy_engine::point(
         ids[off + j].first.color(), ids[off + j].first.idx());
     }
   }
 
   template<util::id meta_type::* M>
-  static void copy_sizes_neighbors_task(topo::resize::Field::accessor<wo> a,
+  static void copy_sizes_neighbors_task(exec::cpu s,
+    topo::resize::Field::accessor<wo> a,
     typename field<meta_type, data::single>::template accessor<rw> mf,
     field<util::id>::accessor<ro, ro> b) noexcept {
     const auto sp = b.span();
-    const auto mid = sp.begin() + run::context::instance().colors();
+    const auto mid = sp.begin() + s.launch().size;
     const util::id recv = std::accumulate(mid, sp.end(), util::id{0});
     mf.get().*M = recv;
     a = std::accumulate(sp.begin(), mid, util::id{0}) + recv;
   }
 
-  static void set_dests_neighbors(field<data::intervals::Value>::accessor<wo> a,
+  static void set_dests_neighbors(exec::cpu s,
+    field<data::intervals::Value>::accessor<wo> a,
     field<util::id>::accessor<ro, na> counts) noexcept {
-    const auto cs = run::context::instance().colors();
+    const auto cs = s.launch().size;
     const util::id total_send = std::accumulate(
       counts.span().begin(), counts.span().begin() + cs, util::id{0});
     const util::id total_recv = std::accumulate(
       counts.span().begin() + cs, counts.span().end(), util::id{0});
-    a(0) = data::intervals::make(
-      {total_send, total_send + total_recv}, run::context::instance().color());
+    a(0) = data::intervals::make({total_send, total_send + total_recv});
   }
 
-  static void set_ptrs_neighbors(
+  static void set_ptrs_neighbors(exec::cpu s,
     field<data::copy_engine::Point>::accessor<wo, wo> a,
     data::multi<field<util::id>::accessor<ro, na>> counts_multi) noexcept {
-    const auto cs = run::context::instance().colors();
-    const auto me = run::context::instance().color();
+    const auto cs = s.launch().size;
+    const auto me = s.launch().index;
     std::vector<const util::id *> rows(cs, nullptr);
     for(auto [c, acc] : counts_multi.components())
       rows[c] = acc.span().data();
@@ -700,23 +700,22 @@ private:
 
   // Exchange the boundaries from the local tree to other colors.
   // This shares part of the top tree information.
-  static void exchange_boundaries_task(
+  static void exchange_boundaries_task(exec::cpu s,
     typename field<key_t>::template accessor<ro, na> e_keys,
     typename field<meta_type, data::single>::template accessor<rw> mf,
     typename field<ntree_data>::template accessor<rw, na> df) noexcept {
-    auto c = run::context::instance().color();
+    auto c = s.launch().index;
     mf->local.ents = e_keys.span().size();
     df(0).lobound = c == 0 ? key_t::min() : e_keys(0);
-    df(0).hibound = c == run::context::instance().colors() - 1
-                      ? key_t::max()
-                      : e_keys(mf->local.ents - 1);
+    df(0).hibound =
+      c == s.launch().size - 1 ? key_t::max() : e_keys(mf->local.ents - 1);
   }
 
   // Recolor the entities, some might have moved after the sort.
-  static void recolor_task(
+  static void recolor_task(exec::cpu s,
     typename Policy::template accessor<rw, wo> t) noexcept {
     for(auto & v : t.e_colors.span())
-      v = run::context::instance().color();
+      v = s.launch().index;
   }
 
   // ---------------------------- Top tree construction -----------------------
@@ -725,13 +724,14 @@ public:
   void make_tree(scheduler & s) {
     //  Sort entities
     util::sort(s, e_keys(*this))();
-    s.execute<recolor_task>(*this);
+    s.execute<recolor_task>(exec::on, *this);
     s.execute<exchange_boundaries_task>(
-      e_keys(*this), meta_field(this->meta), data_field(*this));
+      exec::on, e_keys(*this), meta_field(this->meta), data_field(*this));
 
     // Create the local tree
     // Return the list of nodes to share (top of the tree)
-    auto fm_top_tree = s.execute<make_tree_local_task>(e_keys(*this),
+    auto fm_top_tree = s.execute<make_tree_local_task>(exec::on,
+      e_keys(*this),
       n_keys(*this),
       data_field(*this),
       hcells(*this),
@@ -749,14 +749,17 @@ public:
       p.resize();
     }
 
-    s.execute<fill_top_tree_task>(
-      hcells(*this), top_tree_ents_field(*this), top_tree_nodes_field(*this));
+    s.execute<fill_top_tree_task>(exec::on,
+      hcells(*this),
+      top_tree_ents_field(*this),
+      top_tree_nodes_field(*this));
 
     auto lm_top_tree =
       data::launch::make(s, *this, data::launch::gather(colors(), colors()));
 
     // Add the new hcells to the local tree + return new sizes for allocation
-    s.execute<make_tree_distributed_task>(n_keys(*this),
+    s.execute<make_tree_distributed_task>(exec::on,
+      n_keys(*this),
       meta_field(this->meta),
       data_field(*this),
       hcells(*this),
@@ -783,11 +786,13 @@ public:
       data::copy_plan::Sizes(colors(), 1),
       [&](auto f) {
         s.execute<set_destination_meta_top_tree<entities>>(
-          f, meta_field(this->meta));
+          exec::on, f, meta_field(this->meta));
       },
       [&](auto f) {
-        s.execute<set_top_tree_ptrs<entities>>(
-          f, meta_field(this->meta), top_tree_ents_field(lm_top_tree));
+        s.execute<set_top_tree_ptrs<entities>>(exec::on,
+          f,
+          meta_field(this->meta),
+          top_tree_ents_field(lm_top_tree));
       },
       util::constant<entities>());
 
@@ -797,11 +802,13 @@ public:
       data::copy_plan::Sizes(colors(), 1),
       [&](auto f) {
         s.execute<set_destination_meta_top_tree<nodes>>(
-          f, meta_field(this->meta));
+          exec::on, f, meta_field(this->meta));
       },
       [&](auto f) {
-        s.execute<set_top_tree_ptrs<nodes>>(
-          f, meta_field(this->meta), top_tree_nodes_field(lm_top_tree));
+        s.execute<set_top_tree_ptrs<nodes>>(exec::on,
+          f,
+          meta_field(this->meta),
+          top_tree_nodes_field(lm_top_tree));
       },
       util::constant<nodes>());
   }
@@ -827,17 +834,19 @@ private:
   }
 
   template<bool C>
-  static void find_local_task(typename Policy::template accessor<rw, na> t,
+  static void find_local_task(exec::cpu s,
+    typename Policy::template accessor<rw, na> t,
     typename field<std::conditional_t<C, util::id, entity_request>>::
       template accessor<wo, na> a) noexcept {
-    t.template find_send_entities<C>(a);
+    t.template find_send_entities<C>(s, a);
   }
 
   template<bool C>
-  static void find_distant_task(typename Policy::template accessor<rw, na> t,
+  static void find_distant_task(exec::cpu s,
+    typename Policy::template accessor<rw, na> t,
     typename field<std::conditional_t<C, util::id, h_s_t>>::
       template accessor<wo, na> a) noexcept {
-    t.template find_intersect_entities<C>(a);
+    t.template find_intersect_entities<C>(s, a);
   }
 
   // Add missing parent from distant node/entity
@@ -859,12 +868,12 @@ private:
     parent->second.add_child(child);
   }
 
-  static void load_entities_task(
+  static void load_entities_task(exec::cpu s,
     typename field<hmap_pair_t>::template accessor<rw, na> hcells,
     typename field<meta_type, data::single>::template accessor<rw> mf,
     typename field<h_s_t>::template accessor<ro, ro> recv) noexcept {
     auto hmap = map(hcells);
-    auto c = run::context::instance().color();
+    auto c = s.launch().index;
     const util::id off = recv.span().size() - mf->nneighbors_recv;
     for(util::id i = 0; i < mf->nneighbors_recv; ++i) {
       auto key = recv[off + i].first.key();
@@ -889,6 +898,25 @@ private:
     }
   }
 
+  template<auto Value>
+  void make_copy_plan(scheduler & s, std::optional<data::copy_plan> & cp) {
+    auto lm =
+      data::launch::make(s, *this, data::launch::gather(colors(), colors()));
+    cp.emplace(
+      s,
+      *this,
+      data::copy_plan::Sizes(colors(), 1),
+      [&](auto f) {
+        s.execute<set_dests_neighbors>(
+          exec::on, f, share_ghosts_comms_field(*this));
+      },
+      [&](auto f) {
+        s.execute<set_ptrs_neighbors>(
+          exec::on, f, share_ghosts_comms_field(lm));
+      },
+      util::constant<Value>());
+  }
+
   // ----------------------------------- Share ghosts -------------------------
 public:
   /// Search entities' neighbors and complete the hmap, create copy plans.
@@ -897,47 +925,37 @@ public:
     cp_entities.reset();
 
     // Find entities that will be used
-    s.execute<find_local_task<true>>(*this, share_ghosts_comms_field(*this));
+    s.execute<find_local_task<true>>(
+      exec::on, *this, share_ghosts_comms_field(*this));
 
     {
       // Triggers a copy on share_ghosts_comms_field which we use to compute
       // dimensions for send/receive
       auto & p = get_partition<share_ghosts_cid_comm>();
-      s.execute<copy_sizes_neighbors_task<&meta_type::nrequests_recv>>(
-        p.sizes(), meta_field(this->meta), share_ghosts_comms_field(*this));
+      s.execute<copy_sizes_neighbors_task<&meta_type::nrequests_recv>>(exec::on,
+        p.sizes(),
+        meta_field(this->meta),
+        share_ghosts_comms_field(*this));
       p.resize();
     }
 
     // Populate the buffer
     s.execute<find_local_task<false>>(
-      *this, share_ghosts_cid_comm_field(*this));
+      exec::on, *this, share_ghosts_cid_comm_field(*this));
 
     s.execute<reset_ghosts>(meta_field(this->meta), hcells(*this));
 
     {
       // Grow the entities space to receive the new entities
       auto & p = get_partition<entities>();
-      s.execute<copy_sizes_resize_task<true>>(
-        p.sizes(), meta_field(this->meta), share_ghosts_comms_field(*this));
+      s.execute<copy_sizes_resize_task<true>>(exec::on,
+        p.sizes(),
+        meta_field(this->meta),
+        share_ghosts_comms_field(*this));
       p.resize();
     }
 
-    {
-      // Prepare temporary copy plan #1
-      auto lm =
-        data::launch::make(s, *this, data::launch::gather(colors(), colors()));
-      cp_requests.emplace(
-        s,
-        *this,
-        data::copy_plan::Sizes(colors(), 1),
-        [&](auto f) {
-          s.execute<set_dests_neighbors>(f, share_ghosts_comms_field(*this));
-        },
-        [&](auto f) {
-          s.execute<set_ptrs_neighbors>(f, share_ghosts_comms_field(lm));
-        },
-        util::constant<share_ghosts_cid_comm>());
-    }
+    make_copy_plan<share_ghosts_cid_comm>(s, cp_requests);
 
     // This triggers the copy and unpack in the local trees
     s.execute<load_working_task>(e_i(*this),
@@ -946,39 +964,29 @@ public:
       share_ghosts_cid_comm_field(*this));
 
     // Compute #entities that will be ghosts
-    s.execute<find_distant_task<true>>(*this, share_ghosts_comms_field(*this));
+    s.execute<find_distant_task<true>>(
+      exec::on, *this, share_ghosts_comms_field(*this));
 
     {
       //  Triggers a copy of sizes and resize buffers
       auto & p = get_partition<share_ghosts_buffer_comm>();
       s.execute<copy_sizes_neighbors_task<&meta_type::nneighbors_recv>>(
-        p.sizes(), meta_field(this->meta), share_ghosts_comms_field(*this));
+        exec::on,
+        p.sizes(),
+        meta_field(this->meta),
+        share_ghosts_comms_field(*this));
       p.resize();
     }
 
     // Populate the buffer
     s.execute<find_distant_task<false>>(
-      *this, share_ghosts_buffer_comm_field(*this));
+      exec::on, *this, share_ghosts_buffer_comm_field(*this));
 
-    {
-      // Prepare temporary copy plan #2 (replacing #1)
-      auto lm =
-        data::launch::make(s, *this, data::launch::gather(colors(), colors()));
-      cp_neighbors.emplace(
-        s,
-        *this,
-        data::copy_plan::Sizes(colors(), 1),
-        [&](auto f) {
-          s.execute<set_dests_neighbors>(f, share_ghosts_comms_field(*this));
-        },
-        [&](auto f) {
-          s.execute<set_ptrs_neighbors>(f, share_ghosts_comms_field(lm));
-        },
-        util::constant<share_ghosts_buffer_comm>());
-    }
+    make_copy_plan<share_ghosts_buffer_comm>(s, cp_neighbors);
 
     // Triggers the copy and add missing entities in hmap
-    s.execute<load_entities_task>(hcells(*this),
+    s.execute<load_entities_task>(exec::on,
+      hcells(*this),
       meta_field(this->meta),
       share_ghosts_buffer_comm_field(*this));
 
@@ -992,11 +1000,13 @@ public:
 
     // create copy plan for ghosts entities
     auto entities_dests_task = [&](auto f) {
-      s.execute<set_destination_meta>(f, meta_field(this->meta));
+      s.execute<set_destination_meta>(exec::on, f, meta_field(this->meta));
     };
     auto entities_ptrs_task = [&](auto f) {
-      s.execute<set_entities_ptrs>(
-        f, meta_field(this->meta), share_ghosts_buffer_comm_field(*this));
+      s.execute<set_entities_ptrs>(exec::on,
+        f,
+        meta_field(this->meta),
+        share_ghosts_buffer_comm_field(*this));
     };
 
     // Merge the cp_top_tree_entities into the cp_entities to avoid copy plan on
@@ -1083,14 +1093,10 @@ public:
       return &cp_data_tree;
     else if constexpr(Space == share_ghosts_comms)
       return &cp_share_ghosts_comms;
-    else if constexpr(Space == share_ghosts_cid_comm) {
-      if(cp_requests.has_value())
-        return &*cp_requests;
-    }
-    else if constexpr(Space == share_ghosts_buffer_comm) {
-      if(cp_neighbors.has_value())
-        return &*cp_neighbors;
-    }
+    else if constexpr(Space == share_ghosts_cid_comm)
+      return &*cp_requests;
+    else if constexpr(Space == share_ghosts_buffer_comm)
+      return &*cp_neighbors;
     return nullptr;
   }
 
@@ -1188,9 +1194,9 @@ public:
   }
 
   template<bool C, typename T>
-  void find_intersect_entities(T count_accessor) const {
+  void find_intersect_entities(exec::cpu s, T count_accessor) const {
     auto hmap = map();
-    const auto cs = run::context::instance().colors();
+    const auto cs = s.launch().size;
     [[maybe_unused]] util::id count = 0;
     // Make a tree traversal per last elements in the intersection field.
     // Caution entities can be detected several time for the same neighbor.
@@ -1199,7 +1205,7 @@ public:
     for(util::id i = start; i < stop; ++i) {
       ent_id id(i);
       auto tcolor = e_colors[i];
-      assert(tcolor != run::context::instance().color());
+      assert(tcolor != s.launch().index);
 
       traversal(
         &hmap.at(key_t::root()),
@@ -1232,8 +1238,8 @@ public:
   }
 
   template<bool C, typename T>
-  void find_send_entities(T && count_accessor) const {
-    const auto cs = run::context::instance().colors();
+  void find_send_entities(exec::cpu s, T && count_accessor) const {
+    const auto cs = s.launch().size;
     std::vector<std::vector<ent_id>> send;
     if constexpr(C)
       std::fill(count_accessor.span().begin(), count_accessor.span().end(), 0);
@@ -1278,10 +1284,10 @@ public:
     } // for
 
     if constexpr(!C) {
-      const auto me = run::context::instance().color();
+      const auto me = s.launch().index;
       util::id count = 0;
-      for(Color v = 0; v < cs; ++v)
-        for(auto sid : send[v])
+      for(auto & s : send)
+        for(auto sid : s)
           count_accessor[count++] = entity_request{e_i(sid), me};
     }
   }
@@ -1494,7 +1500,7 @@ public:
   /// Output a representation of the ntree using graphviz.
   /// The output files are formatted as: color()_tag.gv
   /// \param tag Tag for these files names
-  void graphviz_draw(const std::string & tag) const {
+  void graphviz_draw(exec::cpu s, const std::string & tag) const {
     util::graphviz gv("G");
     static constexpr std::pair<const char *, const char *> completeness[] = {
       {"complete", "octagon"}, {"incomplete", "doubleoctagon"}};
@@ -1564,8 +1570,8 @@ public:
         gv.add_edge(parent, node);
     } // while
     std::ostringstream fname;
-    fname << std::setfill('0') << std::setw(3)
-          << run::context::instance().color() << "_" << tag << ".gv";
+    fname << std::setfill('0') << std::setw(3) << s.launch().index << "_" << tag
+          << ".gv";
     gv.write(std::move(fname).str());
   }
 #endif
