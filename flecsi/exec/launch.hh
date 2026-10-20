@@ -300,7 +300,8 @@ convert(U && u) { // deep implicit conversions
           static_cast<T *>(nullptr), std::forward<decltype(xx)>(xx)...);
       },
       std::forward<U>(u));
-  else if constexpr(is_vector<T>::value && is_vector<D>::value) {
+  else if constexpr(is_vector<T>::value && is_vector<D>::value &&
+                    !std::is_convertible_v<U &&, T>) {
     const auto t = std::views::transform(u, [](auto && x) { // && for bool
       return convert<typename T::value_type>(
         static_cast<same_ref_t<U &&, std::remove_reference_t<decltype(x)>>>(x));
