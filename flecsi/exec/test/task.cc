@@ -76,6 +76,10 @@ static_assert(good<true,
   std::vector<std::tuple<int &>> &&,
   std::vector<std::tuple<int &>> &&>);
 static_assert(good<true,
+  std::vector<std::tuple<const long &>>,
+  std::vector<std::tuple<int &>> &&,
+  std::vector<std::tuple<long>>>);
+static_assert(good<true,
   const std::vector<std::tuple<const int &>> &,
   std::vector<std::tuple<int &>> &&,
   std::vector<std::tuple<const int &>>>);
@@ -116,15 +120,22 @@ seq(const T & s, F f) noexcept {
 }
 
 void
-mpi(int * p, const short & s, int i) {
-  *p = s == i; // check argument conversions
+mpi(int * p, const short & s, std::tuple<int> i, const int & ci) {
+  *p = s == std::get<0>(i) && p == &ci; // check argument conversions
 }
 
 } // namespace hydro
 
 namespace {
-void
-vb(const std::vector<bool> &, const std::vector<long> &) noexcept {}
+int
+vb(const std::vector<bool> &,
+  const std::vector<long> &,
+  const std::vector<std::unique_ptr<const int>> & u) noexcept {
+  UNIT() {
+    ASSERT_FALSE(u.empty());
+    EXPECT_EQ(*u.front(), 3);
+  };
+}
 
 int
 index_task(const flecsi::runtime * r, exec::launch_domain) noexcept {
@@ -222,10 +233,22 @@ task_driver(scheduler & s) {
       V{"It's Elementary", "Dear, Dear Data"}, d);
 
     int x = 0;
-    execute<hydro::mpi, mpi>(&x, 1, 1);
+    execute<hydro::mpi, mpi>(&x,
+      1,
+      util::convert([] { return 1; }),
+      // This is incompatible with libc++ at least through 23.1.0:
+      util::convert([&]() -> int & { return x; }));
     EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
+    execute<*[](std::vector<long>,
+               std::vector<std::tuple<const long &>>) noexcept {},
+      mpi>(std::vector<int>(), std::vector<std::tuple<int>>());
 
-    s.execute<vb>(std::vector<bool>(1), std::vector<int>());
+    {
+      std::vector<std::unique_ptr<int>> u;
+      u.push_back(std::make_unique<int>(3));
+      EXPECT_EQ(
+        s.test<vb>(std::vector<bool>(1), std::vector<int>(), std::move(u)), 0);
+    }
 
     constexpr bool add_four = (FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
                               (FLECSI_BACKEND != FLECSI_BACKEND_hpx);

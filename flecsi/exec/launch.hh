@@ -207,9 +207,9 @@ namespace detail {
 // 4. mpi_params, or the result of bind_tuple
 // 5. actual task parameter, without cv-qualification (with convert again)
 // We derive #2 from #5 and #1.  For non-MPI tasks, we derive #3 from
-// #5 and #4 from #3.  For MPI tasks, #3 is #2 unless we need a
-// "temporary" to which to bind a reference, in which case it is the type of
-// that temporary.  That situation can arise for an element type of a vector
+// #5 and #4 from #3.  For MPI tasks, #4 is identical to #5; #3 is simply #2
+// or else the type of a "temporary" to which to bind a reference.
+// That situation can arise for an element type of a vector
 // or tuple, in which case #3 is a vector/tuple of the result(s).
 
 template<class P, class A>
@@ -217,14 +217,22 @@ struct replaced {
   using type = decltype(exec::replace_argument<P>(std::declval<A>()));
 };
 
-// An approximation of C++23's std::reference_converts_from_temporary:
+template<class To, class From> // from C++23
+constexpr bool reference_converts_from_temporary_v =
+  std::is_reference_v<To> && std::is_convertible_v<From, To> &&
+  !(std::is_reference_v<From> &&
+    // Take advantage of any (backported) tuple-initialization check:
+    std::conditional_t<
+      std::is_convertible_v<std::tuple<int>, std::tuple<const long &>>,
+      std::is_convertible<std::add_pointer_t<From>, std::add_pointer_t<To>>,
+      std::is_convertible<std::tuple<From>, std::tuple<To>>>::value);
 template<class P, class A>
 constexpr bool temporary_v =
-  ((std::is_lvalue_reference_v<P> &&
-     std::is_const_v<std::remove_reference_t<P>>) ||
-    std::is_rvalue_reference_v<P>) &&
-  !std::is_convertible_v<std::add_pointer_t<typename replaced<P, A>::type>,
-    std::add_pointer_t<P>>;
+  reference_converts_from_temporary_v<P, A> ||
+  (((std::is_lvalue_reference_v<P> &&
+      std::is_const_v<std::remove_reference_t<P>>) ||
+     std::is_rvalue_reference_v<P>) &&
+    !std::is_convertible_v<A, P>); // convert<> may be required
 
 template<class R, class T>
 using same_ref_t = std::conditional_t<std::is_lvalue_reference_v<R>, T &, T &&>;
@@ -234,7 +242,8 @@ using element_t = same_ref_t<C,
 
 template<class P, class A, class D = std::decay_t<A>>
 struct sync_storage {
-  static constexpr bool temporary = temporary_v<P, A>;
+  static constexpr bool temporary =
+    temporary_v<P, typename replaced<P, A>::type>;
   static_assert(
     !temporary || std::is_move_constructible_v<std::remove_reference_t<P>>,
     "references to non-movable types must bind directly");
@@ -283,16 +292,19 @@ convert_tuple(std::tuple<TT...> *, UU &&... uu) {
 template<class T, class U>
 T
 convert(U && u) { // deep implicit conversions
-  if constexpr(is_tuple<T>::value) // not references
+  using D = std::remove_cvref_t<U>; // NB: T is untransformed
+  if constexpr(is_tuple<T>::value && is_tuple<D>::value)
     return apply(
       [](auto &&... xx) {
         return convert_tuple(
           static_cast<T *>(nullptr), std::forward<decltype(xx)>(xx)...);
       },
       std::forward<U>(u));
-  else if constexpr(is_vector<T>::value) {
-    const auto t = std::views::transform(u, [](auto && x) {
-      return convert<typename T::value_type>(std::forward<decltype(x)>(x));
+  else if constexpr(is_vector<T>::value && is_vector<D>::value &&
+                    !std::is_convertible_v<U &&, T>) {
+    const auto t = std::views::transform(u, [](auto && x) { // && for bool
+      return convert<typename T::value_type>(
+        static_cast<same_ref_t<U &&, std::remove_reference_t<decltype(x)>>>(x));
     });
     return {t.begin(), t.end()};
   }
@@ -315,7 +327,7 @@ struct param_helper {
 };
 template<bool M>
 struct protocol {
-  template<class P, class = void>
+  template<class P>
   struct param_storage : param_helper<M, P> {};
   template<class P>
   using param_storage_t = typename param_storage<P>::type;
@@ -790,8 +802,8 @@ private:
   template<class T>
   static auto make(T && v) {
     const auto t = std::views::transform(v, [](auto && x) -> decltype(auto) {
-      return exec::replace_argument<P>(
-        static_cast<detail::same_ref_t<T, decltype(x)>>(x));
+      return exec::replace_argument<P>(static_cast<
+        detail::same_ref_t<T &&, std::remove_reference_t<decltype(x)>>>(x));
     });
     return std::vector(t.begin(), t.end());
   }
