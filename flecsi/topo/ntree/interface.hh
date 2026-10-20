@@ -130,60 +130,49 @@ private:
   // Ntree mandatory fields ---------------------------------------------------
 public:
   /// Entities keys field
-  static inline const typename field<key_t>::template definition<Policy,
-    entities>
+  static inline const field<key_t>::template definition<Policy, entities>
     e_keys;
   /// Entities ids field. This field can be used to identify entities with the
   /// same key.
   static inline const field<util::id>::definition<Policy, entities> e_ids;
   /// Entities color field. This represent which color owns an entity.
-  static inline const typename field<Color>::template definition<Policy,
-    entities>
-    e_colors;
+  static inline const field<Color>::definition<Policy, entities> e_colors;
   /// Field containing the structure for entities interaction from the
   /// specialization
-  static inline const typename field<entity_data>::template definition<Policy,
-    entities>
+  static inline const field<entity_data>::template definition<Policy, entities>
     e_i;
 
   /// Node keys field
-  static inline const typename field<key_t>::template definition<Policy, nodes>
-    n_keys;
+  static inline const field<key_t>::template definition<Policy, nodes> n_keys;
   /// Field containing the structure for nodes interaction from the
   /// specialization
-  static inline const typename field<node_data>::template definition<Policy,
-    nodes>
-    n_i;
+  static inline const field<node_data>::template definition<Policy, nodes> n_i;
 
 private:
   using h_s_t = std::pair<hcell_t, std::size_t>;
   using entity_request = std::pair<entity_data, Color>;
   using hmap_pair_t = std::pair<key_t, hcell_t>;
   // Hmap fields, the hashing table are reconstructed based on this field
-  static inline const typename field<hmap_pair_t>::template definition<Policy,
-    hashmap>
+  static inline const field<hmap_pair_t>::template definition<Policy, hashmap>
     hcells;
   // Meta data fields for ntree, genetic data and communications
-  static inline const typename field<ntree_data>::template definition<Policy,
-    tree_data>
+  static inline const field<ntree_data>::template definition<Policy, tree_data>
     data_field;
-  static inline const typename field<meta_type,
-    data::single>::template definition<meta<Policy>>
+  static inline const field<meta_type, data::single>::definition<meta<Policy>>
     meta_field;
 
   // Field for copies
   static inline const field<util::id>::definition<Policy, share_ghosts_comms>
     share_ghosts_comms_field;
-  static inline const typename field<hcell_t>::template definition<Policy,
-    top_tree_ents>
+  static inline const field<hcell_t>::template definition<Policy, top_tree_ents>
     top_tree_ents_field;
-  static inline const typename field<hcell_t>::template definition<Policy,
+  static inline const field<hcell_t>::template definition<Policy,
     top_tree_nodes>
     top_tree_nodes_field;
-  static inline const typename field<
-    entity_request>::template definition<Policy, share_ghosts_cid_comm>
+  static inline const field<entity_request>::template definition<Policy,
+    share_ghosts_cid_comm>
     share_ghosts_cid_comm_field;
-  static inline const typename field<h_s_t>::template definition<Policy,
+  static inline const field<h_s_t>::template definition<Policy,
     share_ghosts_buffer_comm>
     share_ghosts_buffer_comm_field;
 
@@ -206,7 +195,7 @@ private:
   }
 
   static void init_meta_field(exec::cpu s,
-    typename field<meta_type, data::single>::template accessor<wo> mf,
+    field<meta_type, data::single>::accessor<wo> mf,
     const std::vector<util::id> & size) noexcept {
     mf->local.ents = size[s.launch().index];
   }
@@ -217,12 +206,11 @@ private:
   // After this first step, the top tree entities and nodes are returned. These
   // will build the top tree, shared by all colors.
   static std::array<util::gid, 2> make_tree_local_task(exec::cpu s,
-    typename field<key_t>::template accessor<rw, na> e_keys,
-    typename field<key_t>::template accessor<rw, na> n_keys,
-    typename field<ntree_data>::template accessor<ro, ro> data_field,
-    typename field<hmap_pair_t>::template accessor<rw, na> hcells,
-    typename field<meta_type, data::single>::template accessor<rw>
-      mf) noexcept {
+    field<key_t>::template accessor<rw, na> e_keys,
+    field<key_t>::template accessor<rw, na> n_keys,
+    field<ntree_data>::template accessor<ro, ro> data_field,
+    field<hmap_pair_t>::template accessor<rw, na> hcells,
+    field<meta_type, data::single>::accessor<rw> mf) noexcept {
     // Cstr htable
     auto hmap = map(hcells);
 
@@ -368,10 +356,9 @@ private:
   } // make_tree
 
   static void fill_top_tree_task(exec::cpu s,
-    typename field<hmap_pair_t>::template accessor<rw, na> hcells,
-    typename field<hcell_t>::template accessor<wo, wo> top_tree_ents_field,
-    typename field<hcell_t>::template accessor<wo, wo>
-      top_tree_nodes_field) noexcept {
+    field<hmap_pair_t>::template accessor<rw, na> hcells,
+    field<hcell_t>::template accessor<wo, wo> top_tree_ents_field,
+    field<hcell_t>::template accessor<wo, wo> top_tree_nodes_field) noexcept {
     auto hmap = map(hcells);
     top_tree_boundaries<false>(
       s.launch().index, hmap, top_tree_ents_field, top_tree_nodes_field);
@@ -428,8 +415,8 @@ private:
     typename key_t::int_t child,
     const int & color,
     hmap_t & hmap,
-    typename field<meta_type, data::single>::template accessor<rw> mf,
-    typename field<key_t>::template accessor<rw, na> n_keys) {
+    field<meta_type, data::single>::accessor<rw> mf,
+    field<key_t>::template accessor<rw, na> n_keys) {
     auto parent = hmap.end();
     while((parent = hmap.find(key)) == hmap.end()) {
       parent = hmap.insert(key, key);
@@ -448,8 +435,8 @@ private:
   static void load_shared_entity(const Color & c,
     const key_t & k,
     hmap_t & hmap,
-    typename field<meta_type, data::single>::template accessor<rw> mf,
-    typename field<key_t>::template accessor<rw, na> n_keys) {
+    field<meta_type, data::single>::accessor<rw> mf,
+    field<key_t>::template accessor<rw, na> n_keys) {
     auto key = k;
     auto f = hmap.find(key);
     if(f == hmap.end()) {
@@ -470,8 +457,8 @@ private:
   static void load_shared_node(const Color & c,
     const key_t & k,
     hmap_t & hmap,
-    typename field<meta_type, data::single>::template accessor<rw> mf,
-    typename field<key_t>::template accessor<rw, na> n_keys) {
+    field<meta_type, data::single>::accessor<rw> mf,
+    field<key_t>::template accessor<rw, na> n_keys) {
     key_t key = k;
     // Node doesn't exist already
     auto cur = hmap.find(key);
@@ -492,10 +479,10 @@ private:
   // First step is to load the top tree entities and nodes.
   // The new sizes are then returned to create the copy plan for the top tree.
   static void make_tree_distributed_task(exec::cpu s,
-    typename field<key_t>::template accessor<rw, na> n_keys,
-    typename field<meta_type, data::single>::template accessor<rw> mf,
-    typename field<ntree_data>::template accessor<rw, na> data_field,
-    typename field<hmap_pair_t>::template accessor<rw, na> hcell,
+    field<key_t>::template accessor<rw, na> n_keys,
+    field<meta_type, data::single>::accessor<rw> mf,
+    field<ntree_data>::template accessor<rw, na> data_field,
+    field<hmap_pair_t>::template accessor<rw, na> hcell,
     data::multi<typename field<hcell_t>::template accessor<ro, na>>
       ents_cells_multi,
     data::multi<typename field<hcell_t>::template accessor<ro, na>>
@@ -550,27 +537,24 @@ private:
 
   static void resize_entities_update_meta_task(
     topo::resize::Field::accessor<rw> a,
-    typename field<meta_type, data::single>::template accessor<rw>
-      mf) noexcept {
+    field<meta_type, data::single>::accessor<rw> mf) noexcept {
     a = mf->local.ents + mf->nneighbors_recv;
   }
 
   static void copy_sizes_meta_top_tree_task(topo::resize::Field::accessor<wo> a,
-    typename field<meta_type, data::single>::template accessor<ro>
-      mf) noexcept {
+    field<meta_type, data::single>::accessor<ro> mf) noexcept {
     a = mf->local.ents + mf->cp_nents_tt;
   }
 
   static void copy_sizes_meta_task(topo::resize::Field::accessor<wo> a,
-    typename field<meta_type, data::single>::template accessor<ro>
-      mf) noexcept {
+    field<meta_type, data::single>::accessor<ro> mf) noexcept {
     a = mf->local.ents;
   }
 
   template<bool C>
   static void copy_sizes_resize_task(exec::cpu s,
     topo::resize::Field::accessor<rw> a,
-    typename field<meta_type, data::single>::template accessor<ro> mf,
+    field<meta_type, data::single>::accessor<ro> mf,
     field<util::id>::accessor<ro, na> b) noexcept {
     const auto color = s.launch().index;
     a = (C ? mf->local.ents : 0) + b[color] +
@@ -586,13 +570,12 @@ private:
   // Return the number of entities/nodes for local, top tree and ghosts
   // stores in the respective index spaces.
   static std::array<util::id, 4> sizes_task(
-    typename field<meta_type, data::single>::template accessor<ro> mf) {
+    field<meta_type, data::single>::accessor<ro> mf) {
     return {{mf->local.ents, mf->local.nodes, mf->top_tree, mf->ghosts}};
   }
 
-  static void reset_ghosts(
-    typename field<meta_type, data::single>::template accessor<rw> mf,
-    typename field<hmap_pair_t>::template accessor<rw, na> hcell) noexcept {
+  static void reset_ghosts(field<meta_type, data::single>::accessor<rw> mf,
+    field<hmap_pair_t>::template accessor<rw, na> hcell) noexcept {
     auto hmap = map(hcell);
     // Remove ghosts from hmap
     for(auto & i : hmap)
@@ -608,8 +591,7 @@ private:
   template<index_space IS = entities>
   static void set_destination_meta_top_tree(exec::cpu s,
     field<data::intervals::Value>::accessor<wo> a,
-    typename field<meta_type, data::single>::template accessor<ro>
-      mf) noexcept {
+    field<meta_type, data::single>::accessor<ro> mf) noexcept {
     const auto n = IS == entities ? mf->local.ents : mf->local.nodes;
     a(0) = data::intervals::make(
       {n, n + (IS == entities ? mf->cp_nents_tt : mf->cp_nnodes_tt)},
@@ -619,8 +601,7 @@ private:
   // Copy plan: set destination sizes
   static void set_destination_meta(exec::cpu s,
     field<data::intervals::Value>::accessor<wo> a,
-    typename field<meta_type, data::single>::template accessor<ro>
-      mf) noexcept {
+    field<meta_type, data::single>::accessor<ro> mf) noexcept {
     a(0) = data::intervals::make(
       {mf->local.ents, mf->local.ents + mf->nneighbors_recv}, s.launch().index);
   }
@@ -629,7 +610,7 @@ private:
   template<index_space IS = entities>
   static void set_top_tree_ptrs(exec::cpu s,
     field<data::copy_engine::Point>::accessor<wo, wo> a,
-    typename field<meta_type, data::single>::template accessor<ro> mf,
+    field<meta_type, data::single>::accessor<ro> mf,
     data::multi<typename field<hcell_t>::template accessor<ro, na>>
       hcells_multi) noexcept {
     const auto i = s.launch().index;
@@ -640,10 +621,10 @@ private:
           a(idx++) = data::copy_engine::point(c.color(), c.idx());
   }
 
-  static void set_entities_ptrs(exec::cpu s,
+  static void set_entities_ptrs([[maybe_unused]] exec::cpu s,
     field<data::copy_engine::Point>::accessor<wo, wo> a,
-    typename field<meta_type, data::single>::template accessor<ro> mf,
-    typename field<h_s_t>::template accessor<ro, ro> ids) noexcept {
+    field<meta_type, data::single>::accessor<ro> mf,
+    field<h_s_t>::template accessor<ro, ro> ids) noexcept {
     util::id idx = mf->local.ents;
     const util::id off = ids.span().size() - mf->nneighbors_recv;
     for(util::id j = 0; j < mf->nneighbors_recv; ++j) {
@@ -656,7 +637,7 @@ private:
   template<util::id meta_type::* M>
   static void copy_sizes_neighbors_task(exec::cpu s,
     topo::resize::Field::accessor<wo> a,
-    typename field<meta_type, data::single>::template accessor<rw> mf,
+    field<meta_type, data::single>::accessor<rw> mf,
     field<util::id>::accessor<ro, ro> b) noexcept {
     const auto sp = b.span();
     const auto mid = sp.begin() + s.launch().size;
@@ -701,9 +682,9 @@ private:
   // Exchange the boundaries from the local tree to other colors.
   // This shares part of the top tree information.
   static void exchange_boundaries_task(exec::cpu s,
-    typename field<key_t>::template accessor<ro, na> e_keys,
-    typename field<meta_type, data::single>::template accessor<rw> mf,
-    typename field<ntree_data>::template accessor<rw, na> df) noexcept {
+    field<key_t>::template accessor<ro, na> e_keys,
+    field<meta_type, data::single>::accessor<rw> mf,
+    field<ntree_data>::template accessor<rw, na> df) noexcept {
     auto c = s.launch().index;
     mf->local.ents = e_keys.span().size();
     df(0).lobound = c == 0 ? key_t::min() : e_keys(0);
@@ -713,7 +694,7 @@ private:
 
   // Recolor the entities, some might have moved after the sort.
   static void recolor_task(exec::cpu s,
-    typename Policy::template accessor<rw, wo> t) noexcept {
+    Policy::template accessor<rw, wo> t) noexcept {
     for(auto & v : t.e_colors.span())
       v = s.launch().index;
   }
@@ -820,11 +801,10 @@ public:
 
   // ---------------------------- Ghosts exchange tasks -----------------------
 private:
-  static void load_working_task(
-    typename field<entity_data>::template accessor<rw, na> e,
-    typename field<Color>::template accessor<rw, na> ec,
-    typename field<meta_type, data::single>::template accessor<ro> mf,
-    typename field<entity_request>::template accessor<ro, ro> recv) noexcept {
+  static void load_working_task(field<entity_data>::template accessor<rw, na> e,
+    field<Color>::accessor<rw, na> ec,
+    field<meta_type, data::single>::accessor<ro> mf,
+    field<entity_request>::template accessor<ro, ro> recv) noexcept {
     const util::id base = mf->local.ents;
     const util::id off = recv.span().size() - mf->nrequests_recv;
     for(util::id k = 0; k < mf->nrequests_recv; ++k) {
@@ -835,17 +815,17 @@ private:
 
   template<bool C>
   static void find_local_task(exec::cpu s,
-    typename Policy::template accessor<rw, na> t,
-    typename field<std::conditional_t<C, util::id, entity_request>>::
+    Policy::template accessor<rw, na> t,
+    field<std::conditional_t<C, util::id, entity_request>>::
       template accessor<wo, na> a) noexcept {
     t.template find_send_entities<C>(s, a);
   }
 
   template<bool C>
   static void find_distant_task(exec::cpu s,
-    typename Policy::template accessor<rw, na> t,
-    typename field<std::conditional_t<C, util::id, h_s_t>>::
-      template accessor<wo, na> a) noexcept {
+    Policy::template accessor<rw, na> t,
+    field<std::conditional_t<C, util::id, h_s_t>>::template accessor<wo, na>
+      a) noexcept {
     t.template find_intersect_entities<C>(s, a);
   }
 
@@ -853,7 +833,7 @@ private:
   // This version does add the parent but does not provides an idx for it.
   // This is used when the local tree already received distant entities/nodes.
   static void add_parent_distant(key_t key,
-    typename key_t::int_t child,
+    key_t::int_t child,
     const int & color,
     hmap_t & hmap) {
     auto parent = hmap.end();
@@ -869,9 +849,9 @@ private:
   }
 
   static void load_entities_task(exec::cpu s,
-    typename field<hmap_pair_t>::template accessor<rw, na> hcells,
-    typename field<meta_type, data::single>::template accessor<rw> mf,
-    typename field<h_s_t>::template accessor<ro, ro> recv) noexcept {
+    field<hmap_pair_t>::template accessor<rw, na> hcells,
+    field<meta_type, data::single>::accessor<rw> mf,
+    field<h_s_t>::template accessor<ro, ro> recv) noexcept {
     auto hmap = map(hcells);
     auto c = s.launch().index;
     const util::id off = recv.span().size() - mf->nneighbors_recv;
@@ -1027,7 +1007,7 @@ public:
   }
   /// \deprecated Pass a \c scheduler.
   [[deprecated("pass a scheduler")]] static void share_ghosts(
-    typename Policy::slot & ts) {
+    Policy::slot & ts) {
     ts->share_ghosts(*scheduler::instance);
   }
 
@@ -1036,10 +1016,9 @@ public:
 
   //------------------------------ reset tree ---------------------------------
 private:
-  static void reset_task(
-    typename field<meta_type, data::single>::template accessor<rw> mf,
-    typename field<hmap_pair_t>::template accessor<wo, na> hm,
-    typename field<node_data>::template accessor<wo, na> ni) noexcept {
+  static void reset_task(field<meta_type, data::single>::accessor<rw> mf,
+    field<hmap_pair_t>::template accessor<wo, na> hm,
+    field<node_data>::template accessor<wo, na> ni) noexcept {
     hmap_t hmap(hm.span());
     hmap.clear();
     mf->local.nodes = 0;
