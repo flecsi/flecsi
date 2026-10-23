@@ -1330,7 +1330,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
     if(const Skip remain = ret ? std::exchange(head->skip, 0) - 1 : 0) {
       auto & h2 = s[++ptr];
       h2.skip = head[remain].skip = remain;
-      h2.free.next = link.next;
+      back(h2.free.next = link.next, ptr);
     }
     else
       ptr = link.next;
@@ -1358,18 +1358,17 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
     if(beg) {
       const auto & f = rm[1].free;
       Skip & up = ptr == i + 1 ? ptr : s[f.prev].free.next;
-      if(end)
-        up = f.next; // remove right-hand run from list
+      if(end) // remove right-hand run from list
+        back(up = f.next, f.prev);
       else {
-        --up;
+        back(f.next, --up);
         rm->reset(f.prev, f.next);
       }
     }
     else if(!end) { // new run
       Skip & up = ptr ? ptr : s.front().free.next; // keep element 0 first
-      if(!ptr && up < n)
-        s[up].free.prev = i;
       rm->reset(ptr && ptr < n ? /* size: */ s[ptr].free.prev : ptr, up);
+      back(up, i);
       up = i;
     }
     --s[ptr].free.prev;
@@ -1399,6 +1398,12 @@ private:
         b.skip = s.back().skip = n - 1;
       }
     }
+  }
+
+  KOKKOS_INLINE_FUNCTION void back(Skip next, Skip prev) const {
+    const auto s = this->span();
+    if(next < s.size())
+      s[next].free.prev = prev;
   }
 };
 
