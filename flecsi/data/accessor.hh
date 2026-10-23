@@ -1326,17 +1326,14 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
     Skip &ptr = s.front().skip, ret = ptr;
     assert(ret != n && "too many particles");
     auto * const head = &s[ret];
-    Skip & skip = head->skip;
     const auto link = head->emplace(std::forward<AA>(aa)...);
-    if(!ret || skip == 1) // erasing a run
-      ptr = link.next;
-    else { // shrinking a run
+    if(const Skip remain = ret ? std::exchange(head->skip, 0) - 1 : 0) {
       auto & h2 = s[++ptr];
-      h2.skip = head[skip - 1].skip = skip - 1;
+      h2.skip = head[remain].skip = remain;
       h2.free.next = link.next;
     }
-    if(ret)
-      skip = 0;
+    else
+      ptr = link.next;
     if(ptr != n) // update size
       s[ptr].free.prev = link.prev + 1;
     return {this, ret};
