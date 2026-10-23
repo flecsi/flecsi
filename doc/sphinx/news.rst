@@ -27,6 +27,10 @@ Possible incompatibilities
 
 Fixed
 ^^^^^
+* Data
+
+  * ``ragged`` and ``sparse`` fields destroy non-trivial elements properly.
+
 * Execution
 
   * Elements of ``std::vector`` task arguments can be moved into their parameters.

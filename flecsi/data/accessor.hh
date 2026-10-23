@@ -325,7 +325,7 @@ struct ragged_accessor
         flog_assert(!cp, "copy_plan selected for ragged field");
         reg.ghost<P>(i); // restore any dirty flag cleared by the copy itself
       }
-      if constexpr(!std::is_trivially_destructible_v<T>)
+      if constexpr(privilege_discard(P) && !std::is_trivially_destructible_v<T>)
         r.cleanup([r] { detail::destroy<P>(r); });
       // Resize after the ghost copy (which can add elements and can perform
       // its own resize) rather than in the mutator before getting here:
