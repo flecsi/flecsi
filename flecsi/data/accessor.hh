@@ -332,7 +332,7 @@ struct ragged_accessor
         flog_assert(!cp, "copy_plan selected for ragged field");
         reg.ghost<P>(i); // restore any dirty flag cleared by the copy itself
       }
-      if constexpr(!std::is_trivially_destructible_v<T>)
+      if constexpr(privilege_discard(P) && !std::is_trivially_destructible_v<T>)
         r.cleanup([r] { detail::destroy<P>(r); });
       // Resize after the ghost copy (which can add elements and can perform
       // its own resize) rather than in the mutator before getting here:
@@ -1333,17 +1333,14 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
     Skip &ptr = s.front().skip, ret = ptr;
     assert(ret != n && "too many particles");
     auto * const head = &s[ret];
-    Skip & skip = head->skip;
     const auto link = head->emplace(std::forward<AA>(aa)...);
-    if(!ret || skip == 1) // erasing a run
-      ptr = link.next;
-    else { // shrinking a run
+    if(const Skip remain = ret ? std::exchange(head->skip, 0) - 1 : 0) {
       auto & h2 = s[++ptr];
-      h2.skip = head[skip - 1].skip = skip - 1;
-      h2.free.next = link.next;
+      h2.skip = head[remain].skip = remain;
+      back(h2.free.next = link.next, ptr);
     }
-    if(ret)
-      skip = 0;
+    else
+      ptr = link.next;
     if(ptr != n) // update size
       s[ptr].free.prev = link.prev + 1;
     return {this, ret};
@@ -1368,18 +1365,17 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
     if(beg) {
       const auto & f = rm[1].free;
       Skip & up = ptr == i + 1 ? ptr : s[f.prev].free.next;
-      if(end)
-        up = f.next; // remove right-hand run from list
+      if(end) // remove right-hand run from list
+        back(up = f.next, f.prev);
       else {
-        --up;
+        back(f.next, --up);
         rm->reset(f.prev, f.next);
       }
     }
     else if(!end) { // new run
       Skip & up = ptr ? ptr : s.front().free.next; // keep element 0 first
-      if(!ptr && up < n)
-        s[up].free.prev = i;
       rm->reset(ptr && ptr < n ? /* size: */ s[ptr].free.prev : ptr, up);
+      back(up, i);
       up = i;
     }
     --s[ptr].free.prev;
@@ -1409,6 +1405,12 @@ private:
         b.skip = s.back().skip = n - 1;
       }
     }
+  }
+
+  KOKKOS_INLINE_FUNCTION void back(Skip next, Skip prev) const {
+    const auto s = this->span();
+    if(next < s.size())
+      s[next].free.prev = prev;
   }
 };
 

@@ -90,6 +90,11 @@ static_assert(good<false,
   std::vector<std::tuple<int &>> &&>);
 static_assert(good<false,
   true,
+  std::vector<std::tuple<const long &>>,
+  std::vector<std::tuple<int &>> &&,
+  std::vector<std::tuple<long>>>);
+static_assert(good<false,
+  true,
   const std::vector<std::tuple<const int &>> &,
   std::vector<std::tuple<int &>> &&,
   std::vector<std::tuple<const int &>>>);
@@ -155,9 +160,13 @@ seq(const T & s, F f) noexcept {
 namespace {
 struct synch {
   static int task(const short & s, // check argument conversions
-    int i,
-    const std::atomic<int> & /* immovable */) noexcept {
-    return s - i;
+    std::tuple<int> i,
+    const Color * cp,
+    const Color & cc,
+    const std::atomic<int> & /* immovable */,
+    std::vector<long>,
+    std::vector<std::tuple<const long &>>) noexcept {
+    return s - std::get<0>(i) + (cp != &cc);
   }
   static constexpr bool synchronous = true;
 };
@@ -176,8 +185,15 @@ half_mpi(exec::cpu s,
     ++*fail;
 }
 
-void
-vb(const std::vector<bool> &, const std::vector<long> &) noexcept {}
+int
+vb(const std::vector<bool> &,
+  const std::vector<long> &,
+  const std::vector<std::unique_ptr<const int>> & u) noexcept {
+  UNIT() {
+    ASSERT_FALSE(u.empty());
+    EXPECT_EQ(*u.front(), 3);
+  };
+}
 
 Color
 over(exec::group::match,
@@ -384,9 +400,22 @@ task_driver(scheduler & s) {
       EXPECT_EQ(fail, 0);
       s.execute<pm>(mut); // size inherited from half_mpi
     }
-    EXPECT_EQ(s.test<synch>(1, 1, std::atomic<int>()), 0);
+    EXPECT_EQ(s.test<synch>(1,
+                util::convert([] { return 1; }),
+                &np,
+                // This is incompatible with libc++ at least through 23.1.0:
+                util::convert([&]() -> Color & { return np; }),
+                std::atomic<int>(),
+                std::vector<int>(),
+                std::vector<std::tuple<int>>()),
+      0);
 
-    s.execute<vb>(std::vector<bool>(1), std::vector<int>());
+    {
+      std::vector<std::unique_ptr<int>> u;
+      u.push_back(std::make_unique<int>(3));
+      EXPECT_EQ(
+        s.test<vb>(std::vector<bool>(1), std::vector<int>(), std::move(u)), 0);
+    }
 
     const exec::launch_domain extra{
       np + 4 * ((FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
