@@ -29,6 +29,7 @@ Fixed
 ^^^^^
 * Data
 
+  * ``particle`` fields reuse slots properly.
   * ``ragged`` and ``sparse`` fields destroy non-trivial elements properly.
 
 * Execution
