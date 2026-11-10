@@ -21,8 +21,6 @@ struct ntree_base : base {
     nodes, /// Index space for nodes related fields
     hashmap,
     tree_data,
-    comms,
-    share_ghosts_comms,
     // Buffer for the top tree entities used during the make_tree
     // phase. This is used to perform an AllGather via multi
     // accessors.
@@ -31,24 +29,12 @@ struct ntree_base : base {
     // phase. This is used to perform an AllGather via multi
     // accessors.
     top_tree_nodes,
-    // Buffer for the color/id. It contains the local
-    // entities used elsewhere to find
-    // neighbors during the share_ghosts phase. This is
-    // used to perform an AllToAllv. We are using the
-    // entities index space as the receiving buffer of
-    // the buffer copy in this case.
+    // Per-color send/receive counts used to size the ghost copies
+    share_ghosts_comms,
+    // Candidate entities broadcast to potential neighbors (requests)
     share_ghosts_cid_comm,
-    // Buffer for the neighbors entities. This
-    // temporary buffer stores the information for the
-    // AllToAllv communication in the share_ghosts
-    // phase.
-    share_ghosts_buffer_comm,
-    // Buffer containing the neighbor
-    // entities, result of the AllToAllv
-    // communication from
-    // share_ghosts_buffer_comm. This is used
-    // in the share_ghosts phase.
-    share_ghosts_distant_buffer_comm
+    // Neighbor ghosts sent back
+    share_ghosts_buffer_comm
   };
 
   /// \hideinitializer The specialization developer is required to use the index
@@ -57,13 +43,11 @@ struct ntree_base : base {
     nodes,
     hashmap,
     tree_data,
-    comms,
     share_ghosts_comms,
     top_tree_ents,
     top_tree_nodes,
     share_ghosts_cid_comm,
-    share_ghosts_buffer_comm,
-    share_ghosts_distant_buffer_comm>;
+    share_ghosts_buffer_comm>;
   /// Parallel types for nodes and entities.
   enum ptype_t {
     exclusive, ///< Owned data.
@@ -115,18 +99,11 @@ protected:
     util::id ghosts;
     // #ghosts nodes in the top_tree
     util::id top_tree;
-    // #entities received during the first and second AllToAllv buffer copy in
-    // share_ghosts phase
-    util::id nents_recv, nents_recv_2;
+    // #entities received during the first and second exchange in share_ghosts
+    util::id nrequests_recv, nneighbors_recv;
     // Total #entities and #nodes received from make_tree_distributed_task to
     // create top tree copy plans
     util::id cp_nents_tt, cp_nnodes_tt;
-  };
-
-  struct color_id {
-    Color color;
-    ent_id id;
-    Color from_color;
   };
 
   static void set_dests(
