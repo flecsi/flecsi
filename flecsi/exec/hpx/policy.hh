@@ -46,13 +46,9 @@ reduce_internal(Args &&... args) {
   // params, especially for the future<>. This is being achieved by creating the
   // prolog<> instances below.
 
-  const auto ds = launch::size(args...);
-  static constexpr bool single =
-    std::is_same_v<decltype(ds), const std::monostate>;
-
   // The prolog will calculate dependencies between tasks based on the
   // attributes associated with the arguments.
-  prolog<launch::proc> bound_params(params, args...);
+  auto [bound_params, ds] = launch::prepare(params, args...);
 
   if constexpr(launch::mpi)
     scheduler::instance->wait();
@@ -85,9 +81,9 @@ reduce_internal(Args &&... args) {
     if(need_comm)
       bound_params.request_comm();
     auto ret = std::make_from_tuple<future<R,
-      std::is_void_v<Reduction> && !single ? launch_type_t::index
-                                           : launch_type_t::single>>(
-      std::move(bound_params)
+      std::is_void_v<Reduction> && !decltype(ds)::single
+        ? launch_type_t::index
+        : launch_type_t::single>>(std::move(bound_params)
         .template delay_execution<R>(
           util::symbol<F>(), std::move(apply_delayed_prolog)));
     bound_params.set_future(ret.depend());
@@ -100,7 +96,7 @@ reduce_internal(Args &&... args) {
     return launch::call(std::forward<decltype(params)>(params));
   };
 
-  if constexpr(single) {
+  if constexpr(decltype(ds)::single) {
     const bool root = flecsi::run::context::instance().process() == 0;
     if constexpr(std::is_void_v<R>) {
       if(root) {
@@ -126,7 +122,7 @@ reduce_internal(Args &&... args) {
     }
   }
   else {
-    flog_assert(ds == run::context::instance().processes(),
+    flog_assert(ds.get() == run::context::instance().processes(),
       "HPX backend supports only per-process index launches");
 
     if constexpr(!std::is_void_v<Reduction>) {

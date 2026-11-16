@@ -59,6 +59,8 @@ class param_locker {
     // other processes get ahead) less those that have already run.
     Color ref;
     util::any params; // empty if this process is behind
+    std::shared_ptr<util::mpi::group> group;
+    std::atomic<int> phases = 2; // mapping and execution
   };
 
   using Map = std::map<task_idx, task>;
@@ -76,23 +78,46 @@ class param_locker {
   }
   void run();
 
-  class guard {
-    param_locker & lk;
-    Map::iterator it;
+  // To preserve task entries until any potential group arguments have been
+  // used. Able to be called in both locked and unlocked contexts.
+  template<bool Locked>
+  void phase_done(Map::iterator it) {
+    if(--it->second.phases == 0) {
+      (Locked ? void() : void(lease())), tasks.erase(it);
+    }
+  }
 
-  public:
+  struct guard {
     guard(param_locker & lk, task_idx i) : lk(lk), it(lk.tasks.find(i)) {
       flog_assert(it != lk.tasks.end(), "no such task");
     }
-    guard(guard &&) = delete;
 
-    ~guard() {
+    param_locker & lk;
+    Map::iterator it;
+  };
+
+  struct exec_guard : private guard {
+    using guard::guard;
+    exec_guard(exec_guard &&) = delete;
+    ~exec_guard() {
       lk.send(it->first);
     }
 
     template<class T>
     T & get() const {
       return it->second.params.get<T>();
+    }
+  };
+
+  struct map_guard : private guard {
+    using guard::guard;
+    map_guard(map_guard &&) = delete;
+    ~map_guard() {
+      lk.phase_done<false>(it);
+    }
+
+    const std::shared_ptr<util::mpi::group> & get_group() const {
+      return it->second.group;
     }
   };
 
@@ -114,14 +139,17 @@ public:
     flog_assert(tasks.empty(), "abandoned parameters");
   }
 
-  [[nodiscard]] task_idx add(util::any && a, Color n) {
+  [[nodiscard]] task_idx
+  add(util::any && a, std::shared_ptr<util::mpi::group> g, Color n) {
     if(n) { // otherwise no broadcast ever happens
       if(lease(), [&] {
            const auto [it, nu] = tasks.try_emplace(id, n, std::move(a));
+           it->second.group = std::move(g);
            if(!nu) {
              auto & r = it->second.ref;
-             if(!r)
-               tasks.erase(it);
+             if(!r) {
+               phase_done<true>(it);
+             }
              else {
                it->second.params = std::move(a);
                if(!(r += n)) {
@@ -136,8 +164,12 @@ public:
     }
     return id++;
   }
-  guard at(task_idx i) {
-    return lease(), guard(*this, i);
+  exec_guard execute(task_idx i) {
+    return lease(), exec_guard(*this, i);
+  }
+
+  map_guard map(task_idx i) {
+    return lease(), map_guard(*this, i);
   }
 
   thread clean() {

@@ -111,6 +111,9 @@ struct launch<P, data::multi_reference<T, L, Topo, S>> {
 template<class T>
 struct launch_combine {
   launch_combine(const T & t) : t(t) {} // for CTAD
+
+  static constexpr bool single = !std::is_same_v<T, Index>;
+
   // TIP: fold-expression allows different types at each level
   template<class U>
   auto & operator|(const launch_combine<U> & c) const {
@@ -134,7 +137,7 @@ struct launch_combine {
     return t;
   }
   auto get() const {
-    if constexpr(std::is_same_v<T, Index>)
+    if constexpr(!single)
       return t.value_or(0);
     else
       return std::monostate();
@@ -193,9 +196,10 @@ struct consistent_variants
 /// An MPI group of processes on which to execute a task.
 /// Use for external resources that must be accessed per-process.
 /// Declare a task parameter as a \c match or \c concurrent to select it.
-/// \note In the current implementation, the only group available is that of
-///   \c MPI_COMM_WORLD.
+/// Except with the Legion backend, only the (usual) sequence of all processes
+/// may be used.
 struct group : data::convert_tag {
+  using ptr = std::shared_ptr<util::mpi::group>;
   /// A featureless task parameter for using a \c group.
   /// Each point task for a task using one runs on the process with the
   /// corresponding rank in the group (so such a launch must have a size no
@@ -213,6 +217,20 @@ struct group : data::convert_tag {
   ///   point tasks as processes.
   struct concurrent : match {};
 
+  /// Construct from an arbitrary MPI group (Legion only).
+  /// \param g ownership transferred to the `group`
+  explicit group(MPI_Group g) : group(util::mpi::group(g)) {
+    if(FLECSI_BACKEND != FLECSI_BACKEND_legion &&
+       p->diff(util::mpi::group::world())) {
+      flog_fatal("custom groups require use of the Legion backend");
+    }
+  }
+
+  /// Access the owned MPI group.
+  operator MPI_Group() {
+    return *p;
+  }
+
 #ifdef DOXYGEN
   /// Copyable.
   group(const group &);
@@ -220,11 +238,17 @@ struct group : data::convert_tag {
 
   /// Construct with the group of \c MPI_COMM_WORLD.
   static group world() {
-    return {};
+    return util::mpi::group::world();
+  }
+
+  ptr view() const {
+    return p;
   }
 
 private:
-  group() = default;
+  group(util::mpi::group g)
+    : p(std::make_shared<util::mpi::group>(std::move(g))) {}
+  ptr p;
 };
 /// \}
 } // namespace exec
@@ -341,6 +365,11 @@ constexpr bool has_param<P &&, F> = has_param<P, F>;
 
 template<class... PP, template<class> class F>
 constexpr bool has_param<std::tuple<PP...>, F> = (has_param<PP, F> || ...);
+template<class P, template<class> class F>
+constexpr bool has_param<std::optional<P>, F> = has_param<P, F>;
+template<class... PP, template<class> class F>
+constexpr bool has_param<std::variant<PP...>, F> = (has_param<PP, F> || ...);
+
 template<class P, template<class> class F>
 constexpr bool has_param<std::vector<P>, F> = has_param<P, F>;
 
@@ -689,27 +718,11 @@ struct launch {
     return protocol::template make_parameters<mapped>(
       static_cast<Params *>(nullptr), std::forward<AA>(aa)...);
   }
-  // Return the number of point tasks for the given arguments, or
-  // std::monostate() if a single launch is appropriate.
-  template<class... AA>
-  static auto size(const AA &... aa) {
-    return [sz = detail::launch_size<Params>(aa...)] {
-      // When we have general communicators, we can treat their sizes as a
-      // secondary information source that is ignored for mapped tasks.
-      if constexpr(comm && !mapped) {
-        return sz | detail::launch_combine(
-                      detail::Index(run::context::instance().processes()));
-      }
-      else {
-        if constexpr(matched && !mapped)
-          if(const auto n = sz.get(), p = run::context::instance().processes();
-            n > p)
-            flog_fatal(n << " point tasks for " << p << " processes in group");
-        return sz;
-      }
-    }()
-             .get();
-  }
+
+  // Returns the prolog and the number of point tasks for the given arguments
+  // (or std::monostate() if a single launch is appropriate).
+  template<class P, class... AA>
+  static auto prepare(P &, AA &&...);
 
   template<class P>
   static auto call(P && params) noexcept {
@@ -1186,7 +1199,7 @@ struct task_param<group::match> {
 };
 template<>
 struct task_param<group::concurrent> {
-  static group::match replace(const group &) {
+  static group::concurrent replace(const group &) {
     return {};
   }
 };

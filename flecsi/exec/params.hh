@@ -136,6 +136,8 @@ struct prolog : task_prolog<Proc> {
       p->set(f);
   }
 
+  exec::group::ptr group;
+
 private:
   template<class A>
   auto visitor(A & a) {
@@ -160,6 +162,22 @@ private:
         visit(local, std::forward<decltype(f)>(f));
       },
       std::move(a).get());
+  }
+
+  void store(const exec::group & g) {
+    if(auto p = g.view()) {
+      if(group && p->diff(*group))
+        flog_fatal("contradictory groups passed");
+      group = std::move(p);
+    }
+  }
+
+  void visit(group::match &, const exec::group & g) {
+    store(g);
+  }
+
+  void visit(group::concurrent &, const exec::group & g) {
+    store(g);
   }
 
   template<class P, class A>
@@ -228,6 +246,39 @@ private:
 
   std::vector<point_mutex *> mutexes;
 };
+
+template<auto & F, TaskAttributes A>
+template<class P, class... AA>
+auto
+launch<F, A>::prepare(P & p, AA &&... aa) {
+  prolog<proc> pro(p, aa...);
+  const auto procs =
+    pro.group ? pro.group->size() : run::context::instance().processes();
+  // size is the number of point tasks for the given arguments, or
+  // std::monostate() if a single launch is appropriate.
+  auto size = [sz = detail::launch_size<Params>(aa...)](
+                [[maybe_unused]] auto procs) {
+    // When we have general communicators, we can treat their sizes as a
+    // secondary information source that is ignored for mapped tasks.
+    if constexpr(comm && !mapped) {
+      return sz | detail::launch_combine(detail::Index(procs));
+    }
+    else {
+      if constexpr(matched && !mapped &&
+                   !std::is_same_v<decltype(sz.get()), std::monostate>)
+        if(const auto n = sz.get(); n > procs)
+          flog_fatal(
+            n << " point tasks for " << procs << " processes in group");
+      return sz;
+    }
+  }(procs);
+
+  // A comm::ref also makes a task matched, but it (currently) implies the world
+  // group.
+  if(matched && !comm && !pro.group)
+    flog_fatal("mapped task launched without a group");
+  return std::make_pair(std::move(pro), size);
+}
 
 template<processor Proc>
 struct bind_parameters : bind_accessors<Proc> {

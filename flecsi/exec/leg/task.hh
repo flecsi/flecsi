@@ -178,7 +178,7 @@ task_wrapper(const Legion::Task * task,
     return call(*static_cast<parameters<Params> *>(c.sync_params));
   }
   else
-    return call(c.params.at(run::get1<run::task_idx>(*task))
+    return call(c.params.execute(run::get1<run::task_idx>(*task))
         .get<parameters<
           typename L::protocol::template param_storage_t<Params>>>());
 }

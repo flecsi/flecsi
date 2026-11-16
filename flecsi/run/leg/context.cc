@@ -146,7 +146,7 @@ param_locker::run() {
       else if(lease(), [&, it = tasks.try_emplace(i).first] {
                 const bool zero = !--it->second.ref;
                 if(zero) {
-                  tasks.erase(it);
+                  phase_done<true>(it);
                   if(closed && tasks.empty())
                     done = true;
                 }
@@ -162,8 +162,9 @@ param_locker::run() {
       lease(), [&] {
         // If we haven't launched the task yet, make a blocking placeholder:
         const auto [it, nu] = tasks.try_emplace(i);
-        if(!nu)
-          tasks.erase(it);
+        if(!nu) {
+          phase_done<true>(it);
+        }
       }();
 }
 

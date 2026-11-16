@@ -5,10 +5,12 @@
 #define FLECSI_RUN_LEG_MAPPER_HH
 
 #include "../backend.hh"
+#include "flecsi/exec/launch.hh"
 #include "flecsi/util/color_map.hh"
 
 #include <legion.h>
 #include <mappers/default_mapper.h>
+#include <mappers/mapping_utilities.h>
 
 #include <iomanip>
 
@@ -167,6 +169,29 @@ public:
     output.chosen_instances[indx].push_back(
       get_instance(ctx, name(task), target_mem, layout_constraints, {r}));
   } // create_instance
+
+  void select_task_options(const Legion::Mapping::MapperContext ctx,
+    const Legion::Task & task,
+    Legion::Mapping::Mapper::TaskOptions & output) override {
+    DefaultMapper::select_task_options(ctx, task, output);
+    // Mysteriously, the top-level task has 16 bytes of argument.
+    if(task.arglen == sizeof(task_idx)) {
+      if(auto group = run::context::instance()
+           .params.map(run::get1<task_idx>(task))
+           .get_group();
+        group && node_id < static_cast<std::size_t>(group->size())) {
+        // Prevent tracing to preserve group semantics.
+        output.memoize = false;
+        const int id = node_id;
+        int world_rank;
+        MPI_Group_translate_ranks(*group, 1, &id, world, &world_rank);
+        const auto & space =
+          runtime->find_forward_MPI_mapping(ctx).at(world_rank);
+        output.initial_proc =
+          node_id == space ? local_cpus[0] : remote_cpus[space];
+      }
+    }
+  }
 
   /// Implement \c gpu and \c omp tags and reuse or create
   /// appropriate SoA instances.
@@ -389,6 +414,7 @@ public:
   } // map_copy
 
 private:
+  util::mpi::group world = util::mpi::group::world();
   static std::string name(const Legion::Task & t) {
     std::ostringstream s;
     s << "task " << std::quoted(t.get_task_name());

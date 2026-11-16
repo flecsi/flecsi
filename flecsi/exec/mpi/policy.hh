@@ -34,17 +34,17 @@ reduce_internal(Args &&... args) {
   // replace arguments in args, for example, field_reference -> accessor.
   auto params = launch::params(std::forward<Args>(args)...);
 
-  prolog<launch::proc> pro(params, args...);
+  auto [pro, ds] = launch::prepare(params, args...);
+
   auto storage = pro.detach();
   bind_parameters<launch::proc> bp(params, storage);
 
   run::context_t::depth_guard rg;
   run::task_local_base::guard tlg;
 
-  const auto ds = launch::size(args...);
   const auto task = [&params] { return launch::call(std::move(params)); };
   auto ret = [&] {
-    if constexpr(std::is_same_v<decltype(ds), const std::monostate>) {
+    if constexpr(std::is_same_v<decltype(ds.get()), std::monostate>) {
       const bool root = !flecsi::run::context::instance().process();
       // single launch, only invoke the user task on the Root.
       if constexpr(std::is_void_v<R>) {
@@ -68,7 +68,7 @@ reduce_internal(Args &&... args) {
       }
     }
     else {
-      if(ds != run::context::instance().processes())
+      if(ds.get() != run::context::instance().processes())
         flog_fatal("MPI backend supports only per-process index launches");
       if constexpr(!std::is_void_v<Reduction>) {
         static_assert(!std::is_void_v<R>, "cannot reduce void results");

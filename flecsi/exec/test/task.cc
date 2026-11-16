@@ -205,6 +205,23 @@ over(exec::group::match,
   return 2 * t.index - t.size + 1 + !t.index;
 }
 
+// Point task i must run on world rank ranks[i].
+// An empty optional group is fine as long as a real group is also present.
+[[maybe_unused]] int
+on_ranks(exec::cpu s,
+  exec::group::match,
+  std::optional<exec::group::match>,
+  std::vector<int> ranks,
+  exec::launch_domain) noexcept {
+  UNIT("TASK") {
+    const auto i = s.launch().index;
+    ASSERT_LT(i, ranks.size());
+    EXPECT_EQ(run::context::instance().process(), Color(ranks[i]));
+  };
+}
+
+// group::concurrent supported only with Legion commit 01044fba
+
 int
 index_task(const flecsi::runtime * r, exec::launch_domain) noexcept {
   UNIT("TASK") {
@@ -428,6 +445,25 @@ task_driver(scheduler & s) {
       np);
 
     EXPECT_EQ(s.test<index_task>(&s.runtime(), extra), 0);
+
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
+    if(np >= 4) {
+      auto world = util::mpi::group::world();
+      const auto sub = [&](const std::vector<int> & ranks) {
+        MPI_Group g;
+        MPI_Group_incl(world, ranks.size(), ranks.data(), &g);
+        return exec::group(g);
+      };
+
+      const std::vector<int> sparse{3, 1};
+      EXPECT_EQ(s.test<on_ranks>(exec::on,
+                  sub(sparse),
+                  std::nullopt,
+                  sparse,
+                  exec::launch_domain{Color(sparse.size())}),
+        0);
+    }
+#endif
 
     // Test reduction
     const int vpp = 5;

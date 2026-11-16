@@ -109,6 +109,10 @@ template<>
 struct traits<MPI_Op_free> {
   static inline const MPI_Op null = MPI_OP_NULL;
 };
+template<>
+struct traits<MPI_Group_free> {
+  static inline const MPI_Group null = MPI_GROUP_NULL;
+};
 
 template<auto & F>
 struct unique {
@@ -205,6 +209,32 @@ private:
 
 private:
   std::vector<any> v;
+};
+
+struct group : detail::unique<MPI_Group_free> {
+  group() = default;
+  // Takes ownership of g.
+  explicit group(MPI_Group g) {
+    *out() = g;
+  }
+
+  int size() const {
+    int n;
+    test(MPI_Group_size(*this, &n));
+    return n;
+  }
+
+  bool diff(const group & other) const {
+    int r;
+    test(MPI_Group_compare(*this, other, &r));
+    return r != MPI_IDENT;
+  }
+
+  static group world() {
+    group ret;
+    test(MPI_Comm_group(MPI_COMM_WORLD, ret.out()));
+    return ret;
+  }
 };
 
 struct comm : detail::unique<MPI_Comm_free> {

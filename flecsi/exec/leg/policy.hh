@@ -39,15 +39,11 @@ reduce_internal(Args &&... args) {
   auto & flecsi_context = run::context::instance();
   auto legion_runtime = Legion::Runtime::get_runtime();
   auto legion_context = Legion::Runtime::get_context();
-
-  const auto domain_size = launch::size(args...);
-  static constexpr bool single =
-    std::is_same_v<decltype(domain_size), const std::monostate>;
-
   util::any any;
   auto & params =
     any.emplace(leg::parameters(launch::params(std::forward<Args>(args)...)));
-  prolog<launch::proc> pro(params.params, args...);
+  auto [pro, domain_size] =
+    launch::prepare(params.params, std::forward<Args>(args)...);
   params.which = std::move(pro).bindings();
   std::optional<leg::parameters<typename launch::Params>> sync_params;
   std::vector<std::byte> buf;
@@ -57,12 +53,12 @@ reduce_internal(Args &&... args) {
     flecsi_context.sync_params = &sync_params.emplace(std::move(params));
   }
   else {
-    buf =
-      util::serial::put_tuple(flecsi_context.params.add(std::move(any), [&] {
-        if constexpr(single)
+    buf = util::serial::put_tuple(
+      flecsi_context.params.add(std::move(any), pro.group, [&] {
+        if constexpr(decltype(domain_size)::single)
           return 1;
         else
-          return domain_size;
+          return domain_size.get();
       }()));
   }
 
@@ -89,7 +85,7 @@ reduce_internal(Args &&... args) {
   };
 
   auto ret = [&] {
-    if constexpr(single) {
+    if constexpr(decltype(domain_size)::single) {
       TaskLauncher launcher(task, TaskArgument(buf.data(), buf.size()));
       add(launcher);
 
@@ -98,7 +94,7 @@ reduce_internal(Args &&... args) {
     }
     else {
       IndexTaskLauncher launcher(task,
-        Domain(0, static_cast<coord_t>(domain_size) - 1),
+        Domain(0, static_cast<coord_t>(domain_size.get()) - 1),
         {buf.data(), buf.size()},
         {});
       add(launcher);
