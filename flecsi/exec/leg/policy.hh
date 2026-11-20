@@ -54,7 +54,7 @@ reduce_internal(Args &&... args) {
   }
   else {
     buf = util::serial::put_tuple(
-      flecsi_context.params.add(std::move(any), pro.group, [&] {
+      flecsi_context.params.add(std::move(any), std::move(pro.group), [&] {
         if constexpr(decltype(domain_size)::single)
           return 1;
         else

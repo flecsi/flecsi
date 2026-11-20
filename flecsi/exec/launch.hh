@@ -196,8 +196,8 @@ struct consistent_variants
 /// An MPI group of processes on which to execute a task.
 /// Use for external resources that must be accessed per-process.
 /// Declare a task parameter as a \c match or \c concurrent to select it.
-/// Except with the Legion backend, only the (usual) sequence of all processes
-/// may be used.
+/// \note In the current implementation, the only group available on backends
+///   other than Legion is that of \c MPI_COMM_WORLD.
 struct group : data::convert_tag {
   using ptr = std::shared_ptr<util::mpi::group>;
   /// A featureless task parameter for using a \c group.
@@ -217,7 +217,13 @@ struct group : data::convert_tag {
   ///   point tasks as processes.
   struct concurrent : match {};
 
-  /// Construct from an arbitrary MPI group (Legion only).
+  /// Holds no group.
+  /// Must not be used as a task argument.
+  group() = default;
+
+  /// Construct from an MPI group.
+  /// Except with the Legion backend, it must be equivalent to that of
+  /// `MPI_COMM_WORLD`.
   /// \param g ownership transferred to the `group`
   explicit group(MPI_Group g) : group(util::mpi::group(g)) {
     if(FLECSI_BACKEND != FLECSI_BACKEND_legion &&
@@ -227,7 +233,7 @@ struct group : data::convert_tag {
   }
 
   /// Access the owned MPI group.
-  operator MPI_Group() {
+  operator MPI_Group() const {
     return *p;
   }
 
@@ -241,7 +247,7 @@ struct group : data::convert_tag {
     return util::mpi::group::world();
   }
 
-  ptr view() const {
+  const ptr & view() const {
     return p;
   }
 
