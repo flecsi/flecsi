@@ -243,6 +243,11 @@ struct comm : detail::unique<MPI_Comm_free> {
     test(MPI_Comm_dup(c0, ret.out()));
     return ret;
   }
+  static comm create(MPI_Comm c0, MPI_Group g) {
+    comm ret;
+    test(MPI_Comm_create(c0, g, ret.out()));
+    return ret;
+  }
   static comm split(MPI_Comm c0, int c, int k = 0) {
     comm ret;
     test(MPI_Comm_split(c0, c, k, ret.out()));

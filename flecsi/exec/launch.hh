@@ -255,8 +255,8 @@ private:
 
 /// An MPI communicator usable in a task.
 /// Declare a task parameter as a \c ref to use it.
-/// \note In the current implementation, the usable communicators are only
-///   duplicates of \c MPI_COMM_WORLD.
+/// \note In the current implementation, the only communicators available on
+///   backends other than Legion are those with the group of \c MPI_COMM_WORLD.
 ///
 /// \ns.
 /// \ingroup execution
@@ -277,8 +277,10 @@ struct comm : data::convert_tag {
 
     template<class F>
     void send(F && f) {
-      exec::point_mutex::lease param;
-      std::forward<F>(f)(param, &comm::mut);
+      exec::point_mutex::lease lease;
+      f(lease, &comm::mut);
+      exec::group::concurrent con;
+      std::forward<F>(f)(con, &comm::g);
     }
 
   private:
@@ -288,14 +290,23 @@ struct comm : data::convert_tag {
   /// Holds no communicator.
   /// Must not be used as a task argument.
   comm() = default;
+
+  /// Creates a communicator from the passed group.
+  explicit comm(const exec::group & grp)
+    : p(std::make_shared<util::mpi::comm>(
+        util::mpi::comm::create(MPI_COMM_WORLD, grp))),
+      g(grp) {}
+
   /// Movable.
   comm(comm &&) = default;
   comm & operator=(comm &&) & = default;
 
-  /// Return an object holding a duplicate of \c MPI_COMM_WORLD.
+  /// Return a new communicator with the group of \c MPI_COMM_WORLD.
   static comm world() {
-    return std::make_shared<util::mpi::comm>(
-      util::mpi::comm::dup(MPI_COMM_WORLD));
+    return comm(exec::group::world());
+  }
+  const exec::group::ptr & view() const {
+    return g.view();
   }
 
   ref use() const {
@@ -305,9 +316,8 @@ struct comm : data::convert_tag {
   }
 
 private:
-  comm(ptr p) : p(std::move(p)) {}
-
   ptr p;
+  exec::group g;
   exec::point_mutex mut;
 };
 
