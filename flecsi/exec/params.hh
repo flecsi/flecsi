@@ -164,20 +164,20 @@ private:
       std::move(a).get());
   }
 
-  void store(const exec::group & g) {
-    if(auto p = g.view()) {
-      if(group && p->diff(*group))
-        flog_fatal("contradictory groups passed");
-      group = std::move(p);
-    }
+  void store(const exec::group::ptr & g) {
+    if(!g)
+      flog_fatal("empty group object as task argument");
+    if(group && g->diff(*group))
+      flog_fatal("contradictory groups passed");
+    group = g;
   }
 
   void visit(group::match &, const exec::group & g) {
-    store(g);
+    store(g.view());
   }
 
   void visit(group::concurrent &, const exec::group & g) {
-    store(g);
+    store(g.view());
   }
 
   template<class P, class A>

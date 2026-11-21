@@ -196,7 +196,7 @@ Strong Tasks
 
 In some cases, the transparent parallelism of tasks is too limiting.
 Tasks can be executed with several stronger semantics, usually with a performance cost.
-For example, when a task is passed a ``comm`` argument, it is executed once on each process (like the control model) to allow it to use MPI correctly.
+For example, when a task is passed a ``comm`` argument, it is executed once on each member process to allow it to use MPI correctly.
 (It can use :ref:`multi-accessors` to access fields whose number of colors does not match the number of processes.)
 
 A ``mapping`` argument that is passed to a task also specifies which process runs each point task, without the restriction that exactly one point task runs on each process.
